@@ -72,6 +72,13 @@ Test_I_Target_DirectShow_TCPStream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (delete_out);
 
   Stream_Module_t* module_p = NULL;
+  ACE_NEW_RETURN (module_p,
+                  Test_I_Target_DirectShow_StatisticReport_Module (this,
+                                                                   ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
+                  false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, NULL, 0);
+  module_p = NULL;
   //Test_I_Target_DirectShow_Module_AVIDecoder_Module            decoder_;
   ACE_NEW_RETURN (module_p,
                   Test_I_Target_DirectShow_Splitter_Module (this,
@@ -79,13 +86,6 @@ Test_I_Target_DirectShow_TCPStream::load (Stream_ILayout* layout_in,
                   false);
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
-  //module_p = NULL;
-  //ACE_NEW_RETURN (module_p,
-  //                Test_I_Target_DirectShow_StatisticReport_Module (this,
-  //                                                                 ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
-  //                false);
-  //ACE_ASSERT (module_p);
-  //layout_in->append (module_p, NULL, 0);
   module_p = NULL;
 #if defined (GTK_USE)
   ACE_NEW_RETURN (module_p,

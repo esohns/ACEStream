@@ -962,6 +962,7 @@ do_work (unsigned int bufferSize_in,
     {
       directshow_modulehandler_configuration.concurrency =
         STREAM_HEADMODULECONCURRENCY_CONCURRENT;
+      directshow_modulehandler_configuration.computeThroughput = true;
       directshow_modulehandler_configuration.configuration =
         &directshow_configuration;
       directshow_modulehandler_configuration.connectionConfigurations =
@@ -995,6 +996,7 @@ do_work (unsigned int bufferSize_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediafoundation_modulehandler_configuration.computeThroughput = true;
       mediafoundation_modulehandler_configuration.configuration = &mediafoundation_configuration;
       mediafoundation_modulehandler_configuration.connectionConfigurations =
         &mediafoundation_configuration.connectionConfigurations;
@@ -1041,6 +1043,7 @@ do_work (unsigned int bufferSize_in,
 #else
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_Target_ModuleHandlerConfiguration modulehandler_configuration_2; // splitter
+  modulehandler_configuration.computeThroughput = true;
   modulehandler_configuration.concurrency =
     STREAM_HEADMODULECONCURRENCY_CONCURRENT;
   modulehandler_configuration.configuration = &configuration;
@@ -1212,10 +1215,8 @@ do_work (unsigned int bufferSize_in,
 #else
   Test_I_Target_Module_EventHandler* event_handler_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Common_TimerConfiguration timer_configuration;
-  timer_configuration.dispatch = COMMON_TIMER_DISPATCH_PROACTOR;
   Common_Timer_Manager_t* timer_manager_p =
-        COMMON_TIMERMANAGER_SINGLETON::instance ();
+    COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   long timer_id = -1;
 //  int group_id = -1;
@@ -1595,8 +1596,10 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0d: initialize regular (global) statistic reporting
-  timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (NULL);
+  Common_Timer_Tools::configuration_.dispatch =
+    useReactor_in ? COMMON_TIMER_DISPATCH_REACTOR : COMMON_TIMER_DISPATCH_PROACTOR;
+  Common_Timer_Tools::configuration_.publishSeconds = true;
+  Common_Timer_Tools::initialize ();
   if (statisticReportingInterval_in)
   {
     ACE_Time_Value interval (statisticReportingInterval_in, 0);
@@ -1609,7 +1612,8 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to schedule timer: \"%m\", returning\n")));
-      timer_manager_p->stop ();
+      //timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       goto clean;
     } // end IF
   } // end IF
@@ -1702,7 +1706,8 @@ do_work (unsigned int bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
-    timer_manager_p->stop ();
+    //timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     goto clean;
   } // end IF
 
@@ -1740,7 +1745,8 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to start GTK event dispatch, returning\n")));
-      timer_manager_p->stop ();
+      //timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       goto clean;
     } // end IF
 #endif // GTK_USE
@@ -1751,10 +1757,11 @@ do_work (unsigned int bufferSize_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      timer_manager_p->stop ();
 #if defined (GTK_USE)
       gtk_manager_p->stop (true, true);
 #endif // GTK_USE
+      // timer_manager_p->stop ();
+      Common_Timer_Tools::finalize ();
       goto clean;
     } // end IF
     BOOL was_visible_b = ::ShowWindow (window_p, SW_HIDE);
@@ -1783,7 +1790,8 @@ do_work (unsigned int bufferSize_in,
 #else
       ;
 #endif // GTK_USE
-    timer_manager_p->stop ();
+    //timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     goto clean;
   } // end IF
 
@@ -1832,6 +1840,7 @@ do_work (unsigned int bufferSize_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                       mediaFramework_in));
+          Common_Timer_Tools::finalize ();
           return;
         } // end ELSE
       } // end SWITCH
@@ -1845,7 +1854,7 @@ do_work (unsigned int bufferSize_in,
                           Test_I_Target_UDPAsynchConnector_t (true));
       ACE_ASSERT (i_udp_connector_p);
       result_2 =
-          i_udp_connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));
+        i_udp_connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));
       if (!i_udp_connector_p)
 #endif // ACE_WIN32 || ACE_WIN64
       {
@@ -1869,7 +1878,8 @@ do_work (unsigned int bufferSize_in,
 #else
           ;
 #endif // GTK_USE
-        timer_manager_p->stop ();
+        //timer_manager_p->stop ();
+        Common_Timer_Tools::finalize ();
         goto clean;
       } // end IF
       //  Stream_IInetConnector_t* iconnector_p = &connector;
@@ -1895,7 +1905,7 @@ do_work (unsigned int bufferSize_in,
 #else
           ;
 #endif // GTK_USE
-        timer_manager_p->stop ();
+        //timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         switch (mediaFramework_in)
         {
@@ -1914,12 +1924,14 @@ do_work (unsigned int bufferSize_in,
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                         mediaFramework_in));
+            Common_Timer_Tools::finalize ();
             return;
           } // end ELSE
         } // end SWITCH
 #else
         delete i_udp_connector_p; i_udp_connector_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
+        Common_Timer_Tools::finalize ();
         goto clean;
       } // end IF
 
@@ -2095,6 +2107,7 @@ do_work (unsigned int bufferSize_in,
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
                       mediaFramework_in));
+          Common_Timer_Tools::finalize ();
           return;
         } // end ELSE
       } // end SWITCH
@@ -2133,7 +2146,7 @@ do_work (unsigned int bufferSize_in,
 #else
           ;
 #endif // GTK_USE
-        timer_manager_p->stop ();
+        //timer_manager_p->stop ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
         switch (mediaFramework_in)
         {
@@ -2158,6 +2171,7 @@ do_work (unsigned int bufferSize_in,
 #else
         delete i_udp_connector_p;
 #endif // ACE_WIN32 || ACE_WIN64
+        Common_Timer_Tools::finalize ();
         goto clean;
       } // end IF
       ACE_DEBUG ((LM_DEBUG,
@@ -2240,7 +2254,8 @@ do_work (unsigned int bufferSize_in,
 #else
           ;
 #endif // GTK_USE
-        timer_manager_p->stop ();
+        //timer_manager_p->stop ();
+        Common_Timer_Tools::finalize ();
         goto clean;
       } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2359,8 +2374,6 @@ clean:
     tcp_connection_manager_p->wait ();
 #endif // ACE_WIN32 || ACE_WIN64
 
-  timer_manager_p->stop ();
-
   Common_Event_Tools::finalizeEventDispatch (event_dispatch_state_s,
                                              true,   // wait ?
                                              false); // close singletons ?
@@ -2446,6 +2459,9 @@ clean:
     } // end ELSE
   } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
+
+  // timer_manager_p->stop ();
+  Common_Timer_Tools::finalize ();
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("finished working...\n")));

@@ -2475,7 +2475,8 @@ idle_initialize_source_UI_cb (gpointer userData_in)
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-  gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  //gtk_progress_bar_set_text (progress_bar_p, ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
   gint width, height;
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
@@ -3524,6 +3525,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
+  gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
   gint width, height;
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
   gtk_progress_bar_set_pulse_step (progress_bar_p,
