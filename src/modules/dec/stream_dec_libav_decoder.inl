@@ -425,8 +425,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_s.format).c_str ())));
         if (Stream_Module_Decoder_Tools::isCompressedVideo (media_type_s.format))
-          inherited::configuration_->codecConfiguration->codecId =
-            Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
+          inherited::configuration_->codecConfiguration->codecId = Stream_Module_Decoder_Tools::AVPixelFormatToAVCodecId (media_type_s.format);
       } // end IF
       if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
         break;

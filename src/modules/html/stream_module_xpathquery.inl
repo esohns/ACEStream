@@ -158,12 +158,11 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_XPathQuery_T::handleSessionMessage"));
 
+  // sanity check(s)
+  //ACE_ASSERT (inherited::sessionData_);
+
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
-
-  // sanity check(s)
-  ACE_ASSERT (inherited::sessionData_);
-  ACE_ASSERT (message_inout);
 
   // *TODO*: remove type inferences
 //  const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
