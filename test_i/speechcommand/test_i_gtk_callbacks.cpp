@@ -2011,7 +2011,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   std::ostringstream converter;
   converter << progress_data_p->statistic.messagesPerSecond;
-  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  converter << ACE_TEXT_ALWAYS_CHAR (" mps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done ? ACE_TEXT_ALWAYS_CHAR ("")
                                    : converter.str ().c_str ()));
@@ -2253,6 +2253,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
+  gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
                              &allocation_s);
@@ -3307,7 +3308,7 @@ continue_:
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)

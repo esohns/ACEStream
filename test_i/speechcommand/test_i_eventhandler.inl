@@ -262,7 +262,7 @@ Test_I_EventHandler_T<NotificationType,
       goto continue_;
     } // end IF/lock scope
 #else
-      goto continue_;
+    goto continue_;
 #endif // GTK_USE || WXWIDGETS_USE
     for (Stream_Decoder_STT_ResultConstIterator_t iterator = data_r.words.begin ();
          iterator != data_r.words.end ();
@@ -274,8 +274,7 @@ Test_I_EventHandler_T<NotificationType,
 continue_:
     message_p = static_cast<DataMessageType*> (message_p->cont ());
     if (message_p)
-      data_r =
-        const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+      data_r = const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
   } while (message_p);
 }
 

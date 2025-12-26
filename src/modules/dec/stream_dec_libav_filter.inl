@@ -197,7 +197,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   int result = -1;
   DataMessageType* message_p = NULL;
   struct AVPacket packet_s;
-  ACE_Message_Block* message_block_p = NULL;
+  ACE_Message_Block* message_block_p = message_inout;
   uint8_t* data_p = NULL;
   size_t   data_size_i = 0;
   bool abort_session_on_error = true;
@@ -205,7 +205,6 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
-  message_block_p = message_inout;
   do
   {
     /* use the parser to split the data into frames */
@@ -577,9 +576,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                                       frame_2);
     if (result == AVERROR (EAGAIN) || result == AVERROR_EOF)
     {
-      frame_->data[0] = NULL;
-      frame_->nb_samples = 0;
-
+      //frame_->data[0] = NULL;
+      //frame_->nb_samples = 0;
       return true; // no more data
     } // end IF
     if (unlikely (result < 0))
@@ -630,9 +628,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
     //ACE_OS::memset (frame_2->data, 0, sizeof (uint8_t*[8]));
     av_frame_unref (frame_2);
   } // end WHILE
-
-  frame_->data[0] = NULL;
-  frame_->nb_samples = 0;
+  //frame_->data[0] = NULL;
+  //frame_->nb_samples = 0;
 
   return false;
 }
