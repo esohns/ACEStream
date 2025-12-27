@@ -33,6 +33,7 @@
 
 #include "common_icounter.h"
 //#include "common_iget.h"
+#include "common_ilock.h"
 #include "common_istatistic.h"
 
 #include "common_timer_resetcounterhandler.h"
@@ -51,6 +52,7 @@ class Stream_Session_Manager_T
  : public Stream_IStreamControlBase
  , public Stream_IEvent_T<NotificationType>
  , public Stream_ISessionCB
+ , public Common_ILock_T<ACE_SYNCH_USE>
  , public Common_ICounter
  //, public Common_IGetR_T<SessionDataType>
 {
@@ -100,6 +102,12 @@ class Stream_Session_Manager_T
   // implement Stream_ISessionCB
   inline virtual void onSessionBegin (Stream_SessionId_t) { ACE_NOTSUP; ACE_NOTREACHED (return;) }
   virtual void onSessionEnd (Stream_SessionId_t);
+
+  // implement Common_ILock
+  inline virtual bool lock (bool) { return lock_.acquire (NULL) == 0; }
+  // *TODO*: this is not a very clean implementation (see Common_ILock_T notes)
+  inline virtual int unlock (bool) { lock_.release (); return 0; }
+  inline virtual const ACE_SYNCH_MUTEX& getR_2 () const { return lock_; }
 
   virtual Stream_SessionId_t sessionId (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id
   virtual const SessionDataType& getR (const std::string& = ACE_TEXT_ALWAYS_CHAR ("")) const; // stream id

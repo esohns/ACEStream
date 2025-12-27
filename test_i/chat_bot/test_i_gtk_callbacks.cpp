@@ -3165,7 +3165,7 @@ continue_:
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       directshow_modulehandler_configuration_iterator =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
@@ -3183,7 +3183,7 @@ continue_:
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       mediafoundation_modulehandler_configuration_iterator =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
@@ -3207,7 +3207,7 @@ continue_:
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
