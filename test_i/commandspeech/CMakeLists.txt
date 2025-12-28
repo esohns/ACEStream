@@ -124,7 +124,7 @@ if (WIN32)
  add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
  add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
 # add_definitions (-DSWIG) # *WORKAROUND*
-endif ()
+endif (WIN32)
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
