@@ -162,13 +162,14 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   // step1: allocate message block
   ACE_ASSERT (inherited::configuration_->messageAllocator);
   ACE_ASSERT (wave.num_samples () > 0);
-  message_p = inherited::allocateMessage (wave.num_samples () * sizeof (short));
+  message_p =
+    inherited::allocateMessage (wave.num_samples () * sizeof (ACE_INT16));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ::allocateMessage(%u): \"%m\", aborting\n"),
                 inherited::mod_->name (),
-                wave.num_samples () * sizeof (short)));
+                wave.num_samples () * sizeof (ACE_INT16)));
     message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
@@ -178,10 +179,10 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
   // step2: copy data into message buffer
   wave.copy_channel (0,
-                     reinterpret_cast<short*> (message_p->wr_ptr ()),
+                     reinterpret_cast<ACE_INT16*> (message_p->wr_ptr ()),
                      0,
                      EST_ALL);
-  message_p->wr_ptr (wave.num_samples () * sizeof (short));
+  message_p->wr_ptr (wave.num_samples () * sizeof (ACE_INT16));
 
   // step3: push data downstream
   result = inherited::put_next (message_p, NULL);
