@@ -63,7 +63,7 @@ elseif (WIN32)
   set (SPEECHTOOLS_BASE_LIB_FILE "libestbase.lib")
   find_library (SPEECHTOOLS_BASE_LIBRARY ${SPEECHTOOLS_BASE_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/speech_tools/lib
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${SPEECHTOOLS_BASE_LIB_FILE}")
   if (NOT SPEECHTOOLS_BASE_LIBRARY)
    message (WARNING "could not find ${SPEECHTOOLS_BASE_LIB_FILE}, continuing")
@@ -71,7 +71,7 @@ elseif (WIN32)
   set (SPEECHTOOLS_LIB_FILE "libestools.lib")
   find_library (SPEECHTOOLS_LIBRARY ${SPEECHTOOLS_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/speech_tools/lib
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${SPEECHTOOLS_LIB_FILE}")
   if (NOT SPEECHTOOLS_LIBRARY)
    message (WARNING "could not find ${SPEECHTOOLS_LIB_FILE}, continuing")
@@ -79,7 +79,7 @@ elseif (WIN32)
   set (SPEECHTOOLS_STRING_LIB_FILE "libeststring.lib")
   find_library (SPEECHTOOLS_STRING_LIBRARY ${SPEECHTOOLS_STRING_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/speech_tools/lib
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${SPEECHTOOLS_STRING_LIB_FILE}")
   if (NOT SPEECHTOOLS_STRING_LIBRARY)
    message (WARNING "could not find ${SPEECHTOOLS_STRING_LIB_FILE}, continuing")
@@ -87,7 +87,7 @@ elseif (WIN32)
   set (FESTIVAL_LIB_FILE "libFestival.lib")
   find_library (FESTIVAL_LIBRARY ${FESTIVAL_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/festival/src/lib
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${FESTIVAL_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT FESTIVAL_LIBRARY)
@@ -98,7 +98,7 @@ elseif (WIN32)
    set (FESTIVAL_FOUND TRUE)
    set (FESTIVAL_INCLUDE_DIRS "$ENV{LIB_ROOT}/speech_tools/include;$ENV{LIB_ROOT}/festival/src/include")
    set (FESTIVAL_LIBRARIES "${SPEECHTOOLS_BASE_LIBRARY};${SPEECHTOOLS_LIBRARY};${SPEECHTOOLS_STRING_LIBRARY};${FESTIVAL_LIBRARY}")
-#   set (FESTIVAL_LIB_DIR "$ENV{LIB_ROOT}/festival/src/lib")
+#   set (FESTIVAL_LIB_DIR "$ENV{LIB_ROOT}/festival/src/lib/${CMAKE_BUILD_TYPE}")
   endif (SPEECHTOOLS_BASE_LIBRARY AND SPEECHTOOLS_LIBRARY AND SPEECHTOOLS_STRING_LIBRARY AND FESTIVAL_LIBRARY)
  endif (NOT festival_FOUND)
 endif ()

@@ -24,14 +24,10 @@ elseif (WIN32)
   endif (FAAD_LIBRARY)
  endif (VCPKG_USE)
  if (NOT FAAD_FOUND)
-  set (PATH_SUFFIX "Release")
-  if (DEFINED CMAKE_BUILD_TYPE)
-   set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
-  endif (DEFINED CMAKE_BUILD_TYPE)
   set (FAAD_LIB_FILE "faad.lib")
   find_library (FAAD_LIBRARY ${FAAD_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/faad2/build/msvc
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${FAAD_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT FAAD_LIBRARY)
@@ -41,7 +37,7 @@ elseif (WIN32)
    set (FAAD_FOUND TRUE)
    set (faad_INCLUDE_DIRS "$ENV{LIB_ROOT}/faad2/build/msvc/include")
    set (faad_LIBRARIES "${FAAD_LIBRARY}")
-   set (faad_LIB_DIR "$ENV{LIB_ROOT}/faad2/build/msvc/${PATH_SUFFIX}")
+   set (faad_LIB_DIR "$ENV{LIB_ROOT}/faad2/build/msvc/${CMAKE_BUILD_TYPE}")
   endif (NOT FAAD_LIBRARY)
  endif (NOT FAAD_FOUND)
 endif ()
