@@ -1,4 +1,4 @@
-# libACEStreamConfigVersion.cmake.in
+# ACEStreamConfigVersion.cmake.in
 
 set (PACKAGE_VERSION "@VERSION@")
  

@@ -42,14 +42,11 @@
 #define TEST_I_DEFAULT_TTS_BACKEND                     TTS_INVALID
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
-#if defined (FESTIVAL_SUPPORT)
 #define TEST_I_DEFAULT_FESTIVAL_VOICE_DIRECTORY        ""
 #define TEST_I_DEFAULT_FESTVIAL_VOICE                  "cmu_us_slt_cg"
-#endif // FESTIVAL_SUPPORT
-#if defined (FLITE_SUPPORT)
+
 #define TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY           ""
 #define TEST_I_DEFAULT_FLITE_VOICE                     "cmu_us_slt.flitevox"
-#endif // FLITE_SUPPORT
 
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
