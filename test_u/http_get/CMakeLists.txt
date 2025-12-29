@@ -11,7 +11,7 @@ if (UNIX)
  add_link_options ("LINKER:--export-dynamic")
 endif (UNIX)
 
-find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (ACENetwork
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork

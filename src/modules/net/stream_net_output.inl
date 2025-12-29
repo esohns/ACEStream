@@ -342,8 +342,8 @@ Stream_Module_Net_OutputWriter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_OutputWriter_T::handleSessionMessage"));
 
-  int result = -1;
-  Stream_Task_t* task_p = NULL;
+  // int result = -1;
+  // Stream_Task_t* task_p = NULL;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
