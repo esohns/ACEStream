@@ -228,6 +228,7 @@ acestream_dev_mic_pw_on_registry_event_global_cb (void* userData_in,
 
     const char* device_name_p =
       spa_dict_lookup (properties_in, PW_KEY_DEVICE_NAME);
+    ACE_UNUSED_ARG (device_name_p);
 
     // ACE_ASSERT (cb_data_p->registry);
     // cb_data_p->device =

@@ -6105,7 +6105,8 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-//  (*iterator_3).second.second->display.device = g_value_get_string (&value);
+  (*iterator_2).second.second->display.device = g_value_get_string (&value);
+  // (*iterator_3).second.second->display.device = g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
 

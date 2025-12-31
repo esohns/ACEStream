@@ -281,6 +281,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #else
   GDK_THREADS_ENTER ();
 #endif // GTK_CHECK_VERSION (3,6,0)
+
   surface_ =
 #if GTK_CHECK_VERSION (4,0,0)
     gdk_surface_create_similar_surface (window_in,
@@ -391,10 +392,16 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 #else
 #if defined (FFMPEG_SUPPORT)
   ACE_ASSERT ((resolution_s.width <= static_cast<unsigned int> (width_2)) && (resolution_s.height <= static_cast<unsigned int> (height_2)));
+#else
+  ACE_ASSERT ((resolution_s.format.width <= static_cast<__u32> (width_2)) && (resolution_s.format.height <= static_cast<__u32> (height_2)));
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (row_stride_i <= static_cast<unsigned int> (row_stride_2));
   ACE_ASSERT (n_channels_i == static_cast<unsigned int> (n_channels_2));
+#if GTK_CHECK_VERSION (3,10,0)
+  // ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32); // *TODO*
+#endif // GTK_CHECK_VERSION
+
 #if GTK_CHECK_VERSION (3,6,0)
 #else
   GDK_THREADS_LEAVE ();

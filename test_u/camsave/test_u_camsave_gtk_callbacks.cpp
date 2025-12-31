@@ -4558,6 +4558,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       (*directshow_stream_iterator_2).second.second->window.gdk_window =
         (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                      : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+      ACE_ASSERT ((*directshow_stream_iterator_2).second.second->window.gdk_window);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4594,7 +4595,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   (*iterator_2).second.second->window.gdk_window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                  : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
-  ACE_ASSERT ((*iterator_2).second.second->window);
+  ACE_ASSERT ((*iterator_2).second.second->window.gdk_window);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_base_p);
 

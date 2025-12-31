@@ -55,22 +55,22 @@ Stream_Module_DataBase_Tools::timestampToDatabaseString (const ACE_Time_Value& t
   std::string result;
 
   //ACE_Date_Time time_local (timestamp_in);
-  struct tm time_local;
-  time_local.tm_sec = -1;
-  time_local.tm_min = -1;
-  time_local.tm_hour = -1;
-  time_local.tm_mday = -1;
-  time_local.tm_mon = -1;
-  time_local.tm_year = -1;
-  time_local.tm_wday = -1;
-  time_local.tm_yday = -1;
-  time_local.tm_isdst = -1; // expect localtime !!!
-  // *PORTABILITY*: this isn't entirely portable so do an ugly hack
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  time_local.tm_gmtoff = 0;
-  time_local.tm_zone = NULL;
-#endif // ACE_WIN32 || ACE_WIN64
+//   struct tm time_local;
+//   time_local.tm_sec = -1;
+//   time_local.tm_min = -1;
+//   time_local.tm_hour = -1;
+//   time_local.tm_mday = -1;
+//   time_local.tm_mon = -1;
+//   time_local.tm_year = -1;
+//   time_local.tm_wday = -1;
+//   time_local.tm_yday = -1;
+//   time_local.tm_isdst = -1; // expect localtime !!!
+//   // *PORTABILITY*: this isn't entirely portable so do an ugly hack
+// #if defined (ACE_WIN32) || defined (ACE_WIN64)
+// #else
+//   time_local.tm_gmtoff = 0;
+//   time_local.tm_zone = NULL;
+// #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: compute UTC representation
   time_t time_seconds = timestamp_in.sec ();

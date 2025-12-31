@@ -4825,7 +4825,7 @@ RIFF_Scanner_wrap (yyscan_t yyscanner)
 {
   STREAM_TRACE (ACE_TEXT ("::RIFF_Scanner_wrap"));
 
-  struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
+  // struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
   Stream_Decoder_AVIParserDriver* driver = RIFF_Scanner_get_extra (yyscanner);
 
   // sanity check(s)

@@ -3080,7 +3080,7 @@ Stream_Decoder_H264_NAL_Bisector_wrap (yyscan_t yyscanner)
 {
   STREAM_TRACE (ACE_TEXT ("::Stream_Decoder_H264_NAL_Bisector_wrap"));
 
-  struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
+  // struct yyguts_t* yyg = static_cast<struct yyguts_t*> (yyscanner);
   Common_IScannerBase* iscanner_p =
     Stream_Decoder_H264_NAL_Bisector_get_extra (yyscanner);
 

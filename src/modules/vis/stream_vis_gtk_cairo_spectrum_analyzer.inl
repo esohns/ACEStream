@@ -1332,13 +1332,13 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   cairo_surface_t* surface_p = NULL;
   context_p = cbdata_p->context;
 #else
-//#define CAIRO_ERROR_WORKAROUND(X)                                \
-//  if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
-//    cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
-//    cbdata_p->context = gdk_cairo_create (cbdata_p->window);     \
-//    ACE_ASSERT (cbdata_p->context);                              \
-//    cairo_set_line_width (cbdata_p->context, 1.0);               \
-//  } // end IF
+/*#define CAIRO_ERROR_WORKAROUND(X)                                \
+ if (cairo_status (X) != CAIRO_STATUS_SUCCESS) {                \
+   cairo_destroy (cbdata_p->context); cbdata_p->context = NULL; \
+   cbdata_p->context = gdk_cairo_create (cbdata_p->window);     \
+   ACE_ASSERT (cbdata_p->context);                              \
+   cairo_set_line_width (cbdata_p->context, 1.0);               \
+ } // end IF*/
 
   context_p = cbdata_p->context;
 #endif // GTK_CHECK_VERSION ()
