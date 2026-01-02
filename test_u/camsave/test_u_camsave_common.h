@@ -551,6 +551,8 @@ struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration
 
   struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration operator= (const struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration& rhs_in)
   {
+    Stream_CamSave_ModuleHandlerConfiguration::operator= (rhs_in);
+
     area = rhs_in.area;
     if (builder)
     {

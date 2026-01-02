@@ -220,7 +220,8 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     if (save_to_file_b)
     {
 #if defined (FFMPEG_SUPPORT)
-      layout_in->append (&converter_2, branch_p, index_i);
+      if (!InlineIsEqualGUID ((*iterator).second.second->outputFormat.subtype, MEDIASUBTYPE_RGB32))
+        layout_in->append (&converter_2, branch_p, index_i);
 #endif // FFMPEG_SUPPORT
       layout_in->append (&encoder_, branch_p, index_i); // output is AVI
       layout_in->append (&fileWriter_, branch_p, index_i);
@@ -403,7 +404,7 @@ continue_:
 
   if (!Stream_Module_Decoder_Tools::loadVideoRendererGraph (CLSID_VideoInputDeviceCategory,
                                                             configuration_in.configuration_->format,
-                                                            (*iterator_2).second.second->outputFormat,
+                                                            (*iterator).second.second->outputFormat,
                                                             //(*iterator).second.second->direct3DConfiguration->presentationParameters.hDeviceWindow
                                                             NULL,
                                                             (*iterator).second.second->builder,
