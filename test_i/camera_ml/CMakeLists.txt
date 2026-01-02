@@ -607,8 +607,7 @@ if (MEDIAPIPE_SUPPORT)
  endif ()
 
  if (WIN32)
-  set (OPENCV_DIR "$ENV{LIB_ROOT}/opencv/build")
-  file (TO_CMAKE_PATH "${OPENCV_DIR}" OPENCV_DIR)
+  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/opencv/build" OPENCV_DIR)
   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
                       COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>"
                       COMMENT "Copying OpenCV DLL (Release)")

@@ -314,6 +314,14 @@ elseif (WIN32)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${WXWIDGETS_PATH})
  endif (WXWIDGETS_SUPPORT)
+
+ if (ONNXRT_SUPPORT)
+  # copy ONNX runtime DLL to the executable directory
+  add_custom_command (TARGET ${EXECUTABLE} POST_BUILD
+#                      COMMAND file (COPY_FILE "${ONNXRT_PATH}/onnxruntime.dll" "$<TARGET_FILE_DIR:${EXECUTABLE}>" ONLY_IF_DIFFERENT)
+                      COMMAND ${CMAKE_COMMAND} -E copy "${ONNXRT_PATH}/onnxruntime.dll" "$<TARGET_FILE_DIR:${EXECUTABLE}>"
+                      COMMENT "Copying onnxruntime.dll")
+ endif (ONNXRT_SUPPORT)
 endif ()
 set (ARGS "-f ${ONNX_MODEL_PATH} ${ARGS}")
 create_target_launcher (${EXECUTABLE}
