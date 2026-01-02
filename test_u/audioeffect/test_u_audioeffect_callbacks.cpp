@@ -3509,9 +3509,9 @@ get_buffer_size (gpointer userData_in)
   ACE_ASSERT (gtk_manager_p);
   const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
 
-  enum Test_U_AudioEffect_SourceType source_type_e;
-  bool has_effect_b = false;
+  // enum Test_U_AudioEffect_SourceType source_type_e;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  bool has_effect_b = false;
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -3529,14 +3529,14 @@ get_buffer_size (gpointer userData_in)
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
-      source_type_e =
-        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
+      // source_type_e =
+      //   directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
 
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      has_effect_b =
-        !InlineIsEqualGUID ((*directshow_modulehandler_configuration_iterator).second.second->effect, GUID_NULL);
+       has_effect_b =
+         !InlineIsEqualGUID ((*directshow_modulehandler_configuration_iterator).second.second->effect, GUID_NULL);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3548,8 +3548,8 @@ get_buffer_size (gpointer userData_in)
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration);
       ACE_ASSERT (mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
-      source_type_e =
-        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
+      // source_type_e =
+      //   mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
       break;
     }
     default:
@@ -3568,8 +3568,8 @@ get_buffer_size (gpointer userData_in)
   ACE_ASSERT (ui_cb_data_p->configuration);
   ACE_ASSERT (ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
-  source_type_e =
-    ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
+  // source_type_e =
+  //   ui_cb_data_p->configuration->streamConfiguration.configuration_->sourceType;
 #endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -4313,7 +4313,17 @@ idle_initialize_UI_cb (gpointer userData_in)
   enum Stream_Visualization_SpectrumAnalyzer_3DMode mode_3d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID;
   GtkDrawingArea* drawing_area_p = NULL;
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,10,0)
+#else
   gint tooltip_timeout = COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
+#endif // GTK_CHECK_VERSION (3,10,0)
+#else
+#if GTK_CHECK_VERSION (2,12,0) // *TODO*: this seems to be wrong
+  gint tooltip_timeout = COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
+#endif // GTK_CHECK_VERSION (2,12,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
+
 #if defined (GTKGL_SUPPORT)
   GtkBox* box_p = NULL;
   Common_UI_GTK_GLContextsIterator_t opengl_contexts_iterator;
@@ -5363,15 +5373,15 @@ continue_2:
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
 #if GTK_CHECK_VERSION (3,0,0)
-//#if GTK_CHECK_VERSION(3,10,0)
-//#else
-  g_object_set (G_OBJECT (drawing_area_p),
+#if GTK_CHECK_VERSION (3,10,0)
+#else
+  g_object_set (gtk_settings_get_default (),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
                 NULL);
-//#endif // GTK_CHECK_VERSION (3,10,0)
+#endif // GTK_CHECK_VERSION (3,10,0)
 #else
-#if GTK_CHECK_VERSION(2,12,0) // *TODO*: this seems to be wrong
-  g_object_set (G_OBJECT (drawing_area_p),
+#if GTK_CHECK_VERSION (2,12,0) // *TODO*: this seems to be wrong
+  g_object_set (gtk_settings_get_default (),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout,
                 NULL);
 #endif // GTK_CHECK_VERSION (2,12,0)

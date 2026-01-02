@@ -80,16 +80,14 @@ class Stream_Module_ONNXRuntime_T
                                      bool&);               // return value: pass message downstream ?
 
  protected:
-  OrtApi*        APIHandle_;
-  OrtEnv*        env_;
-  OrtMemoryInfo* memory_info_;
-  OrtSession*    session_;
+  OrtApi*                   APIHandle_;
+  OrtEnv*                   env_;
+  OrtMemoryInfo*            memory_info_;
+  OrtSession*               session_;
 
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T (const Stream_Module_ONNXRuntime_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T& operator= (const Stream_Module_ONNXRuntime_T&))
+  Common_Image_Resolution_t resolution_;
 
+  // helper methods
   void hwc_to_chw (const uint8_t*, // data
                    unsigned int,   // height
                    unsigned int,   // width
@@ -98,6 +96,11 @@ class Stream_Module_ONNXRuntime_T
                    unsigned int, // height
                    unsigned int, // width
                    uint8_t*);    // data
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T (const Stream_Module_ONNXRuntime_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_ONNXRuntime_T& operator= (const Stream_Module_ONNXRuntime_T&))
 };
 
 //////////////////////////////////////////

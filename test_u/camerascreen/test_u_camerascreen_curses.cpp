@@ -85,7 +85,8 @@ curses_init (struct Common_UI_Curses_State* state_in)
   char* string_p = NULL;
   mmask_t mouse_mask = 0;
 
-  setlocale (LC_ALL, "en_US.UTF-8");
+  // setlocale (LC_ALL, "en_US.UTF-8");
+  setlocale (LC_ALL, "");
 
   // lock state
   ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_p->lock, false);
@@ -219,6 +220,14 @@ curses_init (struct Common_UI_Curses_State* state_in)
     result = ERR;
     goto error;
   } // end IF
+
+  // result = scrollok (state_p->std_window, FALSE);
+  // if (unlikely (result == ERR))
+  // {
+  //   ACE_DEBUG ((LM_ERROR,
+  //               ACE_TEXT ("failed to scrollok(), aborting\n")));
+  //   goto error;
+  // } // end IF
 
   return true;
 

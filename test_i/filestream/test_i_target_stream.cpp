@@ -84,7 +84,7 @@ Test_I_Target_TCPStream::initialize (const typename inherited::CONFIGURATION_T& 
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   struct Test_I_Target_SessionData* session_data_p = NULL;
   bool reset_setup_pipeline = false;
-  Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
+  // Test_I_Target_Module_TCP_Writer_t* netIO_impl_p = NULL;
   Test_I_SessionManager_2* session_manager_p =
     Test_I_SessionManager_2::SINGLETON_T::instance ();
 

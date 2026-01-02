@@ -96,7 +96,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
                        ConnectorType>::initialize (const CONFIGURATION_T& configuration_in)
 #else
                        ConnectorType>::initialize (const typename inherited::CONFIGURATION_T& configuration_in)
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_Stream_T::initialize"));
 
@@ -124,7 +124,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
                 ACE_TEXT (stream_name_string_)));
-    return false;
+    goto error;
   } // end IF
   const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     setup_pipeline;
@@ -138,7 +138,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
                   ACE_TEXT (stream_name_string_)));
-      return false;
+      goto error;
     } // end IF
 
   // -------------------------------------------------------------
@@ -156,7 +156,7 @@ Test_I_Source_Stream_T<ConnectionManagerType,
 
   return true;
 
-failed:
+error:
   if (reset_setup_pipeline)
     const_cast<Test_I_Source_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
       setup_pipeline;

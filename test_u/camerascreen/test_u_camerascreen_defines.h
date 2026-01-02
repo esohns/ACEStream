@@ -21,7 +21,6 @@
 #ifndef TEST_U_CAMERASCREEN_DEFINES_H
 #define TEST_U_CAMERASCREEN_DEFINES_H
 
-#if defined (CURSES_SUPPORT)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_U_CURSES_CONSOLE_FONT_SIZE              4
 #define TEST_U_CURSES_CONSOLE_HEIGHT                 140
@@ -31,8 +30,6 @@
 #define TEST_U_CURSES_CONSOLE_HEIGHT                 80
 #define TEST_U_CURSES_CONSOLE_WIDTH                  240
 #endif // ACE_WIN32 || ACE_WIN64
-#endif // CURSES_SUPPORT
-
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define TEST_U_DIRECT3D_11_SHADER_FILE_NAME          "shaders.hlsl"
@@ -41,5 +38,8 @@
 
 #define TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_X 6
 #define TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y 5
+
+#define TEST_U_ONNX_MODEL_FILE_DEFAULT_STRING        "candy.onnx"
+#define TEST_U_ONNX_MODEL_RESOLUTION_DEFAULT_XY      720
 
 #endif

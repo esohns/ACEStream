@@ -246,7 +246,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  typename DataMessageType::DATA_T* data_p = NULL, *data_2 = NULL;
+  typename DataMessageType::DATA_T* data_p;
   int n_segments, n_tokens;
   std::string buffer_string;
   DataMessageType* message_p = NULL;

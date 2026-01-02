@@ -1297,8 +1297,8 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
     return EXIT_FAILURE;
   } // end IF
-next_process_id:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+next_process_id:
   window_handles_a = Common_Process_Tools::window (process_id);
   if (window_handles_a.empty ())
     goto no_window_handles;

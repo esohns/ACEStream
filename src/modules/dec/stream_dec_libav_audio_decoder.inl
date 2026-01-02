@@ -390,7 +390,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
-      struct AVCodecParameters* codec_parameters_p = NULL;
+//      struct AVCodecParameters* codec_parameters_p = NULL;
       struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
       //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
@@ -453,15 +453,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       } // end IF
       ACE_ASSERT (context_);
 
-      //codec_parameters_p = avcodec_parameters_alloc ();
-      //if (unlikely (!codec_parameters_p))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to avcodec_parameters_alloc(): \"%m\", aborting\n"),
-      //              inherited::mod_->name ()));
-      //  goto error;
-      //} // end IF
-      //codec_parameters_p->codec_type = AVMEDIA_TYPE_AUDIO;
+//      codec_parameters_p = avcodec_parameters_alloc ();
+//      if (unlikely (!codec_parameters_p))
+//      {
+//        ACE_DEBUG ((LM_ERROR,
+//                    ACE_TEXT ("%s: failed to avcodec_parameters_alloc(): \"%m\", aborting\n"),
+//                    inherited::mod_->name ()));
+//        goto error;
+//      } // end IF
+      // codec_parameters_p->codec_type = AVMEDIA_TYPE_AUDIO;
       //codec_parameters_p->codec_id = codecId_;
       ////codec_parameters_p->codec_tag = ;
       ////codec_parameters_p->extradata = NULL;
@@ -709,13 +709,14 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       else
         inherited2::free_ (media_type_2);
 
+//      if (codec_parameters_p)
+//        avcodec_parameters_free (&codec_parameters_p);
+
       break;
 
 error:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      if (codec_parameters_p)
-        avcodec_parameters_free (&codec_parameters_p);
-#endif // ACE_WIN32 || ACE_WIN64
+//      if (codec_parameters_p)
+//        avcodec_parameters_free (&codec_parameters_p);
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 

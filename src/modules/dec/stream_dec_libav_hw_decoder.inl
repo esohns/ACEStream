@@ -148,8 +148,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_LibAV_HW_Decoder_T::initialize"));
 
-  int result = -1;
-
   if (inherited::isInitialized_)
   {
     if (context_)
@@ -453,7 +451,9 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       int flags, flags2;
       struct AVBufferRef* hw_device_ctx_p = NULL;
       struct AVHWFramesConstraints* hw_frames_constraints_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
       Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
 
       codec_p =

@@ -388,6 +388,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
 
       high_priority_b = true;
+      ACE_UNUSED_ARG (high_priority_b);
+
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -675,35 +677,13 @@ end:
                     buffer_a,
                     file_information.size_));
       } // end IF
+
       break;
     }
     default:
       break;
   } // end SWITCH
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType>
-//bool
-//Stream_Module_FileWriter_T<ACE_SYNCH_USE,
-//                           TimePolicyType,
-//                           ConfigurationType,
-//                           ControlMessageType,
-//                           DataMessageType,
-//                           SessionMessageType>::initialize (const ConfigurationType& configuration_in,
-//                                                            Stream_IAllocator* allocator_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::initialize"));
-//
-//  ACE_UNUSED_ARG (allocator_in);
-//
-//  return inherited::initialize (configuration_in,
-//                                allocator_in);
-//}
 
 ////////////////////////////////////////////////////////////////////////////////
 

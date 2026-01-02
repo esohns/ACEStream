@@ -400,6 +400,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
   ACE_ASSERT (n_channels_i == static_cast<unsigned int> (n_channels_2));
 #if GTK_CHECK_VERSION (3,10,0)
   // ACE_ASSERT (format_e == CAIRO_FORMAT_ARGB32); // *TODO*
+  ACE_UNUSED_ARG (format_e);
 #endif // GTK_CHECK_VERSION
 
 #if GTK_CHECK_VERSION (3,6,0)

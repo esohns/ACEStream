@@ -39,6 +39,7 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
  , env_ (NULL)
  , memory_info_ (NULL)
  , session_ (NULL)
+ , resolution_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_ONNXRuntime_T::Stream_Module_ONNXRuntime_T"));
 
@@ -274,7 +275,11 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
   //} // end IF
   //++iFrame;
 
-  const int64_t input_shape_a[] = {1, 3, 720, 720};
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  const int64_t input_shape_a[] = {1, 3, resolution_.cx, resolution_.cy};
+#else
+  const int64_t input_shape_a[] = {1, 3, resolution_.width, resolution_.height};
+#endif // ACE_WIN32 || ACE_WIN64
   const size_t input_shape_len =
     sizeof (input_shape_a) / sizeof (input_shape_a[0]);
   const size_t model_input_ele_count =
@@ -292,7 +297,11 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
   float* output_tensor_data_p = NULL;
 
   hwc_to_chw (reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-              720, 720,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+              resolution_.cy, resolution_.cx,
+#else
+              resolution_.height, resolution_.width,
+#endif // ACE_WIN32 || ACE_WIN64
               model_input_p);
   ACE_ASSERT (model_input_p);
 
@@ -363,9 +372,13 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 
   message_inout->reset ();
   chw_to_hwc (output_tensor_data_p,
-              720, 720,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+              resolution_.cy, resolution_.cx,
+#else
+              resolution_.height, resolution_.width,
+#endif // ACE_WIN32 || ACE_WIN64
               reinterpret_cast<uint8_t*> (message_inout->wr_ptr ()));
-  message_inout->wr_ptr (model_input_ele_count);
+  message_inout->wr_ptr (model_input_len);
 
   APIHandle_->ReleaseValue (output_tensor_p); output_tensor_p = NULL;
 
@@ -419,6 +432,7 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
+      // *TODO*: remove this test; it's not generic
       if (!InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_RGB24))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -427,16 +441,8 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ())));
         goto error;
       } // end IF
-      Common_Image_Resolution_t resolution_s =
+      resolution_ =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-      if (resolution_s.cx != 720 || resolution_s.cy != 720)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid resolution (was: %dx%d), aborting\n"),
-                    inherited::mod_->name (),
-                    resolution_s.cx, resolution_s.cy));
-        goto error;
-      } // end IF
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       struct Stream_MediaFramework_V4L_MediaType media_type_s;
@@ -451,14 +457,8 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
                     media_type_s.format.pixelformat));
         goto error;
       } // end IF
-      if (media_type_s.format.width != 720 || media_type_s.format.height != 720)
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: invalid resolution (was: %ux%u), aborting\n"),
-                    inherited::mod_->name (),
-                    media_type_s.format.width, media_type_s.format.height));
-        goto error;
-      } // end IF
+      resolution_.width = media_type_s.format.width;
+      resolution_.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;
@@ -511,7 +511,7 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
 
   for (size_t i = 0; i != stride_i; ++i)
     for (size_t c = 0; c != 3; ++c)
-      data_out[c * stride_i + i] = data_in[i * 3 + c];
+      data_out[c * stride_i + i] = static_cast<float> (data_in[i * 3 + c]);
 }
 
 template <typename ConfigurationType,

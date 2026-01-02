@@ -123,8 +123,8 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* stream_p = NULL;
 
   struct Test_I_ImageSave_UI_CBData* cb_data_p = NULL;
-  const Test_I_ImageSave_SessionData_t* session_data_container_p =
-    NULL;
+  // const Test_I_ImageSave_SessionData_t* session_data_container_p =
+  //   NULL;
   const Test_I_ImageSave_SessionData* session_data_p = NULL;
   cb_data_p =
     static_cast<struct Test_I_ImageSave_UI_CBData*> (thread_data_p->CBData);

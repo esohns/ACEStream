@@ -49,10 +49,6 @@
 #include "stream_lib_directshow_source_filter.h"
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
-#if defined (ONNXRT_SUPPORT)
-#include "stream_module_onnxruntime.h"
-#endif // ONNXRT_SUPPORT
-
 #include "stream_misc_defines.h"
 #include "stream_misc_distributor.h"
 #include "stream_misc_messagehandler.h"
@@ -160,15 +156,6 @@ typedef Stream_Decoder_LibAVConverter_T<Test_U_DirectShow_TaskBaseSynch_t,
 typedef Stream_Visualization_LibAVResize_T<Test_U_DirectShow_TaskBaseSynch_t,
                                            struct _AMMediaType> Stream_CameraScreen_DirectShow_LibAVResize;
 #endif // FFMPEG_SUPPORT
-
-#if defined (ONNXRT_SUPPORT)
-typedef Stream_Module_ONNXRuntime_T<struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration,
-                                    Stream_ControlMessage_t,
-                                    Stream_CameraScreen_DirectShow_Message_t,
-                                    Stream_CameraScreen_DirectShow_SessionMessage_t,
-                                    struct _AMMediaType> Stream_CameraScreen_DirectShow_ONNXRuntime;
-#endif // ONNXRT_SUPPORT
-
 #else
 typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  enum Stream_SessionMessageType,
@@ -224,14 +211,6 @@ typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
 typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_LibAVResize;
 #endif // FFMPEG_SUPPORT
-
-#if defined (ONNXRT_SUPPORT)
-typedef Stream_Module_ONNXRuntime_T<struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration,
-                                    Stream_ControlMessage_t,
-                                    Stream_CameraScreen_Message_t,
-                                    Stream_CameraScreen_SessionMessage_t,
-                                    struct Stream_MediaFramework_V4L_MediaType> Stream_CameraScreen_ONNXRuntime;
-#endif // ONNXRT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -556,15 +535,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,       
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_DirectShow_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
-
-#if defined (ONNXRT_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_DirectShow_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                                   // session event type
-                              struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_ml_onnxruntime_module_name_string,
-                              Stream_INotify_t,                                                 // stream notification interface type
-                              Stream_CameraScreen_DirectShow_ONNXRuntime);                      // writer type
-#endif // ONNXRT_SUPPORT
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
@@ -594,15 +564,6 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,              
                               Stream_INotify_t,                                 // stream notification interface type
                               Stream_CameraScreen_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
-
-#if defined (ONNXRT_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraScreen_V4L_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                            // session event type
-                              struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_ml_onnxruntime_module_name_string,
-                              Stream_INotify_t,                                          // stream notification interface type
-                              Stream_CameraScreen_ONNXRuntime);                          // writer type
-#endif // ONNXRT_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

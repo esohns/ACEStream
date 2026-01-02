@@ -44,12 +44,15 @@
 
 #include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_common_modules.h"
-#if defined (CURSES_SUPPORT)
-#include "test_u_camerascreen_curses_window.h"
-#endif // CURSES_SUPPORT
 #include "test_u_camerascreen_message.h"
-#include "test_u_camerascreen_session_message.h"
+#if defined (CURSES_SUPPORT)
+#include "test_u_camerascreen_module_curses.h"
+#endif // CURSES_SUPPORT
+#if defined (ONNXRT_SUPPORT)
+#include "test_u_camerascreen_module_onnx.h"
+#endif // ONNXRT_SUPPORT
 #include "test_u_camerascreen_module_video_wall.h"
+#include "test_u_camerascreen_session_message.h"
 
 // forward declarations
 class Stream_IAllocator;
@@ -113,7 +116,7 @@ class Stream_CameraScreen_DirectShow_Stream
   Stream_CameraScreen_DirectShow_LibAVResize_Module         resize_2; // --> window size/fullscreen
   Test_U_CameraScreen_VideoWall_Module                      videoWall_;
 #if defined (ONNXRT_SUPPORT)
-  Stream_CameraScreen_DirectShow_ONNXRuntime_Module         ONNXRuntime_;
+  Test_U_CameraScreen_ONNX_Module                           ONNXRuntime_;
 #endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module                  CursesDisplay_;
@@ -275,7 +278,7 @@ class Stream_CameraScreen_Stream
 #endif // FFMPEG_SUPPORT
   Test_U_CameraScreen_VideoWall_Module       videoWall_;
 #if defined (ONNXRT_SUPPORT)
-  Stream_CameraScreen_ONNXRuntime_Module     ONNXRuntime_;
+  Test_U_CameraScreen_ONNX_Module            ONNXRuntime_;
 #endif // ONNXRT_SUPPORT
 #if defined (CURSES_SUPPORT)
   Test_U_CameraScreen_Curses_Window_Module   CursesDisplay_;

@@ -4689,7 +4689,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
   ACE_ASSERT (cb_data_base_p);
 
-  enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
+  // enum Stream_StateMachine_ControlState status_e = STREAM_STATE_INVALID;
   Stream_IStreamControlBase* stream_p = NULL;
   Stream_IStreamControlBase* stream_2 = NULL;
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
@@ -4702,7 +4702,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     {
       directshow_cb_data_p =
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (userData_in);
-      status_e = directshow_cb_data_p->videoStream->status ();
+      // status_e = directshow_cb_data_p->videoStream->status ();
       stream_p = directshow_cb_data_p->videoStream;
       stream_2 = directshow_cb_data_p->audioStream;
       break;
@@ -4711,7 +4711,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     {
       mediafoundation_cb_data_p =
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (userData_in);
-      status_e = mediafoundation_cb_data_p->videoStream->status ();
+      // status_e = mediafoundation_cb_data_p->videoStream->status ();
       stream_p = mediafoundation_cb_data_p->videoStream;
       stream_2 = mediafoundation_cb_data_p->audioStream;
       break;
@@ -4727,7 +4727,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 #else
   struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
-  status_e = cb_data_p->videoStream->status ();
+  // status_e = cb_data_p->videoStream->status ();
   stream_p = cb_data_p->videoStream;
   stream_2 = cb_data_p->audioStream;
 #endif // ACE_WIN32 || ACE_WIN64

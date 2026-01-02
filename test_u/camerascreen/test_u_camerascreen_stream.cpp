@@ -130,6 +130,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (CURSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     {
+      layout_in->append (&convert_, NULL, 0); // output is 8-bit BGR
       layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
       layout_in->append (&CursesDisplay_, NULL, 0);
       break;

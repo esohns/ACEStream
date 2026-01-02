@@ -1598,7 +1598,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       typename SessionMessageType::DATA_T* session_data_container_p =
         inherited::sessionData_;
-      bool release_session_data_container_b = false;
+      // bool release_session_data_container_b = false;
       if (unlikely (!session_data_container_p))
       {
         SessionManagerType* session_manager_p =
@@ -1617,7 +1617,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                       inherited::mod_->name ()));
           return;
         } // end IF
-        release_session_data_container_b = true;
+        // release_session_data_container_b = true;
       } // end IF
       else
         inherited::sessionData_->increase ();
@@ -2901,7 +2901,7 @@ continue_2:
         // *NOTE*: support sending control messages even when stream is finished...
         typename SessionMessageType::DATA_T* session_data_container_p =
           inherited::sessionData_;
-        bool release_session_data_container_b = false;
+        // bool release_session_data_container_b = false;
         if (unlikely (!session_data_container_p))
         {
           SessionManagerType* session_manager_p =
@@ -2923,7 +2923,7 @@ continue_2:
                                    true); // forward upstream (if any) ?
             return false;
           } // end IF
-          release_session_data_container_b = true;
+          // release_session_data_container_b = true;
         } // end IF
         else
           inherited::sessionData_->increase ();

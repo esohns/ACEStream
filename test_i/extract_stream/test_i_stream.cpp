@@ -285,7 +285,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   Test_I_ExtractStream_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
         const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  bool remove_module_2 = false;
+  // bool remove_module_2 = false;
   Test_I_SessionManager_t* session_manager_p =
     Test_I_SessionManager_t::SINGLETON_T::instance ();
 
@@ -331,5 +331,8 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   return true;
 
 error:
+  if (reset_setup_pipeline)
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline = setup_pipeline;
+
   return false;
 }

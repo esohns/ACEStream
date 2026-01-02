@@ -101,7 +101,7 @@ class Test_I_CameraAR_Module_CGE_T
     if (likely (x_in >= 0 && x_in < resolution_.cx && y_in >= 0 && y_in < resolution_.cy))
       return image_in[y_in * resolution_.cx + x_in];
 #else
-    if (likely (x_in >= 0 && x_in < resolution_.width && y_in >= 0 && y_in < resolution_.height))
+    if (likely (x_in >= 0 && x_in < static_cast<int> (resolution_.width) && y_in >= 0 && y_in < static_cast<int> (resolution_.height)))
       return image_in[y_in * resolution_.width + x_in];
 #endif // ACE_WIN32 || ACE_WIN64
     return 0.0f;

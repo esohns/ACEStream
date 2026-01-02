@@ -139,6 +139,7 @@ do_print_usage (const std::string& programName_in)
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_Device_Identifier device_identifier;
   std::string device_identifier_string;
+  std::string model_identifier_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
   {
@@ -149,6 +150,7 @@ do_print_usage (const std::string& programName_in)
       ACE_ASSERT (device_identifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
       device_identifier_string =
         Stream_Device_DirectShow_Tools::devicePathToString (device_identifier.identifier._string);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -157,6 +159,7 @@ do_print_usage (const std::string& programName_in)
       ACE_ASSERT (false);
       ACE_NOTSUP;
       ACE_NOTREACHED (return;)
+
       break;
     }
     default:
@@ -170,7 +173,7 @@ do_print_usage (const std::string& programName_in)
 #else
   device_identifier_string =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
-  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+  device_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   device_identifier_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -178,8 +181,20 @@ do_print_usage (const std::string& programName_in)
             << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  model_identifier_string = lib_root_p;
+  model_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_identifier_string +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  model_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_identifier_string += ACE_TEXT_ALWAYS_CHAR ("models");
+  model_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_identifier_string +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_ONNX_MODEL_FILE_DEFAULT_STRING);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : ONNX model fíle path [")
-            << ACE_TEXT_ALWAYS_CHAR ("")
+            << model_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g          : OpenGL mode [")
@@ -306,7 +321,18 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  modelFilePath_out.clear ();
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  modelFilePath_out = lib_root_p;
+  modelFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  modelFilePath_out +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  modelFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  modelFilePath_out += ACE_TEXT_ALWAYS_CHAR ("models");
+  modelFilePath_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  modelFilePath_out +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_ONNX_MODEL_FILE_DEFAULT_STRING);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -1656,9 +1682,10 @@ do_work (int argc_in,
   {
     modulehandler_configuration_2.outputFormat.format.pixelformat =
       V4L2_PIX_FMT_BGR24;
-
-    modulehandler_configuration_2b.outputFormat.format.width = 720;
-    modulehandler_configuration_2b.outputFormat.format.height = 720;
+    modulehandler_configuration_2b.outputFormat.format.width =
+      TEST_U_ONNX_MODEL_RESOLUTION_DEFAULT_XY;
+    modulehandler_configuration_2b.outputFormat.format.height =
+      TEST_U_ONNX_MODEL_RESOLUTION_DEFAULT_XY;
 
     modulehandler_configuration_3.outputFormat =
       modulehandler_configuration_2b.outputFormat;
@@ -1693,12 +1720,14 @@ do_work (int argc_in,
                                                                  std::make_pair (&module_configuration,
                                                                                  &directshow_modulehandler_configuration_2c)));
         
-          curses_configuration_p = &directShowConfiguration_in.cursesConfiguration;
+          curses_configuration_p =
+            &directShowConfiguration_in.cursesConfiguration;
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
         {
-          curses_configuration_p = &mediaFoundationConfiguration_in.cursesConfiguration;
+          curses_configuration_p =
+            &mediaFoundationConfiguration_in.cursesConfiguration;
           break;
         }
         default:
@@ -1719,7 +1748,10 @@ do_work (int argc_in,
       curses_configuration_p->hooks.inputHook = curses_input;
       curses_configuration_p->hooks.mainHook = curses_main;
 
+      // setlocale (LC_ALL, "en_US.UTF-8");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+      SetConsoleOutputCP (CP_UTF8);
+
       struct _COORD coord_s;
       ACE_OS::memset (&coord_s, 0, sizeof (struct _COORD));
       coord_s.X = TEST_U_CURSES_CONSOLE_FONT_SIZE;
@@ -1803,15 +1835,15 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration.window.curses_window = state_r.std_window;
-      ACE_ASSERT (modulehandler_configuration.window.curses_window);
-      modulehandler_configuration.window.type = Common_UI_Window::TYPE_CURSES;
+      modulehandler_configuration_3.window.curses_window = state_r.std_window;
+      ACE_ASSERT (modulehandler_configuration_3.window.curses_window);
+      modulehandler_configuration_3.window.type = Common_UI_Window::TYPE_CURSES;
       modulehandler_configuration_2b.outputFormat.format.width =
         getmaxx (state_r.std_window);
       modulehandler_configuration_2b.outputFormat.format.height =
         getmaxy (state_r.std_window);
       modulehandler_configuration_2.outputFormat.format.pixelformat =
-        V4L2_PIX_FMT_RGB24;
+        V4L2_PIX_FMT_BGR24;
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;
@@ -1885,7 +1917,8 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration_2.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
+      modulehandler_configuration_2.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_RGB32;
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
@@ -2193,6 +2226,18 @@ ACE_TMAIN (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
   std::string model_file_path;
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  model_file_path = lib_root_p;
+  model_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file_path +=
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  model_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file_path += ACE_TEXT_ALWAYS_CHAR ("models");
+  model_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  model_file_path +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_ONNX_MODEL_FILE_DEFAULT_STRING);
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =

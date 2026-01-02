@@ -81,14 +81,11 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   // sanity check(s)
   ACE_ASSERT (!isRunning ());
 
-//  bool result = false;
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_U_SessionManager_t* session_manager_p = NULL;
   struct Stream_Filecopy_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator;
-  Stream_Filecopy_FileReader* fileReader_impl_p = NULL;
-  Stream_Module_t* module_p = NULL;
 
   // allocate a new session state, reset stream
   const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
@@ -120,26 +117,6 @@ Stream_Filecopy_Stream::initialize (const inherited::CONFIGURATION_T& configurat
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
-
-  // ******************* File Reader ************************
-  //module_p =
-  //  const_cast<Stream_Module_t*> (inherited::find (ACE_TEXT_ALWAYS_CHAR ("FileReader")));
-  //if (!module_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to retrieve \"%s\" module handle, aborting\n"),
-  //              ACE_TEXT ("FileReader")));
-  //  return false;
-  //} // end IF
-  //fileReader_impl_p =
-  //  dynamic_cast<Stream_Filecopy_FileReader*> (module_p->writer ());
-  //if (!fileReader_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Strean_Filecopy_FileReader> failed, aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
 
   if (inherited::configuration_->configuration_->setupPipeline)
     if (!inherited::setup ())

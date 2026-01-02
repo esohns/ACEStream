@@ -100,10 +100,10 @@ Parser_EventHandler::notify (Stream_SessionId_t sessionId_in,
       break;
     case STREAM_SESSION_MESSAGE_STATISTIC:
     {
-     const Parser_SessionData_t& session_data_container_r =
-       message_in.getR ();
-     struct Parser_SessionData& session_data_r =
-       const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
+     // const Parser_SessionData_t& session_data_container_r =
+     //   message_in.getR ();
+     // struct Parser_SessionData& session_data_r =
+     //   const_cast<struct Parser_SessionData&> (session_data_container_r.getR ());
 
       break;
     }
