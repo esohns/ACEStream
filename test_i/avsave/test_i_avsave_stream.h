@@ -240,7 +240,7 @@ class Stream_AVSave_DirectShow_Audio_Stream
 
  public:
   Stream_AVSave_DirectShow_Audio_Stream ();
-  virtual ~Stream_AVSave_DirectShow_Audio_Stream ();
+  inline virtual ~Stream_AVSave_DirectShow_Audio_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // i/o value: layout
@@ -257,7 +257,8 @@ class Stream_AVSave_DirectShow_Audio_Stream
   Stream_AVSave_DirectShow_WASAPI_Source_Module    source_;
   // Stream_AVSave_DirectShow_WaveIn_Source_Module    source_;
   //  Stream_AVSave_StatisticReport_Module statisticReport_;
-  Stream_AVSave_DirectShow_Distributor_Module      distributor_;
+  //Stream_AVSave_DirectShow_Distributor_Module      distributor_;
+  Stream_AVSave_DirectShow_AudioConvert_Module     converter_;
   Stream_AVSave_DirectShow_SpectrumAnalyzer_Module analyzer_;
   Stream_AVSave_DirectShow_Audio_Tagger_Module     tagger_;
 };

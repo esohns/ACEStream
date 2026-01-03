@@ -109,17 +109,19 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   // initialize return value(s)
   delete_out = false;
 
-  ACE_ASSERT (inherited::configuration_);
-  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  iterator =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-  iterator_2 =
-    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (inherited::configuration_->configuration_->renderer));
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT ((*iterator).second.second->codecConfiguration);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    inherited::configuration_->find (Stream_Visualization_Tools::rendererToModuleName (inherited::configuration_->configuration_->renderer));
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   ACE_ASSERT ((*iterator_2).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
+    inherited::configuration_->find (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")));
+  ACE_ASSERT (iterator_3 != inherited::configuration_->end ());
 
   bool requires_codec_b =
     (*iterator).second.second->codecConfiguration->codecId != AV_CODEC_ID_NONE;
@@ -220,7 +222,8 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     if (save_to_file_b)
     {
 #if defined (FFMPEG_SUPPORT)
-      if (!InlineIsEqualGUID ((*iterator).second.second->outputFormat.subtype, MEDIASUBTYPE_RGB32))
+      if (!InlineIsEqualGUID ((*iterator).second.second->outputFormat.subtype, MEDIASUBTYPE_RGB32) ||
+          (*iterator_3).second.second->flipImage)
         layout_in->append (&converter_2, branch_p, index_i);
 #endif // FFMPEG_SUPPORT
       layout_in->append (&encoder_, branch_p, index_i); // output is AVI

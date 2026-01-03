@@ -57,6 +57,8 @@ G_MODULE_EXPORT void combobox_video_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_format_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_framerate_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_save_format_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_display_changed_cb (GtkWidget*, gpointer);
 //G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 //G_MODULE_EXPORT void drawingarea_configure_event_cb (GtkWindow*, GdkEvent*, gpointer);
 #if GTK_CHECK_VERSION (3,0,0)

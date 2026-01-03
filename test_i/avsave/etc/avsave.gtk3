@@ -79,14 +79,6 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkListStore" id="liststore_display">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="liststore_video_format">
     <columns>
       <!-- column-name text -->
@@ -97,24 +89,16 @@
       <column type="guint"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststore_video_framerate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name numerator -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
-    </columns>
+  <object class="GtkEntryBuffer" id="entrybuffer_destination">
+    <property name="text" translatable="yes">output.avi</property>
   </object>
-  <object class="GtkListStore" id="liststore_video_resolution">
+  <object class="GtkFileFilter" id="filefilter_avi"/>
+  <object class="GtkListStore" id="liststore_save">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name width -->
-      <column type="guint"/>
-      <!-- column-name height -->
-      <column type="guint"/>
+      <!-- column-name value -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_video_source">
@@ -124,9 +108,6 @@
       <!-- column-name device -->
       <column type="gchararray"/>
     </columns>
-  </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_destination">
-    <property name="text" translatable="yes">output.avi</property>
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
@@ -802,6 +783,27 @@
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
+                                <child>
+                                  <object class="GtkComboBox" id="combobox_save">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">True</property>
+                                    <property name="can_default">True</property>
+                                    <property name="receives_default">True</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip_markup" translatable="yes">save format</property>
+                                    <property name="tooltip_text" translatable="yes">save format</property>
+                                    <property name="model">liststore_save</property>
+                                    <property name="has_frame">False</property>
+                                    <property name="focus_on_click">False</property>
+                                    <property name="id_column">0</property>
+                                    <signal name="changed" handler="combobox_save_format_changed_cb" swapped="no"/>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">2</property>
+                                  </packing>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -850,8 +852,13 @@
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
+                                    <property name="has_tooltip">True</property>
+                                    <property name="tooltip_markup" translatable="yes">display adapter</property>
+                                    <property name="tooltip_text" translatable="yes">display adapter</property>
                                     <property name="model">liststore_adapter</property>
+                                    <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
+                                    <property name="id_column">0</property>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -866,7 +873,12 @@
                                     <child>
                                       <object class="GtkComboBox" id="combobox_display">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">False</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="can_default">True</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip_markup" translatable="yes">display</property>
+                                        <property name="tooltip_text" translatable="yes">display</property>
                                         <property name="model">liststore_display</property>
                                         <property name="focus_on_click">False</property>
                                         <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
@@ -1155,13 +1167,40 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
-  <object class="GtkFileFilter" id="filefilter_avi"/>
   <object class="GtkListStore" id="liststore_adapter">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
       <!-- column-name device -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_framerate">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name numerator -->
+      <column type="guint"/>
+      <!-- column-name denominator -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name width -->
+      <column type="guint"/>
+      <!-- column-name height -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkAdjustment" id="scrolledwindow_vadjustment">

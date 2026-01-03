@@ -580,73 +580,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (media_type_p);
   outputFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
-  
-  // *WARNING*: the AVIDec DirectShow filter (CLSID_AVIDec) does not convert
-  //            YUY2 to RGB32 properly
-  //            --> use ffmpeg to do the conversion and let the sample grabber
-  //                grab the raw (encoded) frames
-  //            --> i.e capture format == output format here...
-  //ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
-  //// *NOTE*: the default save format is BGRA32 (does not work on WMP, does play on vlc)
-  //outputFormat_inout.subtype = // also try MEDIASUBTYPE_RGB555; (sort of) works on WMP
-  //  STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_VIDEO_RENDERER_FORMAT;
-  //outputFormat_inout.bFixedSizeSamples = TRUE;
-  //outputFormat_inout.bTemporalCompression = FALSE;
-  //if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
-  //{ ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-  //  struct tagVIDEOINFOHEADER* video_info_header_p =
-  //    reinterpret_cast<struct tagVIDEOINFOHEADER*> (outputFormat_inout.pbFormat);
-  //  // *NOTE*: empty --> use entire video
-  //  BOOL result_3 = SetRectEmpty (&video_info_header_p->rcSource);
-  //  ACE_ASSERT (result_3);
-  //  result_3 = SetRectEmpty (&video_info_header_p->rcTarget);
-  //  // *NOTE*: empty --> fill entire buffer
-  //  ACE_ASSERT (result_3);
-  //  ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
-  //  ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-  //  ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-  //  video_info_header_p->bmiHeader.biBitCount = 32;
-  //  video_info_header_p->bmiHeader.biCompression = BI_RGB;
-  //  video_info_header_p->bmiHeader.biSizeImage =
-  //    DIBSIZE (video_info_header_p->bmiHeader);
-  //  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-  //  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-  //  ////video_info_header_p->bmiHeader.biClrUsed;
-  //  ////video_info_header_p->bmiHeader.biClrImportant;
-  //  ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-  //  video_info_header_p->dwBitRate =
-  //    (video_info_header_p->bmiHeader.biSizeImage * 8) *                                // bits / frame
-  //    (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  //  outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  //} // end IF
-  //else if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo2))
-  //{
-  //  ACE_ASSERT (outputFormat_inout.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-  //  struct tagVIDEOINFOHEADER2* video_info_header_p =
-  //    reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_inout.pbFormat);
-  //  ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
-  //  ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-  //  video_info_header_p->bmiHeader.biBitCount = 32;
-  //  video_info_header_p->bmiHeader.biCompression = BI_RGB;
-  //  video_info_header_p->bmiHeader.biSizeImage =
-  //    DIBSIZE (video_info_header_p->bmiHeader);
-  //  ////video_info_header_p->bmiHeader.biXPelsPerMeter;
-  //  ////video_info_header_p->bmiHeader.biYPelsPerMeter;
-  //  ////video_info_header_p->bmiHeader.biClrUsed;
-  //  ////video_info_header_p->bmiHeader.biClrImportant;
-  //  ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-  //  video_info_header_p->dwBitRate =
-  //    (video_info_header_p->bmiHeader.biSizeImage * 8) *                                // bits / frame
-  //    (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-  //  outputFormat_inout.lSampleSize = video_info_header_p->bmiHeader.biSizeImage;
-  //} // end IF
-  //else
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-  //              ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (outputFormat_inout.formattype).c_str ())));
-  //  goto error;
-  //} // end ELSE
+  Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+                                                     outputFormat_inout);
 
   if (hasUI_in)
   {
@@ -1432,18 +1367,28 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_stream_configuration.format,
                                                     directshow_audio_stream_configuration.format);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_audio_stream_configuration.format.audio,
+                                                    directshow_audio_modulehandler_configuration.outputFormat);
+      ACE_ASSERT (directshow_audio_modulehandler_configuration.outputFormat.pbFormat);
+      struct tWAVEFORMATEX* waveformatex_p =
+        (struct tWAVEFORMATEX*)directshow_audio_modulehandler_configuration.outputFormat.pbFormat;
+      directshow_audio_modulehandler_configuration.outputFormat.subtype =
+        MEDIASUBTYPE_IEEE_FLOAT;
+      waveformatex_p->wBitsPerSample = 32;
+      // *IMPORTANT NOTE*: indicates planar format, translates to AV_SAMPLE_FMT_FLTP in the converter
+      waveformatex_p->nBlockAlign = 0;
 
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_video_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_video_modulehandler_configuration_2.outputFormat =
         *media_type_p;
-      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
+      Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_video_modulehandler_configuration_2.outputFormat);
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_video_modulehandler_configuration_2.flipImage = true;
+      //directshow_video_modulehandler_configuration_2.flipImage = true;
         //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_video_stream_configuration.format.video);
 
       media_type_p =
@@ -1458,6 +1403,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
                                                          directshow_video_modulehandler_configuration_5.outputFormat);
+      directshow_video_modulehandler_configuration_5.flipImage = true;
 
       directShowCBData_in.progressData.audioFrameSize =
         (Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_audio_stream_configuration.format.audio) / 8) *

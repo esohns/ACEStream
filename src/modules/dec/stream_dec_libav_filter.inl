@@ -75,6 +75,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
  , frame_2 (NULL)
  , frameSize_ (0)
  , outputFrameSize_ (0)
+ , outputIsPlanar_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVFilter_T::Stream_Decoder_LibAVFilter_T"));
 
@@ -154,14 +155,14 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-#if defined (_DEBUG)
-  if (configuration_in.debug)
-  {
-    av_log_set_callback (stream_decoder_libav_log_cb);
-    // *NOTE*: this level logs all messages
-    av_log_set_level (std::numeric_limits<int>::max ());
-  } // end IF
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  if (configuration_in.debug)
+//  {
+//    av_log_set_callback (stream_decoder_libav_log_cb);
+//    // *NOTE*: this level logs all messages
+//    av_log_set_level (std::numeric_limits<int>::max ());
+//  } // end IF
+//#endif // _DEBUG
 
   filterGraph_ = avfilter_graph_alloc ();
   ACE_ASSERT (filterGraph_);
@@ -349,6 +350,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
         av_get_bytes_per_sample (media_type_s.format) * media_type_s.channels;
       outputFrameSize_ =
         av_get_bytes_per_sample (media_type_2.format) * media_type_2.channels;
+      outputIsPlanar_ = av_sample_fmt_is_planar (media_type_2.format);
 
       /* buffer audio source: the decoded frames from the decoder will be inserted here. */
       ACE_OS::snprintf (args_a, sizeof (char[BUFSIZ]),
@@ -608,10 +610,29 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
     //                       frame_2->nb_samples * frameSize_,
     //                       0); // own image data
     //message_block_p->wr_ptr (frame_2->nb_samples * frameSize_);
-    result =
-      message_block_p->copy (reinterpret_cast<char*> (frame_2->data[0]),
-                             frame_2->nb_samples * outputFrameSize_);
-    ACE_ASSERT (result != -1);
+    if (likely (!outputIsPlanar_))
+    {
+      result =
+        message_block_p->copy (reinterpret_cast<char*> (frame_2->data[0]),
+                               frame_2->nb_samples * outputFrameSize_);
+      ACE_ASSERT (result != -1);
+    } // end IF
+    else
+    {
+      unsigned int number_of_planes_i = 0;
+      for (int i = 0; frame_2->data[i]; ++i)
+        ++number_of_planes_i;
+      ACE_ASSERT (number_of_planes_i);
+      for (int i = 0;
+           frame_2->data[i];
+           ++i)
+      {
+        result =
+         message_block_p->copy (reinterpret_cast<char*> (frame_2->data[i]),
+                                frame_2->nb_samples * (outputFrameSize_ / number_of_planes_i));
+        ACE_ASSERT (result != -1);
+      } // end FOR
+    } // end ELSE
 
     ACE_ASSERT (message_block_p);
     if (!message_inout)

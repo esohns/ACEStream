@@ -21,22 +21,9 @@
 #ifndef TEST_I_AVSAVE_ENCODER_T_H
 #define TEST_I_AVSAVE_ENCODER_T_H
 
-#ifdef __cplusplus
-extern "C"
-{
-#include "libavcodec/avcodec.h"
-#include "libavutil/pixfmt.h"
-}
-#endif /* __cplusplus */
-
 #include "ace/Global_Macros.h"
-#include "ace/Condition_T.h"
-#include "ace/Thread_Mutex.h"
 
 #include "stream_streammodule_base.h"
-#include "stream_task_base_asynch.h"
-
-#include "stream_lib_mediatype_converter.h"
 
 #include "stream_dec_libav_encoder.h"
 

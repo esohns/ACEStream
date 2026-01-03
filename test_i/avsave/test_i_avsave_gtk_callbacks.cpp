@@ -39,13 +39,9 @@
 #include "uuids.h"
 #endif // UUIDS_H
 #include "wmcodecdsp.h"
-
-//#include "gdk/gdkwin32.h"
 #else
 #include "linux/videodev2.h"
 #include "libv4l2.h"
-
-//#include "gdk/gdkx.h"
 
 #include "ace/Dirent_Selector.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -64,6 +60,7 @@
 
 #include "common_iget.h"
 #include "common_os_tools.h"
+#include "common_string_tools.h"
 
 #include "common_timer_manager.h"
 
@@ -119,8 +116,8 @@ dirent_selector (const dirent* dirEntry_in)
   return 1;
 }
 int
-dirent_comparator(const dirent** d1,
-                  const dirent** d2)
+dirent_comparator (const dirent** d1,
+                   const dirent** d2)
 {
   return ACE_OS::strcmp ((*d1)->d_name,
                          (*d2)->d_name);
@@ -269,7 +266,7 @@ error:
         goto error_2;
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -295,7 +292,7 @@ error:
       ACE_ASSERT (false); // *TODO*
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       attributes_p->Release (); attributes_p = NULL;
       ACE_ASSERT (devices_pp);
 
@@ -1404,6 +1401,34 @@ load_rates (int fd_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 bool
+load_save_formats (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_save_formats"));
+
+  // sanity check(s)
+  ACE_ASSERT (listStore_in);
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+#if defined (FFMPEG_SUPPORT)
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("AVI"),
+                      1, AV_CODEC_ID_RAWVIDEO,
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("MP4"),
+                      1, AV_CODEC_ID_H264,
+                      -1);
+#endif // FFMPEG_SUPPORT
+
+  return true;
+}
+
+bool
 load_display_adapters (GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_display_adapters"));
@@ -1415,7 +1440,7 @@ load_display_adapters (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   Common_UI_DisplayAdapters_t display_adapters_a =
-      Common_UI_Tools::getAdapters();
+    Common_UI_Tools::getAdapters();
   GtkTreeIter iterator;
   for (Common_UI_DisplayAdaptersIterator_t iterator_2 = display_adapters_a.begin ();
        iterator_2 != display_adapters_a.end ();
@@ -1443,7 +1468,7 @@ load_display_devices (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   Common_UI_DisplayDevices_t display_devices_a =
-      Common_UI_Tools::getDisplays ();
+    Common_UI_Tools::getDisplays ();
   GtkTreeIter iterator;
   for (Common_UI_DisplayDevicesIterator_t iterator_2 = display_devices_a.begin ();
        iterator_2 != display_devices_a.end ();
@@ -2264,7 +2289,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (spin_button_p);
   //gtk_spin_button_set_range (spin_button_p,
   //                           0.0,
-  //                           std::numeric_limits<double>::max ());
+  //                           std::numeric_limits<ACE_UINT32>::max ());
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -2302,7 +2327,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   GtkEntry* entry_p =
@@ -2322,17 +2347,17 @@ idle_initialize_UI_cb (gpointer userData_in)
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILEFILTER_AVI_NAME)));
   ACE_ASSERT (file_filter_p);
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("application/x-troff-msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("application/x-troff-msvideo"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/avi"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/avi"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/msvideo"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/x-msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/x-msvideo"));
   gtk_file_filter_add_pattern (file_filter_p,
-                               ACE_TEXT ("*.avi"));
+                               ACE_TEXT_ALWAYS_CHAR ("*.avi"));
   gtk_file_filter_set_name (file_filter_p,
-                            ACE_TEXT ("AVI files"));
+                            ACE_TEXT_ALWAYS_CHAR ("AVI files"));
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   //gchar* filename_p = NULL;
@@ -2469,13 +2494,14 @@ idle_initialize_UI_cb (gpointer userData_in)
                 ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p),
+                              cell_renderer_p,
                               true);
   // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -2503,7 +2529,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -2531,7 +2557,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   GtkToggleButton* toggle_button_p =
@@ -2540,6 +2566,42 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
                                 !filename_string.empty ());
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SAVE_NAME)));
+  ACE_ASSERT (list_store_p);
+  if (!load_save_formats (list_store_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_save_formats(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        0, GTK_SORT_ASCENDING);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SAVE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p),
+                              cell_renderer_p,
+                              true);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p),
+                                  cell_renderer_p,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  NULL);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -2564,9 +2626,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-//  is_display_b =
-//      !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
-//  is_fullscreen_b = (*iterator_2).second.second->fullScreen;
+  is_fullscreen_b = (*iterator_2).second.second->fullScreen;
 #endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2604,7 +2664,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -2638,7 +2698,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   toggle_button_p =
@@ -2691,59 +2751,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                    1.0 / static_cast<double> (width));
   gtk_progress_bar_set_text (progress_bar_p,
                              ACE_TEXT_ALWAYS_CHAR (""));
-
-  // step4: initialize text view, setup auto-scrolling
-//  GtkTextView* view_p =
-//    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
-//  ACE_ASSERT (view_p);
-//  GtkTextBuffer* buffer_p =
-////    gtk_text_buffer_new (NULL); // text tag table --> create new
-//      gtk_text_view_get_buffer (view_p);
-//  ACE_ASSERT (buffer_p);
-////  gtk_text_view_set_buffer (view_p, buffer_p);
-
-//  PangoFontDescription* font_description_p =
-//    pango_font_description_from_string (ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION));
-//  if (!font_description_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to pango_font_description_from_string(\"%s\"): \"%m\", aborting\n"),
-//                ACE_TEXT (TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION)));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  // apply font
-//  GtkRcStyle* rc_style_p = gtk_rc_style_new ();
-//  if (!rc_style_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gtk_rc_style_new(): \"%m\", aborting\n")));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  rc_style_p->font_desc = font_description_p;
-//  GdkColor base_colour, text_colour;
-//  gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE),
-//                   &base_colour);
-//  rc_style_p->base[GTK_STATE_NORMAL] = base_colour;
-//  gdk_color_parse (ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT),
-//                   &text_colour);
-//  rc_style_p->text[GTK_STATE_NORMAL] = text_colour;
-//  rc_style_p->color_flags[GTK_STATE_NORMAL] =
-//    static_cast<GtkRcFlags> (GTK_RC_BASE |
-//                             GTK_RC_TEXT);
-//  gtk_widget_modify_style (GTK_WIDGET (view_p),
-//                           rc_style_p);
-//  //gtk_rc_style_unref (rc_style_p);
-//  g_object_unref (rc_style_p);
-
-  //  GtkTextIter iterator;
-  //  gtk_text_buffer_get_end_iter (buffer_p,
-  //                                &iterator);
-  //  gtk_text_buffer_create_mark (buffer_p,
-  //                               ACE_TEXT_ALWAYS_CHAR (NET_UI_SCROLLMARK_NAME),
-  //                               &iterator,
-  //                               TRUE);
-  //  g_object_unref (buffer_p);
 
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
@@ -3052,6 +3059,25 @@ idle_initialize_UI_cb (gpointer userData_in)
   std::string framerate_string = converter.str ();
   g_value_set_string (&value,
                       framerate_string.c_str ());
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    0);
+  g_value_unset (&value);
+
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_SAVE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SAVE_NAME)));
+  ACE_ASSERT (list_store_p);
+  g_value_unset (&value);
+  g_value_init (&value, G_TYPE_STRING);
+  std::string format_string =
+    Common_String_Tools::toupper (Common_File_Tools::fileExtension (filename_string, false));
+  g_value_set_string (&value,
+                      format_string.c_str ());
   Common_UI_GTK_Tools::selectValue (combo_box_p,
                                     value,
                                     0);
@@ -3668,6 +3694,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -3683,6 +3710,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3824,9 +3854,13 @@ continue_:
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
       (*directshow_stream_iterator).second.second->targetFileName =
         filename_string;
+      (*directshow_stream_iterator_2).second.second->targetFileName =
+        filename_string;
       break;
+    }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       (*mediafoundation_stream_iterator).second.second->targetFileName =
         filename_string;
@@ -5371,12 +5405,12 @@ combobox_video_format_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
 #else
       IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p))
@@ -5387,7 +5421,7 @@ combobox_video_format_changed_cb (GtkWidget* widget_in,
         return;
       } // end IF
       ACE_ASSERT (media_source_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       //if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
       //                                                                  media_source_p))
       //{
@@ -5999,6 +6033,134 @@ combobox_video_framerate_changed_cb (GtkWidget* widget_in,
 } // combobox_video_framerate_changed_cb
 
 void
+combobox_save_format_changed_cb (GtkWidget* widget_in,
+                                 gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_save_format_changed_cb"));
+
+  // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      ACE_ASSERT (directshow_cb_data_p->configuration);
+      directshow_stream_iterator =
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
+      mediafoundation_stream_iterator =
+        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->videoStreamConfiguration.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkTreeIter iterator_4;
+  gboolean result = gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                                   &iterator_4);
+  ACE_ASSERT (result);
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_SAVE_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      (*directshow_stream_iterator).second.second->codecConfiguration->codecId =
+        static_cast<enum AVCodecID> (g_value_get_int (&value));
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_stream_iterator).second.second->codecConfiguration->codecId =
+        static_cast<enum AVCodecID> (g_value_get_int (&value));
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  (*iterator_2).second.second->codecConfiguration->codecId =
+    static_cast<enum AVCodecID> (g_value_get_int (&value));
+#endif // ACE_WIN32 || ACE_WIN64
+  g_value_unset (&value);
+
+  // adjust filename extension accordingly
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            0, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string extension_string =
+    Common_String_Tools::tolower (g_value_get_string (&value));
+  g_value_unset (&value);
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SAVE_NAME)));
+  ACE_ASSERT (entry_p);
+  const gchar* string_2 = gtk_entry_get_text (entry_p);
+  std::string filename_string = Common_UI_GTK_Tools::UTF8ToLocale (string_2, -1);
+  filename_string = Common_File_Tools::cropExtension (filename_string);
+  filename_string += '.';
+  filename_string += extension_string; 
+  gtk_entry_set_text (entry_p,
+                      filename_string.c_str ());
+} // combobox_save_format_changed_cb
+
+void
 combobox_display_changed_cb (GtkWidget* widget_in,
                              gpointer userData_in)
 {
@@ -6054,9 +6216,9 @@ combobox_display_changed_cb (GtkWidget* widget_in,
   struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
- Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-   ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
- ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
  // Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
  //   ui_cb_data_p->configuration->videoStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
  // ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
@@ -6071,7 +6233,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -6900,18 +7062,6 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
   (*iterator_2).second.second->targetFileName = filename_string;
 #endif
 } // filechooserbutton_cb
-
-//void
-//filechooserdialog_cb (GtkFileChooser* fileChooser_in,
-//                      gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
-//
-//  ACE_UNUSED_ARG (userData_in);
-//
-//  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (fileChooser_in)),
-//                       GTK_RESPONSE_ACCEPT);
-//} // filechooserdialog_cb
 
 gboolean
 key_cb (GtkWidget* widget_in,

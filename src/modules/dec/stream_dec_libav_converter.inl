@@ -105,14 +105,14 @@ Stream_Decoder_LibAVConverter_T<TaskType,
     inputFormat_ = AV_PIX_FMT_NONE;
   } // end IF
 
-#if defined (_DEBUG)
-  if (configuration_in.debug)
-  {
-    av_log_set_callback (stream_decoder_libav_log_cb);
-    // *NOTE*: this level logs all messages
-    av_log_set_level (std::numeric_limits<int>::max ());
-  } // end IF
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  if (configuration_in.debug)
+//  {
+//    av_log_set_callback (stream_decoder_libav_log_cb);
+//    // *NOTE*: this level logs all messages
+//    av_log_set_level (std::numeric_limits<int>::max ());
+//  } // end IF
+//#endif // _DEBUG
 
 //continue_:
   return inherited::initialize (configuration_in,

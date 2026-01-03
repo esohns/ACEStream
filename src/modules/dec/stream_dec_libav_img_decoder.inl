@@ -121,14 +121,14 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 //    outputFormat_ = STREAM_DEC_DEFAULT_LIBAV_OUTPUT_PIXEL_FORMAT;
   } // end IF
 
-#if defined (_DEBUG)
-  if (configuration_in.debug)
-  {
-    av_log_set_callback (stream_decoder_libav_log_cb);
-    // *NOTE*: this level logs all messages
-    av_log_set_level (std::numeric_limits<int>::max ());
-  } // end IF
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//  if (configuration_in.debug)
+//  {
+//    av_log_set_callback (stream_decoder_libav_log_cb);
+//    // *NOTE*: this level logs all messages
+//    av_log_set_level (std::numeric_limits<int>::max ());
+//  } // end IF
+//#endif // _DEBUG
 //  av_register_all ();
 //  avcodec_register_all ();
 

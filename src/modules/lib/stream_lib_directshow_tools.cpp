@@ -4464,25 +4464,22 @@ Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& 
 
   unsigned int result = 0;
 
-  // sanity check(s)
-  ACE_ASSERT (mediaType_in.pbFormat);
-
   if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
-  {
+  { ACE_ASSERT (mediaType_in.pbFormat);
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
     result =
       (NANOSECONDS / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame));
   } // end IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
-  {
+  { ACE_ASSERT (mediaType_in.pbFormat);
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result =
       (NANOSECONDS / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame));
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
-  {
+  { ACE_ASSERT (mediaType_in.pbFormat);
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
     result = waveformatex_p->nSamplesPerSec;
@@ -4861,7 +4858,7 @@ Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (const struct _AMMediaT
       if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
         result = AV_SAMPLE_FMT_S32;
       else if (mediaType_in.subtype == MEDIASUBTYPE_IEEE_FLOAT)
-        result = AV_SAMPLE_FMT_FLT;
+        result = waveformatex_p->nBlockAlign ? AV_SAMPLE_FMT_FLT : AV_SAMPLE_FMT_FLTP;
       else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
@@ -4870,7 +4867,14 @@ Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (const struct _AMMediaT
     }
     case 64:
     {
-      result = AV_SAMPLE_FMT_S64;
+      if (mediaType_in.subtype == MEDIASUBTYPE_PCM)
+        result = AV_SAMPLE_FMT_S64;
+      else if (mediaType_in.subtype == MEDIASUBTYPE_IEEE_FLOAT)
+        result = waveformatex_p->nBlockAlign ? AV_SAMPLE_FMT_DBL : AV_SAMPLE_FMT_DBLP;
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media subtype (was: \"%s\"), aborting\n"),
+                    ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.subtype).c_str ())));
       break;
     }
     default:

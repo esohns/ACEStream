@@ -47,6 +47,7 @@
 #if defined (FFMPEG_SUPPORT)
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
+#include "stream_dec_libav_filter.h"
 #endif // FFMPEG_SUPPORT
 
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
@@ -244,6 +245,15 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat> Stream_AVSave_MediaFoundation_Source;
 
 #if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVFilter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Stream_AVSave_DirectShow_Message_t,
+                                     Stream_AVSave_DirectShow_SessionMessage_t,
+                                     Stream_AVSave_DirectShow_SessionData_t,
+                                     struct Stream_MediaFramework_DirectShow_AudioVideoFormat> Stream_AVSave_DirectShow_AudioConvert;
+
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration,
@@ -664,6 +674,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_MediaFoundation_SessionData,        
                               Stream_AVSave_MediaFoundation_Source);                                  // writer type
 
 #if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_filter_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Stream_AVSave_DirectShow_AudioConvert);                     // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type

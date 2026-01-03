@@ -140,7 +140,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     if (display_b)
     { // *WARNING*: display modules must support uncompressed 32-bit RGB (at
       //            native endianness)
-      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 32-bit RGB
+      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit BGR
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
       if (!save_to_file_b)
         layout_in->append (&tagger_, branch_p, index_i);
@@ -1000,7 +1000,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
   else
     COM_initialized = true;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if ((*iterator).second.second->session)
   {
     ULONG reference_count = (*iterator).second.second->session->AddRef ();
@@ -1033,7 +1033,7 @@ Stream_AVSave_MediaFoundation_Stream::initialize (const inherited::CONFIGURATION
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       goto error;
     } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     ACE_ASSERT (topology_p);
 
     //if ((*iterator).second.second->sampleGrabberNodeId)
@@ -1120,13 +1120,13 @@ continue_:
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
   topology_p->Release (); topology_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (!(*iterator).second.second->session)
   {
     ULONG reference_count = mediaSession_->AddRef ();
     (*iterator).second.second->session = mediaSession_;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))
@@ -1181,8 +1181,10 @@ Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING))
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
- , distributor_ (this,
-                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+//, distributor_ (this,
+//                ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , converter_ (this,
+               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING))
  , analyzer_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING))
  , tagger_ (this,
@@ -1192,17 +1194,9 @@ Stream_AVSave_DirectShow_Audio_Stream::Stream_AVSave_DirectShow_Audio_Stream ()
 
 }
 
-Stream_AVSave_DirectShow_Audio_Stream::~Stream_AVSave_DirectShow_Audio_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::~Stream_AVSave_DirectShow_Audio_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
-}
-
 bool
 Stream_AVSave_DirectShow_Audio_Stream::load (Stream_ILayout* layout_in,
-                                              bool& delete_out)
+                                             bool& delete_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Audio_Stream::load"));
 
@@ -1210,15 +1204,15 @@ Stream_AVSave_DirectShow_Audio_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
-//  ACE_ASSERT (layout_in->empty ());
-  ACE_ASSERT (configuration_);
+  //ACE_ASSERT (inherited::configuration_);
   //typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-  //    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  //  inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   //ACE_ASSERT (iterator != configuration_->end ());
-//  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
+  //bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
 
   layout_in->append (&source_, NULL, 0);
   layout_in->append (&analyzer_, NULL, 0);
+  //layout_in->append (&converter_, NULL, 0);
   layout_in->append (&tagger_, NULL, 0);
   ACE_ASSERT (inherited::configuration_->configuration_->module_2);
   layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
@@ -1271,23 +1265,6 @@ Stream_AVSave_DirectShow_Audio_Stream::initialize (const typename inherited::CON
   session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
   // ---------------------------------------------------------------------------
-
-  //// ******************* Camera Source ************************
-  //source_impl_p =
-  //  dynamic_cast<Stream_AVSave_WaveIn_Source*> (source_.writer ());
-  //if (!source_impl_p)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: dynamic_cast<Strean_AVSave_WaveIn_Source> failed, aborting\n"),
-  //              ACE_TEXT (stream_name_string_)));
-  //  goto error;
-  //} // end IF
-  //source_impl_p->setP (&(inherited::state_));
-
-  //// *NOTE*: push()ing the module will open() it
-  ////         --> set the argument that is passed along (head module expects a
-  ////             handle to the session data)
-  //source_.arg (inherited::sessionData_);
 
   if (configuration_in.configuration_->setupPipeline)
     if (!inherited::setup (NULL))

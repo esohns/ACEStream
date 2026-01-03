@@ -77,14 +77,13 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
  , audioFrameSize_ (0)
  , audioSamples_ (0)
  , audioStream_ (NULL)
- , formatContext_ (NULL)
- , headerWritten_ (false)
  , videoCodecContext_ (NULL)
  , videoFrame_ (NULL)
  , videoFrameSize_ (0)
  , videoSamples_ (0)
  , videoStream_ (NULL)
- //, condition_ (inherited::lock_)
+ , formatContext_ (NULL)
+ , headerWritten_ (false)
  , isFirst_ (true)
  , isLast_ (0)
  , numberOfStreamsInitialized_ (0)
@@ -239,11 +238,11 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVEncoder_T::handleDataMessage"));
 
-  int result = -1;
+  int result;
   ACE_Message_Block* message_block_p = message_inout;
-  AVCodecContext* codec_context_p = NULL;
-  AVFrame* frame_p = NULL;
-  AVStream* stream_p = NULL;
+  AVCodecContext* codec_context_p;
+  AVFrame* frame_p;
+  AVStream* stream_p;
 
   switch (message_inout->getMediaType ())
   {
@@ -294,7 +293,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     //frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
 
     // send the frame to the encoder
-    result = avcodec_send_frame (codec_context_p, frame_p);
+    result = avcodec_send_frame (codec_context_p,
+                                 frame_p);
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -307,7 +307,8 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     while (result >= 0)
     {
       struct AVPacket packet_s = { 0 };
-      result = avcodec_receive_packet (codec_context_p, &packet_s);
+      result = avcodec_receive_packet (codec_context_p,
+                                       &packet_s);
       if (result == AVERROR (EAGAIN) || result == AVERROR_EOF)
         break;
       if (unlikely (result < 0))
@@ -324,12 +325,12 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
         av_rescale_q_rnd (packet_s.pts,
                           codec_context_p->time_base,
                           stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
       packet_s.dts =
         av_rescale_q_rnd (packet_s.dts,
                           codec_context_p->time_base,
                           stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
       packet_s.duration = av_rescale_q (packet_s.duration,
                                         codec_context_p->time_base,
                                         stream_p->time_base);
@@ -411,7 +412,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       struct Stream_MediaFramework_FFMPEG_VideoMediaType video_media_type_s;
       const struct AVOutputFormat* output_format_p = NULL;
       enum AVCodecID video_codec_id = inherited::configuration_->codecConfiguration->codecId;
-      // *NOTE*: derive this from the specified input format (see below)
+      // *NOTE*: derive this from the specified output format (see below)
       // *TODO*: make this configurable as well
       enum AVCodecID audio_codec_id = AV_CODEC_ID_NONE;
 
@@ -514,7 +515,8 @@ audio:
       } // end IF
       formatContext_->audio_codec_id = audio_codec_id;
 
-      audioStream_ = avformat_new_stream (formatContext_, formatContext_->audio_codec);
+      audioStream_ = avformat_new_stream (formatContext_,
+                                          formatContext_->audio_codec);
       if (!audioStream_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -623,7 +625,7 @@ video:
       videoCodecContext_->codec_id = video_codec_id;
 
       videoCodecContext_->pix_fmt =
-          static_cast<AVPixelFormat> (videoFrame_->format);
+        static_cast<AVPixelFormat> (videoFrame_->format);
       videoFrameSize_ =
         av_image_get_buffer_size (videoCodecContext_->pix_fmt,
                                   videoFrame_->width,
@@ -708,7 +710,8 @@ continue_2:
       if (numberOfStreamsInitialized_ < static_cast<unsigned int> (inherited::configuration_->numberOfStreams))
         goto continue_3;
 
-      result = avformat_write_header (formatContext_, NULL);
+      result = avformat_write_header (formatContext_,
+                                      NULL);
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,

@@ -117,6 +117,7 @@ class Stream_Decoder_LibAVFilter_T
   struct AVFrame*         frame_2;
   unsigned int            frameSize_;
   unsigned int            outputFrameSize_;
+  bool                    outputIsPlanar_;
 };
 
 // include template definition
