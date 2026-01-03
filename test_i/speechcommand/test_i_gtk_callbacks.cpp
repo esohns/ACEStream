@@ -2657,7 +2657,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       //    NULL;
       //} // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                 media_source_p))
@@ -2670,7 +2670,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (false);
       ACE_NOTSUP;
       ACE_NOTREACHED (return;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       ACE_ASSERT (media_source_p);
       break;
     }
@@ -2694,14 +2694,15 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_Mic_Source_DirectShow* directshow_source_impl_p = NULL;
   Test_I_DirectShow_Source* directshow_source_impl_2 = NULL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
   IMFSampleGrabberSinkCallback2* sample_grabber_p = NULL;
 #else
   IMFSampleGrabberSinkCallback* sample_grabber_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
   IMFTopology* topology_p = NULL;
   HRESULT result = E_FAIL;
- 
+  struct _GUID GUID_s = GUID_NULL;
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2884,7 +2885,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s =
+  GUID_s =
     Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
                                                                             true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
@@ -2898,7 +2899,7 @@ continue_:
                 card_id_i));
     goto error_2;
   } // end IF
-  float volume_level_f = 0.0;
+  float volume_level_f = 0.0f;
   result =
     i_audio_endpoint_volume_p->GetMasterVolumeLevelScalar (&volume_level_f);
   ACE_ASSERT (SUCCEEDED (result));
