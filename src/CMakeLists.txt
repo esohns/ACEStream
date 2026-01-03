@@ -338,11 +338,11 @@ install (FILES
          stream_task_base_synch.inl
          stream_tools.h
          stream_tools.inl
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         DESTINATION "${INSTALL_INCLUDE_DIR}"
          COMPONENT include)
 install (FILES
          ${CMAKE_BINARY_DIR}/${PROJECT_NAME}_config.h
-         DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+         DESTINATION "${INSTALL_INCLUDE_DIR}"
          COMPONENT include)
 install (TARGETS ${PROJECT_NAME}
          EXPORT ${PROJECT_NAME}Targets
