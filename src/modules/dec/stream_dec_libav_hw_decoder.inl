@@ -1129,7 +1129,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end lock scope
 
     // send resize notification ?
-    if (send_resize_b)
+    if (unlikely (send_resize_b))
     {
       inherited::sessionData_->increase ();
       SessionDataContainerType* session_data_container_p =
@@ -1210,19 +1210,19 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
 
     result =
-        av_image_fill_linesizes (line_sizes_a,
-                                 outputFormat_,
-                                 static_cast<int> (frame_p->width));
+      av_image_fill_linesizes (line_sizes_a,
+                               outputFormat_,
+                               static_cast<int> (frame_p->width));
     ACE_ASSERT (result >= 0);
     result =
-        av_image_fill_pointers (data_a,
-                                outputFormat_,
-                                static_cast<int> (frame_p->height),
-                                reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                line_sizes_a);
+      av_image_fill_pointers (data_a,
+                              outputFormat_,
+                              static_cast<int> (frame_p->height),
+                              reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                              line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                                                         frame_->linesize[0], context_->height, intermediateFormat_,
+                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, intermediateFormat_,
                                                          frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a,
@@ -1264,7 +1264,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       av_frame_unref (frame_p);
       return false;
     } // end IF
-    message_block_p->base (reinterpret_cast<char*> (frame_p->data),
+    // *TODO*: doesn't work for planar types !
+    message_block_p->base (reinterpret_cast<char*> (frame_p->data[0]),
                            frameSize_,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_);
@@ -1286,7 +1287,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   message_inout = static_cast<DataMessageType*> (message_block_p);
 
   // clean up
-  ACE_OS::memset (frame_p->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  //ACE_OS::memset (frame_p->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   av_frame_unref (frame_p);
 
   return true;

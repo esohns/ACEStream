@@ -978,11 +978,16 @@ continue_:
                                 context_->width,
                                 context_->height,
                                 1); // *TODO*: linesize alignment
-    outputFrameSize_ =
-      av_image_get_buffer_size (outputFormat_,
-                                static_cast<int> (context_->width),
-                                static_cast<int> (context_->height),
-                                1); // *TODO*: linesize alignment
+    ACE_ASSERT (frameSize_ >= 0);
+    if (unlikely (send_resize_b))
+    {
+      outputFrameSize_ =
+        av_image_get_buffer_size (outputFormat_,
+                                  static_cast<int> (context_->width),
+                                  static_cast<int> (context_->height),
+                                  1); // *TODO*: linesize alignment
+      ACE_ASSERT (outputFrameSize_ >= 0);
+    } // end IF
 
     // update session data
     ACE_ASSERT (inherited::sessionData_);
@@ -1061,19 +1066,19 @@ continue_:
     } // end IF
 
     result =
-        av_image_fill_linesizes (line_sizes_a,
-                                 outputFormat_,
-                                 static_cast<int> (frame_->width));
+      av_image_fill_linesizes (line_sizes_a,
+                               outputFormat_,
+                               static_cast<int> (frame_->width));
     ACE_ASSERT (result >= 0);
     result =
-        av_image_fill_pointers (data_a,
-                                outputFormat_,
-                                static_cast<int> (frame_->height),
-                                reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                line_sizes_a);
+      av_image_fill_pointers (data_a,
+                              outputFormat_,
+                              static_cast<int> (frame_->height),
+                              reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                              line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                                                         context_->width, context_->height, context_->pix_fmt,
+                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
                                                          frame_->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a)))
@@ -1113,8 +1118,7 @@ continue_:
       av_frame_unref (frame_);
       return false;
     } // end IF
-    // *TODO*: this doesn't work for e.g. Chroma-Luminance types
-    ACE_ASSERT (!Stream_Module_Decoder_Tools::isChromaLuminance (outputFormat_));
+    // *TODO*: doesn't work for planar types !
     message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
                            frameSize_,
                            0); // own image data
@@ -1138,7 +1142,7 @@ continue_:
   message_inout = static_cast<DataMessageType*> (message_block_p);
 
   // clean up
-  ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  //ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   av_frame_unref (frame_);
 
   return true;
