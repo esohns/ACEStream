@@ -76,7 +76,7 @@ acestream_dev_target_pw_on_process_cb (void* userData_in)
 
   // sanity check(s)
   struct Stream_Device_Pipewire_Playback_CBData* cb_data_p =
-      static_cast<struct Stream_Device_Pipewire_Playback_CBData*> (userData_in);
+    static_cast<struct Stream_Device_Pipewire_Playback_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->stream);
 
@@ -85,7 +85,7 @@ acestream_dev_target_pw_on_process_cb (void* userData_in)
   uint8_t* samples_p;
   uint32_t index_i = 0;
   int result;
-  uint32_t available_frames_i, available_frames_2, frames_to_copy_i, bytes_to_copy_i;
+  uint32_t available_frames_i = 0, available_frames_2, frames_to_copy_i, bytes_to_copy_i;
 
   pw_buffer_p = pw_stream_dequeue_buffer (cb_data_p->stream);
   if (unlikely (!pw_buffer_p))
@@ -107,8 +107,7 @@ acestream_dev_target_pw_on_process_cb (void* userData_in)
   available_frames_i =
     spa_buffer_p->datas[0].maxsize / cb_data_p->frameSize;
   if (pw_buffer_p->requested)
-    available_frames_i =
-        std::min (static_cast<uint32_t> (pw_buffer_p->requested), available_frames_i);
+    available_frames_i = std::min (static_cast<uint32_t> (pw_buffer_p->requested), available_frames_i);
   available_frames_2 = available_frames_i;
   while (available_frames_2)
   {
@@ -149,7 +148,7 @@ continue_:
   spa_buffer_p->datas[0].chunk->offset = 0;
   spa_buffer_p->datas[0].chunk->stride = cb_data_p->frameSize;
   spa_buffer_p->datas[0].chunk->size =
-      available_frames_i * cb_data_p->frameSize;
+    available_frames_i * cb_data_p->frameSize;
 
   result = pw_stream_queue_buffer (cb_data_p->stream,
                                    pw_buffer_p);
