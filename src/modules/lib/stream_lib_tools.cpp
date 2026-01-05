@@ -57,6 +57,7 @@ extern "C"
 #include "ace/Log_Msg.h"
 
 #include "common_os_tools.h"
+#include "common_string_tools.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "common_error_tools.h"
@@ -78,6 +79,26 @@ Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_Medi
 Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_MediaFramework_DirectShow_MediaSubTypeToStringMap;
 Stream_MediaFramework_GUIDToStringMap_t Stream_MediaFramework_Tools::Stream_MediaFramework_MediaFoundation_MediaSubTypeToStringMap;
 #endif // ACE_WIN32 || ACE_WIN64
+
+enum Stream_AVContainer_Type
+Stream_MediaFramework_Tools::fileExtensionToAVContainer (const std::string& fileExtension_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::fileExtensionToAVContainer"));
+
+  std::string extension_lower_string = Common_String_Tools::tolower (fileExtension_in);
+
+  if (!ACE_OS::strcmp (extension_lower_string.c_str (), ACE_TEXT_ALWAYS_CHAR ("avi")))
+    return STREAM_AVCONTAINERTYPE_AVI;
+  else if (!ACE_OS::strcmp (extension_lower_string.c_str (), ACE_TEXT_ALWAYS_CHAR ("mp4")) ||
+           !ACE_OS::strcmp (extension_lower_string.c_str (), ACE_TEXT_ALWAYS_CHAR ("m4v")))
+    return STREAM_AVCONTAINERTYPE_MP4;
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("invalid/unknown file extension (was: \"%s\"), aborting\n"),
+              ACE_TEXT (fileExtension_in.c_str ())));
+
+  return STREAM_AVCONTAINERTYPE_INVALID;
+}
 
 bool
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

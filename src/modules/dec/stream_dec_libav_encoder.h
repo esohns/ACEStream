@@ -31,7 +31,7 @@ extern "C"
 
 #include "ace/Global_Macros.h"
 
-#include "stream_task_base_asynch.h"
+#include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -126,6 +126,94 @@ class Stream_Decoder_LibAVEncoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T (const Stream_Decoder_LibAVEncoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_T& operator= (const Stream_Decoder_LibAVEncoder_T&))
+};
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType> // audio/video !
+class Stream_Decoder_LibAVEncoder_2
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+
+ public:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  typedef Stream_IStream_T<ACE_SYNCH_USE, TimePolicyType> ISTREAM_T;
+  Stream_Decoder_LibAVEncoder_2 (ISTREAM_T*); // stream handle
+#else
+  Stream_Decoder_LibAVEncoder_2 (typename inherited::ISTREAM_T*); // stream handle
+#endif // ACE_WIN32 || ACE_WIN64
+  virtual ~Stream_Decoder_LibAVEncoder_2 ();
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ protected:
+  struct AVCodecContext*  audioCodecContext_;
+  struct AVFrame*         audioFrame_;
+  unsigned int            audioFrameSize_;
+  unsigned int            audioSamples_;
+  struct AVStream*        audioStream_;
+
+  struct AVCodecContext*  videoCodecContext_;
+  struct AVFrame*         videoFrame_;
+  unsigned int            videoFrameSize_;
+  unsigned int            videoSamples_;
+  struct AVStream*        videoStream_;
+
+  struct AVFormatContext* formatContext_;
+  bool                    headerWritten_;
+  bool                    isFirst_; // the first thread allocates the format context
+  int                     isLast_;  // the last thread deallocates the format context
+  unsigned int            numberOfStreamsInitialized_;
+
+ private:
+  // convenient types
+  typedef Stream_Decoder_LibAVEncoder_2<ACE_SYNCH_USE,
+                                        TimePolicyType,
+                                        ConfigurationType,
+                                        ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType,
+                                        MediaType> OWN_TYPE_T;
+
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_2 ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_2 (const Stream_Decoder_LibAVEncoder_2&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVEncoder_2& operator= (const Stream_Decoder_LibAVEncoder_2&))
 };
 
 // include template definition

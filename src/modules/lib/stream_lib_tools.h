@@ -82,6 +82,7 @@ class Stream_MediaFramework_Tools
 
  public:
   inline static std::string FOURCCToString (ACE_UINT32 fourCC_in) { return std::string (reinterpret_cast<char*> (&fourCC_in), 4); }
+  static enum Stream_AVContainer_Type fileExtensionToAVContainer (const std::string&); // file extenstion string (without leading '.')
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static bool initialize (enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);

@@ -818,14 +818,13 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                              sourcePixelFormat_in,
                              static_cast<int> (sourceWidth_in));
   ACE_ASSERT (result_2 >= 0);
-  if (unlikely (flipVertically_in))
+  if (unlikely (flipVertically_in &&
+                // *TODO*: verify that this (sort of) works for planar/non-planar formats alike
+                (av_pix_fmt_count_planes (sourcePixelFormat_in) <= 1)))
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
-    { // *NOTE*: do not change sourceBuffers_in[i] for NV12
-      if (sourcePixelFormat_in != AV_PIX_FMT_NV12)
-      {
-        sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
-        in_linesize[i] = -in_linesize[i];
-      } // end IF
+    {
+      sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
+      in_linesize[i] = -in_linesize[i];
     } // end FOR
   result_2 = av_image_fill_linesizes (out_linesize,
                                       targetPixelFormat_in,

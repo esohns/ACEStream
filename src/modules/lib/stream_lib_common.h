@@ -44,6 +44,15 @@
 
 #include "stream_lib_defines.h"
 
+enum Stream_AVContainer_Type
+{
+  STREAM_AVCONTAINERTYPE_AVI = 0,
+  STREAM_AVCONTAINERTYPE_MP4,
+  ////////////////////////////////////////
+  STREAM_AVCONTAINERTYPE_MAX,
+  STREAM_AVCONTAINERTYPE_INVALID
+};
+
 enum Stream_MediaType_Type
 {
   STREAM_MEDIATYPE_AUDIO = 0,

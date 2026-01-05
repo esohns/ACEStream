@@ -6155,7 +6155,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
   std::string filename_string = Common_UI_GTK_Tools::UTF8ToLocale (string_2, -1);
   filename_string = Common_File_Tools::cropExtension (filename_string);
   filename_string += '.';
-  filename_string += extension_string; 
+  filename_string += extension_string;
   gtk_entry_set_text (entry_p,
                       filename_string.c_str ());
 } // combobox_save_format_changed_cb

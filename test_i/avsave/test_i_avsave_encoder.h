@@ -107,7 +107,7 @@ class Test_I_AVSave_Encoder_T
 
 //////////////////////////////////////////
 
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Test_I_AVSave_Encoder_T<ACE_MT_SYNCH,
                                 Common_TimePolicy_t,
                                 struct

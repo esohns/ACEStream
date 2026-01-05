@@ -260,7 +260,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                           stream_p->time_base,
                           static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
       //packet_s.dts = AV_NOPTS_VALUE;
-      packet_s.dts = 
+      packet_s.dts =
         av_rescale_q_rnd (packet_s.dts,
                           codec_context_p->time_base,
                           stream_p->time_base,
