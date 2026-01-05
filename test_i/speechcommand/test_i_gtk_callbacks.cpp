@@ -2253,7 +2253,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
+#if GTK_CHECK_VERSION (3,0,0)
   gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
+#else
+  gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p), TRUE);
+#endif // GTK_CHECK_VERSION (3,0,0)
   GtkAllocation allocation_s;
   gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
                              &allocation_s);
@@ -2482,7 +2486,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
   std::string device_identifier_string;
   unsigned int card_id_i = std::numeric_limits<unsigned int>::max ();
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
   GValue value_2 = G_VALUE_INIT;
 #else
