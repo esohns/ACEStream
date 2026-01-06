@@ -131,7 +131,7 @@ class Stream_Module_Vis_GTK_Cairo_T
 #else
   GdkPixbuf*       surface_; // target-
 #endif // GTK_CHECK_VERSION
-  ACE_Thread_Mutex surfaceLock_;
+  ACE_Thread_Mutex surfaceLock_; // support resizing the window
 #if GTK_CHECK_VERSION (4,0,0)
   GdkCairoContext* drawingContext_;
 #endif // GTK_CHECK_VERSION (4,0,0)

@@ -25,6 +25,7 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_ui_windowtype_converter.h"
 
@@ -109,6 +110,7 @@ class Stream_Module_Vis_GTK_Pixbuf_T
 #elif GTK_CHECK_VERSION (3,0,0)
   cairo_t*                  context_;
 #endif // GTK_CHECK_VERSION
+  ACE_Thread_Mutex          lock_; // support resizing the window
   bool                      sourceHasAlphaChannel_;
   Common_Image_Resolution_t sourceResolution_; // incoming-
   Common_Image_Resolution_t targetResolution_; // window-

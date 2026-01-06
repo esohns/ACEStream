@@ -47,7 +47,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                MediaType>::Stream_Module_Vis_GTK_Window_T (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
- , inherited2 ()
+ , inherited2 (&pixbufLock_) // *TODO*: does this work (ctor has not yet been called)
  , inherited3 ()
  , window_ (NULL)
 // #if GTK_CHECK_VERSION (3,22,0)
@@ -60,6 +60,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
  , context_ (NULL)
 #endif // GTK_CHECK_VERSION (3,0,0)
  , pixbuf_ (NULL)
+ , pixbufLock_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::Stream_Module_Vis_GTK_Window_T"));
 
@@ -136,6 +137,10 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_GTK_Window_T::handleDataMessage"));
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  ACE_GUARD (ACE_Thread_Mutex, aGuard, pixbufLock_);
+  if (unlikely (inherited2::resizing_))
+    return; // done
 
   // sanity check(s)
   ACE_ASSERT (window_);
@@ -333,6 +338,15 @@ error:
 
       inherited::TASK_BASE_T::notify (STREAM_SESSION_MESSAGE_ABORT);
 
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // *TODO*: actually resize the pixbuf (and re-generate the cairo context ?!)
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: diminishing the window size will probably crash the application, continuing\n"),
+                  inherited::mod_->name ()));
+      inherited2::resizing_ = false;
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

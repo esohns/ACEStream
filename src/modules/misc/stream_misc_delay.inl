@@ -68,6 +68,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
            NULL)                   // notification handle
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
+ , resizeOccured_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::Stream_Module_Delay_T"));
 
@@ -357,6 +358,24 @@ error:
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      resizeOccured_ = true;
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
@@ -598,8 +617,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (likely (resetTimeoutHandlerId_ != -1))
   {
     Common_ITimerCBBase* itimer_p =
-        (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                                 : COMMON_TIMERMANAGER_SINGLETON::instance ());
+      (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                               : COMMON_TIMERMANAGER_SINGLETON::instance ());
     ACE_ASSERT (itimer_p);
 
     const void* act_p = NULL;
@@ -722,13 +741,23 @@ continue_:
         } // end IF
       } // end IF
 
+      if (unlikely (resizeOccured_))
+      {
+        resizeOccured_ = false;
+        if (messageBlock_in != message_block_2)
+          messageBlock_in->release ();
+        message_block_2->release (); message_block_2 = NULL;
+        return;
+      } // end IF
+
       result = inherited::put_next (message_block_2, NULL);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
-        messageBlock_in->release ();
+        if (messageBlock_in != message_block_2)
+          messageBlock_in->release ();
         message_block_2->release ();
         return;
       } // end IF
@@ -755,6 +784,13 @@ continue_:
     case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER:
     {
+      if (unlikely (resizeOccured_))
+      {
+        resizeOccured_ = false;
+        messageBlock_in->release ();
+        return;
+      } // end IF
+
       result = inherited::put_next (messageBlock_in, NULL);
       if (unlikely (result == -1))
       {
@@ -804,31 +840,6 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_2::Stream_Module_Delay_2"));
 
-}
-
-template <ACE_SYNCH_DECL,
-          typename TimePolicyType,
-          typename ConfigurationType,
-          typename ControlMessageType,
-          typename DataMessageType,
-          typename SessionMessageType,
-          typename MediaType,
-          typename UserDataType>
-bool
-Stream_Module_Delay_2<ACE_SYNCH_USE,
-                      TimePolicyType,
-                      ConfigurationType,
-                      ControlMessageType,
-                      DataMessageType,
-                      SessionMessageType,
-                      MediaType,
-                      UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                 Stream_IAllocator* allocator_in)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_2::initialize"));
-
-  return inherited::initialize (configuration_in,
-                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1094,7 +1105,7 @@ continue_:
         }
       } // end SWITCH
 
-         // schedule the delay interval timer
+      // schedule the delay interval timer
       resetTimeoutHandlerId_ =
         itimer_p->schedule_timer (&resetTimeoutHandler_,                                    // event handler handle
                                   NULL,                                                     // asynchronous completion token
@@ -1119,6 +1130,23 @@ continue_:
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      unsigned int result = queue_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing: flushed %u data messages\n"),
+                    inherited::mod_->name (),
+                    result));
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

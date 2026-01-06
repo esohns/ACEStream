@@ -21,15 +21,19 @@
 #ifndef STREAM_VISUALIZATION_IRESIZE_H
 #define STREAM_VISUALIZATION_IRESIZE_H
 
+#include "common_ilock.h"
+
 #include "common_image_common.h"
 
 class Stream_Visualization_IResize
+ : public Common_ILock // *TODO*: should ideally be Common_ILock_T<ACE_MT_SYNCH>
 {
  public:
   virtual void resize (const Common_Image_Resolution_t&) = 0; // new resolution
 
-  // modules implementing this MUST discard all frames until the next
-  // STREAM_SESSION_MESSAGE_RESIZE has been processed
+  // *NOTE*: modules implementing this MUST discard all frames until the next
+  // STREAM_SESSION_MESSAGE_RESIZE has been processed, upon which they need to
+  // update internal context accordingly
   virtual void resizing () = 0; // new resolution
 };
 

@@ -2,6 +2,7 @@
 #define STREAM_VISUALIZATION_BASE_H
 
 #include "ace/Global_Macros.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_ui_ifullscreen.h"
 
@@ -12,17 +13,21 @@ class Stream_Visualization_Base
  , public Stream_Visualization_IResize
 {
  public:
-  Stream_Visualization_Base ();
+  Stream_Visualization_Base (ACE_Thread_Mutex*);
   inline virtual ~Stream_Visualization_Base () {}
 
   // implement Stream_Visualization_IResize
+  inline virtual bool lock (bool block_in) { ACE_ASSERT (block_in && lock_); lock_->acquire (); return true; }
+  inline virtual int unlock (bool unlockCompletely_in) { ACE_ASSERT (!unlockCompletely_in && lock_); return lock_->release (); }
   inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
-  inline virtual void resizing () { resizing_ = true; }
+  inline virtual void resizing () { lock (true); resizing_ = true; unlock (false); }
 
  protected:
-  bool resizing_;
+  ACE_Thread_Mutex* lock_;
+  bool              resizing_;
 
  private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Base ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Base (const Stream_Visualization_Base&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_Base& operator= (const Stream_Visualization_Base&))
 };

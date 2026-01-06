@@ -107,6 +107,8 @@ class Stream_Module_Delay_T
   typename inherited::MESSAGE_QUEUE_T queue_;
   Common_Timer_ResetCounterHandler    resetTimeoutHandler_;
   long                                resetTimeoutHandlerId_;
+  // *NOTE*: only needed for the 'synchronous' version !
+  bool                                resizeOccured_;
 };
 
 //////////////////////////////////////////
@@ -151,11 +153,7 @@ class Stream_Module_Delay_2
   Stream_Module_Delay_2 (typename inherited::ISTREAM_T*); // stream handle
   inline virtual ~Stream_Module_Delay_2 () {}
 
-     // override (part of) Stream_IModuleHandler_T
-  virtual bool initialize (const ConfigurationType&,
-                           Stream_IAllocator* = NULL); // report cache usage ?
-
-     // implement (part of) Stream_ITaskBase_T
+  // implement (part of) Stream_ITaskBase_T
   virtual void handleDataMessage (DataMessageType*&, // data message handle
                                   bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle

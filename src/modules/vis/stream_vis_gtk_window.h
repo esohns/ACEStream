@@ -25,10 +25,9 @@
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
+#include "ace/Thread_Mutex.h"
 
 #include "common_inotify.h"
-
-#include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_synch.h"
 
@@ -139,6 +138,7 @@ class Stream_Module_Vis_GTK_Window_T
   cairo_t*         context_;
 #endif // GTK_CHECK_VERSION
   GdkPixbuf*       pixbuf_;
+  ACE_Thread_Mutex pixbufLock_; // support resizing the window
 };
 
 // include template definition
