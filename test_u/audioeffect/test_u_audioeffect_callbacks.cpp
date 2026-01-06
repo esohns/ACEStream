@@ -6317,29 +6317,23 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
+  // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
       static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
+  ACE_ASSERT (ui_cb_data_base_p->UIState);
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
   enum Common_UI_EventType* event_p = NULL;
   int result = -1;
   enum Common_UI_EventType event_e = COMMON_UI_EVENT_INVALID;
 
-  Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
-
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
-    for (Common_UI_Events_t::ITERATOR iterator_2 (state_r.eventStack);
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, G_SOURCE_REMOVE);
+    for (Common_UI_Events_t::ITERATOR iterator_2 (ui_cb_data_base_p->UIState->eventStack);
          iterator_2.next (event_p);
          iterator_2.advance ())
     { ACE_ASSERT (event_p);
@@ -6436,16 +6430,16 @@ idle_update_info_display_cb (gpointer userData_in)
     } // end FOR
 
     // clean up
-    while (!state_r.eventStack.is_empty ())
+    while (!ui_cb_data_base_p->UIState->eventStack.is_empty ())
     {
-      result = state_r.eventStack.pop (event_e);
+      result = ui_cb_data_base_p->UIState->eventStack.pop (event_e);
       if (result == -1)
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to ACE_Unbounded_Stack::pop(): \"%m\", continuing\n")));
     } // end WHILE
   } // end lock scope
 
-  // display renderer statistics
+  // *TODO*: display renderer statistics
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_AudioEffect_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -6528,7 +6522,7 @@ idle_update_progress_cb (gpointer userData_in)
 
   // sanity check(s)
   struct Test_U_AudioEffect_ProgressData* data_p =
-      static_cast<struct Test_U_AudioEffect_ProgressData*> (userData_in);
+    static_cast<struct Test_U_AudioEffect_ProgressData*> (userData_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
   Common_UI_GTK_BuildersConstIterator_t iterator =
@@ -6642,14 +6636,10 @@ idle_update_display_cb (gpointer userData_in)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-  Common_UI_GTK_Manager_t* gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
-  ACE_ASSERT (gtk_manager_p);
-  Common_UI_GTK_State_t& state_r =
-    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+  ACE_ASSERT (ui_cb_data_base_p->UIState);
   Common_UI_GTK_BuildersConstIterator_t iterator =
-    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  ACE_ASSERT (iterator != state_r.builders.end ());
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   // trigger refresh of the 2D area ?
   GtkDrawingArea* drawing_area_p = NULL;
@@ -6674,8 +6664,9 @@ continue_2:
   if (!ui_cb_data_base_p->render3d)
     return G_SOURCE_CONTINUE;
 
-  ACE_ASSERT (!state_r.OpenGLContexts.empty ());
-  Common_UI_GTK_GLContextsIterator_t iterator_2 = state_r.OpenGLContexts.begin ();
+  ACE_ASSERT (!ui_cb_data_base_p->UIState->OpenGLContexts.empty ());
+  Common_UI_GTK_GLContextsIterator_t iterator_2 =
+    ui_cb_data_base_p->UIState->OpenGLContexts.begin ();
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
   window_p = gtk_widget_get_window (GTK_WIDGET ((*iterator_2).first));
@@ -9190,8 +9181,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-        is_active_b;
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+        is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -9204,8 +9195,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-        is_active_b;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+        is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
       break;
     }
     default:
@@ -9224,8 +9215,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
   Test_U_AudioEffect_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-    is_active_b;
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+    is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
 #endif // ACE_WIN32 || ACE_WIN64
 } // checkbutton_window_function_toggled_cb
 

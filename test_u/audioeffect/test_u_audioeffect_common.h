@@ -349,7 +349,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
    , deviceIdentifier ()
    , delayConfiguration (NULL)
    , dispatch (NULL)
-   , fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
+   //, fps (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_FRAME_RATE)
    , generatorConfiguration (NULL)
 #if defined (SOX_SUPPORT)
    , manageSoX (false)
@@ -371,7 +371,7 @@ struct Test_U_AudioEffect_ModuleHandlerConfiguration
   struct Stream_Device_Identifier                           deviceIdentifier; // capture/render
   struct Stream_Miscellaneous_DelayConfiguration*           delayConfiguration;
   Stream_Statistic_IDispatch_t*                             dispatch;
-  unsigned int                                              fps;
+  //unsigned int                                              fps;
   struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
 #if defined (SOX_SUPPORT)
   bool                                                      manageSoX;

@@ -41,19 +41,20 @@
 
 #include "common_ui_windowtype_converter.h"
 
+#include "stream_vis_common.h"
+
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
 
 struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
 {
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
-   : applyWindowFunction (false)
-   , mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   : mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
    , numberOfBins (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS)
    , window (NULL)
+   , windowFunction (STREAM_VISUALIZATION_WINDOWFUNCTION_NONE)
   {}
 
-  bool                                              applyWindowFunction; // e.g. Hamming-, Hann-, ...
   enum Stream_Visualization_SpectrumAnalyzer_2DMode mode;
   unsigned int                                      numberOfBins;
 #if GTK_CHECK_VERSION (4,0,0)
@@ -61,6 +62,7 @@ struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
 #else
   GdkWindow*                                        window;
 #endif // GTK_CHECK_VERSION (4,0,0)
+  enum Stream_Visualization_WindowFunctionType      windowFunction;
 };
 
 //////////////////////////////////////////

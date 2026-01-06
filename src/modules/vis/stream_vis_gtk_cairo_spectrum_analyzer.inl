@@ -349,11 +349,12 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   //ACE_ASSERT (!(message_inout->length () % sampleIterator_.dataSampleSize_));
   //ACE_ASSERT (!(message_inout->length () % sampleIterator_.soundSampleSize_));
 
-  unsigned int number_of_samples = 0;
-  unsigned int samples_to_write = 0;
+  unsigned int number_of_samples;
+  unsigned int samples_to_write;
   unsigned int offset = 0;
-  unsigned int tail_slot = 0;
+  unsigned int tail_slot;
   ACE_Message_Block* message_block_p = message_inout;
+  // *NOTE*: make sure there's no switch between computation of individual channels
   bool compute_fft_b =
     inherited::configuration_->spectrumAnalyzerConfiguration->mode == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM;
 
@@ -383,12 +384,37 @@ next:
         inherited2::buffer_[i][tail_slot + j] = sampleIterator_.get (j, i);
 
       // step1b: apply window function ?
-      if (unlikely (inherited::configuration_->spectrumAnalyzerConfiguration->applyWindowFunction))
-        for (unsigned int j = 0; j < samples_to_write; ++j)
-        { // --> 'Hamming'-window
-          inherited2::buffer_[i][tail_slot + j] *=
-            (0.54 - 0.46 * std::cos ((2.0 * M_PI * (tail_slot + j)) / static_cast<ValueType> (inherited2::slots_)));
-        } // end FOR
+      switch (inherited::configuration_->spectrumAnalyzerConfiguration->windowFunction)
+      {
+        case STREAM_VISUALIZATION_WINDOWFUNCTION_NONE:
+          break;
+        case STREAM_VISUALIZATION_WINDOWFUNCTION_BLACKMAN:
+        { // *NOTE*: alpha = 0.16
+          for (unsigned int j = 0; j < samples_to_write; ++j)
+            inherited2::buffer_[i][tail_slot + j] *= (static_cast<ValueType> (0.42) - static_cast<ValueType> (0.5) * std::cos ((static_cast<ValueType> (2.0 * M_PI) * j) / static_cast<ValueType> (samples_to_write - 1)) + static_cast<ValueType> (0.08) * std::cos ((static_cast<ValueType> (4.0 * M_PI) * j) / static_cast<ValueType> (samples_to_write - 1)));
+          break;
+        }
+        case STREAM_VISUALIZATION_WINDOWFUNCTION_HAMMING:
+        {
+          for (unsigned int j = 0; j < samples_to_write; ++j)
+            inherited2::buffer_[i][tail_slot + j] *= (static_cast<ValueType> (0.54) - static_cast<ValueType> (0.46) * std::cos ((static_cast<ValueType> (2.0 * M_PI) * j) / static_cast<ValueType> (samples_to_write - 1)));
+          break;
+        }
+        case STREAM_VISUALIZATION_WINDOWFUNCTION_HANN:
+        {
+          for (unsigned int j = 0; j < samples_to_write; ++j)
+            inherited2::buffer_[i][tail_slot + j] *= (static_cast<ValueType> (0.5) * (static_cast<ValueType> (1.0) - std::cos (static_cast<ValueType> (2.0 * M_PI) * (j / static_cast<ValueType> (samples_to_write - 1)))));
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: invalid/unknown window function type (was: %d), continuing\n"),
+                      inherited::mod_->name (),
+                      inherited::configuration_->spectrumAnalyzerConfiguration->windowFunction));
+          break;
+        }
+      } // end SWITCH
 
       // step1c: process sample data ?
       if (compute_fft_b)
@@ -398,11 +424,11 @@ next:
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
         {
           inherited2::X_[i][j][0] = inherited2::buffer_[i][j];
-          inherited2::X_[i][j][1] = 0.0f;
+          inherited2::X_[i][j][1] = static_cast<ValueType> (0.0);
         } // end FOR
 #else
         for (unsigned int j = 0; j < inherited2::slots_; ++j)
-          inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], 0.0);
+          inherited2::X_[i][inherited2::bitReverseMap_[j]] = std::complex<ValueType> (inherited2::buffer_[i][j], static_cast<ValueType> (0.0));
 #endif // FFTW_SUPPORT
 
 //        if (bufferedSamples_ >= inherited2::slots_)

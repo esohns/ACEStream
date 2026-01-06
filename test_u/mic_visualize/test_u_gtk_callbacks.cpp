@@ -8949,8 +8949,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-        is_active_b;
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+        is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8963,8 +8963,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-        is_active_b;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+        is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
       break;
     }
     default:
@@ -8983,8 +8983,8 @@ checkbutton_window_function_toggled_cb (GtkToggleButton* toggleButton_in,
   Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
-  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->applyWindowFunction =
-    is_active_b;
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->windowFunction =
+    is_active_b ? STREAM_VIS_SPECTRUMANALYZER_DEFAULT_WINDOW_FUNCTION : STREAM_VISUALIZATION_WINDOWFUNCTION_NONE;
 #endif // ACE_WIN32 || ACE_WIN64
 } // checkbutton_window_function_toggled_cb
 

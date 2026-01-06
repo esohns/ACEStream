@@ -37,11 +37,11 @@ struct Stream_Visualization_GTKGL_Instruction
 
   enum Stream_Visualization_InstructionType type;
   union {
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
     struct _GdkRGBA                         color;
 #else
     GdkColor                                color;
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
   };
 };
 typedef std::deque<struct Stream_Visualization_GTKGL_Instruction> Stream_Visualization_GTKGL_Instructions_t;
