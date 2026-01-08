@@ -319,7 +319,7 @@ elseif (WIN32)
                  ${LIB_ROOT}/libepoxy/bin/epoxy-0.dll
                  ${LIB_ROOT}/libnoise/build/msvc/Release/libnoise.dll
                  ${LIB_ROOT}/sox/build/src/Release/libsox.dll
-                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316d_vc_x64_custom.dll
+                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxbase316_vc_x64_custom.dll
                  ${LIB_ROOT}/zlib/build/Release/zlib.dll
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_u)
  install (FILES ${LIB_ROOT}/gtk3/share/glib-2.0/schemas/gschemas.compiled

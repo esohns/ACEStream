@@ -261,6 +261,8 @@ elseif (WIN32)
                 ${LIB_ROOT}/gtk3/bin/liblzma-5.dll
                 ${LIB_ROOT}/gtk3/bin/zlib1.dll
                 ${LIB_ROOT}/gtk3/bin/libxml2-2.dll
+                ${LIB_ROOT}/vcpkg/installed/x64-windows/bin/iconv-2.dll
+                ${LIB_ROOT}/vcpkg/installed/x64-windows/bin/liblzma.dll
                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316_core_vc_x64_custom.dll
                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316_html_vc_x64_custom.dll
                 ${LIB_ROOT}/wxWidgets/lib/vc_x64_dll/wxmsw316_xrc_vc_x64_custom.dll

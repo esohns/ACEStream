@@ -466,15 +466,16 @@ elseif (WIN32)
  install (FILES ${ACE_DLL_FQPATH}
                 ${LIB_ROOT}/opencv/build/bin/Release/opencv_core453.dll
                 ${LIB_ROOT}/opencv/build/bin/Release/opencv_imgproc453.dll
-                ${LIB_ROOT}/tensorflow_c/lib/tensorflow.dll
+#                ${LIB_ROOT}/tensorflow_c/lib/tensorflow.dll *NOTE*: do not package this; it's huge
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
  if (MEDIAPIPE_SUPPORT)
   install (FILES C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/examples/desktop/libmp/libmp.dll
            DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
-  install (DIRECTORY C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models
-           DESTINATION ${INSTALL_BIN_DIR}/../mediapipe COMPONENT test_i)
-  install (DIRECTORY C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules
-           DESTINATION ${INSTALL_BIN_DIR}/../mediapipe COMPONENT test_i)
+# *NOTE*: do not install these files by default; they just bloat the installer
+#  install (DIRECTORY C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models
+#           DESTINATION ${INSTALL_BIN_DIR}/../mediapipe COMPONENT test_i)
+#  install (DIRECTORY C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules
+#           DESTINATION ${INSTALL_BIN_DIR}/../mediapipe COMPONENT test_i)
   if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
    install (FILES ${ACE_DLL_FQPATH}
             DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
