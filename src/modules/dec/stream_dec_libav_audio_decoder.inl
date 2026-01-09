@@ -219,6 +219,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::handleDataMessage"));
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->codecConfiguration);
   ACE_ASSERT (context_);
 
   // initialize return value(s)
@@ -243,12 +245,18 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
   // step2: (re-)pad [see above] the buffer chain
   // *IMPORTANT NOTE*: the message length does not change
-  for (message_block_p = message_inout;
-       message_block_p;
-       message_block_p = message_block_p->cont ())
-  { if (((message_block_p->capacity () - message_block_p->size ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
-      ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
-  } // end FOR
+  if (likely (inherited::configuration_->codecConfiguration->padInputBuffers))
+  {
+    for (message_block_p = message_inout;
+         message_block_p;
+         message_block_p = message_block_p->cont ())
+      if (((message_block_p->capacity () - message_block_p->size ()) >= AV_INPUT_BUFFER_PADDING_SIZE))
+        ACE_OS::memset (message_block_p->wr_ptr (), 0, AV_INPUT_BUFFER_PADDING_SIZE);
+      // else
+      //   ACE_DEBUG ((LM_WARNING,
+      //               ACE_TEXT ("%s: cannot pad input buffer, continuing\n"),
+      //               inherited::mod_->name ()));
+  } // end IF
 
   message_block_p = message_inout;
   do
@@ -298,8 +306,9 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                          message_p))
       {
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: failed to Stream_Decoder_LibAVAudioDecoder_T::decodePacket(), continuing\n"),
+                    ACE_TEXT ("%s: failed to decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
+        ACE_ASSERT (!message_p);
         continue;
       } // end IF
       if (!message_p)
@@ -764,10 +773,12 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_);
   ACE_ASSERT (frame_);
 
+  int result, result_2;
+
 //   unsigned int retries_i = 3;
 // retry:
-  int result = avcodec_send_packet (context_,
-                                    &packet_in);
+  result = avcodec_send_packet (context_,
+                                &packet_in);
   if (unlikely (result))
   { // *NOTE*: most likely cause: some spurious AAC decoding error
     // if (inherited::configuration_->codecConfiguration->codecId != AV_CODEC_ID_AAC)
@@ -869,7 +880,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   // convert sample format / sample rate ?
   if (transformContext_)
   {
-    result = swr_get_out_samples (transformContext_, frame_->nb_samples);
+    result = swr_get_out_samples (transformContext_,
+                                  frame_->nb_samples);
     ACE_ASSERT (result >= 0);
 
     message_block_p = inherited::allocateMessage (outputFrameSize_ * result);
@@ -885,11 +897,21 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-    data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
+    result_2 = av_samples_fill_arrays (data_a,
+                                       NULL,
+                                       reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                       outputChannels_,
+                                       frame_->nb_samples,
+                                       outputFormat_,
+                                       1);
+    ACE_ASSERT (result_2 >= 0);
+
     result =
       swr_convert (transformContext_,
-                   data_a, result,
-                   const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)), frame_->nb_samples);
+                   data_a,
+                   result,
+                   const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)),
+                   frame_->nb_samples);
     if (unlikely (result < 0))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -915,7 +937,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       av_frame_unref (frame_);
       return false;
     } // end IF
-    message_block_p->base (reinterpret_cast<char*> (frame_->data),
+    // *TODO*: doesn't work for planar types !
+    message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
                            frameSize_ * frame_->nb_samples,
                            0); // own image data
     message_block_p->wr_ptr (frameSize_ * frame_->nb_samples);
@@ -924,7 +947,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   message_inout = static_cast<DataMessageType*> (message_block_p);
 
   // clean up
-  ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+  //ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   av_frame_unref (frame_);
 
   return true;
@@ -956,7 +979,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   struct AVPacket packet_s;
   ACE_OS::memset (&packet_s, 0, sizeof (struct AVPacket));
   DataMessageType* message_p = NULL;
-  int result = -1;
+  int result, result_2;
   ACE_Message_Block* message_block_p = NULL;
 
   av_init_packet (&packet_s);
@@ -993,7 +1016,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     // convert pixel format of the decoded frame ?
     if (transformContext_)
     {
-      result = swr_get_out_samples (transformContext_, frame_->nb_samples);
+      result = swr_get_out_samples (transformContext_,
+                                    frame_->nb_samples);
       ACE_ASSERT (result >= 0);
 
       message_block_p = inherited::allocateMessage (outputFrameSize_ * result);
@@ -1009,21 +1033,30 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
       uint8_t* data_a[AV_NUM_DATA_POINTERS];
       ACE_OS::memset (&data_a[0], 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-      data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
+      result_2 = av_samples_fill_arrays (data_a,
+                                         NULL,
+                                         reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                         outputChannels_,
+                                         frame_->nb_samples,
+                                         outputFormat_,
+                                         1);
+      ACE_ASSERT (result_2 >= 0);
 
       result =
         swr_convert (transformContext_,
-                     data_a, result,
-                     const_cast<const uint8_t**>(static_cast<uint8_t**> (frame_->data)), frame_->nb_samples);
+                     data_a,
+                     result,
+                     const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)),
+                     frame_->nb_samples);
       if (unlikely (result < 0))
       {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to swr_convert(): \"%s\", returning\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-          av_frame_unref (frame_);
-          message_block_p->release ();
-          return;
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to swr_convert(): \"%s\", returning\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        av_frame_unref (frame_);
+        message_block_p->release ();
+        return;
       } // end IF
       message_block_p->wr_ptr (outputFrameSize_ * result);
     } // end IF
@@ -1039,7 +1072,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         av_frame_unref (frame_);
         return;
       } // end IF
-      message_block_p->base (reinterpret_cast<char*> (frame_->data),
+      // *TODO*: doesn't work for planar types !
+      message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
                              frameSize_,
                              0); // own image data
       message_block_p->wr_ptr (frameSize_);
@@ -1048,7 +1082,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     message_p = static_cast<DataMessageType*> (message_block_p);
 
     // clean up
-    ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+    //ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     av_frame_unref (frame_);
 
     // forward the decoded frame
@@ -1084,20 +1118,29 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
 
     uint8_t* data_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-    data_a[0] = reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ());
+    result_2 = av_samples_fill_arrays (data_a,
+                                       NULL,
+                                       reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                       outputChannels_,
+                                       outputSampleRate_ * 5,
+                                       outputFormat_,
+                                       1);
+    ACE_ASSERT (result_2 >= 0);
 
     result = swr_convert (transformContext_,
-                          data_a, outputSampleRate_ * 5,
-                          NULL, 0);
+                          data_a,
+                          outputSampleRate_ * 5,
+                          NULL,
+                          0);
     if (unlikely (result < 0))
     {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to swr_convert(): \"%s\", returning\n"),
-                    inherited::mod_->name (),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        av_frame_unref (frame_);
-        message_block_p->release ();
-        return;
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to swr_convert(): \"%s\", returning\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      av_frame_unref (frame_);
+      message_block_p->release ();
+      return;
     } // end IF
     message_block_p->wr_ptr (outputFrameSize_ * result);
     ACE_ASSERT (message_block_p);
