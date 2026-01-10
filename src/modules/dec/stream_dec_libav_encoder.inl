@@ -294,11 +294,6 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
     {
       case STREAM_MEDIATYPE_AUDIO:
       {
-        //frame_p->buf[0] =
-        //  av_buffer_create (reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()), message_block_p->length (), av_buffer_default_free, NULL, 0);
-        ////frame_p->data[0] = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
-        //frame_p->buf[0]->data = frame_p->data[0];
-        //frame_p->buf[0]->size = message_block_p->length ();
         result =
           av_samples_fill_arrays (frame_p->data,
                                   frame_p->linesize,
@@ -381,6 +376,7 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       switch (message_inout->getMediaType ())
       {
         case STREAM_MEDIATYPE_AUDIO:
+          packet_s.duration = frame_p->nb_samples;
           break;
         case STREAM_MEDIATYPE_VIDEO:
         {
@@ -399,10 +395,11 @@ Stream_Decoder_LibAVEncoder_T<ACE_SYNCH_USE,
       packet_s.duration = av_rescale_q (packet_s.duration,
                                         codec_context_p->time_base,
                                         stream_p->time_base);
+      packet_s.stream_index = stream_p->index;
+
       //av_packet_rescale_ts (&packet_s,
       //                      codec_context_p->time_base,
-      //                      stream_p->time_base);
-      packet_s.stream_index = stream_p->index;
+      //                      formatContext_->streams[stream_p->index]->time_base);
 
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_,
