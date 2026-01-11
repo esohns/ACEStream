@@ -254,7 +254,6 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                           codec_context_p->time_base,
                           stream_p->time_base,
                           static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-      //packet_s.dts = AV_NOPTS_VALUE;
       packet_s.dts =
         av_rescale_q_rnd (packet_s.dts,
                           codec_context_p->time_base,
@@ -284,10 +283,11 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       packet_s.duration = av_rescale_q (packet_s.duration,
                                         codec_context_p->time_base,
                                         stream_p->time_base);
+      packet_s.stream_index = stream_p->index;
+
       //av_packet_rescale_ts (&packet_s,
       //                      codec_context_p->time_base,
-      //                      stream_p->time_base);
-      packet_s.stream_index = stream_p->index;
+      //                      formatContext_->streams[stream_p->index]->time_base);
 
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_, &packet_s);

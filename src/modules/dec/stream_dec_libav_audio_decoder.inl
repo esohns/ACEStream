@@ -227,11 +227,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   int result = -1;
-  DataMessageType* message_p = NULL;
   struct AVPacket packet_s;
   ACE_Message_Block* message_block_p = NULL;
-  uint8_t* data_p = NULL;
-  size_t data_size_i = 0;
+  uint8_t* data_p;
+  size_t data_size_i;
 
   // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
   //         alignment, as well as 'padding' bytes.
@@ -299,38 +298,20 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         data_size_i = 0;
       } // end ELSE
       if (!packet_s.size)
-        continue;
+        break;
 
-      ACE_ASSERT (!message_p);
-      if (!decodePacket (packet_s,
-                         message_p))
+      if (unlikely (!decodePacket (packet_s,
+                                   message_inout->sessionId ())))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to decodePacket(), continuing\n"),
                     inherited::mod_->name ()));
-        ACE_ASSERT (!message_p);
         continue;
       } // end IF
-      if (!message_p)
-        continue;
-
-      // forward the decoded frame
-      message_p->initialize (message_inout->sessionId (),
-                             NULL);
-      message_p->set (message_inout->type ());
-      result = inherited::put_next (message_p, NULL);
-      if (unlikely (result == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
-        goto error;
-      } // end IF
-      message_p = NULL;
     } // end WHILE
 
     message_block_p = message_block_p->cont ();
-    if (!message_block_p)
+    if (likely (!message_block_p))
       break;
   } while (true);
   message_inout->release (); message_inout = NULL;
@@ -342,8 +323,6 @@ error:
   {
     message_inout->release (); message_inout = NULL;
   } // end IF
-  if (message_p)
-    message_p->release ();
 
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
@@ -506,6 +485,18 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //codec_parameters_p->trailing_padding = 0;
       //codec_parameters_p->seek_preroll = 0;
 
+      result =
+        av_channel_layout_from_mask (&channel_layout_in_s,
+                                     Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
+      if (unlikely (result))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        goto error;
+      } // end IF
+      context_->ch_layout = channel_layout_in_s;
+
       flags = AV_CODEC_FLAG_UNALIGNED      |
               //AV_CODEC_FLAG_QSCALE         |
       //        AV_CODEC_FLAG_4MV            |
@@ -529,10 +520,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       //         AV_CODEC_FLAG2_NO_OUTPUT           |
       //         AV_CODEC_FLAG2_LOCAL_HEADER        |
       //         AV_CODEC_FLAG2_DROP_FRAME_TIMECODE |
-               //AV_CODEC_FLAG2_CHUNKS        |
-               AV_CODEC_FLAG2_IGNORE_CROP   |
+               AV_CODEC_FLAG2_CHUNKS        |
+               //AV_CODEC_FLAG2_IGNORE_CROP   |
                AV_CODEC_FLAG2_SHOW_ALL      |
-               AV_CODEC_FLAG2_EXPORT_MVS    |
+               //AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
       // AV_CODEC_FLAG2_RO_FLUSH_NOOP
 
@@ -575,34 +566,15 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         context_->extradata_size = (*iterator).second.size;
       } // end IF
 
+      //context_->profile =
+      //  inherited::configuration_->codecConfiguration->profile;
+      context_->request_sample_fmt = outputFormat_;
       context_->sample_fmt = media_type_s.format;
       context_->sample_rate = media_type_s.sampleRate;
-      result =
-        av_channel_layout_from_mask (&channel_layout_in_s,
-                                     Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
-      if (unlikely (result))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to av_channel_layout_from_mask(): \"%s\", aborting\n"),
-                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        goto error;
-      } // end IF
-      context_->ch_layout = channel_layout_in_s;
+      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
       context_->time_base.num = 1;
       context_->time_base.den = context_->sample_rate;
-      context_->strict_std_compliance = FF_COMPLIANCE_NORMAL;
-
-      switch (codec_id_e)
-      {
-        case AV_CODEC_ID_AAC:
-        {
-          // context_->profile = FF_PROFILE_AAC_MAIN;
-          context_->profile = FF_PROFILE_AAC_LOW;
-          break;
-        }
-        default:
-          break;
-      } // end SWITCH
+      context_->workaround_bugs = FF_BUG_AUTODETECT;
 
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
@@ -764,37 +736,32 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                    SessionMessageType,
                                    SessionDataContainerType,
                                    MediaType>::decodePacket (struct AVPacket& packet_in,
-                                                             DataMessageType*& message_inout)
+                                                             Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::decodePacket"));
 
   // sanity check(s)
-  ACE_ASSERT (!message_inout);
   ACE_ASSERT (context_);
   ACE_ASSERT (frame_);
 
   int result, result_2;
+  DataMessageType* message_p;
 
-//   unsigned int retries_i = 3;
-// retry:
   result = avcodec_send_packet (context_,
                                 &packet_in);
-  if (unlikely (result))
-  { // *NOTE*: most likely cause: some spurious AAC decoding error
-    // if (inherited::configuration_->codecConfiguration->codecId != AV_CODEC_ID_AAC)
-    //   retries_i = 1; // do not retry in general
-    // --retries_i;
-    // ACE_DEBUG (((retries_i ? LM_WARNING : LM_ERROR),
+  if (result < 0)
+  {
+    if (likely (result == AVERROR (EAGAIN)))
+      goto continue_;
+
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", %s\n"),
+                ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", continuing\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ()),
-                /*retries_i ? ACE_TEXT ("retrying") :*/ ACE_TEXT ("aborting")));
-    // if (retries_i)
-    //   goto retry;
-    return false;
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    //return false;
   } // end IF
 
+continue_:
   // sample format/resolution/channel layout may have changed
   if (unlikely ((context_->sample_fmt != format_)                                        ||
                 (context_->sample_rate != static_cast<int> (sampleRate_))                ||
@@ -815,7 +782,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                 outputSampleRate_,
                 outputChannels_));
 
-    AVChannelLayout channel_layout_out_s;
+    struct AVChannelLayout channel_layout_out_s;
     result =
       av_channel_layout_from_mask (&channel_layout_out_s,
                                    Stream_Module_Decoder_Tools::channelsToMask (outputChannels_));
@@ -859,96 +826,115 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     numberOfChannels_ = context_->ch_layout.nb_channels;
   } // end IF
 
-  result = avcodec_receive_frame (context_,
-                                  frame_);
-  if (result < 0)
+  while (true)
   {
-    if (likely (result == AVERROR (EAGAIN)))
-      return true;
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-    return false;
-  } // end IF
-  ACE_ASSERT (frame_->data);
-
-  // --> successfully decoded a frame
-
-  ACE_Message_Block* message_block_p = NULL;
-
-  // convert sample format / sample rate ?
-  if (transformContext_)
-  {
-    result = swr_get_out_samples (transformContext_,
-                                  frame_->nb_samples);
-    ACE_ASSERT (result >= 0);
-
-    message_block_p = inherited::allocateMessage (outputFrameSize_ * result);
-    if (unlikely (!message_block_p))
+    result = avcodec_receive_frame (context_,
+                                    frame_);
+    if (result < 0)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
-                  inherited::mod_->name (),
-                  outputFrameSize_ * result));
-      av_frame_unref (frame_);
-      return false;
-    } // end IF
+      if (likely (result == AVERROR (EAGAIN)))
+        return true;
 
-    uint8_t* data_a[AV_NUM_DATA_POINTERS];
-    ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-    result_2 = av_samples_fill_arrays (data_a,
-                                       NULL,
-                                       reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
-                                       outputChannels_,
-                                       frame_->nb_samples,
-                                       outputFormat_,
-                                       1);
-    ACE_ASSERT (result_2 >= 0);
-
-    result =
-      swr_convert (transformContext_,
-                   data_a,
-                   result,
-                   const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)),
-                   frame_->nb_samples);
-    if (unlikely (result < 0))
-    {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to swr_convert(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-      av_frame_unref (frame_);
-      message_block_p->release ();
       return false;
     } // end IF
-    message_block_p->wr_ptr (outputFrameSize_ * result);
-  } // end IF
-  else
-  {
-    message_block_p =
-      inherited::allocateMessage (frameSize_ * frame_->nb_samples);
-    if (unlikely (!message_block_p))
+    ACE_ASSERT (frame_->data[0]);
+
+    // --> successfully decoded (some) sample(s)
+
+    ACE_Message_Block* message_block_p;
+
+    // convert sample format / sample rate ?
+    if (transformContext_)
+    {
+      result = swr_get_out_samples (transformContext_,
+                                    frame_->nb_samples);
+      ACE_ASSERT (result >= 0);
+
+      message_block_p = inherited::allocateMessage (outputFrameSize_ * result);
+      if (unlikely (!message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    outputFrameSize_ * result));
+        av_frame_unref (frame_);
+        return false;
+      } // end IF
+
+      uint8_t* data_a[AV_NUM_DATA_POINTERS];
+      ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+      result_2 = av_samples_fill_arrays (data_a,
+                                         NULL,
+                                         reinterpret_cast<uint8_t*> (message_block_p->wr_ptr ()),
+                                         outputChannels_,
+                                         frame_->nb_samples,
+                                         outputFormat_,
+                                         1);
+      ACE_ASSERT (result_2 >= 0);
+
+      result =
+        swr_convert (transformContext_,
+                     data_a,
+                     result,
+                     static_cast<uint8_t**> (frame_->data),
+                     frame_->nb_samples);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to swr_convert(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+        av_frame_unref (frame_);
+        message_block_p->release ();
+        return false;
+      } // end IF
+      message_block_p->wr_ptr (outputFrameSize_ * result);
+    } // end IF
+    else
+    {
+      message_block_p =
+        inherited::allocateMessage (frameSize_ * frame_->nb_samples);
+      if (unlikely (!message_block_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
+                    inherited::mod_->name (),
+                    frameSize_ * frame_->nb_samples));
+        av_frame_unref (frame_);
+        return false;
+      } // end IF
+      // *TODO*: doesn't work for planar types !
+      message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
+                             frameSize_ * frame_->nb_samples,
+                             0); // own image data
+      message_block_p->wr_ptr (frameSize_ * frame_->nb_samples);
+    } // end ELSE
+    ACE_ASSERT (message_block_p);
+    message_p = static_cast<DataMessageType*> (message_block_p);
+
+    // forward the decoded frame
+    message_p->initialize (sessionId_in,
+                           NULL);
+    //message_p->set (message_inout->type ());
+    result = inherited::put_next (message_p, NULL);
+    if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), aborting\n"),
-                  inherited::mod_->name (),
-                  frameSize_ * frame_->nb_samples));
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
       av_frame_unref (frame_);
       return false;
     } // end IF
-    // *TODO*: doesn't work for planar types !
-    message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
-                           frameSize_ * frame_->nb_samples,
-                           0); // own image data
-    message_block_p->wr_ptr (frameSize_ * frame_->nb_samples);
-  } // end ELSE
-  ACE_ASSERT (message_block_p);
-  message_inout = static_cast<DataMessageType*> (message_block_p);
+    message_p = NULL;
 
-  // clean up
-  //ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
-  av_frame_unref (frame_);
+    // clean up
+    // ACE_OS::memset (frame_->data, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
+    av_frame_unref (frame_);
+  } // end WHILE
 
   return true;
 }
@@ -1003,17 +989,18 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     {
       if (result == AVERROR_EOF)
         break;
+
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", returning\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       return;
     } // end IF
-    ACE_ASSERT (frame_->data);
+    ACE_ASSERT (frame_->data[0]);
 
-    // --> successfully decoded a frame
+    // --> successfully decoded (some) samples
 
-    // convert pixel format of the decoded frame ?
+    // convert sample format of the decoded samples ?
     if (transformContext_)
     {
       result = swr_get_out_samples (transformContext_,
@@ -1062,13 +1049,13 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
     } // end IF
     else
     {
-      message_block_p = inherited::allocateMessage (frameSize_);
+      message_block_p = inherited::allocateMessage (frameSize_ * frame_->nb_samples);
       if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
                     inherited::mod_->name (),
-                    frameSize_));
+                    frameSize_ * frame_->nb_samples));
         av_frame_unref (frame_);
         return;
       } // end IF
@@ -1076,7 +1063,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       message_block_p->base (reinterpret_cast<char*> (frame_->data[0]),
                              frameSize_,
                              0); // own image data
-      message_block_p->wr_ptr (frameSize_);
+      message_block_p->wr_ptr (frameSize_ * frame_->nb_samples);
     } // end ELSE
     ACE_ASSERT (message_block_p);
     message_p = static_cast<DataMessageType*> (message_block_p);

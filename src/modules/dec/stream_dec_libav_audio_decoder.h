@@ -109,8 +109,8 @@ class Stream_Decoder_LibAVAudioDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_LibAVAudioDecoder_T& operator= (const Stream_Decoder_LibAVAudioDecoder_T&))
 
   // helper methods
-  bool decodePacket (struct AVPacket&,   // data packet
-                     DataMessageType*&); // return value: decoded frame
+  bool decodePacket (struct AVPacket&, // data packet
+                     Stream_SessionId_t); // session id
   void drainBuffers (Stream_SessionId_t); // session id
 
   struct AVCodecContext*       context_;

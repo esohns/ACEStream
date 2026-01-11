@@ -913,8 +913,11 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
   int result = avcodec_send_packet (context_,
                                     &packet_in);
-  if (unlikely (result))
+  if (result < 0)
   {
+    if (likely (result == AVERROR (EAGAIN)))
+      return true;
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
                 inherited::mod_->name (),

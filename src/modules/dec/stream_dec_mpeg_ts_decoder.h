@@ -84,7 +84,8 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MPEG_TS_Decoder_T& operator= (const Stream_Decoder_MPEG_TS_Decoder_T&))
 
   // helper methods
-  void parsePSI (ACE_Message_Block*); // data pointer
+  void parsePSI (ACE_Message_Block*, // data pointer
+                 unsigned int&);     // inout: skipped bytes
 
   // helper types
   typedef std::map<unsigned short, unsigned short> PROGRAMNUM_TO_PMTPACKETID_T;

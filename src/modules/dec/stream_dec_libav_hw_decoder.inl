@@ -1047,8 +1047,11 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 
   int result = avcodec_send_packet (context_,
                                     &packet_in);
-  if (unlikely (result))
+  if (result < 0)
   {
+    if (likely (result == AVERROR (EAGAIN)))
+      return true;
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -1321,7 +1324,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   struct AVPacket packet_s;
   ACE_OS::memset (&packet_s, 0, sizeof (struct AVPacket));
   DataMessageType* message_p = NULL;
-  int result = -1;
+  int result;
   ACE_Message_Block* message_block_p = NULL;
   struct AVFrame* frame_p = NULL;
 
