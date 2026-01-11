@@ -383,7 +383,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       int flags, flags2;
       //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
       //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
-      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
+      int debug_i = 0; //FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
       Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
       enum AVCodecID codec_id_e = media_type_s.codecId;
       AVChannelLayout channel_layout_in_s;
@@ -636,7 +636,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                &channel_layout_out_s, // out_ch_layout
                                outputFormat_,         // out_sample_fmt
                                outputSampleRate_,     // out_sample_rate
-                               &channel_layout_in_s,  // in_ch_layout
+                               &context_->ch_layout,  // in_ch_layout
                                context_->sample_fmt,  // in_sample_fmt
                                context_->sample_rate, // in_sample_rate
                                0,                     // log_offset
@@ -673,7 +673,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      if (outputFormat_ != media_type_s.format ||
+      if (outputFormat_ != media_type_s.format         ||
           outputSampleRate_ != media_type_s.sampleRate ||
           outputChannels_ != media_type_s.channels)
       { ACE_ASSERT (session_data_r.lock);

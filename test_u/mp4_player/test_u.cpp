@@ -752,10 +752,10 @@ do_work (int argc_in,
   codec_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
   //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D11VA;
   //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D12VA;
-  codec_configuration.format = AV_PIX_FMT_DXVA2_VLD;
+  codec_configuration.format.videoFormat = AV_PIX_FMT_DXVA2_VLD;
 #else
   codec_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
-  codec_configuration.format = AV_PIX_FMT_VAAPI;
+  codec_configuration.format.videoFormat = AV_PIX_FMT_VAAPI;
   // video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_VDPAU;
   // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
 

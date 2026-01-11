@@ -627,7 +627,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                AV_CODEC_FLAG2_SKIP_MANUAL;
 #endif // ACE_WIN32 || ACE_WIN64
       formatNegotiationCBData_.preferredFormat =
-        &inherited::configuration_->codecConfiguration->format;
+        &inherited::configuration_->codecConfiguration->format.videoFormat;
       formatNegotiationCBData_.negotiatedFormat = &intermediateFormat_;
       context_->opaque = &formatNegotiationCBData_;
       //context_->bit_rate = bit_rate;

@@ -82,21 +82,28 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
    , deviceType (AV_HWDEVICE_TYPE_NONE)
    , flags (0)
    , flags2 (0)
-   , format (AV_PIX_FMT_NONE)
+   , format ()
    , padInputBuffers (true)
    , parserFlags (0)
    , profile (FF_PROFILE_UNKNOWN)
    , useParser (true)
-  {}
+  {
+    format.audioFormat = AV_SAMPLE_FMT_NONE;
+    format.videoFormat = AV_PIX_FMT_NONE;
+  }
 
   enum AVCodecID      codecId;         // encoder-/decoder-
   enum AVHWDeviceType deviceType;      // encoder-/decoder-
   int                 flags;           // codec-
   int                 flags2;          // codec-
-  enum AVPixelFormat  format;          // preferred output-
-  bool                padInputBuffers; // zero AV_INPUT_BUFFER_PADDING_SIZE byte(s) beyound wr_ptr() ?
+  union
+  {
+    enum AVSampleFormat audioFormat;
+    enum AVPixelFormat videoFormat;
+  }                   format;          // preferred format (audio/video)
+  bool                padInputBuffers; // zero AV_INPUT_BUFFER_PADDING_SIZE byte(s) beyond wr_ptr() ?
   int                 parserFlags;     // parser-
-  int                 profile;         // codec-
+  int                 profile;         // (encoder-) codec-
   bool                useParser;       // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
 };
 

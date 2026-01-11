@@ -536,15 +536,17 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
-      ACE_ASSERT (inherited::sessionData_);
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        if (session_data_r.connection && manageSessionData_)
-        {
-          session_data_r.connection->decrease (); session_data_r.connection = NULL;
-        } // end IF
-      } // end lock scope
+      if (likely (manageSessionData_))
+      { ACE_ASSERT (inherited::sessionData_);
+        typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
+          if (session_data_r.connection)
+          {
+            session_data_r.connection->decrease (); session_data_r.connection = NULL;
+          } // end IF
+        } // end lock scope
+      } // end IF
 
       break;
     }
