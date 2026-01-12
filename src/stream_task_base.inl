@@ -146,7 +146,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
 continue_:
   allocator_ = allocator_in;
   configuration_ = &const_cast<ConfigurationType&> (configuration_in);
-//  stream_ = configuration_in.stream;
 
   isInitialized_ = true;
 

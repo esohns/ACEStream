@@ -52,14 +52,12 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                                                                            UserDataType>::ISTREAM_T* stream_in)
  : inherited (stream_in,
               NULL) // queue handle
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,    // max # slots --> unlimited
+           NULL) // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBaseAsynch_T::Stream_TaskBaseAsynch_T"));
 
   inherited::msg_queue (&queue_);
-  // *TODO*: pass this in from outside
-  inherited::threadCount_ = 1;
 
   // set group id for worker thread(s)
   // *TODO*: pass this in from outside
@@ -96,7 +94,7 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::deactivate(): \"%m\", continuing\n")));
 
-  result = queue_.flush ();
+  result = queue_.flush (true);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Message_Queue::flush(): \"%m\", continuing\n")));
@@ -198,7 +196,10 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: spawn worker thread(s)
+  ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::thr_count_ == 0);
+  inherited::threadCount_ =
+    std::max (inherited::configuration_->numberOfThreads, 1);
   result = inherited::open (NULL);
   if (unlikely (result == -1))
   {

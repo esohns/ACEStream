@@ -64,11 +64,14 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , availableTokens_ (0)
  , condition_ (inherited::lock_)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,     // max # slots --> unlimited
+           NULL)  // notification handle
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
  , resizeOccured_ (false)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , task_ (ACE_INVALID_HANDLE)
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::Stream_Module_Delay_T"));
 
@@ -334,7 +337,7 @@ continue_:
 
       // *NOTE*: this prevents a race condition in svc()
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        inherited::threadCount_ = 1;
+        inherited::threadCount_ = inherited::configuration_->numberOfThreads;
         bool lock_activate_was_b = inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
         inherited::lockActivate_ = false;
         if (unlikely (!inherited::start (NULL)))
@@ -563,8 +566,25 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   int result = -1;
   int error = -1;
-  // bool stop_processing = false;
-  //static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  DWORD task_index_i = 0;
+
+  ACE_ASSERT (task_ == ACE_INVALID_HANDLE);
+  task_ =
+    AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                                  &task_index_i);
+  if (unlikely (!task_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+    result = -1;
+    goto done;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
   do
   {
@@ -585,8 +605,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       result = 0; // OK, queue has been deactivate()d
       break;
     } // end IF
-
     ACE_ASSERT (message_block_p);
+
     if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
     {
       if (unlikely (inherited::thr_count_ > 1))
@@ -613,6 +633,14 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     dispatch (message_block_p);
     message_block_p = NULL;
   } while (true);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (task_ != ACE_INVALID_HANDLE);
+  AvRevertMmThreadCharacteristics (task_);
+  task_ = ACE_INVALID_HANDLE;
+
+done:
+#endif // ACE_WIN32 || ACE_WIN64
 
   if (likely (resetTimeoutHandlerId_ != -1))
   {

@@ -118,6 +118,7 @@ struct Stream_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , messageAllocator (NULL)
    , numberOfStreams (1)
+   , numberOfThreads (1)
    , outboundNotificationHandle (NULL)
    , parserConfiguration (NULL)
    , passive (true)
@@ -151,12 +152,12 @@ struct Stream_ModuleHandlerConfiguration
 #endif // _DEBUG
   enum Stream_MessageDefragmentMode           defragmentMode;                       // defragment module
   bool                                        demultiplex;                          // message handler module
-  std::string                                 fileFormat;                           // ffmpeg encoder (e.g. "avi", "mp4", ...)
-  bool                                        flipImage;                            // (vertical-) ffmpeg converter
+  std::string                                 fileFormat;                           // libav encoder (e.g. "avi", "mp4", ...)
+  bool                                        flipImage;                            // (vertical-) libav converter
   unsigned int                                frameNumber;                          // frame grabber
   bool                                        generateSessionMessages;              // head module(s)
   // *IMPORTANT NOTE*: handle session resize messages ?
-  bool                                        handleResize;                         // ffmpeg converter
+  bool                                        handleResize;                         // libav converter
   // *WARNING*: when false, this 'locks down' the pipeline head module; i.e. it
   //            will hold the 'stream lock' during all message processing to
   //            support (down)stream synchronization. This really only makes
@@ -187,7 +188,8 @@ struct Stream_ModuleHandlerConfiguration
   enum Stream_MediaFramework_Type             mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
   Stream_IAllocator*                          messageAllocator;
-  int                                         numberOfStreams;                      // ffmpeg encoder
+  int                                         numberOfStreams;                      // libav encoder
+  int                                         numberOfThreads;                      // delay module
   Stream_IOutboundDataNotify*                 outboundNotificationHandle;           // IO module(s)
   struct Common_ParserConfiguration*          parserConfiguration;                  // parser module(s)
   bool                                        passive;                              // network/device/... module(s)

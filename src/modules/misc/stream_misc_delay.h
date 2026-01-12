@@ -109,6 +109,9 @@ class Stream_Module_Delay_T
   long                                resetTimeoutHandlerId_;
   // *NOTE*: only needed for the 'synchronous' version !
   bool                                resizeOccured_;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HANDLE                              task_;
+#endif // ACE_WIN32 || ACE_WIN64
 };
 
 //////////////////////////////////////////
