@@ -56,6 +56,15 @@ Stream_DataBase_T<DataType>::Stream_DataBase_T (DataType*& data_inout,
 }
 
 template <typename DataType>
+Stream_DataBase_T<DataType>::~Stream_DataBase_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::~Stream_DataBase_T"));
+
+  if (data_ && delete_)
+    delete data_;
+}
+
+template <typename DataType>
 Stream_DataBase_T<DataType>&
 Stream_DataBase_T<DataType>::operator= (const Stream_DataBase_T<DataType>& rhs_in)
 {
@@ -106,6 +115,20 @@ Stream_DataBase_T<DataType>::dump_state () const
               ACE_TEXT ("reference count: %d, delete: %s\n"),
               inherited::refcount_.value (),
               (delete_ ? ACE_TEXT ("true") : ACE_TEXT ("false"))));
+}
+
+template <typename DataType>
+const DataType&
+Stream_DataBase_T<DataType>::getR () const
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataBase_T::getR"));
+
+  static DataType dummy;
+
+  if (likely (data_))
+    return *data_;
+
+  return dummy;
 }
 
 template <typename DataType>
