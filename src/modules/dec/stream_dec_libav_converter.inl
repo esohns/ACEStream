@@ -308,10 +308,11 @@ Stream_Decoder_LibAVConverter_T<TaskType,
         goto continue_;
       if (likely (inputFormat_ != media_type_3.format))
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: converting pixel format %s to %s\n"),
+                    ACE_TEXT ("%s: converting pixel format %s to %s%s\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
-                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ()),
+                    inherited::configuration_->flipImage ? ACE_TEXT (" and flipping image") : ACE_TEXT ("")));
 
       // initialize frame buffer
       ACE_ASSERT (!frame_);

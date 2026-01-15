@@ -795,6 +795,65 @@ Stream_MediaFramework_Tools::isChromaLuminance (REFGUID subType_in,
 }
 
 WORD
+Stream_MediaFramework_Tools::toPlanes (REFGUID subType_in,
+                                       enum Stream_MediaFramework_Type mediaFramework_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toPlanes"));
+
+  // initialize return value(s)
+  WORD result = 0;
+
+  if (Stream_MediaFramework_Tools::isRGB (subType_in, mediaFramework_in))
+    return 1;
+
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      // chroma-luminance
+      if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_NV12))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_UYVY))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUY2))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_AYUV))
+        return 1;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      if (InlineIsEqualGUID (subType_in, MFVideoFormat_NV12))
+        return 2;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_UYVY))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_YUY2))
+        return 1;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_AYUV))
+        return 1;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+  } // end SWITCH
+
+  return result;
+}
+
+WORD
 Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
                                          enum Stream_MediaFramework_Type mediaFramework_in)
 {
@@ -802,15 +861,6 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
 
   // initialize return value(s)
   WORD result = 0;
-
-  // sanity check(s)
-  if (!Stream_MediaFramework_Tools::isRGB (subType_in,
-                                           mediaFramework_in))
-  { // *TODO*
-    //ACE_ASSERT (false);
-    ACE_NOTSUP_RETURN (0);
-    ACE_NOTREACHED (return 0;)
-  } // end IF
 
   switch (mediaFramework_in)
   {
@@ -840,6 +890,15 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2R10G10B10))
         return 32;
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2B10G10R10))
+        return 32;
+      // chroma-luminance
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_NV12))
+        return 12;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_UYVY))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUY2))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_AYUV))
         return 32;
       // video mixing renderer (VMR-7)
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_RGB32_D3D_DX7_RT))
@@ -872,6 +931,7 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
       } // end ELSE
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      // uncompressed RGB
       if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB32))
         return 32;
       else if (InlineIsEqualGUID (subType_in, MFVideoFormat_ARGB32))
@@ -884,6 +944,68 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
         return 16;
       else if (InlineIsEqualGUID (subType_in, MFVideoFormat_RGB8))
         return 8;
+      // chroma-luminance
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_NV12))
+        return 12;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_UYVY))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_YUY2))
+        return 16;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_AYUV))
+        return 32;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_in));
+      break;
+  } // end SWITCH
+
+  return result;
+}
+
+DWORD
+Stream_MediaFramework_Tools::toSizeImage (REFGUID subType_in,
+                                          enum Stream_MediaFramework_Type mediaFramework_in,
+                                          LONG width_in,
+                                          LONG height_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::toSizeImage"));
+
+  // initialize return value(s)
+  DWORD result = 0;
+
+  if (Stream_MediaFramework_Tools::isRGB (subType_in, mediaFramework_in))
+    return width_in * std::abs (height_in) * (Stream_MediaFramework_Tools::toBitCount (subType_in, mediaFramework_in) / 8);
+
+  switch (mediaFramework_in)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      // chroma-luminance
+      if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_NV12))
+        return (width_in * height_in * 3) / 2;
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_YUY2))
+        return width_in * height_in * 2;
+      else
+      {
+        // *TODO*
+        ACE_ASSERT (false);
+        ACE_NOTSUP_RETURN (0);
+        ACE_NOTREACHED (return 0;)
+      } // end ELSE
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      if (InlineIsEqualGUID (subType_in, MFVideoFormat_NV12))
+        return (width_in * height_in * 3) / 2;
+      else if (InlineIsEqualGUID (subType_in, MFVideoFormat_YUY2))
+        return width_in * height_in * 2;
       else
       {
         // *TODO*

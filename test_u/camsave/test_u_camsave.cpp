@@ -698,7 +698,7 @@ continue_:
   } // end ELSE
 
   media_type_p =
-    Stream_MediaFramework_DirectShow_Tools::copy (saveFormat_out);
+    Stream_MediaFramework_DirectShow_Tools::copy (captureFormat_out);
   if (!media_type_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1601,6 +1601,7 @@ error:
                                                                                              &directshow_modulehandler_configuration_2)));
 
       directshow_modulehandler_configuration_2b = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_2b.flipImage = true;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2b)));

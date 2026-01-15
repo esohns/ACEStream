@@ -3538,26 +3538,34 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   FOURCCMap fourcc_map (&mediaType_inout.subtype);
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
-  unsigned int frames_per_second_i = 0;
+  unsigned int frames_per_second_i;
   if (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_VideoInfo))
   {
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_inout.pbFormat;
+    video_info_header_p->bmiHeader.biPlanes =
+      Stream_MediaFramework_Tools::toPlanes (mediaType_inout.subtype,
+                                             STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header_p->bmiHeader.biBitCount =
       Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
                                                STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header_p->bmiHeader.biCompression =
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
-                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
-                                                                                         : BI_RGB);
+      (Stream_MediaFramework_Tools::isRGB (mediaType_inout.subtype,
+                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? BI_RGB
+                                                                             : fourcc_map.GetFOURCC ());
 #else
-      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
-                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? mediaType_inout.subtype.Data1
-                                                                                         : BI_RGB);
+      (Stream_MediaFramework_Tools::isRGB (mediaType_inout.subtype,
+                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? BI_RGB
+                                                                             : mediaType_inout.subtype.Data1);
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
     video_info_header_p->bmiHeader.biSizeImage =
-      DIBSIZE (video_info_header_p->bmiHeader);
+    Stream_MediaFramework_Tools::isRGB (mediaType_inout.subtype,
+                                        STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? DIBSIZE (video_info_header_p->bmiHeader)
+                                                                          : Stream_MediaFramework_Tools::toSizeImage (mediaType_inout.subtype,
+                                                                                                                      STREAM_MEDIAFRAMEWORK_DIRECTSHOW,
+                                                                                                                      video_info_header_p->bmiHeader.biWidth,
+                                                                                                                      std::abs (video_info_header_p->bmiHeader.biHeight));
     frames_per_second_i =
       /*UNITS*/10000000 / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame);
     video_info_header_p->dwBitRate =
@@ -3568,18 +3576,21 @@ Stream_MediaFramework_DirectShow_Tools::setFormat (REFGUID mediaSubType_in,
   {
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_inout.pbFormat;
+    video_info_header2_p->bmiHeader.biPlanes =
+      Stream_MediaFramework_Tools::toPlanes (mediaType_inout.subtype,
+                                             STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header2_p->bmiHeader.biBitCount =
       Stream_MediaFramework_Tools::toBitCount (mediaType_inout.subtype,
                                                STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
     video_info_header2_p->bmiHeader.biCompression =
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
-                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? fourcc_map.GetFOURCC ()
-                                                                                         : BI_RGB);
+      (Stream_MediaFramework_Tools::isRGB (mediaType_inout.subtype,
+                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? BI_RGB
+                                                                             : fourcc_map.GetFOURCC ());
 #else
-      (Stream_MediaFramework_Tools::isCompressedVideo (mediaType_inout.subtype,
-                                                       STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? mediaType_inout.subtype.Data1
-                                                                                         : BI_RGB);
+      (Stream_MediaFramework_Tools::isRGB (mediaType_inout.subtype,
+                                           STREAM_MEDIAFRAMEWORK_DIRECTSHOW) ? BI_RGB
+                                                                             : mediaType_inout.subtype.Data1);
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
     video_info_header2_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header2_p->bmiHeader);

@@ -2708,7 +2708,8 @@ combobox_source_changed_cb (GtkWidget* widget_in,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
   IMFTopology* topology_p = NULL;
   HRESULT result = E_FAIL;
- 
+  struct _GUID GUID_s = GUID_NULL;
+
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2779,7 +2780,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       sample_grabber_p = writer_p;
 
       struct _MFRatio pixel_aspect_ratio = { 1, 1 };
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::loadDeviceTopology ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier,
                                                                     MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID,
                                                                     media_source_p,
@@ -2794,11 +2795,11 @@ combobox_source_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (false);
       ACE_NOTSUP;
       ACE_NOTREACHED (return;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       ACE_ASSERT (topology_p);
 
       // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->session);
       if (!Stream_MediaFramework_MediaFoundation_Tools::setTopology (topology_p,
                                                                      (*mediafoundation_modulehandler_configuration_iterator).second.second->session,
@@ -2809,7 +2810,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
                     ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::setTopology(), aborting\n")));
         goto error;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       topology_p->Release (); topology_p = NULL;
       break;
     }
@@ -2891,7 +2892,7 @@ continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // retrieve volume control handle
   // step1: retrieve DirectSound device GUID from wave device id
-  struct _GUID GUID_s =
+  GUID_s =
     Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (card_id_i,
                                                                             true); // capture
   ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));

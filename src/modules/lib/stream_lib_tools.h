@@ -104,9 +104,17 @@ class Stream_MediaFramework_Tools
   static bool isChromaLuminance (REFGUID,                          // media subtype
                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
+
+  // *NOTE*: as used in struct tagBITMAPINFOHEADER.biPlanes
+  static WORD toPlanes (REFGUID, // media subtype
+                        enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
   // *NOTE*: as used in struct tagBITMAPINFOHEADER.biBitCount
   static WORD toBitCount (REFGUID, // media subtype
                           enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
+  // *NOTE*: as used in struct tagBITMAPINFOHEADER.biSizeImage
+  static DWORD toSizeImage (REFGUID, // media subtype
+                            enum Stream_MediaFramework_Type,
+                            LONG, LONG); // width, height
 
   static std::string mediaFormatTypeToString (REFGUID); // media format type
   static std::string mediaSubTypeToString (REFGUID,                          // media subtype

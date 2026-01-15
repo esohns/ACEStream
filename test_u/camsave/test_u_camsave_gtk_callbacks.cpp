@@ -306,7 +306,7 @@ error:
         goto error_2;
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID);
@@ -332,7 +332,7 @@ error:
       ACE_ASSERT (false); // *TODO*
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       attributes_p->Release (); attributes_p = NULL;
       ACE_ASSERT (devices_pp);
 
@@ -1719,7 +1719,7 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -1829,57 +1829,23 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
                     framerate_numerator_i / framerate_denominator_i));
         return;
       } // end IF
-      // *NOTE*: this is called when initializing the stream
-      //if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*directshow_stream_iterator).second.second->builder,
-      //                                                       CLSID_VideoInputDeviceCategory,
-      //                                                       directshow_cb_data_p->configuration->streamConfiguration.configuration_->format))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to Stream_Device_DirectShow_Tools::setCaptureFormat(), returning\n")));
-      //  return;
-      //} // end IF
 
       // step2: adjust output format
-      // sanity check(s)
-      if (InlineIsEqualGUID (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_VideoInfo))
-      { ACE_ASSERT (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-        struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-        video_info_header_p->bmiHeader.biWidth = resolution_s.cx;
-        video_info_header_p->bmiHeader.biHeight = resolution_s.cy;
-        video_info_header_p->bmiHeader.biSizeImage =
-          DIBSIZE (video_info_header_p->bmiHeader);
-        ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-        video_info_header_p->dwBitRate =
-          (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
+      Stream_MediaFramework_DirectShow_Tools::setFormat (media_subtype,
+                                                         directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
+      ACE_ASSERT (framerate_denominator_i == 1);
+      Stream_MediaFramework_DirectShow_Tools::setFramerate (framerate_numerator_i,
+                                                            directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
 
-        directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.lSampleSize =
-          video_info_header_p->bmiHeader.biSizeImage;
-      } // end IF
-      else if (InlineIsEqualGUID (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype, FORMAT_VideoInfo2))
-      { ACE_ASSERT (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-        struct tagVIDEOINFOHEADER2* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.pbFormat);
-        video_info_header_p->bmiHeader.biWidth = resolution_s.cx;
-        video_info_header_p->bmiHeader.biHeight = resolution_s.cy;
-        video_info_header_p->bmiHeader.biSizeImage =
-          DIBSIZE (video_info_header_p->bmiHeader);
-        ACE_ASSERT (video_info_header_p->AvgTimePerFrame);
-        video_info_header_p->dwBitRate =
-          (video_info_header_p->bmiHeader.biSizeImage * 8) *                      // bits / frame
-          (10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
-
-        directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.lSampleSize =
-          video_info_header_p->bmiHeader.biSizeImage;
-      } // end IF
+      Stream_MediaFramework_DirectShow_Tools::free ((*directshow_stream_iterator).second.second->outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                                                    (*directshow_stream_iterator).second.second->outputFormat);
+      if (InlineIsEqualGUID (media_subtype, MEDIASUBTYPE_NV12))
+        (*directshow_stream_iterator).second.second->flipImage = false;
       else
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("invalid/unknown media format type (was: \"%s\"), aborting\n"),
-                    ACE_TEXT (Stream_MediaFramework_Tools::mediaFormatTypeToString (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format.formattype).c_str ())));
-        return;
-      } // end ELSE
+        (*directshow_stream_iterator).second.second->flipImage = true;
 
       break;
     }
@@ -2048,8 +2014,8 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("processing thread (id: %t) starting\n")));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("processing thread (id: %t) starting\n")));
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2058,15 +2024,14 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  // sanity check(s)
   struct Stream_CamSave_UI_ThreadData* thread_data_p =
     static_cast<struct Stream_CamSave_UI_ThreadData*> (arg_in);
-
-  // sanity check(s)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
   Common_UI_GTK_BuildersIterator_t iterator;
-    //  GtkProgressBar* progress_bar_p = NULL;
+//  GtkProgressBar* progress_bar_p = NULL;
   GtkStatusbar* statusbar_p = NULL;
   std::ostringstream converter;
   //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, data_p->CBData->UIState->lock);
@@ -2107,7 +2072,7 @@ stream_processing_function (void* arg_in)
   } // end SWITCH
 #else
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-      static_cast<struct Stream_CamSave_UI_CBData*> (thread_data_p->CBData);
+    static_cast<struct Stream_CamSave_UI_CBData*> (thread_data_p->CBData);
 #if defined (LIBCAMERA_SUPPORT)
   struct Stream_CamSave_LibCamera_UI_CBData* libcamera_cb_data_p = NULL;
 #endif // LIBCAMERA_SUPPORT
@@ -2291,7 +2256,9 @@ stream_processing_function (void* arg_in)
   // *NOTE*: blocks until 'finished'
   stream_p->start ();
   //ACE_ASSERT (!stream_p->isRunning ());
-  stream_p->wait (true, false, false);
+  stream_p->wait (true,
+                  false,
+                  false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = 0;
@@ -2300,20 +2267,26 @@ stream_processing_function (void* arg_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
 error:
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, -1);
-#else
-  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, std::numeric_limits<void*>::max ());
-#endif // ACE_WIN32 || ACE_WIN64
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, result);
     thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
 
+  // cancel display updates
   thread_data_p->CBData->dispatch = NULL;
   if (unlikely (!g_source_remove (thread_data_p->CBData->eventSourceId)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
                 thread_data_p->CBData->eventSourceId));
   thread_data_p->CBData->eventSourceId = 0;
+
+  guint event_source_id_i =
+    g_idle_add (idle_session_end_cb,
+                thread_data_p->CBData);
+  if (event_source_id_i > 0)
+    thread_data_p->CBData->UIState->eventSourceIds.insert (event_source_id_i);
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
 
   // clean up
   delete thread_data_p; thread_data_p = NULL;
@@ -5650,12 +5623,14 @@ combobox_format_changed_cb (GtkWidget* widget_in,
     {
       Stream_MediaFramework_DirectShow_Tools::setFormat (GUID_s,
                                                          directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      // *NOTE*: need to set this for RGB-capture formats ONLY !
-      // *TODO*: MJPG is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
-      // *TODO*: YUV2 is transformed inside the DirectShow pipeline to RGB32, so requires flípping as well... :-(
       (*directshow_stream_iterator).second.second->flipImage = true;
         //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
-      (*directshow_stream_iterator_2).second.second->flipImage = (*directshow_stream_iterator).second.second->flipImage;
+      (*directshow_stream_iterator_2).second.second->flipImage = true;
+
+      Stream_MediaFramework_DirectShow_Tools::free ((*directshow_stream_iterator).second.second->outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format,
+                                                    (*directshow_stream_iterator).second.second->outputFormat);
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5722,12 +5697,12 @@ continue_:
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
       IMFMediaSourceEx* media_source_p = NULL;
 #else
       IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       if (!Stream_Device_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->deviceIdentifier,
                                                                 MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_VIDCAP_GUID,
                                                                 media_source_p))
@@ -5738,7 +5713,7 @@ continue_:
         return;
       } // end IF
       ACE_ASSERT (media_source_p);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       //if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
       //                                                                  media_source_p))
       //{
@@ -5933,7 +5908,7 @@ combobox_resolution_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_RESOLUTION_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value_2 = G_VALUE_INIT;
 #else
   GValue value_2;

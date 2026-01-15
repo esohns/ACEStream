@@ -818,14 +818,21 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                              sourcePixelFormat_in,
                              static_cast<int> (sourceWidth_in));
   ACE_ASSERT (result_2 >= 0);
-  if (unlikely (flipVertically_in &&
-                // *TODO*: verify that this (sort of) works for planar/non-planar formats alike
-                (av_pix_fmt_count_planes (sourcePixelFormat_in) <= 1)))
+  if (unlikely (flipVertically_in))
+  {
+    const AVPixFmtDescriptor* pix_desc_p =
+      av_pix_fmt_desc_get (sourcePixelFormat_in);
+    ACE_ASSERT (pix_desc_p);
+    const int num_planes_i = av_pix_fmt_count_planes (sourcePixelFormat_in);
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
     {
-      sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
+      unsigned int plane_h = sourceHeight_in;
+      if (num_planes_i > 1 && i > 0)
+        plane_h = (sourceHeight_in + ((1 << pix_desc_p->log2_chroma_h) - 1)) >> pix_desc_p->log2_chroma_h;
+      sourceBuffers_in[i] += in_linesize[i] * (plane_h - 1);
       in_linesize[i] = -in_linesize[i];
     } // end FOR
+  } // end IF
   result_2 = av_image_fill_linesizes (out_linesize,
                                       targetPixelFormat_in,
                                       static_cast<int> (targetWidth_in));
@@ -892,34 +899,37 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
   bool result = false;
   int result_2 = -1;
   int in_linesize[AV_NUM_DATA_POINTERS];
-  ACE_OS::memset (&in_linesize, 0, sizeof (in_linesize));
+  ACE_OS::memset (&in_linesize, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   int out_linesize[AV_NUM_DATA_POINTERS];
-  ACE_OS::memset (&out_linesize, 0, sizeof (out_linesize));
+  ACE_OS::memset (&out_linesize, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
   result_2 =
     av_image_fill_linesizes (in_linesize,
                              pixelFormat_in,
                              static_cast<int> (sourceWidth_in));
   ACE_ASSERT (result_2 >= 0);
   if (unlikely (flipVertically_in))
+  {
+    const AVPixFmtDescriptor* pix_desc_p =
+      av_pix_fmt_desc_get (pixelFormat_in);
+    ACE_ASSERT (pix_desc_p);
+    const int num_planes_i = av_pix_fmt_count_planes (pixelFormat_in);
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
     {
-      sourceBuffers_in[i] += in_linesize[i] * (sourceHeight_in - 1);
+      unsigned int plane_h = sourceHeight_in;
+      if (num_planes_i > 1 && i > 0)
+        plane_h = (sourceHeight_in + ((1 << pix_desc_p->log2_chroma_h) - 1)) >> pix_desc_p->log2_chroma_h;
+      sourceBuffers_in[i] += in_linesize[i] * (plane_h - 1);
       in_linesize[i] = -in_linesize[i];
     } // end FOR
+  } // end IF
   result_2 = av_image_fill_linesizes (out_linesize,
                                       pixelFormat_in,
                                       static_cast<int> (targetWidth_in));
   ACE_ASSERT (result_2 >= 0);
-//  try {
-      result_2 = sws_scale (context_p,
-                            sourceBuffers_in, in_linesize,
-                            0, sourceHeight_in,
-                            targetBuffers_in, out_linesize);
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in sws_scale(), aborting\n")));
-//    result_2 = -1;
-//  }
+  result_2 = sws_scale (context_p,
+                        sourceBuffers_in, in_linesize,
+                        0, sourceHeight_in,
+                        targetBuffers_in, out_linesize);
   if (unlikely (result_2 <= 0))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2308,7 +2318,9 @@ decode:
 
   preferred_subtype = outputFormat_in.subtype;
   if (Stream_MediaFramework_Tools::isRGB (graph_entry.mediaType->subtype,
-                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
+                                          STREAM_MEDIAFRAMEWORK_DIRECTSHOW) /* ||
+      // *NOTE*: the AVI decompressor seems not to handle NV12 to RGB conversions
+      InlineIsEqualGUID (graph_entry.mediaType->subtype, MEDIASUBTYPE_NV12)*/)
   {
     CLSID_s = CLSID_Colour;
     graph_entry.filterName = STREAM_DEC_DIRECTSHOW_FILTER_NAME_CONVERT_RGB_L;
