@@ -114,7 +114,6 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 //  } // end IF
 //#endif // _DEBUG
 
-//continue_:
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -194,11 +193,12 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                 frameSize_));
     goto error;
   } // end IF
-//  av_frame_unref (frame_);
+
   result = av_image_fill_linesizes (frame_->linesize,
                                     static_cast<AVPixelFormat> (frame_->format),
                                     static_cast<int> (frame_->width));
   ACE_ASSERT (result >= 0);
+
   result =
       av_image_fill_pointers (frame_->data,
                               static_cast<AVPixelFormat> (frame_->format),
@@ -284,17 +284,17 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
         SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       context_ =
-          sws_getCachedContext (NULL,
+        sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                media_type_s.resolution.cx, media_type_s.resolution.cy, inputFormat_,
-                                media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_3.format,
+                              media_type_s.resolution.cx, media_type_s.resolution.cy, inputFormat_,
+                              media_type_s.resolution.cx, media_type_s.resolution.cy, media_type_3.format,
 #else
-                                media_type_s.resolution.width, media_type_s.resolution.height, inputFormat_,
-                                media_type_s.resolution.width, media_type_s.resolution.height, media_type_3.format,
+                              media_type_s.resolution.width, media_type_s.resolution.height, inputFormat_,
+                              media_type_s.resolution.width, media_type_s.resolution.height, media_type_3.format,
 #endif // ACE_WIN32 || ACE_WIN64
-                                flags,                        // flags
-                                NULL, NULL,
-                                0);                           // parameters
+                              flags,                        // flags
+                              NULL, NULL,
+                              0);                           // parameters
       if (unlikely (!context_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -350,16 +350,16 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       } // end IF
       ACE_ASSERT (buffer_->capacity () >= frameSize_);
       result =
-          av_image_fill_linesizes (frame_->linesize,
-                                   static_cast<enum AVPixelFormat> (frame_->format),
-                                   static_cast<int> (frame_->width));
+        av_image_fill_linesizes (frame_->linesize,
+                                 static_cast<enum AVPixelFormat> (frame_->format),
+                                 static_cast<int> (frame_->width));
       ACE_ASSERT (result >= 0);
       result =
-          av_image_fill_pointers (frame_->data,
-                                  static_cast<enum AVPixelFormat> (frame_->format),
-                                  static_cast<int> (frame_->height),
-                                  reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
-                                  frame_->linesize);
+        av_image_fill_pointers (frame_->data,
+                                static_cast<enum AVPixelFormat> (frame_->format),
+                                static_cast<int> (frame_->height),
+                                reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
+                                frame_->linesize);
       ACE_ASSERT (result >= 0);
       ACE_UNUSED_ARG (result);
 
@@ -428,12 +428,12 @@ error:
       int flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
                    SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
       context_ =
-          sws_getCachedContext (NULL,
-                                frame_->width, frame_->height, inputFormat_,
-                                frame_->width, frame_->height, static_cast<AVPixelFormat> (frame_->format),
-                                flags,                        // flags
-                                NULL, NULL,
-                                0);                           // parameters
+        sws_getCachedContext (NULL,
+                              frame_->width, frame_->height, inputFormat_,
+                              frame_->width, frame_->height, static_cast<AVPixelFormat> (frame_->format),
+                              flags,                        // flags
+                              NULL, NULL,
+                              0);                           // parameters
       if (!context_)
       {
         ACE_DEBUG ((LM_ERROR,
@@ -457,10 +457,13 @@ error:
                     frameSize_));
         goto error_2;
       } // end IF
-      result = av_image_fill_linesizes (frame_->linesize,
-                                        static_cast<AVPixelFormat> (frame_->format),
-                                        static_cast<int> (frame_->width));
+
+      result =
+        av_image_fill_linesizes (frame_->linesize,
+                                 static_cast<AVPixelFormat> (frame_->format),
+                                 static_cast<int> (frame_->width));
       ACE_ASSERT (result >= 0);
+
       result =
           av_image_fill_pointers (frame_->data,
                                   static_cast<AVPixelFormat> (frame_->format),
@@ -469,7 +472,7 @@ error:
                                   frame_->linesize);
       ACE_ASSERT (result >= 0);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: modified resolution to %ux%u\n"),
+                  ACE_TEXT ("%s: modified resolution to %dx%d\n"),
                   inherited::mod_->name (),
                   frame_->width, frame_->height));
       break;
@@ -485,10 +488,12 @@ error_2:
       {
         buffer_->release (); buffer_ = NULL;
       } // end IF
+
       if (context_)
       {
         sws_freeContext (context_); context_ = NULL;
       } // end IF
+
       if (frame_)
       {
         av_frame_unref (frame_);
