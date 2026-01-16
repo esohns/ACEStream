@@ -47,7 +47,7 @@ enum Stream_Miscellaneous_DelayModeType
   STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES, // support isochronicity (timer-based)
   ////////////////////////////////////////
   STREAM_MISCELLANEOUS_DELAY_MODE_MAX,
-  STREAM_MISCELLANEOUS_DELAY_MODE_INVALID
+  STREAM_MISCELLANEOUS_DELAY_MODE_INVALID = -1
 };
 
 struct Stream_Miscellaneous_DelayConfiguration
@@ -56,7 +56,9 @@ struct Stream_Miscellaneous_DelayConfiguration
    : averageTokensPerInterval (0)
    , catchUp (false)
    , interval (ACE_Time_Value::zero)
+   , isMultimediaTask (false)
    , mode (STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
+   , tokenFactor (1.0f)
   {}
 
   ACE_UINT64                              averageTokensPerInterval;
@@ -64,7 +66,11 @@ struct Stream_Miscellaneous_DelayConfiguration
   // *NOTE*: set this to false for real isochronicity (i.e. no catch-up)
   bool                                    catchUp;
   ACE_Time_Value                          interval;
+  // *TODO*: move this to the module handler configuration ?
+  bool                                    isMultimediaTask;
   enum Stream_Miscellaneous_DelayModeType mode;
+  // *NOTE*: currently used only for audio streams when 'mode' is invalid (== -1)
+  float                                   tokenFactor;
 };
 
 //////////////////////////////////////////

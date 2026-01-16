@@ -214,7 +214,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_UINT64 average_bytes_per_second_i = 0;
+      ACE_UINT64 average_bytes_per_second_i;
+      float token_factor_f =
+        inherited::configuration_->delayConfiguration->tokenFactor;
       ACE_Time_Value interval =
         inherited::configuration_->delayConfiguration->interval;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -250,9 +252,11 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
       availableTokens_ =
-        static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
+        static_cast<ACE_UINT64> (average_bytes_per_second_i * (static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0f));
+      token_factor_f =
+        token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        availableTokens_ * STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER;
+        static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
@@ -459,7 +463,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     result = condition_.broadcast ();
     if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
   } // end lock scope
 }
@@ -568,21 +572,23 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   int error = -1;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  DWORD task_index_i = 0;
-
-  ACE_ASSERT (task_ == ACE_INVALID_HANDLE);
-  task_ =
-    AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
-                                  &task_index_i);
-  if (unlikely (!task_))
+  if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(\"%s\"): \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
-    result = -1;
-    goto done;
+    DWORD task_index_i = 0;
+    ACE_ASSERT (task_ == ACE_INVALID_HANDLE);
+    task_ =
+      AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                                    &task_index_i);
+    if (unlikely (!task_))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(\"%s\"): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+      result = -1;
+      goto done;
+    } // end IF
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -635,10 +641,12 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   } while (true);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (task_ != ACE_INVALID_HANDLE);
-  AvRevertMmThreadCharacteristics (task_);
-  task_ = ACE_INVALID_HANDLE;
-
+  if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
+  {
+    ACE_ASSERT (task_ != ACE_INVALID_HANDLE);
+    AvRevertMmThreadCharacteristics (task_);
+    task_ = ACE_INVALID_HANDLE;
+  } // end IF
 done:
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -921,6 +929,7 @@ continue_:
     switch (inherited::configuration_->delayConfiguration->mode)
     {
       case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+      case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
       {
         total_length_i = message_block_p->total_length ();
         tokens_to_dispatch_i = std::min (total_length_i, availableTokens_);
@@ -949,6 +958,7 @@ continue_:
   switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
+    case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
     {
       ACE_Message_Block* message_block_2 = message_block_p;
       if (tokens_to_dispatch_i < total_length_i)
@@ -1065,7 +1075,9 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_UINT64 average_bytes_per_second_i = 0;
+      ACE_UINT64 average_bytes_per_second_i;
+      float token_factor_f =
+        inherited::configuration_->delayConfiguration->tokenFactor;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       struct tWAVEFORMATEX* waveformatex_p = NULL;
@@ -1098,8 +1110,10 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
       availableTokens_ =
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
+      token_factor_f =
+        token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        availableTokens_ * STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER;
+        static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
       inherited::configuration_->delayConfiguration->interval =
         ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
@@ -1238,7 +1252,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
     result = condition_.broadcast ();
     if (unlikely (result == -1))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::broadcast(): \"%m\", continuing\n"),
                   inherited::mod_->name ()));
   } // end lock scope
 }

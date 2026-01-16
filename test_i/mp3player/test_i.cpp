@@ -325,6 +325,9 @@ do_work (ACE_UINT32 bufferSize_in,
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
+  struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
+  delay_configuration.catchUp = true;
+
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
@@ -353,6 +356,7 @@ do_work (ACE_UINT32 bufferSize_in,
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
+  modulehandler_configuration.delayConfiguration = &delay_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
     Stream_Device_Identifier::ID;

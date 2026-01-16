@@ -36,7 +36,6 @@
 
 #include "stream_stat_statistic_report.h"
 
-//#include "stream_dec_wav_encoder.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_dev_target_wavout.h"
 #include "stream_dev_target_wasapi.h"
@@ -61,7 +60,11 @@
 #endif // SOX_SUPPORT
 
 #include "stream_file_source.h"
-//#include "stream_file_sink.h"
+
+#include "stream_misc_delay.h"
+#include "stream_misc_distributor.h"
+
+#include "stream_vis_console_audio.h"
 
 #include "test_i_common.h"
 
@@ -213,6 +216,22 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,              
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // SOX_SUPPORT
 
+typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
+                                                      Common_TimePolicy_t,
+                                                      struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                                      Stream_ControlMessage_t,
+                                                      Test_I_Stream_Message,
+                                                      Test_I_Stream_SessionMessage,
+                                                      Test_I_MP3Player_SessionData_t> Test_I_DistributorWriter;
+DATASTREAM_MODULE_DUPLEX (struct Test_I_MP3Player_SessionData,                      // session data type
+                          enum Stream_SessionMessageType,                           // session event type
+                          struct Test_I_MP3Player_ModuleHandlerConfiguration,       // module handler configuration type
+                          libacestream_default_misc_distributor_module_name_string,
+                          Stream_INotify_t,                                         // stream notification interface type
+                          Test_I_DistributorWriter::READER_TASK_T,                  // reader type
+                          Test_I_DistributorWriter,                                 // writer type
+                          Test_I_Distributor);                                      // module name prefix
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 typedef Stream_Dev_Target_WavOut_T<ACE_MT_SYNCH,
                                    Common_TimePolicy_t,
@@ -286,6 +305,38 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,              
                               Stream_INotify_t,                                            // stream notification interface type
                               Test_I_PipewirePlayer);                                      // writer type
 #endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_I_Stream_Message,
+                              Test_I_Stream_SessionMessage,
+                              struct _AMMediaType,
+                              struct Stream_UserData> Test_I_Delay;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                     // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                   // stream notification interface type
+                              Test_I_Delay);                                      // writer type
+
+typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage,
+                                          struct _AMMediaType,
+                                          float> Test_I_ConsoleVUMeter;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_vis_console_audio_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_ConsoleVUMeter);                                    // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 //typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,

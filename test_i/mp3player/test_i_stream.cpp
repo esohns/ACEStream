@@ -41,6 +41,8 @@ extern "C"
 
 #include "stream_file_defines.h"
 
+#include "stream_vis_defines.h"
+
 Test_I_Stream::Test_I_Stream ()
  : inherited ()
  , FileSource_ (this,
@@ -64,6 +66,12 @@ Test_I_Stream::Test_I_Stream ()
  , SoXResampler_ (this,
                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING))
 #endif // SOX_SUPPORT
+ , delay_ (this,
+           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , consoleVUMeter_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING))
  , waveOutPlayer_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING))
  , WASAPIPlayer_ (this,
@@ -103,6 +111,10 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT (!(*iterator).second.second->fileIdentifier.identifier.empty ());
 
+  typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
+  unsigned int index_i = 0;
+  Stream_Branches_t branches_a;
+
   std::string extension_string =
     Common_String_Tools::tolower (Common_File_Tools::fileExtension ((*iterator).second.second->fileIdentifier.identifier,
                                                                     false));
@@ -134,7 +146,21 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&SoXResampler_, NULL, 0);
 #endif // SOX_SUPPORT
 
-      layout_in->append (&WASAPIPlayer_, NULL, 0);
+      //layout_in->append (&delay_, NULL, 0);
+
+      layout_in->append (&distributor_, NULL, 0);
+      branch_p = &distributor_;
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+      Stream_IDistributorModule* idistributor_p =
+        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+      ACE_ASSERT (idistributor_p);
+      idistributor_p->initialize (branches_a);
+
+      layout_in->append (&delay_, branch_p, index_i);
+      layout_in->append (&consoleVUMeter_, branch_p, index_i);
+      ++index_i;
+      layout_in->append (&WASAPIPlayer_, branch_p, index_i);
       break;
     }
     case STREAM_DEVICE_RENDERER_XAUDIO2:

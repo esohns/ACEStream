@@ -43,9 +43,8 @@
 #define STREAM_MISC_DEFAULT_INPUT_STREAM_NAME_STRING                "InputStream"
 
 #define STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US                 10000 // us
-// *NOTE*: adjust the average bps by this factor to allow smooth audio playback.
-//         A value of 2 seems to produce satisfactory ressults, i.e. no glitches
-#define STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER            2
+// *NOTE*: adjust the average bps by this factor to allow smooth audio playback
+#define STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F          1.5f
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
