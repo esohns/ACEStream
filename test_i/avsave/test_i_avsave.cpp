@@ -975,8 +975,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration_2;
   //allocator_configuration.defaultBufferSize = 524288;
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
-  codec_configuration.codecId = AV_CODEC_ID_RAWVIDEO;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration; // decoder
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // encoder
+  codec_configuration_2.codecId = AV_CODEC_ID_RAWVIDEO;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration; // video
   struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
@@ -1005,6 +1006,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_3; // resize --> display
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_4; // window --> display
   struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_5; // converter --> encoder
+  struct Stream_AVSave_DirectShow_ModuleHandlerConfiguration directshow_video_modulehandler_configuration_6; // encoder
   struct Stream_AVSave_DirectShow_StreamConfiguration directshow_video_stream_configuration;
   Stream_AVSave_DirectShow_EventHandler_t directshow_ui_event_handler (&directShowCBData_in
 #if defined (GTK_USE)
@@ -1028,6 +1030,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_2; // converter --> display
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_3; // resizer --> display
   struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_4; // converter_2 --> encoder
+  struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration video_modulehandler_configuration_5; // encoder
+
   struct Stream_AVSave_ALSA_V4L_StreamConfiguration video_stream_configuration;
   Stream_AVSave_ALSA_V4L_EventHandler_t ui_event_handler (
                                                           &CBData_in
@@ -1255,12 +1259,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_video_modulehandler_configuration_5)));
-      //directshow_video_stream_iterator =
-      //  directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (directshow_video_stream_iterator != directShowConfiguration_in.videoStreamConfiguration.end ());
-      //directshow_video_stream_iterator_2 =
-      //  directShowConfiguration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (directshow_video_stream_iterator_2 != directShowConfiguration_in.videoStreamConfiguration.end ());
+      directShowConfiguration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
+                                                                                  std::make_pair (&module_configuration,
+                                                                                                  &directshow_video_modulehandler_configuration_6)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1405,6 +1406,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                          directshow_video_modulehandler_configuration_5.outputFormat);
       directshow_video_modulehandler_configuration_5.flipImage = true;
 
+      directshow_video_modulehandler_configuration_6 = directshow_audio_modulehandler_configuration;
+      directshow_video_modulehandler_configuration_6.codecConfiguration =
+        &codec_configuration_2;
+
       directShowCBData_in.progressData.audioFrameSize =
         (Stream_MediaFramework_DirectShow_Tools::toFrameBits (directshow_audio_stream_configuration.format.audio) / 8) *
         Stream_MediaFramework_DirectShow_Tools::toChannels (directshow_audio_stream_configuration.format.audio);
@@ -1514,12 +1519,14 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 //#else
 //  modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_BGR24;
 //#endif // ACE_WIN32 || ACE_WIN64
-//  configuration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
-//                                                               std::make_pair (module_configuration,
-//                                                                               modulehandler_configuration)));
-//  v4l_stream_iterator =
-//    configuration_in.videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (v4l_stream_iterator != configuration_in.videoStreamConfiguration.end ());
+
+  video_modulehandler_configuration_5 = video_modulehandler_configuration;
+#if defined (FFMPEG_SUPPORT)
+  video_modulehandler_configuration_5.codecConfiguration = &codec_configuration_2;
+#endif // FFMPEG_SUPPORT
+  configuration_in.videoStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &video_modulehandler_configuration_5)));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

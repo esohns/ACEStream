@@ -6804,6 +6804,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   Stream_IStream_t* stream_p = NULL;
   const Stream_Module_t* module_p = NULL;
   std::string module_name;
+  Stream_Visualization_IResize* iresize_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CamSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_CamSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
@@ -6867,7 +6868,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
                 ACE_TEXT (module_name.c_str ())));
     return;
   } // end IF
-  Stream_Visualization_IResize* iresize_p =
+  iresize_p =
     dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   if (!iresize_p)
   {

@@ -948,21 +948,25 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   if (is_active_b)
   {
     gtk_widget_show (GTK_WIDGET (window_p));
-    // gtk_window_fullscreen (window_p);
     gtk_window_maximize (window_p);
+#if GTK_CHECK_VERSION (3,0,0)
+    gtk_window_fullscreen (window_p);
+#endif // GTK_CHECK_VERSION (3,0,0)
   } // end IF
   else
   {
-    //gtk_window_minimize (window_p);
-    // gtk_window_unfullscreen (window_p);
+#if GTK_CHECK_VERSION (3,0,0)
+    gtk_window_unfullscreen (window_p);
+#endif // GTK_CHECK_VERSION (3,0,0)
+    gtk_window_unmaximize (window_p);
     gtk_widget_hide (GTK_WIDGET (window_p));
   } // end ELSE
 
   if (is_active_b)
   {
-    window_p =
-      GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
+    // window_p =
+    //   GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
     ACE_ASSERT (window_p);
     (*stream_iterator).second.second->window.gdk_window =
       gtk_widget_get_window (GTK_WIDGET (window_p));
@@ -1228,12 +1232,14 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (allocation_in);
 
+  // sanity check(s)
   struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
 
   const Stream_Module_t* module_p = NULL;
   std::string module_name;
+  Stream_Visualization_IResize* iresize_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_p->mediaFramework)
   {
@@ -1287,7 +1293,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
                 ACE_TEXT (module_name.c_str ())));
     return;
   } // end IF
-  Stream_Visualization_IResize* iresize_p =
+  iresize_p =
     dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   if (!iresize_p)
   {

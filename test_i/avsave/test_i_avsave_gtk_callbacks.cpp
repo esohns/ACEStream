@@ -23,10 +23,6 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "strmif.h"
-//#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-//#undef NANOSECONDS
-//#include "reftime.h"
-//#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 #include "dvdmedia.h"
 #include "mferror.h"
 #undef GetObject
@@ -6060,7 +6056,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
       break;
     }
@@ -6070,7 +6066,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (mediafoundation_cb_data_p->configuration);
       mediafoundation_stream_iterator =
-        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->videoStreamConfiguration.end ());
       break;
     }
@@ -6087,7 +6083,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
     static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());

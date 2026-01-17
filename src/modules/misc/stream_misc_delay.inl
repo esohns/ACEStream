@@ -1182,7 +1182,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      unsigned int result = queue_.flush (false); // flush all data messages
+      unsigned int result = inherited::queue_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))
       {
         ACE_DEBUG ((LM_ERROR,

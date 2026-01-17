@@ -495,9 +495,6 @@ do_work (int argc_in,
 //  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
 //                                                            std::make_pair (module_configuration,
 //                                                                            modulehandler_configuration)));
-//  stream_configuration_iterator =
-//    configuration.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (stream_configuration_iterator != configuration.streamConfiguration.end ());
 
   // initialize UI
 #if defined (GTK_USE)

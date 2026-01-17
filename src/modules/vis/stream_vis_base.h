@@ -17,13 +17,13 @@ class Stream_Visualization_Base
   inline virtual ~Stream_Visualization_Base () {}
 
   // implement Stream_Visualization_IResize
-  inline virtual bool lock (bool block_in) { ACE_ASSERT (block_in && lock_); lock_->acquire (); return true; }
-  inline virtual int unlock (bool unlockCompletely_in) { ACE_ASSERT (!unlockCompletely_in && lock_); return lock_->release (); }
+  inline virtual bool lock (bool block_in) { ACE_ASSERT (block_in && lock_2_); lock_2_->acquire (); return true; }
+  inline virtual int unlock (bool unlockCompletely_in) { ACE_ASSERT (!unlockCompletely_in && lock_2_); return lock_2_->release (); }
   inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void resizing () { lock (true); resizing_ = true; unlock (false); }
 
  protected:
-  ACE_Thread_Mutex* lock_;
+  ACE_Thread_Mutex* lock_2_;
   bool              resizing_;
 
  private:

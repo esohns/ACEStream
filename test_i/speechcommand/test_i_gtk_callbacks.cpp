@@ -1329,18 +1329,21 @@ idle_initialize_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
   gint tooltip_timeout_i =
-      COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
+    COMMON_UI_GTK_TIMEOUT_DEFAULT_WIDGET_TOOLTIP_DELAY_MS;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,10,0)
+  ACE_UNUSED_ARG (tooltip_timeout_i);
 #else
   g_object_set (G_OBJECT (drawing_area_p),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout_i,
                 NULL);
 #endif // GTK_CHECK_VERSION (3,10,0)
-#elif GTK_CHECK_VERSION(2,12,0) // *TODO*: this seems to be wrong
+#elif GTK_CHECK_VERSION (2,12,0) // *TODO*: this seems to be wrong
   g_object_set (G_OBJECT (drawing_area_p),
                 ACE_TEXT_ALWAYS_CHAR ("gtk-tooltip-timeout"), &tooltip_timeout_i,
                 NULL);
+#else
+  ACE_UNUSED_ARG (tooltip_timeout_i);
 #endif // GTK_CHECK_VERSION (3,0,0) || GTK_CHECK_VERSION (2,12,0)
 
   GtkProgressBar* progress_bar_p =
@@ -2095,18 +2098,18 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-#if GTK_CHECK_VERSION(2,30,0)
-  GValue value = G_VALUE_INIT;
-#else
-  GValue value;
-  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
-#if GTK_CHECK_VERSION(2,30,0)
-  GValue value_2 = G_VALUE_INIT;
-#else
-  GValue value_2;
-  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
-#endif // GTK_CHECK_VERSION (2,30,0)
+// #if GTK_CHECK_VERSION (2,30,0)
+//   GValue value = G_VALUE_INIT;
+// #else
+//   GValue value;
+//   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+// #endif // GTK_CHECK_VERSION (2,30,0)
+// #if GTK_CHECK_VERSION (2,30,0)
+//   GValue value_2 = G_VALUE_INIT;
+// #else
+//   GValue value_2;
+//   ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
+// #endif // GTK_CHECK_VERSION (2,30,0)
   Stream_IStreamControlBase* stream_p = NULL;
   //bool is_file_source_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
