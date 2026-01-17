@@ -18,9 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <algorithm>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "avrt.h"
 #else
 #define ALSA_PCM_NEW_HW_PARAMS_API
 extern "C"
@@ -28,6 +27,8 @@ extern "C"
 #include "alsa/asoundlib.h"
 }
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include <algorithm>
 
 #include "ace/Log_Msg.h"
 

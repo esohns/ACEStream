@@ -157,10 +157,10 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       ACE_ASSERT (idistributor_p);
       idistributor_p->initialize (branches_a);
 
+      layout_in->append (&WASAPIPlayer_, branch_p, index_i);
+      ++index_i;
       layout_in->append (&delay_, branch_p, index_i);
       layout_in->append (&consoleVUMeter_, branch_p, index_i);
-      ++index_i;
-      layout_in->append (&WASAPIPlayer_, branch_p, index_i);
       break;
     }
     case STREAM_DEVICE_RENDERER_XAUDIO2:
