@@ -113,6 +113,10 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u          : display console VU meter [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -128,6 +132,7 @@ do_processArguments (int argc_in,
                      std::string& outputFileName_out,
                      enum Stream_Device_Renderer& renderer_out,
                      bool& traceInformation_out,
+                     bool& consoleVUMeter_out,
                      bool& printVersionAndExit_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
@@ -143,11 +148,12 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   renderer_out = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   traceInformation_out = false;
+  consoleVUMeter_out = false;
   printVersionAndExit_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:lo:r:tv"),
+                              ACE_TEXT ("b:f:lo:r:tuv"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -195,6 +201,11 @@ do_processArguments (int argc_in,
       case 't':
       {
         traceInformation_out = true;
+        break;
+      }
+      case 'u':
+      {
+        consoleVUMeter_out = true;
         break;
       }
       case 'v':
@@ -301,6 +312,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 
 void
 do_work (ACE_UINT32 bufferSize_in,
+         bool consoleVUMeter_in,
          const std::string& inputFileName_in,
          const std::string& outputFileName_in,
          enum Stream_Device_Renderer renderer_in,
@@ -394,6 +406,7 @@ do_work (ACE_UINT32 bufferSize_in,
   // ******************** (sub-)stream configuration data *********************
 
   struct Test_I_MP3Player_StreamConfiguration stream_configuration;
+  stream_configuration.consoleVUMeter = consoleVUMeter_in;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.printFinalReport = true;
   stream_configuration.fileIdentifier.identifier = outputFileName_in;
@@ -521,6 +534,7 @@ ACE_TMAIN (int argc_in,
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   enum Stream_Device_Renderer renderer_e = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   bool trace_information = false;
+  bool console_VU_meter_b = false;
   bool print_version_and_exit = false;
 
   // step1b: parse/process/validate configuration
@@ -532,6 +546,7 @@ ACE_TMAIN (int argc_in,
                             output_file,
                             renderer_e,
                             trace_information,
+                            console_VU_meter_b,
                             print_version_and_exit))
   {
     do_printUsage (ACE::basename (argv_in[0]));
@@ -644,6 +659,7 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size_i,
+           console_VU_meter_b,
            input_file,
            output_file,
            renderer_e,

@@ -146,21 +146,27 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&SoXResampler_, NULL, 0);
 #endif // SOX_SUPPORT
 
-      //layout_in->append (&delay_, NULL, 0);
+      if (inherited::configuration_->configuration_->consoleVUMeter)
+      {
+        //layout_in->append (&delay_, NULL, 0);
 
-      layout_in->append (&distributor_, NULL, 0);
-      branch_p = &distributor_;
-      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
-      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      Stream_IDistributorModule* idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
-      ACE_ASSERT (idistributor_p);
-      idistributor_p->initialize (branches_a);
+        layout_in->append (&distributor_, NULL, 0);
+        branch_p = &distributor_;
+        branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+        branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+        Stream_IDistributorModule* idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+        ACE_ASSERT (idistributor_p);
+        idistributor_p->initialize (branches_a);
 
-      layout_in->append (&WASAPIPlayer_, branch_p, index_i);
-      ++index_i;
-      layout_in->append (&delay_, branch_p, index_i);
-      layout_in->append (&consoleVUMeter_, branch_p, index_i);
+        layout_in->append (&WASAPIPlayer_, branch_p, index_i);
+        ++index_i;
+        layout_in->append (&delay_, branch_p, index_i);
+        layout_in->append (&consoleVUMeter_, branch_p, index_i);
+      } // end IF
+      else
+        layout_in->append (&WASAPIPlayer_, NULL, 0);
+
       break;
     }
     case STREAM_DEVICE_RENDERER_XAUDIO2:

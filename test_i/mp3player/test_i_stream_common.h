@@ -143,9 +143,11 @@ struct Test_I_MP3Player_StreamConfiguration
 {
   Test_I_MP3Player_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , consoleVUMeter (false)
    , renderer (STREAM_DEV_AUDIO_DEFAULT_RENDERER)
   {}
 
+  bool                        consoleVUMeter;
   enum Stream_Device_Renderer renderer;
 };
 
