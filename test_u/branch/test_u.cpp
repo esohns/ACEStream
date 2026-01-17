@@ -202,7 +202,7 @@ do_work (int argc_in,
       Branch_Message* message_p = NULL;
       modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_CONCURRENT;
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                Common_TimePolicy_t> message_queue (0,
                                                                     NULL);
       modulehandler_configuration.queue = &message_queue;
       Branch_EventHandler event_handler (false);
@@ -275,7 +275,7 @@ clean_4:
       Branch_Message* message_p = NULL;
       modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                Common_TimePolicy_t> message_queue (0,
                                                                     NULL);
       modulehandler_configuration.queue = &message_queue;
       Branch_EventHandler event_handler (false);
@@ -397,7 +397,7 @@ clean:
       Branch_Message* message_p = NULL;
       modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                Common_TimePolicy_t> message_queue (0,
                                                                     NULL);
       modulehandler_configuration.queue = &message_queue;
       Branch_EventHandler event_handler (false);
@@ -462,10 +462,10 @@ clean_2:
       Branch_Message* message_p = NULL, *message_2 = NULL;
       modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                                Common_TimePolicy_t> message_queue (0,
                                                                     NULL);
       Stream_MessageQueueBase_T<ACE_MT_SYNCH,
-                                Common_TimePolicy_t> message_queue_2 (STREAM_QUEUE_MAX_SLOTS,
+                                Common_TimePolicy_t> message_queue_2 (0,
                                                                       NULL);
       modulehandler_configuration.queue = &message_queue;
       struct Branch_ModuleHandlerConfiguration modulehandler_configuration_2;

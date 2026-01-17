@@ -33,8 +33,8 @@ template <ACE_SYNCH_DECL,
 Stream_MessageQueueBase_T<ACE_SYNCH_USE,
                           TimePolicyType>::Stream_MessageQueueBase_T (size_t maxMessages_in,
                                                                       ACE_Notification_Strategy* notificationInterface_in)
- : inherited (maxMessages_in,                                           // high water mark
-              maxMessages_in ? maxMessages_in : STREAM_QUEUE_MAX_SLOTS, // low water mark
+ : inherited (maxMessages_in,                                                   // high water mark
+              maxMessages_in ? maxMessages_in : STREAM_QUEUE_DEFAULT_MAX_SLOTS, // low water mark
               notificationInterface_in) // notification strategy
  , isShuttingDown_ (false)
 {

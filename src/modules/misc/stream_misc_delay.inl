@@ -192,6 +192,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
                                                : COMMON_TIMERMANAGER_SINGLETON::instance ());
   ACE_ASSERT (itimer_p);
+  bool high_priority_b = false;
 
   switch (message_inout->type ())
   {
@@ -207,6 +208,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
                     inherited::mod_->name (),
                     result));
+
+      high_priority_b = true;
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -420,8 +423,8 @@ end:
       //  resetTimeoutHandlerId_ = -1;
       //} // end IF
 
-      stop (true,   // wait ?
-            false); // high priority ?
+      stop (true,             // wait ?
+            high_priority_b); // high priority ?
 
       break;
     }
@@ -673,6 +676,8 @@ done:
                   resetTimeoutHandlerId_));
     resetTimeoutHandlerId_ = -1;
   } // end IF
+
+  result = 0;
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) leaving\n"),

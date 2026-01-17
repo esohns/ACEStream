@@ -187,7 +187,7 @@ do_work (int argc_in,
   Parser_EventHandler event_handler (false);
   Parser_MessageHandler_Module module (NULL,
                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_MessageQueueBase_T<ACE_MT_SYNCH, Common_TimePolicy_t> message_queue (STREAM_QUEUE_MAX_SLOTS,
+  Stream_MessageQueueBase_T<ACE_MT_SYNCH, Common_TimePolicy_t> message_queue (0,
                                                                               NULL);
   Parser_Stream parser_stream;
   std::string file_path_2 = Common_File_Tools::directory (sourceFilePath_in);

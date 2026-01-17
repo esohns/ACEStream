@@ -33,7 +33,7 @@
 
 // queue
 // *IMPORTANT NOTE*: any of these can seriously affect application performance
-#define STREAM_QUEUE_MAX_SLOTS                              10000 // 0: unlimited
+#define STREAM_QUEUE_DEFAULT_MAX_SLOTS                      10000 // 0: unlimited
 // *IMPORTANT NOTE*: #concurrent in-flight messages, i.e. static heap memory
 //                   allocation can be approximated as STREAM_QUEUE_MAX_MESSAGES
 //                   * sizeof(stream-message type) bytes

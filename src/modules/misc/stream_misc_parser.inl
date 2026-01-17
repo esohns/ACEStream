@@ -721,7 +721,8 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , inherited2 ()
  , headFragment_ (NULL)
- , parserQueue_ (STREAM_QUEUE_MAX_SLOTS, NULL)
+ , parserQueue_ (0,    // max # slots; 0 --> unlimited
+                 NULL) // notification handle
  , resetQueue_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::Stream_Module_Parser_T"));

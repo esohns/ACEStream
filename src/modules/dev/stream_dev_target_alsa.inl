@@ -54,8 +54,8 @@ Stream_Dev_Target_ALSA_T<ACE_SYNCH_USE,
  , deviceHandle_ (NULL)
  , frameSize_ (0)
  , isPassive_ (false)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,    // max # slots; 0 --> unlimited
+           NULL) // notification handle
  , sampleRate_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_ALSA_T::Stream_Dev_Target_ALSA_T"));

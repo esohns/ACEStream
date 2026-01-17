@@ -112,7 +112,7 @@ struct Stream_ModuleHandlerConfiguration
    , handleResize (true)
    , hasReentrantSynchronousSubDownstream (true)
    , lock (NULL)
-   , maximumQueueSlots (STREAM_QUEUE_MAX_SLOTS)
+   , maximumQueueSlots (0) // *NOTE*: 0 --> unlimited
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
 #endif // ACE_WIN32 || ACE_WIN64

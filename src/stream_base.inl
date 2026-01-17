@@ -68,8 +68,8 @@ Stream_Base_T<ACE_SYNCH_USE,
  , id_ ()
  , isInitialized_ (false)
  , layout_ ()
- , messageQueue_ (STREAM_QUEUE_MAX_SLOTS,
-                  NULL)
+ , messageQueue_ (0,    // max # slots; 0 --> unlimited
+                  NULL) // notification handle
  , name_ (StreamName)
  , state_ ()
  , statistic_ ()

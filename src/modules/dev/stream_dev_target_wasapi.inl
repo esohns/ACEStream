@@ -59,8 +59,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
  , bufferSize_ (0)
  , event_ (NULL)
  , frameSize_ (0)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,    // max # slots; 0 --> unlimited
+           NULL) // notification handle
  , task_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::Stream_Dev_Target_WASAPI_T"));
@@ -940,7 +940,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  result = this->putq (message_block_p, NULL);
+  result = (highPriority_in ? inherited::msg_queue_->enqueue_head (message_block_p, NULL) :
+                              inherited::msg_queue_->enqueue_tail (message_block_p, NULL));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,

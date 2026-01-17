@@ -68,8 +68,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
  , abortSent_ (false)
  , endSeenFromUpstream_ (false)
  , isHighPriorityStop_ (false)
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // maximum #slots
-           NULL)                   // notification handle
+ , queue_ (0,    // maximum # slots; 0 --> unlimited
+           NULL) // notification handle
  , sessionEndProcessed_ (false)
  , sessionEndSent_ (false)
  , stateMachineLock_ (NULL, // name

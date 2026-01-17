@@ -56,8 +56,8 @@ Stream_Miscellaneous_Input_Stream_T<ACE_SYNCH_USE,
                                     SessionMessageType,
                                     UserDataType>::Stream_Miscellaneous_Input_Stream_T ()
  : inherited ()
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,    // max # slots; 0 --> unlimited
+           NULL) // notification handle
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Input_Stream_T::Stream_Miscellaneous_Input_Stream_T"));
 

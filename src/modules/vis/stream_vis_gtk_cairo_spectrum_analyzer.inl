@@ -87,8 +87,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , halfHeight_ (0)
  , height_ (0)
  , width_ (0)
- //, queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
- //          NULL)                   // notification handle
+ //, queue_ (0,    // max # slots; 0 --> unlimited
+ //          NULL) // notification handle
  //, renderHandler_ (this)
  //, renderHandlerTimerId_ (-1)
  , sampleIterator_ (NULL)

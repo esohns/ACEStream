@@ -9,11 +9,26 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
     <property name="type_hint">normal</property>
+    <property name="program_name">imagescreen</property>
+    <property name="version">0.1</property>
+    <property name="copyright" translatable="yes">Copyright 2026</property>
+    <property name="website">https://www.github.com/esohns/ACEStream</property>
+    <property name="website_label" translatable="yes">project page</property>
+    <property name="authors">Erik Sohns</property>
     <property name="logo_icon_name">image-missing</property>
+    <property name="license_type">lgpl-3-0</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="aboutdialog-vbox1">
         <property name="can_focus">False</property>
@@ -21,6 +36,7 @@
         <child internal-child="action_area">
           <object class="GtkButtonBox" id="aboutdialog-action_area1">
             <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
           </object>
           <packing>
             <property name="expand">False</property>
@@ -288,14 +304,6 @@
       <action-widget response="0">button_about</action-widget>
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkListStore" id="liststore_adapter">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name id -->
-      <column type="gchararray"/>
-    </columns>
   </object>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>

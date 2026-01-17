@@ -47,8 +47,8 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
  , inherited2 ()
  , inherited3 ()
  //, inherited4 ()
- , queue_ (STREAM_QUEUE_MAX_SLOTS, // max # slots
-           NULL)                   // notification handle
+ , queue_ (0,    // max # slots; 0 --> unlimited
+           NULL) // notification handle
  , IGraphBuilder_ (NULL)
 //, IMemAllocator_ (NULL)
 //, IMemInputPin_ (NULL)

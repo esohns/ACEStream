@@ -213,7 +213,7 @@ do_work (int argc_in,
                                        ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
   Stream_MessageQueue_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
-                        Test_U_SessionMessage> message_queue (STREAM_QUEUE_MAX_SLOTS,
+                        Test_U_SessionMessage> message_queue (0,
                                                               NULL);
   Test_U_Stream stream;
 

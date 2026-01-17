@@ -412,10 +412,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   gint width, height;
   gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p),
                                &width, &height);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (width));
-  //gtk_progress_bar_set_show_text (progress_bar_p,
-  //                                TRUE);
+  //gtk_progress_bar_set_pulse_step (progress_bar_p,
+  //                                 1.0 / static_cast<double> (width));
+  gtk_progress_bar_set_text (progress_bar_p,
+                             ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_progress_bar_set_show_text (progress_bar_p,
+                                  TRUE);
 
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
@@ -629,8 +631,7 @@ idle_update_progress_cb (gpointer userData_in)
   converter  << ACE_TEXT_ALWAYS_CHAR (" / ");
   converter  << data_p->total;
   gtk_progress_bar_set_text (progress_bar_p,
-                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
-                                   : converter.str ().c_str ()));
+                             (done ? ACE_TEXT_ALWAYS_CHAR ("") : converter.str ().c_str ()));
   if (done)
     gtk_progress_bar_set_fraction (progress_bar_p,
                                    1.0);
@@ -1131,11 +1132,7 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                         gpointer userData_in)
 {
   ACE_UNUSED_ARG (widget_in);
-
-  // sanity check(s)
-//  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
-//    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
-//  ACE_ASSERT (ui_cb_data_p);
+  ACE_UNUSED_ARG (userData_in);
 
   COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
                                                       false);
@@ -1154,9 +1151,6 @@ filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
     static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
-//  Common_UI_GTK_BuildersIterator_t iterator =
-//    ui_cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
       ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -1167,18 +1161,6 @@ filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
               ACE_TEXT ("changed directory to \"%s\"\n"),
               ACE_TEXT ((*stream_configuration_iterator).second.second->fileIdentifier.identifier.c_str ())));
 } // filechooserbutton_current_folder_changed_cb
-
-//void
-//filechooserdialog_cb (GtkFileChooser* fileChooser_in,
-//                      gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
-//
-//  ACE_UNUSED_ARG (userData_in);
-//
-//  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (fileChooser_in)),
-//                       GTK_RESPONSE_ACCEPT);
-//} // filechooserdialog_cb
 
 gboolean
 key_cb (GtkWidget* widget_in,
