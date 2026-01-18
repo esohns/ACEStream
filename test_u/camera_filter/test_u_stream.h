@@ -168,7 +168,8 @@ class Test_U_DirectShow_Stream
   Test_U_DirectShow_Source_Module                   source_;
   Test_U_DirectShow_StatisticReport_Module          statisticReport_;
   Test_U_DirectShow_LibAVConvert_Module             convert_; // RGB
-  Test_U_DirectShow_LibAVResize_Module              resize_; // --> window size/fullscreen
+  Test_U_DirectShow_LibAVResize_Module              resize_; // --> filter size
+  Test_U_DirectShow_LibAVResize_Module              resize_2_; // --> window size/fullscreen
   Test_U_CameraFilter_Sobel_Filter_Module           sobelFilter_;
 #if defined (OLC_PGE_SUPPORT)
   Test_U_CameraFilter_MarchingSquares_Filter_Module marchingSquaresFilter_;

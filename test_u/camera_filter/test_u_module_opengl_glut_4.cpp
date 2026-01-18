@@ -192,25 +192,32 @@ Test_U_CameraFilter_OpenGL_GLUT_4::handleSessionMessage (Test_U_SessionMessage_t
       //COMMON_GL_ASSERT;
       //glDepthMask (GL_TRUE);
       //COMMON_GL_ASSERT;
-      glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-      COMMON_GL_ASSERT;
+      //glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
+      //COMMON_GL_ASSERT;
       //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
       //COMMON_GL_ASSERT;
       //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
       //COMMON_GL_ASSERT;
-      glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      //glEnable (GL_BLEND);                                // Enable Semi-Transparency
       //COMMON_GL_ASSERT;
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       //glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-      COMMON_GL_ASSERT;
-      glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-      COMMON_GL_ASSERT;
+      //COMMON_GL_ASSERT;
+      //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
+      //COMMON_GL_ASSERT;
 
       //glDisable (GL_CULL_FACE);
       //glEnable (GL_CULL_FACE);
       //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+      glClampColor (GL_CLAMP_READ_COLOR, GL_FALSE);
+      glClampColor (GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+      glClampColor (GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+      glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+      glPixelStorei (GL_PACK_ALIGNMENT, 1);
+
+      glActiveTexture (GL_TEXTURE0);
       glGenTextures (1, &CBData_.texture.id_);
       ACE_ASSERT (CBData_.texture.id_);
 
@@ -335,12 +342,13 @@ Test_U_CameraFilter_OpenGL_GLUT_4::svc (void)
 
   char* myargv[1];
   int myargc = 1;
-  myargv[0] = ACE_OS::strdup ("Myappname");
+  myargv[0] = ACE_OS::strdup (ACE_TEXT_ALWAYS_CHAR ("Test_U_CameraFilter_OpenGL_GLUT_4"));
+  ACE_ASSERT (myargv[0]);
   glutInit (&myargc, myargv);
+  ACE_OS::free (myargv[0]);
 
-  glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE,
-                 GLUT_ACTION_GLUTMAINLOOP_RETURNS);
-
+  glutSetOption (GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+  
   //  glutInitDisplayMode (GLUT_RGB | GLUT_DOUBLE);
   glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
 

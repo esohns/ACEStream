@@ -15,9 +15,9 @@ varying vec2 vTexCoord;
 vec3
 N13 (float p)
 {
-   vec3 p3 = fract (vec3 (p) * vec3 (0.1031, 0.11369, 0.13787));
-   p3 += dot (p3, p3.yzx + 19.19);
-   return fract (vec3 ((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y, (p3.y + p3.z) * p3.x));
+  vec3 p3 = fract (vec3 (p) * vec3 (0.1031, 0.11369, 0.13787));
+  p3 += dot (p3, p3.yzx + 19.19);
+  return fract (vec3 ((p3.x + p3.y) * p3.z, (p3.x + p3.z) * p3.y, (p3.y + p3.z) * p3.x));
 }
 
 vec4

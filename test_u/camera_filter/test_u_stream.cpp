@@ -55,6 +55,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , resize_2_ (this,
+              ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"))
  , sobelFilter_ (this,
                  ACE_TEXT_ALWAYS_CHAR ("SobelFilter"))
 #if defined (OLC_PGE_SUPPORT)
@@ -203,9 +205,13 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   layout_in->append (&source_, NULL, 0);
-  layout_in->append (&convert_, NULL, 0);
+  if ((*iterator).second.second->flipImage)
+    layout_in->append (&convert_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
 
   bool add_renderer_b = true;
@@ -234,6 +240,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (JC_VORONOI_SUPPORT) && defined (OLC_PGE_SUPPORT)
     case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
     {
+      layout_in->append (&resize_, NULL, 0); // output is filter size
       layout_in->append (&weightedVoronoiStippleFilter_, NULL, 0);
       add_renderer_b = false;
       break;
@@ -345,6 +352,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case TEST_U_MODE_GLUT_18:
     {
+      layout_in->append (&resize_, NULL, 0); // output is filter size
       layout_in->append (&GLUTDisplay_18, NULL, 0);
       add_renderer_b = false;
       break;
@@ -381,6 +389,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case TEST_U_MODE_GLUT_24:
     {
+      layout_in->append (&resize_, NULL, 0); // output is filter size
       layout_in->append (&GLUTDisplay_24, NULL, 0);
       add_renderer_b = false;
       break;
@@ -559,7 +568,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      layout_in->append (&resize_2_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }
@@ -582,7 +591,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      layout_in->append (&resize_2_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }

@@ -174,7 +174,9 @@ load_media_streams (const std::string& filename_in,
                         2, context_p->streams[i]->codecpar->codec_id,
                         -1);
   } // end FOR
-  avformat_free_context (context_p); context_p = NULL;
+
+  avformat_close_input (&context_p); ACE_ASSERT (context_p == NULL);
+  //avformat_free_context (context_p); context_p = NULL;
 }
 
 //////////////////////////////////////////
@@ -184,10 +186,8 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("processing thread (id: %t) starting\n")));
-#endif // _DEBUG
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("processing thread (id: %t) starting\n")));
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -764,26 +764,22 @@ idle_session_end_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_session_end_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_p->UIState->lock, G_SOURCE_REMOVE);
-
+  ACE_ASSERT (cb_data_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+  ACE_ASSERT (toggle_button_p);
 
   // *IMPORTANT NOTE*: there are two major reasons for being here that are not
   //                   mutually exclusive, so there could be a race:
   //                   - user pressed stop
   //                   - there was an asynchronous error on the stream
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
-  ACE_ASSERT (toggle_button_p);
+
   gtk_button_set_label (GTK_BUTTON (toggle_button_p),
                         GTK_STOCK_MEDIA_PLAY);
   if (gtk_toggle_button_get_active (toggle_button_p))
@@ -792,6 +788,7 @@ idle_session_end_cb (gpointer userData_in)
     gtk_toggle_button_set_active (toggle_button_p,
                                   FALSE);
   } // end IF
+
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTON_CUT_NAME)));
@@ -829,9 +826,12 @@ idle_session_end_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progressbar_p);
   // *NOTE*: this disables "activity mode" (in Gtk2)
-  gtk_progress_bar_set_fraction (progressbar_p, 0.0);
-  gtk_progress_bar_set_text (progressbar_p, ACE_TEXT_ALWAYS_CHAR (""));
-  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), false);
+  gtk_progress_bar_set_fraction (progressbar_p,
+                                 0.0);
+  gtk_progress_bar_set_text (progressbar_p,
+                             ACE_TEXT_ALWAYS_CHAR (""));
+  gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p),
+                            FALSE);
 
   return G_SOURCE_REMOVE;
 }
@@ -926,7 +926,7 @@ idle_update_info_display_cb (gpointer userData_in)
   // sanity check(s)
   ACE_ASSERT (userData_in);
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-      static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
   Common_UI_GTK_BuildersIterator_t iterator =
     cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
@@ -936,6 +936,7 @@ idle_update_info_display_cb (gpointer userData_in)
   enum Test_I_ExtractStream_UI_EventType* event_p = NULL;
   int result = -1;
   enum Test_I_ExtractStream_UI_EventType event_e = STREAM_AV_UI_EVENT_INVALID;
+
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, cb_data_p->UIState->lock, G_SOURCE_REMOVE);
     for (Test_I_ExtractStream_UI_EventsIterator_t iterator_2 (cb_data_p->UIState->eventStack);
          iterator_2.next (event_p);
@@ -1118,57 +1119,58 @@ idle_update_progress_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_progress_cb"));
 
-  struct Test_I_ExtractStream_ProgressData* data_p =
-      static_cast<struct Test_I_ExtractStream_ProgressData*> (userData_in);
-
   // sanity check(s)
+  struct Test_I_ExtractStream_ProgressData* data_p =
+    static_cast<struct Test_I_ExtractStream_ProgressData*> (userData_in);
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->state);
-
-  // synch access
-  ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
-
-  int result = -1;
   Common_UI_GTK_BuildersIterator_t iterator =
     data_p->state->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != data_p->state->builders.end ());
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
 
+  int result = -1;
   ACE_THR_FUNC_RETURN exit_status;
   ACE_Thread_Manager* thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
   Common_UI_GTK_PendingActionsIterator_t iterator_2;
-  for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
-       iterator_3 != data_p->completedActions.end ();
-       ++iterator_3)
-  {
-    iterator_2 = data_p->pendingActions.find (*iterator_3);
-    ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
-    ACE_thread_t thread_id = (*iterator_2).second.id ();
-    result = thread_manager_p->join (thread_id, &exit_status);
-    if (result == -1)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
-                  thread_id));
-    else
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: %u)\n"),
-                  thread_id,
-                  exit_status));
-#else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
-                  thread_id,
-                  exit_status));
-#endif // ACE_WIN32 || ACE_WIN64
-    } // end ELSE
 
-    data_p->state->eventSourceIds.erase (*iterator_3);
-    data_p->pendingActions.erase (iterator_2);
-  } // end FOR
-  data_p->completedActions.clear ();
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, data_p->state->lock, G_SOURCE_REMOVE);
+    for (Common_UI_GTK_CompletedActionsIterator_t iterator_3 = data_p->completedActions.begin ();
+         iterator_3 != data_p->completedActions.end ();
+         ++iterator_3)
+    {
+      iterator_2 = data_p->pendingActions.find (*iterator_3);
+      ACE_ASSERT (iterator_2 != data_p->pendingActions.end ());
+      ACE_thread_t thread_id = (*iterator_2).second.id ();
+      result = thread_manager_p->join (thread_id, &exit_status);
+      if (result == -1)
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ACE_Thread_Manager::join(%d): \"%m\", continuing\n"),
+                    thread_id));
+      else
+      {
+  #if defined (ACE_WIN32) || defined (ACE_WIN64)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("thread %u has joined (status was: %u)\n"),
+                    thread_id,
+                    exit_status));
+  #else
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("thread %u has joined (status was: 0x%@)\n"),
+                    thread_id,
+                    exit_status));
+  #endif // ACE_WIN32 || ACE_WIN64
+      } // end ELSE
+
+      data_p->state->eventSourceIds.erase (*iterator_3);
+      data_p->pendingActions.erase (iterator_2);
+    } // end FOR
+    data_p->completedActions.clear ();
+  } // end lock scope
 
   bool done = false;
   if (data_p->pendingActions.empty ())
@@ -1216,13 +1218,8 @@ idle_update_progress_cb (gpointer userData_in)
   converter << video_frames_per_second;
   converter << ACE_TEXT_ALWAYS_CHAR (" fps");
 
-  GtkProgressBar* progress_bar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
   gtk_progress_bar_set_text (progress_bar_p,
-                             (done ? ACE_TEXT_ALWAYS_CHAR ("")
-                                   : converter.str ().c_str ()));
+                             (done ? ACE_TEXT_ALWAYS_CHAR ("") : converter.str ().c_str ()));
   gtk_progress_bar_pulse (progress_bar_p);
 
   // reschedule ?
@@ -1435,18 +1432,18 @@ continue_:
     goto error;
   } // end IF
   thread_data_p->CBData = cb_data_p;
-  ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+  char thread_name_a[BUFSIZ];
+  ACE_OS::memset (thread_name_a, 0, sizeof (char[BUFSIZ]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_OS::strcpy (thread_name,
-                  ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+  ACE_OS::strcpy (thread_name_a,
+                  ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME));
 #else
   ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
-  ACE_OS::strncpy (thread_name,
+  ACE_OS::strncpy (thread_name_a,
                    ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
-                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME)))));
 #endif // ACE_WIN32 || ACE_WIN64
-  thread_name_2 = thread_name;
+  thread_name_2 = thread_name_a;
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
 
@@ -1614,7 +1611,7 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
                                                    &error_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", aborting\n"),
+                  ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_file(\"%s\"): \"%s\", returning\n"),
                   ACE_TEXT (file_p),
                   ACE_TEXT (error_p->message)));
       g_error_free (error_p); error_p = NULL;
@@ -1623,7 +1620,6 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     } // end IF
     g_object_unref (G_OBJECT (file_p)); file_p = NULL;
   } // end ELSE
-
   (*stream_iterator).second.second->targetFileName = filename_string;
 } // toggleaction_save_toggled_cb
 
@@ -1649,7 +1645,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
 
   if (!gtk_toggle_button_get_active (toggleButton_in))
   {
-//(*stream_iterator).second.second->display.device.clear ();
+    //(*stream_iterator).second.second->display.device.clear ();
     return;
   } // end IF
 
@@ -1665,7 +1661,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
