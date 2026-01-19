@@ -195,19 +195,19 @@ Test_U_CameraFilter_OpenGL_GLUT_23::handleSessionMessage (Test_U_SessionMessage_
       //COMMON_GL_ASSERT;
       //glDepthMask (GL_TRUE);
       //COMMON_GL_ASSERT;
-      glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-      COMMON_GL_ASSERT;
-      //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+      //glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
       //COMMON_GL_ASSERT;
-      //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+      ////glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+      ////COMMON_GL_ASSERT;
+      ////glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+      ////COMMON_GL_ASSERT;
+      //glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      ////COMMON_GL_ASSERT;
+      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      ////glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       //COMMON_GL_ASSERT;
-      glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
       //COMMON_GL_ASSERT;
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      //glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-      COMMON_GL_ASSERT;
-      glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-      COMMON_GL_ASSERT;
 
       //glDisable (GL_CULL_FACE);
       //glEnable (GL_CULL_FACE);

@@ -562,10 +562,10 @@ camera_filter_glut_36_draw (void)
   {
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glGenerateMipmap (GL_TEXTURE_2D);
+    glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
-  //glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // compute elapsed time
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

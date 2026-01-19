@@ -201,11 +201,11 @@ Test_U_CameraFilter_OpenGL_GLUT_8::handleSessionMessage (Test_U_SessionMessage_t
       //COMMON_GL_ASSERT;
       //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
       //COMMON_GL_ASSERT;
-      glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      //glEnable (GL_BLEND);                                // Enable Semi-Transparency
       //COMMON_GL_ASSERT;
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
       //glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-      COMMON_GL_ASSERT;
+      //COMMON_GL_ASSERT;
       glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
       COMMON_GL_ASSERT;
 

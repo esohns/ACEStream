@@ -195,25 +195,32 @@ Test_U_CameraFilter_OpenGL_GLUT_12::handleSessionMessage (Test_U_SessionMessage_
       //COMMON_GL_ASSERT;
       //glDepthMask (GL_TRUE);
       //COMMON_GL_ASSERT;
-      glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
-      COMMON_GL_ASSERT;
-      //glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+      //glEnable (GL_TEXTURE_2D);                           // Enable Texture Mapping
       //COMMON_GL_ASSERT;
-      //glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+      ////glShadeModel (GL_SMOOTH);                           // Enable Smooth Shading
+      ////COMMON_GL_ASSERT;
+      ////glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+      ////COMMON_GL_ASSERT;
+      //glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      ////COMMON_GL_ASSERT;
+      //glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      ////glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
       //COMMON_GL_ASSERT;
-      glEnable (GL_BLEND);                                // Enable Semi-Transparency
+      //glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
       //COMMON_GL_ASSERT;
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-      //glBlendFunc (GL_ONE_MINUS_DST_ALPHA, GL_ONE);
-      COMMON_GL_ASSERT;
-      glEnable (GL_DEPTH_TEST);                           // Enables Depth Testing
-      COMMON_GL_ASSERT;
 
       //glDisable (GL_CULL_FACE);
       //glEnable (GL_CULL_FACE);
       //glCullFace (GL_BACK);
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+      glClampColor (GL_CLAMP_READ_COLOR, GL_FALSE);
+      glClampColor (GL_CLAMP_VERTEX_COLOR, GL_FALSE);
+      glClampColor (GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
+      glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+      glPixelStorei (GL_PACK_ALIGNMENT, 1);
+
+      glActiveTexture (GL_TEXTURE0);
       glGenTextures (1, &CBData_.texture.id_);
       ACE_ASSERT (CBData_.texture.id_);
 
@@ -513,11 +520,10 @@ camera_filter_glut_12_draw (void)
   {
     glActiveTexture (GL_TEXTURE0);
     glBindTexture (GL_TEXTURE_2D, cb_data_p->texture.id_);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glGenerateMipmap (GL_TEXTURE_2D);
     glBindTexture (GL_TEXTURE_2D, 0);
   } // end IF

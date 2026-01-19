@@ -181,15 +181,15 @@ Test_U_CameraFilter_OpenGL_GLUT_43::handleSessionMessage (Test_U_SessionMessage_
 
       glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
-      glActiveTexture (GL_TEXTURE0);
-      glGenTextures (1, &CBData_.texture0.id_);
-      ACE_ASSERT (CBData_.texture0.id_);
-
       glClampColor (GL_CLAMP_READ_COLOR, GL_FALSE);
       glClampColor (GL_CLAMP_VERTEX_COLOR, GL_FALSE);
       glClampColor (GL_CLAMP_FRAGMENT_COLOR, GL_FALSE);
       glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
       glPixelStorei (GL_PACK_ALIGNMENT, 1);
+
+      glActiveTexture (GL_TEXTURE0);
+      glGenTextures (1, &CBData_.texture0.id_);
+      ACE_ASSERT (CBData_.texture0.id_);
 
       glActiveTexture (GL_TEXTURE1);
       glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -215,7 +215,7 @@ Test_U_CameraFilter_OpenGL_GLUT_43::handleSessionMessage (Test_U_SessionMessage_
       ACE_ASSERT (CBData_.textureS2.id_);
       CBData_.textureS2.bind ();
       // *IMPORTANT NOTE*: generate a floating point-format texture to contain
-      //                   the result of shader1
+      //                   the result of shader2
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA32F, CBData_.resolution.cx, CBData_.resolution.cy, 0, GL_RGBA, GL_FLOAT, initial_values_a.data ());
 #else
@@ -606,10 +606,10 @@ camera_filter_glut_43_draw (void)
   {
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glGenerateMipmap (GL_TEXTURE_2D);
+    glGenerateMipmap (GL_TEXTURE_2D);
   } // end IF
 
-  //glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // compute elapsed time
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
