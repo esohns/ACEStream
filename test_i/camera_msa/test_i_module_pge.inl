@@ -58,21 +58,24 @@ Test_I_Module_PGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::handleDataMessage"));
 
-  uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  static int screen_width_i = inherited3::ScreenWidth (), screen_height_i = inherited3::ScreenHeight ();
+  static int32_t screen_width_i = inherited3::ScreenWidth (), screen_height_i = inherited3::ScreenHeight ();
+  static size_t frame_size_i = sizeof (uint8_t) * screen_width_i * screen_height_i * bytesPerPixel_;
 
   // backup previous frame data
-  ACE_OS::memmove (previousImage_, currentImage_, sizeof (uint8_t) * screen_width_i * screen_height_i * bytesPerPixel_);
+  ACE_OS::memmove (previousImage_, currentImage_, frame_size_i);
 
   // store current image data
-  ACE_OS::memcpy (currentImage_, data_p, sizeof (uint8_t) * screen_width_i * screen_height_i * bytesPerPixel_);
+  uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
+  ACE_OS::memcpy (currentImage_, data_p, frame_size_i);
 
   // update frame data
+  olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
   for (int y = 0; y < screen_height_i; y++)
     for (int x = 0; x < screen_width_i; x++)
     {
-      // draw image
-      inherited3::Draw (x, y, olc::Pixel (data_p[2], data_p[1], data_p[0], 128U)); // *NOTE*: leave some alpha for MSA
+      // *NOTE*: leave some alpha for MSA
+      p[y * screen_width_i + x] = olc::Pixel (data_p[2], data_p[1], data_p[0], 128U);
+      //inherited3::Draw (x, y, olc::Pixel (data_p[2], data_p[1], data_p[0], 128U));
 
       data_p += bytesPerPixel_;
     } // end FOR
@@ -91,20 +94,15 @@ Test_I_Module_PGE_T<TaskType,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::sessionData_);
 
-  const typename inherited::SESSION_MESSAGE_T::DATA_T& session_data_container_r =
-    message_inout->getR ();
   typename inherited::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
-    const_cast<typename inherited::SESSION_MESSAGE_T::DATA_T::DATA_T&> (session_data_container_r.getR ());
+    const_cast<typename inherited::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      delete [] previousImage_; previousImage_ = NULL;
-      delete [] currentImage_; currentImage_ = NULL;
-
-      break;
+      goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
@@ -176,10 +174,11 @@ Test_I_Module_PGE_T<TaskType,
 error:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      return;
+      break;
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       delete [] previousImage_; previousImage_ = NULL;
       delete [] currentImage_; currentImage_ = NULL;
 
@@ -237,8 +236,11 @@ Test_I_Module_PGE_T<TaskType,
   static float ratio_y = solver_.getHeight () / static_cast<float> (height_i);
   olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
   olc::Pixel a, b;
-  float r, g, b_2, foreground_alpha_f;
-  int index_x, index_y; 
+  float r, g, b_2, foreground_alpha_f, one_minus_fg_alpha_f;
+  int index_x, index_y;
+  a = p[0];
+  foreground_alpha_f = a.a / 255.0f;
+  one_minus_fg_alpha_f = 1.0f - foreground_alpha_f;
   for (int y = 0; y < height_i; y++)
     for (int x = 0; x < width_i; x++)
     {
@@ -247,10 +249,11 @@ Test_I_Module_PGE_T<TaskType,
       // blend pixels from camera and fluid images
       a = p[y * width_i + x];
       b = fluidImage_[index_y * solver_.getWidth () + index_x];
-      foreground_alpha_f = a.a / 255.0f;
-      r   = ((a.r / 255.0f) * foreground_alpha_f) + ((b.r / 255.0f) * (1.0f - foreground_alpha_f));
-      g   = ((a.g / 255.0f) * foreground_alpha_f) + ((b.g / 255.0f) * (1.0f - foreground_alpha_f));
-      b_2 = ((a.b / 255.0f) * foreground_alpha_f) + ((b.b / 255.0f) * (1.0f - foreground_alpha_f));
+      //foreground_alpha_f = a.a / 255.0f;
+      //one_minus_fg_alpha_f = 1.0f - foreground_alpha_f;
+      r   = ((a.r / 255.0f) * foreground_alpha_f) + ((b.r / 255.0f) * one_minus_fg_alpha_f);
+      g   = ((a.g / 255.0f) * foreground_alpha_f) + ((b.g / 255.0f) * one_minus_fg_alpha_f);
+      b_2 = ((a.b / 255.0f) * foreground_alpha_f) + ((b.b / 255.0f) * one_minus_fg_alpha_f);
       p[y * width_i + x] = olc::PixelF (r, g, b_2, 1.0f);
     } // end FOR
 
@@ -436,7 +439,7 @@ Test_I_Module_PGE_T<TaskType,
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int result = inherited::getq (message_block_p, &no_wait);
-  if (unlikely (result == -1))
+  if (result == -1)
   {
     int error = ACE_OS::last_error ();
     if (likely ((error == 0)          || // *TODO*: why does this happen ?
@@ -481,7 +484,8 @@ template <typename TaskType,
           typename MediaType>
 std::vector<typename Test_I_Module_PGE_T<TaskType, MediaType>::flow_zone>
 Test_I_Module_PGE_T<TaskType,
-                    MediaType>::calculateFlow (uint8_t* oldImage, uint8_t* newImage, int width, int height)
+                    MediaType>::calculateFlow (uint8_t* oldImage, uint8_t* newImage,
+                                               int width, int height)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::calculateFlow"));
 
@@ -490,7 +494,7 @@ Test_I_Module_PGE_T<TaskType,
   int winStep = solver_.step_ * 2 + 1;
   float winStep_f = static_cast<float> (winStep);
   int address_i;
-  int luminance_i, luminance_2;
+  float luminance_f, luminance_2;
   int gradX, gradY, gradT;
   int A2, A1B2, B1, C1, C2;
   uint8_t red_i, red_2, green_i, green_2, blue_i, blue_2;
@@ -510,44 +514,38 @@ Test_I_Module_PGE_T<TaskType,
         {
           address_i = (globalY + localY) * width + globalX + localX;
 
-          blue_i  = newImage[(address_i - 1) * 3];
-          green_i = newImage[(address_i - 1) * 3 + 1];
-          red_i   = newImage[(address_i - 1) * 3 + 2];
-          blue_2  = newImage[(address_i + 1) * 3];
-          green_2 = newImage[(address_i + 1) * 3 + 1];
-          red_2   = newImage[(address_i + 1) * 3 + 2];
-          luminance_i =
-            static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
-          luminance_2 =
-            static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          gradX = luminance_i - luminance_2;
-            //(newImage[(address_i - 1) * 3]) - (newImage[(address_i + 1) * 3]);
+          blue_i  = newImage[(address_i - 1) * bytesPerPixel_];
+          green_i = newImage[(address_i - 1) * bytesPerPixel_ + 1];
+          red_i   = newImage[(address_i - 1) * bytesPerPixel_ + 2];
+          blue_2  = newImage[(address_i + 1) * bytesPerPixel_];
+          green_2 = newImage[(address_i + 1) * bytesPerPixel_ + 1];
+          red_2   = newImage[(address_i + 1) * bytesPerPixel_ + 2];
+          luminance_f = (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
+          luminance_2 = (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
+          gradX = static_cast<int> (luminance_f - luminance_2);
+            //(newImage[(address_i - 1) * bytesPerPixel_]) - (newImage[(address_i + 1) * bytesPerPixel_]);
 
-          blue_i  = newImage[(address_i - width) * 3];
-          green_i = newImage[(address_i - width) * 3 + 1];
-          red_i   = newImage[(address_i - width) * 3 + 2];
-          blue_2  = newImage[(address_i + width) * 3];
-          green_2 = newImage[(address_i + width) * 3 + 1];
-          red_2   = newImage[(address_i + width) * 3 + 2];
-          luminance_i =
-            static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
-          luminance_2 =
-            static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          gradY = luminance_i - luminance_2;
-            //(newImage[(address_i - width) * 3]) - (newImage[(address_i + width) * 3]);
+          blue_i  = newImage[(address_i - width) * bytesPerPixel_];
+          green_i = newImage[(address_i - width) * bytesPerPixel_ + 1];
+          red_i   = newImage[(address_i - width) * bytesPerPixel_ + 2];
+          blue_2  = newImage[(address_i + width) * bytesPerPixel_];
+          green_2 = newImage[(address_i + width) * bytesPerPixel_ + 1];
+          red_2   = newImage[(address_i + width) * bytesPerPixel_ + 2];
+          luminance_f = (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
+          luminance_2 = (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
+          gradY = static_cast<int> (luminance_f - luminance_2);
+            //(newImage[(address_i - width) * bytesPerPixel_]) - (newImage[(address_i + width) * bytesPerPixel_]);
 
-          blue_i  = oldImage[address_i * 3];
-          green_i = oldImage[address_i * 3 + 1];
-          red_i   = oldImage[address_i * 3 + 2];
-          blue_2  = newImage[address_i * 3];
-          green_2 = newImage[address_i * 3 + 1];
-          red_2   = newImage[address_i * 3 + 2];
-          luminance_i =
-            static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
-          luminance_2 =
-            static_cast<int> (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
-          gradT = luminance_i - luminance_2;
-            //(oldImage[address_i * 3]) - (newImage[address_i * 3]);
+          blue_i  = oldImage[address_i * bytesPerPixel_];
+          green_i = oldImage[address_i * bytesPerPixel_ + 1];
+          red_i   = oldImage[address_i * bytesPerPixel_ + 2];
+          blue_2  = newImage[address_i * bytesPerPixel_];
+          green_2 = newImage[address_i * bytesPerPixel_ + 1];
+          red_2   = newImage[address_i * bytesPerPixel_ + 2];
+          luminance_f = (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
+          luminance_2 = (0.2990f * red_2 + 0.5870f * green_2 + 0.1140f * blue_2);
+          gradT = static_cast<int> (luminance_f - luminance_2);
+            //(oldImage[address_i * bytesPerPixel_]) - (newImage[address_i * bytesPerPixel_]);
 
           A2 += gradX * gradX;
           A1B2 += gradX * gradY;
