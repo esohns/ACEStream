@@ -249,7 +249,7 @@ button_reset_clicked_cb (GtkButton* button_in,
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_UVCUTOFF_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_UV_CUTOFF));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_UV_CUTOFF_F));
 
   scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -261,13 +261,13 @@ button_reset_clicked_cb (GtkButton* button_in,
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_DT_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_DT));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_DT_F));
 
   scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_FADE_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_FADESPEED));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_FADESPEED_F));
 
   scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -279,19 +279,19 @@ button_reset_clicked_cb (GtkButton* button_in,
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_VISCOSITY_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_VISCOSITY));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_VISCOSITY_F));
 
   scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_COLOR_MULTIPLIER_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_COLOR_MULTIPLIER));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_COLOR_MULTIPLIER_F));
 
   scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCALE_VELOCITY_MULTIPLIER_NAME)));
   ACE_ASSERT (scale_p);
-  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_VELOCITY_MULTIPLIER));
+  gtk_range_set_value (GTK_RANGE (scale_p), static_cast<double> (FLUID_DEFAULT_VELOCITY_MULTIPLIER_F));
 }
 #ifdef __cplusplus
 }

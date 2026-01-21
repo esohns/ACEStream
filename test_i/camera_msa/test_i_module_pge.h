@@ -99,16 +99,16 @@ class Test_I_Module_PGE_T
      , v_ (v)
     {}
 
-    bool UVMeanAboveLimit (float UVCutoff_in)
+    inline bool UVMeanAboveLimit (float UVCutoff_in)
     {
       return ((std::abs (u_) + std::abs (v_)) / 2.0f) > UVCutoff_in;
     }
 
-    //void draw (olc::PixelGameEngine* engine_in)
-    //{
-    //  engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_ + static_cast<int32_t> (v_ * 3.0f),
-    //                       olc::WHITE, 0xFFFFFFFF);
-    //}
+    void draw (olc::PixelGameEngine* engine_in)
+    {
+      engine_in->DrawLine (x_, y_, x_ + static_cast<int32_t> (u_ * 3.0f), y_ + static_cast<int32_t> (v_ * 3.0f),
+                           olc::WHITE, 0xFFFFFFFF);
+    }
 
     int   x_;
     int   y_;
@@ -117,14 +117,15 @@ class Test_I_Module_PGE_T
   };
 
  private:
-  std::vector<flow_zone> calculateFlow (char*, char*, int, int);
+  std::vector<flow_zone> calculateFlow (uint8_t*, uint8_t*, int, int);
   void addForce (float, float, float, float, int);
 
-  char*            previousImage_;
-  char*            currentImage_;
+  uint8_t*         previousImage_;
+  uint8_t*         currentImage_;
   olc::Pixel*      fluidImage_;
   MSAFluidSolver2D solver_;
   float            aspectRatio2_;
+  int              bytesPerPixel_;
 };
 
 // include template definition

@@ -43,6 +43,7 @@ Test_I_Module_PGE_T<TaskType,
  , fluidImage_ (NULL)
  , solver_ (0, 0)
  , aspectRatio2_ (0.0f)
+ , bytesPerPixel_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::Test_I_Module_PGE_T"));
 
@@ -61,19 +62,19 @@ Test_I_Module_PGE_T<TaskType,
   static int screen_width_i = inherited3::ScreenWidth (), screen_height_i = inherited3::ScreenHeight ();
 
   // backup previous frame data
-  ACE_OS::memmove (previousImage_, currentImage_, sizeof (char) * screen_width_i * screen_height_i * 3);
+  ACE_OS::memmove (previousImage_, currentImage_, sizeof (uint8_t) * screen_width_i * screen_height_i * bytesPerPixel_);
 
   // store current image data
-  ACE_OS::memcpy (currentImage_, data_p, sizeof (char) * screen_width_i * screen_height_i * 3);
+  ACE_OS::memcpy (currentImage_, data_p, sizeof (uint8_t) * screen_width_i * screen_height_i * bytesPerPixel_);
 
   // update frame data
   for (int y = 0; y < screen_height_i; y++)
     for (int x = 0; x < screen_width_i; x++)
     {
       // draw image
-      inherited3::Draw (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 128U)); // *NOTE*: leave some alpha for MSA
+      inherited3::Draw (x, y, olc::Pixel (data_p[2], data_p[1], data_p[0], 128U)); // *NOTE*: leave some alpha for MSA
 
-      data_p += 3;
+      data_p += bytesPerPixel_;
     } // end FOR
 }
 
@@ -120,30 +121,35 @@ Test_I_Module_PGE_T<TaskType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      bytesPerPixel_ =
+        Stream_MediaFramework_DirectShow_Tools::toFrameBits (media_type_s) / 8;
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       resolution_s = media_type_s.resolution;
+      bytesPerPixel_ =
+        Stream_MediaFramework_Tools::ffmpegFormatToBitDepth (media_type_s.format) / 8;
 #endif // ACE_WIN32 || ACE_WIN64
 
-      previousImage_ = new char[
+      previousImage_ = new uint8_t[
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                resolution_s.cx * resolution_s.cy
+                                   resolution_s.cx * resolution_s.cy
 #else
-                                resolution_s.width * resolution_s.height
+                                   resolution_s.width * resolution_s.height
 #endif // ACE_WIN32 || ACE_WIN64
-                                * 3];
-      currentImage_ = new char[
+                                   * bytesPerPixel_];
+      currentImage_ = new uint8_t[
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                               resolution_s.cx * resolution_s.cy
+                                  resolution_s.cx * resolution_s.cy
 #else
-                               resolution_s.width * resolution_s.height
+                                  resolution_s.width * resolution_s.height
 #endif // ACE_WIN32 || ACE_WIN64
-                               * 3];
+                                  * bytesPerPixel_];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_OS::memset (previousImage_, 0, sizeof (char) * resolution_s.cx * resolution_s.cy * 3);
-      ACE_OS::memset (currentImage_, 0, sizeof (char) * resolution_s.cx * resolution_s.cy * 3);
+      ACE_OS::memset (previousImage_, 0, sizeof (uint8_t) * resolution_s.cx * resolution_s.cy * bytesPerPixel_);
+      ACE_OS::memset (currentImage_, 0, sizeof (uint8_t) * resolution_s.cx * resolution_s.cy * bytesPerPixel_);
 #else
-      ACE_OS::memset (previousImage_, 0, sizeof (char) * resolution_s.width * resolution_s.height * 3);
-      ACE_OS::memset (currentImage_, 0, sizeof (char) * resolution_s.width * resolution_s.height * 3);
+      ACE_OS::memset (previousImage_, 0, sizeof (uint8_t) * resolution_s.width * resolution_s.height * bytesPerPixel_);
+      ACE_OS::memset (currentImage_, 0, sizeof (uint8_t) * resolution_s.width * resolution_s.height * bytesPerPixel_);
 #endif // ACE_WIN32 || ACE_WIN64
 
       olc::rcode result =
@@ -192,14 +198,12 @@ Test_I_Module_PGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserCreate"));
 
-  //olc::PixelGameEngine::SetPixelMode (olc::Pixel::ALPHA);
-
   float aspect_ratio_f =
-    olc::PixelGameEngine::ScreenWidth () / static_cast<float> (olc::PixelGameEngine::ScreenHeight ());
+    inherited3::ScreenWidth () / static_cast<float> (inherited3::ScreenHeight ());
   aspectRatio2_ = aspect_ratio_f * aspect_ratio_f;
 
   solver_.setup (FLUID_DEFAULT_FLUID_WIDTH,
-                 (int)(FLUID_DEFAULT_FLUID_WIDTH * olc::PixelGameEngine::ScreenHeight () / static_cast<float> (olc::PixelGameEngine::ScreenWidth ())));
+                 static_cast<int> (FLUID_DEFAULT_FLUID_WIDTH * (inherited3::ScreenHeight () / static_cast<float> (inherited3::ScreenWidth ()))));
 
   fluidImage_ = new olc::Pixel[solver_.getWidth () * solver_.getHeight ()];
 
@@ -215,8 +219,11 @@ Test_I_Module_PGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserUpdate"));
 
   static int frame_count_i = 1;
-  static int width_i = olc::PixelGameEngine::ScreenWidth ();
-  static int height_i = olc::PixelGameEngine::ScreenHeight ();
+  static int width_i = inherited3::ScreenWidth ();
+  static int height_i = inherited3::ScreenHeight ();
+
+  if (inherited3::GetMouse (olc::Mouse::LEFT).bHeld)
+    solver_.randomizeColor ();
 
   // process next message
   if (!processNextMessage ())
@@ -224,20 +231,23 @@ Test_I_Module_PGE_T<TaskType,
 
   for (int i = 0; i < solver_.numCells_; i++)
     fluidImage_[i] = olc::PixelF (solver_.r_[i], solver_.g_[i], solver_.b_[i], 1.0f);
+
   // project fluid image to screen
   static float ratio_x = solver_.getWidth () / static_cast<float> (width_i);
   static float ratio_y = solver_.getHeight () / static_cast<float> (height_i);
-  olc::Pixel* p = olc::PixelGameEngine::GetDrawTarget ()->GetData ();
+  olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
+  olc::Pixel a, b;
+  float r, g, b_2, foreground_alpha_f;
+  int index_x, index_y; 
   for (int y = 0; y < height_i; y++)
     for (int x = 0; x < width_i; x++)
     {
-      int index_x = static_cast<int> (x * ratio_x);
-      int index_y = static_cast<int> (y * ratio_y);
+      index_x = static_cast<int> (x * ratio_x);
+      index_y = static_cast<int> (y * ratio_y);
       // blend pixels from camera and fluid images
-      olc::Pixel a = p[y * width_i + x];
-      olc::Pixel b = fluidImage_[index_y * solver_.getWidth () + index_x];
-      float r, g, b_2;
-      float foreground_alpha_f = a.a / 255.0f;
+      a = p[y * width_i + x];
+      b = fluidImage_[index_y * solver_.getWidth () + index_x];
+      foreground_alpha_f = a.a / 255.0f;
       r   = ((a.r / 255.0f) * foreground_alpha_f) + ((b.r / 255.0f) * (1.0f - foreground_alpha_f));
       g   = ((a.g / 255.0f) * foreground_alpha_f) + ((b.g / 255.0f) * (1.0f - foreground_alpha_f));
       b_2 = ((a.b / 255.0f) * foreground_alpha_f) + ((b.b / 255.0f) * (1.0f - foreground_alpha_f));
@@ -251,8 +261,8 @@ Test_I_Module_PGE_T<TaskType,
        ++iterator)
     if ((*iterator).UVMeanAboveLimit (solver_.UVCutoff_))
     {
-      addForce ((*iterator).x_ / static_cast<float> (width_i), (*iterator).y_ / static_cast<float> (height_i),
-                (*iterator).u_ / static_cast<float> (width_i), (*iterator).v_ / static_cast<float> (height_i),
+      addForce ((*iterator).x_ / static_cast<float> (width_i - 1), (*iterator).y_ / static_cast<float> (height_i - 1),
+                (*iterator).u_ / static_cast<float> (width_i - 1), (*iterator).v_ / static_cast<float> (height_i - 1),
                 frame_count_i);
       //(*iterator).draw (this);
     } // end IF
@@ -287,7 +297,7 @@ Test_I_Module_PGE_T<TaskType,
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      NULL);
 #else
@@ -471,13 +481,14 @@ template <typename TaskType,
           typename MediaType>
 std::vector<typename Test_I_Module_PGE_T<TaskType, MediaType>::flow_zone>
 Test_I_Module_PGE_T<TaskType,
-                    MediaType>::calculateFlow (char* oldImage, char* newImage, int width, int height)
+                    MediaType>::calculateFlow (uint8_t* oldImage, uint8_t* newImage, int width, int height)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::calculateFlow"));
 
-  std::vector<flow_zone> zones;
+  std::vector<flow_zone> flow_zones_a;
 
   int winStep = solver_.step_ * 2 + 1;
+  float winStep_f = static_cast<float> (winStep);
   int address_i;
   int luminance_i, luminance_2;
   int gradX, gradY, gradT;
@@ -499,12 +510,12 @@ Test_I_Module_PGE_T<TaskType,
         {
           address_i = (globalY + localY) * width + globalX + localX;
 
-          blue_i  = static_cast<uint8_t> (newImage[(address_i - 1) * 3]);
-          green_i = static_cast<uint8_t> (newImage[(address_i - 1) * 3 + 1]);
-          red_i   = static_cast<uint8_t> (newImage[(address_i - 1) * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[(address_i + 1) * 3]);
-          green_2 = static_cast<uint8_t> (newImage[(address_i + 1) * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[(address_i + 1) * 3 + 2]);
+          blue_i  = newImage[(address_i - 1) * 3];
+          green_i = newImage[(address_i - 1) * 3 + 1];
+          red_i   = newImage[(address_i - 1) * 3 + 2];
+          blue_2  = newImage[(address_i + 1) * 3];
+          green_2 = newImage[(address_i + 1) * 3 + 1];
+          red_2   = newImage[(address_i + 1) * 3 + 2];
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
@@ -512,12 +523,12 @@ Test_I_Module_PGE_T<TaskType,
           gradX = luminance_i - luminance_2;
             //(newImage[(address_i - 1) * 3]) - (newImage[(address_i + 1) * 3]);
 
-          blue_i  = static_cast<uint8_t> (newImage[(address_i - width) * 3]);
-          green_i = static_cast<uint8_t> (newImage[(address_i - width) * 3 + 1]);
-          red_i   = static_cast<uint8_t> (newImage[(address_i - width) * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[(address_i + width) * 3]);
-          green_2 = static_cast<uint8_t> (newImage[(address_i + width) * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[(address_i + width) * 3 + 2]);
+          blue_i  = newImage[(address_i - width) * 3];
+          green_i = newImage[(address_i - width) * 3 + 1];
+          red_i   = newImage[(address_i - width) * 3 + 2];
+          blue_2  = newImage[(address_i + width) * 3];
+          green_2 = newImage[(address_i + width) * 3 + 1];
+          red_2   = newImage[(address_i + width) * 3 + 2];
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
@@ -525,12 +536,12 @@ Test_I_Module_PGE_T<TaskType,
           gradY = luminance_i - luminance_2;
             //(newImage[(address_i - width) * 3]) - (newImage[(address_i + width) * 3]);
 
-          blue_i  = static_cast<uint8_t> (oldImage[address_i * 3]);
-          green_i = static_cast<uint8_t> (oldImage[address_i * 3 + 1]);
-          red_i   = static_cast<uint8_t> (oldImage[address_i * 3 + 2]);
-          blue_2  = static_cast<uint8_t> (newImage[address_i * 3]);
-          green_2 = static_cast<uint8_t> (newImage[address_i * 3 + 1]);
-          red_2   = static_cast<uint8_t> (newImage[address_i * 3 + 2]);
+          blue_i  = oldImage[address_i * 3];
+          green_i = oldImage[address_i * 3 + 1];
+          red_i   = oldImage[address_i * 3 + 2];
+          blue_2  = newImage[address_i * 3];
+          green_2 = newImage[address_i * 3 + 1];
+          red_2   = newImage[address_i * 3 + 2];
           luminance_i =
             static_cast<int> (0.2990f * red_i + 0.5870f * green_i + 0.1140f * blue_i);
           luminance_2 =
@@ -572,36 +583,38 @@ Test_I_Module_PGE_T<TaskType,
         } // end ELSE
       } // end ELSE
 
-      if (static_cast<float> (-winStep) < u && u < static_cast<float> (winStep) &&
-          static_cast<float> (-winStep) < v && v < static_cast<float> (winStep))
+      if ((-winStep_f < u && u < winStep_f) &&
+          (-winStep_f < v && v < winStep_f))
       {
         //uu += u;
         //vv += v;
-        zones.push_back (flow_zone (globalX, globalY, u, v));
+        flow_zones_a.push_back (flow_zone (globalX, globalY, u, v));
       } // end IF
     } // end FOR
 
-  return zones;
+  return flow_zones_a;
 }
 
 template <typename TaskType,
           typename MediaType>
 void
 Test_I_Module_PGE_T<TaskType,
-                    MediaType>::addForce (float x, float y, float dx, float dy, int frameCount)
+                    MediaType>::addForce (float x, float y,
+                                          float dx, float dy,
+                                          int frameCount)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::addForce"));
 
-  float speed =
-    dx * dx + dy * dy * aspectRatio2_; // balance the x and y components of
-                                        // speed with the screen aspect ratio
-  if (speed > 0.0f)
-  {
+  //float speed =
+  //  (dx * dx + dy * dy) * aspectRatio2_; // balance the x and y components of
+  //                                       // speed with the screen aspect ratio
+  //if (speed > 0.0f)
+  //{
     int index = solver_.getIndexForNormalizedPosition (x, y);
 
-    float hue = std::fmod ((x + y) * 180.0f + frameCount, 360.0f);
+    float hue_f = std::fmod ((x + y) * 180.0f + frameCount, 360.0f);
     float r, g, b;
-    Common_Image_Tools::HSVToRGB (hue, 1.0f, 1.0f, r, g, b);
+    Common_Image_Tools::HSVToRGB (hue_f, 1.0f, 1.0f, r, g, b);
 
     solver_.rOld_[index] += r * solver_.colorMultiplier_;
     solver_.gOld_[index] += g * solver_.colorMultiplier_;
@@ -609,6 +622,6 @@ Test_I_Module_PGE_T<TaskType,
 
     solver_.uOld_[index] += dx * solver_.velocityMultiplier_;
     solver_.vOld_[index] += dy * solver_.velocityMultiplier_;
-  } // end IF
+  //} // end IF
 }
 

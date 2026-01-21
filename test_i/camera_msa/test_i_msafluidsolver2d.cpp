@@ -41,10 +41,10 @@ MSAFluidSolver2D::MSAFluidSolver2D (int NX, int NY)
  , v_ (NULL)
  , vOld_ (NULL)
  , isInitialized_ (false)
- , dt_ (FLUID_DEFAULT_DT)
- , fadeSpeed_ (FLUID_DEFAULT_FADESPEED)
+ , dt_ (FLUID_DEFAULT_DT_F)
+ , fadeSpeed_ (FLUID_DEFAULT_FADESPEED_F)
  , solverIterations_ (FLUID_DEFAULT_SOLVER_ITERATIONS)
- , viscosity_ (FLUID_DEFAULT_VISCOSITY)
+ , viscosity_ (FLUID_DEFAULT_VISCOSITY_F)
  , NX_ (0)
  , NY_ (0)
  , numCells_ (0)
@@ -54,10 +54,10 @@ MSAFluidSolver2D::MSAFluidSolver2D (int NX, int NY)
  , avgDensity_ (0.0f)
  , uniformity_ (0.0f)
 ///////////////////////////////////////
- , UVCutoff_ (FLUID_DEFAULT_UV_CUTOFF)
+ , UVCutoff_ (FLUID_DEFAULT_UV_CUTOFF_F)
  , step_ (FLUID_DEFAULT_STEP)
- , colorMultiplier_ (FLUID_DEFAULT_COLOR_MULTIPLIER)
- , velocityMultiplier_ (FLUID_DEFAULT_VELOCITY_MULTIPLIER)
+ , colorMultiplier_ (FLUID_DEFAULT_COLOR_MULTIPLIER_F)
+ , velocityMultiplier_ (FLUID_DEFAULT_VELOCITY_MULTIPLIER_F)
 {
   setup (NX, NY);
 }
@@ -103,6 +103,7 @@ MSAFluidSolver2D::reset ()
   ACE_OS::memset (gOld_, 0, sizeof (float) * numCells_);
   ACE_OS::memset (b_, 0, sizeof (float) * numCells_);
   ACE_OS::memset (bOld_, 0, sizeof (float) * numCells_);
+  // randomizeColor ();
 
   ACE_OS::memset (u_, 0, sizeof (float) * numCells_);
   ACE_OS::memset (uOld_, 0, sizeof (float) * numCells_);
@@ -126,16 +127,18 @@ MSAFluidSolver2D::setup (int NX, int NY)
 void
 MSAFluidSolver2D::randomizeColor ()
 {
-  for (int i = 0; i < getWidth (); i++)
-    for (int j = 0; j < getHeight (); j++)
+  static int width_i = getWidth ();
+  static int height_i = getHeight ();
+
+  for (int i = 0; i < width_i; i++)
+    for (int j = 0; j < height_i; j++)
     {
       int index = FLUID_IX (i, j);
       r_[index] = rOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
-      if (isRGB_)
+      if (likely (isRGB_))
       {
-        g_[index] = gOld_[index] = Common_Tools::getRandomNumber
-        (0.0f, 1.0f); b_[index] = bOld_[index] =
-        Common_Tools::getRandomNumber (0.0f, 1.0f);
+        g_[index] = gOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
+        b_[index] = bOld_[index] = Common_Tools::getRandomNumber (0.0f, 1.0f);
       } // end IF
     } // end FOR
 }
@@ -577,7 +580,7 @@ MSAFluidSolver2D::update ()
 
   project (u_, v_, uOld_, vOld_);
 
-  if (isRGB_)
+  if (likely (isRGB_))
   {
     addSourceRGB ();
     swapRGB ();

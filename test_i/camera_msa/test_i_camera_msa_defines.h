@@ -21,24 +21,24 @@
 #ifndef TEST_I_CAMERA_MSA_DEFINES_H
 #define TEST_I_CAMERA_MSA_DEFINES_H
 
-#define STREAM_CGE_DEFAULT_NAME_STRING "CGE"
-#define STREAM_PGE_DEFAULT_NAME_STRING "PGE"
+#define STREAM_CGE_DEFAULT_NAME_STRING               "CGE"
+#define STREAM_PGE_DEFAULT_NAME_STRING               "PGE"
 
 // fluid solver
-#define FLUID_DEFAULT_FLUID_WIDTH         128  // fluid image size
-#define FLUID_DEFAULT_UV_CUTOFF           4.0f // threshold for flow values
-#define FLUID_DEFAULT_STEP                8    // (half of) gradient window size
+#define FLUID_DEFAULT_FLUID_WIDTH                    128  // fluid image size
+#define FLUID_DEFAULT_UV_CUTOFF_F                    4.0f // threshold for flow values
+#define FLUID_DEFAULT_STEP                           8    // (half of) gradient window size
 
-#define FLUID_DEFAULT_DT                  1.0f
-//#define FLUID_DEFAULT_FADESPEED         0.0f
-#define FLUID_DEFAULT_FADESPEED           0.015f
-#define FLUID_DEFAULT_SOLVER_ITERATIONS   10
+#define FLUID_DEFAULT_DT_F                           1.0f
+//#define FLUID_DEFAULT_FADESPEED_F                  0.0f
+#define FLUID_DEFAULT_FADESPEED_F                    0.015f
+#define FLUID_DEFAULT_SOLVER_ITERATIONS              10
 
-//#define FLUID_DEFAULT_VISCOSITY         0.0001f
-#define FLUID_DEFAULT_VISCOSITY           0.00008f
+//#define FLUID_DEFAULT_VISCOSITY_F                  0.0001f
+#define FLUID_DEFAULT_VISCOSITY_F                    0.00008f
 
-#define FLUID_DEFAULT_COLOR_MULTIPLIER    5.0f
-#define FLUID_DEFAULT_VELOCITY_MULTIPLIER 3.0f
+#define FLUID_DEFAULT_COLOR_MULTIPLIER_F             5.0f
+#define FLUID_DEFAULT_VELOCITY_MULTIPLIER_F          3.0f
 
 // GTK
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME               "dialog_main"
