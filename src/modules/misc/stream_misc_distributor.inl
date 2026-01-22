@@ -415,8 +415,8 @@ error:
     {
 end:
       forward (message_inout,
-               false,         // dispose original ?
-               false);        // high priority ?
+               false,            // dispose original ?
+               high_priority_b); // high priority ?
 
       stop (true,             // wait ?
             high_priority_b); // high priority ?

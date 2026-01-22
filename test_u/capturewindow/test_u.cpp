@@ -64,6 +64,8 @@ extern "C"
 #include "common_os_tools.h"
 #include "common_process_tools.h"
 
+#include "common_input_tools.h"
+
 #include "common_log_tools.h"
 
 #include "common_signal_tools.h"
@@ -153,6 +155,12 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : get window handle from mouse position [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 bool
@@ -194,7 +202,7 @@ do_process_arguments (int argc_in,
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:i:lp:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  options_string += ACE_TEXT_ALWAYS_CHAR ("m");
+  options_string += ACE_TEXT_ALWAYS_CHAR ("my");
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Get_Opt argumentParser (argc_in,
@@ -277,6 +285,16 @@ do_process_arguments (int argc_in,
         mode_out = TEST_U_PROGRAMMODE_PRINT_VERSION;
         break;
       }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case 'y':
+      {
+        ACE_DEBUG ((LM_INFO,
+                    ACE_TEXT ("place mouse over window and press enter key (make sure focus-follows-mouse is disabled)\n")));
+        std::cin.get ();
+        windowHandle_out = Common_Input_Tools::mouseCursorToWindow ();
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
       // error handling
       case ':':
       {
