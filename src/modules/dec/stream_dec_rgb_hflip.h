@@ -36,7 +36,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_rgb24_hflip_module_name_string[];
+extern const char libacestream_default_dec_rgb_hflip_module_name_string[];
 
 // *NOTE*: flips left-to-right, NOT top-to-bottom
 template <ACE_SYNCH_DECL,
@@ -50,7 +50,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_RGB24_HFlip_T
+class Stream_Decoder_RGB_HFlip_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -77,11 +77,11 @@ class Stream_Decoder_RGB24_HFlip_T
   // *TODO*: on MSVC 2015u3 the accurate declaration does not compile
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Stream_Decoder_RGB24_HFlip_T (ISTREAM_T*); // stream handle
+  Stream_Decoder_RGB_HFlip_T (ISTREAM_T*); // stream handle
 #else
-  Stream_Decoder_RGB24_HFlip_T (typename inherited::ISTREAM_T*); // stream handle
+  Stream_Decoder_RGB_HFlip_T (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  inline virtual ~Stream_Decoder_RGB24_HFlip_T () {}
+  inline virtual ~Stream_Decoder_RGB_HFlip_T () {}
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -94,15 +94,15 @@ class Stream_Decoder_RGB24_HFlip_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB24_HFlip_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB24_HFlip_T (const Stream_Decoder_RGB24_HFlip_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB24_HFlip_T& operator= (const Stream_Decoder_RGB24_HFlip_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB_HFlip_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB_HFlip_T (const Stream_Decoder_RGB_HFlip_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_RGB_HFlip_T& operator= (const Stream_Decoder_RGB_HFlip_T&))
 
   int                       bytesPerPixel_;
   Common_Image_Resolution_t resolution_;
 };
 
 // include template definition
-#include "stream_dec_rgb24_hflip.inl"
+#include "stream_dec_rgb_hflip.inl"
 
 #endif

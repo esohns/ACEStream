@@ -69,7 +69,7 @@ Test_I_DirectShow_Stream::Test_I_DirectShow_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
-          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::Test_I_DirectShow_Stream"));
 
@@ -513,7 +513,7 @@ Test_I_MediaFoundation_Stream::Test_I_MediaFoundation_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
-          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING))
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
@@ -527,7 +527,7 @@ Test_I_MediaFoundation_Stream::~Test_I_MediaFoundation_Stream ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_MediaFoundation_Stream::~Test_I_MediaFoundation_Stream"));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -540,7 +540,7 @@ Test_I_MediaFoundation_Stream::~Test_I_MediaFoundation_Stream ()
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();

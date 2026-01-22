@@ -43,7 +43,7 @@
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
-#include "stream_dec_rgb24_hflip.h"
+#include "stream_dec_rgb_hflip.h"
 
 #include "stream_misc_defines.h"
 #include "stream_misc_distributor.h"
@@ -144,22 +144,22 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Test_I_MediaFoundation_Source;
 
-typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_CameraMSA_DirectShow_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Test_I_DirectShow_Message_t,
-                                     Test_I_DirectShow_SessionMessage_t,
-                                     Test_I_CameraMSA_DirectShow_SessionData_t,
-                                     struct _AMMediaType> Test_I_DirectShow_HFlip;
-typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_CameraMSA_MediaFoundation_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Test_I_MediaFoundation_Message_t,
-                                     Test_I_MediaFoundation_SessionMessage_t,
-                                     Test_I_CameraMSA_MediaFoundation_SessionData_t,
-                                     IMFMediaType*> Test_I_MediaFoundation_HFlip;
+typedef Stream_Decoder_RGB_HFlip_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_I_CameraMSA_DirectShow_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_I_DirectShow_Message_t,
+                                   Test_I_DirectShow_SessionMessage_t,
+                                   Test_I_CameraMSA_DirectShow_SessionData_t,
+                                   struct _AMMediaType> Test_I_DirectShow_HFlip;
+typedef Stream_Decoder_RGB_HFlip_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_I_CameraMSA_MediaFoundation_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_I_MediaFoundation_Message_t,
+                                   Test_I_MediaFoundation_SessionMessage_t,
+                                   Test_I_CameraMSA_MediaFoundation_SessionData_t,
+                                   IMFMediaType*> Test_I_MediaFoundation_HFlip;
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVConverter_T<Test_U_DirectShow_TaskBaseSynch_t,
@@ -394,18 +394,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_MediaFoundation_SessionData,     
 #endif // FFMPEG_SUPPORT
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_DirectShow_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                               // session event type
+                              enum Stream_SessionMessageType,                                // session event type
                               struct Test_I_CameraMSA_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_rgb24_hflip_module_name_string,
-                              Stream_INotify_t,                                             // stream notification interface type
-                              Test_I_DirectShow_HFlip);                            // writer type
+                              libacestream_default_dec_rgb_hflip_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_DirectShow_HFlip);                                      // writer type
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_MediaFoundation_SessionData,                       // session data type
-                              enum Stream_SessionMessageType,                               // session event type
+                              enum Stream_SessionMessageType,                                     // session event type
                               struct Test_I_CameraMSA_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_rgb24_hflip_module_name_string,
-                              Stream_INotify_t,                                             // stream notification interface type
-                              Test_I_MediaFoundation_HFlip);                            // writer type
+                              libacestream_default_dec_rgb_hflip_module_name_string,
+                              Stream_INotify_t,                                                   // stream notification interface type
+                              Test_I_MediaFoundation_HFlip);                                      // writer type
 #else
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type

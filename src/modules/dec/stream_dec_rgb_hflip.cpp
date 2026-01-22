@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_rgb24_hflip.h"
+#include "stream_dec_rgb_hflip.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_rgb24_hflip_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_rgb_hflip_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING);
