@@ -291,7 +291,7 @@ do_process_arguments (int argc_in,
         ACE_DEBUG ((LM_INFO,
                     ACE_TEXT ("place mouse over window and press enter key (make sure focus-follows-mouse is disabled)\n")));
         std::cin.get ();
-        windowHandle_out = Common_Input_Tools::mouseCursorToWindow ();
+        windowHandle_out = Common_Input_Tools::mouseCursorToWindowHandle (false);
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
