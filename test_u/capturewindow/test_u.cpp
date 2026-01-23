@@ -228,30 +228,23 @@ do_process_arguments (int argc_in,
       {
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter.clear ();
-
-        converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+        converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         ACE_UINT64 handle_i = 0;
         converter >> handle_i;
         windowHandle_out = reinterpret_cast<HWND> (handle_i);
-        if (!windowHandle_out)
 #else
+        converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
         converter >> windowId_out;
         if (!windowId_out)
-#endif    // ACE_WIN32 || ACE_WIN64
         { // try hexadecimal
           converter.str (ACE_TEXT_ALWAYS_CHAR (""));
           converter.clear ();
           converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-          handle_i = 0;
-          converter >> handle_i;
-          windowHandle_out = reinterpret_cast<HWND> (handle_i);
-#else
           converter >> windowId_out;
-#endif // ACE_WIN32 || ACE_WIN64
-          converter << std::dec;
         } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+        converter << std::dec;
         break;
       }
       case 'l':

@@ -210,7 +210,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   layout_in->append (&source_, NULL, 0);
-  if ((*iterator).second.second->flipImage)
+  //if ((*iterator).second.second->flipImage)
     layout_in->append (&convert_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
 

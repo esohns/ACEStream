@@ -336,6 +336,8 @@ struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration
 
   struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration operator= (const struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration& rhs_in)
   {
+    Test_U_CameraFilter_ModuleHandlerConfiguration::operator= (rhs_in);
+
     area = rhs_in.area;
     if (builder)
     {

@@ -480,6 +480,8 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   ACE_ASSERT (media_type_p);
   outputFormat_inout = *media_type_p;
   delete media_type_p; media_type_p = NULL;
+  Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
+                                                     outputFormat_inout);
 
   switch (mode_in)
   {
@@ -1276,7 +1278,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                      stream_config_p,
                                      directshow_stream_configuration.captureFormat,
                                      directshow_stream_configuration.outputFormat,
-                                     directshow_modulehandler_configuration_2b.outputFormat,
+                                     directshow_modulehandler_configuration_2a.outputFormat,
                                      directshow_modulehandler_configuration_3a.outputFormat,
                                      directshow_modulehandler_configuration_3b.window.win32_hwnd))
       {
@@ -1287,9 +1289,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //ACE_ASSERT (directshow_modulehandler_configuration_3b.window.win32_hwnd);
       //directshow_modulehandler_configuration_3b.window.type = Common_UI_Window::TYPE_WIN32;
       media_type_p =
-        Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.outputFormat);
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_2a.outputFormat);
       ACE_ASSERT (media_type_p);
-      directshow_modulehandler_configuration_2a.outputFormat = *media_type_p;
+      directshow_modulehandler_configuration_2b.outputFormat = *media_type_p;
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture (!) formats ONLY !
