@@ -809,10 +809,10 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
      resolution_s.width = captureFormat_out.format.width;
      struct v4l2_fract frame_rate_s = { 0, 1 }; // don't care
      struct v4l2_pix_format format_s =
-         Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
-                                                     pixel_format_i,
-                                                     resolution_s,
-                                                     frame_rate_s);
+       Stream_Device_Tools::getVideoCaptureFormat (deviceIdentifier_out.fileDescriptor,
+                                                   pixel_format_i,
+                                                   resolution_s,
+                                                   frame_rate_s);
      ACE_ASSERT (format_s.pixelformat == pixel_format_i);
      if (!Stream_Device_Tools::setFormat (deviceIdentifier_out.fileDescriptor,
                                           format_s))
@@ -997,12 +997,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
-  Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
-                                                modulehandler_configuration.outputFormat);
-#if defined (FFMPEG_SUPPORT)
-  codec_configuration.codecId =
-    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (modulehandler_configuration.outputFormat.format.pixelformat);
-#endif // FFMPEG_SUPPORT
+  // Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
+  //                                               modulehandler_configuration.outputFormat);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   struct Test_I_V4L_StreamConfiguration stream_configuration;
@@ -1244,6 +1240,10 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
    modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
   // modulehandler_configuration.outputFormat.format.width = 80;
   // modulehandler_configuration.outputFormat.format.height = 60;
+#if defined (FFMPEG_SUPPORT)
+  codec_configuration.codecId =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (stream_configuration.format.format.pixelformat);
+#endif // FFMPEG_SUPPORT
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.outputFormat.format.pixelformat =

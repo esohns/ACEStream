@@ -229,14 +229,14 @@ typedef Stream_Visualization_LibAVResize_T<Test_I_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Test_I_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
-typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Test_I_Message_t,
-                                     Test_I_SessionMessage_t,
-                                     Test_I_CameraMSA_V4L_SessionData_t,
-                                     struct Stream_MediaFramework_V4L_MediaType> Test_I_V4L_HFlip;
+typedef Stream_Decoder_RGB_HFlip_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_I_Message_t,
+                                   Test_I_SessionMessage_t,
+                                   Test_I_CameraMSA_V4L_SessionData_t,
+                                   struct Stream_MediaFramework_V4L_MediaType> Test_I_V4L_HFlip;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -437,12 +437,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                 
                               Test_I_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                          // session event type
-                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration,   // module handler configuration type
-                              libacestream_default_dec_rgb24_hflip_module_name_string,
-                              Stream_INotify_t,                                        // stream notification interface type
-                              Test_I_V4L_HFlip);                              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_CameraMSA_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                         // session event type
+                              struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_rgb_hflip_module_name_string,
+                              Stream_INotify_t,                                       // stream notification interface type
+                              Test_I_V4L_HFlip);                                      // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

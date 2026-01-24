@@ -1158,7 +1158,7 @@ Stream_CameraAR_Stream::Stream_CameraAR_Stream ()
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
  , flip_ (this,
-          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB24_HFLIP_DEFAULT_NAME_STRING))
+          ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Stream::Stream_CameraAR_Stream"));
 

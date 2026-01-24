@@ -124,6 +124,8 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_AVSave_Encoder_T::handleDataMessage"));
 
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
   // sanity check(s)
   if (unlikely (!inherited::headerWritten_))
     return; // --> not fully initialized (yet)
@@ -135,8 +137,9 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
   AVCodecContext* codec_context_p;
   AVFrame* frame_p;
   AVStream* stream_p;
+  enum Stream_MediaType_Type media_type_e = message_inout->getMediaType ();
 
-  switch (message_inout->getMediaType ())
+  switch (media_type_e)
   {
     case STREAM_MEDIATYPE_AUDIO:
     {
@@ -145,10 +148,11 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       ACE_ASSERT (message_block_p->length () % inherited::audioFrameSize_ == 0);
       frame_p->nb_samples =
         static_cast<int> (message_block_p->length ()) / static_cast<int> (inherited::audioFrameSize_);
-      frame_p->pts =
-        av_rescale_q (inherited::audioSamples_,
-                      {1, inherited::audioCodecContext_->sample_rate},
-                      inherited::audioCodecContext_->time_base);
+      frame_p->duration = frame_p->nb_samples;
+      frame_p->pts = inherited::audioSamples_;
+        // av_rescale_q (inherited::audioSamples_,
+        //               {1, inherited::audioCodecContext_->sample_rate},
+        //               inherited::audioCodecContext_->time_base);
       inherited::audioSamples_ += frame_p->nb_samples;
       stream_p = inherited::audioStream_;
       break;
@@ -158,10 +162,8 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       codec_context_p = inherited::videoCodecContext_;
       frame_p = inherited::videoFrame_;
       ACE_ASSERT (message_block_p->length () / inherited::videoFrameSize_ == 1);
-      frame_p->duration = 1;
-      //frame_p->flags |= AV_FRAME_FLAG_KEY;
-      //frame_p->key_frame = 1;
       frame_p->nb_samples = 1;
+      frame_p->duration = 1;
       frame_p->pts = inherited::videoSamples_;
       ++inherited::videoSamples_;
       stream_p = inherited::videoStream_;
@@ -172,7 +174,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
                   inherited::mod_->name (),
-                  message_inout->getMediaType ()));
+                  media_type_e));
       goto error;
     }
   } // end SWITCH
@@ -180,7 +182,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
 
   do
   { ACE_ASSERT (message_block_p);
-    switch (message_inout->getMediaType ())
+    switch (media_type_e)
     {
       case STREAM_MEDIATYPE_AUDIO:
       {
@@ -217,7 +219,7 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
                     inherited::mod_->name (),
-                    message_inout->getMediaType ()));
+                    media_type_e));
         goto error;
       }
     } // end SWITCH
@@ -247,47 +249,31 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end ELSE IF
-
-      /* rescale output packet timestamp values from codec to stream timebase */
-      packet_s.pts =
-        av_rescale_q_rnd (packet_s.pts,
-                          codec_context_p->time_base,
-                          stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-      packet_s.dts =
-        av_rescale_q_rnd (packet_s.dts,
-                          codec_context_p->time_base,
-                          stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-
-      packet_s.time_base = stream_p->time_base;
-      switch (message_inout->getMediaType ())
-      {
-        case STREAM_MEDIATYPE_AUDIO:
-          packet_s.duration = frame_p->nb_samples;
-          break;
-        case STREAM_MEDIATYPE_VIDEO:
-        {
-          packet_s.duration = 1;
-          break;
-        }
-        default:
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown message media type (was: %d), aborting\n"),
-                      inherited::mod_->name (),
-                      message_inout->getMediaType ()));
-          goto error;
-        }
-      } // end SWITCH
-      packet_s.duration = av_rescale_q (packet_s.duration,
-                                        codec_context_p->time_base,
-                                        stream_p->time_base);
       packet_s.stream_index = stream_p->index;
 
-      //av_packet_rescale_ts (&packet_s,
-      //                      codec_context_p->time_base,
-      //                      formatContext_->streams[stream_p->index]->time_base);
+      packet_s.pts = frame_p->pts;
+      packet_s.dts = packet_s.pts;
+      packet_s.duration = frame_p->duration;
+      // packet_s.time_base = codec_context_p->time_base;
+
+      /* rescale output packet timestamp values from codec to stream timebase */
+      //packet_s.pts =
+      //  av_rescale_q_rnd (packet_s.pts,
+      //                    codec_context_p->time_base,
+      //                    stream_p->time_base,
+      //                    static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+      //packet_s.dts =
+      //  av_rescale_q_rnd (packet_s.dts,
+      //                    codec_context_p->time_base,
+      //                    stream_p->time_base,
+      //                    static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+      //packet_s.duration = av_rescale_q (packet_s.duration,
+      //                                  codec_context_p->time_base,
+      //                                  stream_p->time_base);
+
+      av_packet_rescale_ts (&packet_s,
+                            codec_context_p->time_base,
+                            stream_p->time_base);
 
       /* Write the frame to the media file. */
 //      result = av_write_frame (formatContext_, &packet_s);

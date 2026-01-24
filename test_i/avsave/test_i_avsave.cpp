@@ -236,10 +236,13 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : run stress-test [")
-  //  << false
-  //  << ACE_TEXT_ALWAYS_CHAR ("]")
-  //  << std::endl;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use pipewire [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // ACE_WIN32 || ACE_WIN64
 }
 
 bool
@@ -258,7 +261,12 @@ do_processArguments (int argc_in,
                      struct Common_UI_DisplayDevice& displayDevice_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                      enum Stream_AVSave_ProgramMode& mode_out)
+#else
+                     enum Stream_AVSave_ProgramMode& mode_out,
+                     bool& usePipewire_out)
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -295,13 +303,17 @@ do_processArguments (int argc_in,
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   traceInformation_out = false;
   mode_out = STREAM_AVSAVE_PROGRAMMODE_NORMAL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  usePipewire_out = false;
+#endif // ACE_WIN32 || ACE_WIN64
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                               ACE_TEXT ("cd:f::g::hlmo:s:tvx"),
 #else
-                              ACE_TEXT ("d:f::g::hlo:s:tvx"),
+                              ACE_TEXT ("d:f::g::hlo:s:tvxy"),
 #endif // ACE_WIN32 || ACE_WIN64
                               1,                          // skip command name
                               1,                          // report parsing errors
@@ -392,11 +404,14 @@ do_processArguments (int argc_in,
         mode_out = STREAM_AVSAVE_PROGRAMMODE_TEST_METHODS;
         break;
       }
-      //case 'y':
-      //{
-      //  runStressTest_out = true;
-      //  break;
-      //}
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      case 'y':
+      {
+        usePipewire_out = true;
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
       // error handling
       case ':':
       {
@@ -846,12 +861,11 @@ do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
   int open_mode =
-      ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                              : O_RDONLY);
+    ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
-      v4l2_open (videoDeviceIdentifier_in.c_str (),
-                 open_mode);
+    v4l2_open (videoDeviceIdentifier_in.c_str (),
+               open_mode);
   if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -928,6 +942,8 @@ void
 do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
+#else
+         bool usePipewire_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1313,6 +1329,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     (!UIDefinitionFilename_in.empty () ? &message_handler
                                        : NULL);
   audio_stream_configuration.module_2 = &encoder;
+  audio_stream_configuration.usePipewire = usePipewire_in;
 
   //if (bufferSize_in)
   //  CBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
@@ -2110,7 +2127,10 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   enum Stream_AVSave_ProgramMode program_mode_e =
       STREAM_AVSAVE_PROGRAMMODE_NORMAL;
-  //bool run_stress_test = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  bool use_pipewire_b = false;
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
   bool result_2 = false;
 #endif // GTK_USE
@@ -2131,7 +2151,12 @@ ACE_TMAIN (int argc_in,
                             display_device_s,
                             statistic_reporting_interval,
                             trace_information,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                             program_mode_e))
+#else
+                            program_mode_e,
+                            use_pipewire_b))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     do_printUsage (ACE::basename (argv_in[0]));
     Common_Tools::finalize ();
@@ -2218,10 +2243,9 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
@@ -2649,7 +2673,7 @@ ACE_TMAIN (int argc_in,
 #else
 #if defined (GTK_USE)
     result_2 =
-        gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
+      gtk_manager_p->initialize (ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
@@ -2681,6 +2705,8 @@ ACE_TMAIN (int argc_in,
   do_work (device_identifier,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
+#else
+           use_pipewire_b,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

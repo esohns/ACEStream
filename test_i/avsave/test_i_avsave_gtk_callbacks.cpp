@@ -3740,6 +3740,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
 #endif
   ACE_ASSERT (stream_p && stream_2);
 
@@ -3802,9 +3805,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   //                          false);
 
   // step1: set up progress reporting
-  ACE_OS::memset (&ui_cb_data_base_p->progressData.statistic,
-                  0,
-                  sizeof (struct Stream_AVSave_StatisticData));
+  ACE_OS::memset (&ui_cb_data_base_p->progressData.statistic, 0, sizeof (struct Stream_AVSave_StatisticData));
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
@@ -3871,6 +3872,7 @@ continue_:
   } // end SWITCH
 #else
   (*iterator_2).second.second->targetFileName = filename_string;
+  (*iterator_3).second.second->targetFileName = filename_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //  spin_button_p =
@@ -6085,6 +6087,9 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"));
+  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -6098,14 +6103,21 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
 #if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
+  GValue value_2 = G_VALUE_INIT;
 #else
   GValue value;
   ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+  GValue value_2;
+  ACE_OS::memset (&value_2, 0, sizeof (struct _GValue));
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_4,
                             1, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_INT);
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_4,
+                            0, &value_2);
+  ACE_ASSERT (G_VALUE_TYPE (&value_2) == G_TYPE_STRING);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -6132,8 +6144,16 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
 #else
   (*iterator_2).second.second->codecConfiguration->codecId =
     static_cast<enum AVCodecID> (g_value_get_int (&value));
+
+  std::string save_format_string = g_value_get_string (&value_2);
+  if (!ACE_OS::strcmp (save_format_string.c_str (),
+                       ACE_TEXT_ALWAYS_CHAR ("AVI")))
+    (*iterator_3).second.second->outputFormat.video.format.pixelformat = V4L2_PIX_FMT_BGR24;
+  else // --> MP4
+    (*iterator_3).second.second->outputFormat.video.format.pixelformat = V4L2_PIX_FMT_NV12;
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
+  g_value_unset (&value_2);
 
   // adjust filename extension accordingly
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),

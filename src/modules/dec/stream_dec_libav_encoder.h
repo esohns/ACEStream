@@ -97,13 +97,13 @@ class Stream_Decoder_LibAVEncoder_T
   struct AVCodecContext*  audioCodecContext_;
   struct AVFrame*         audioFrame_;
   unsigned int            audioFrameSize_;
-  unsigned int            audioSamples_;
+  ACE_UINT64              audioSamples_;
   struct AVStream*        audioStream_;
 
   struct AVCodecContext*  videoCodecContext_;
   struct AVFrame*         videoFrame_;
   unsigned int            videoFrameSize_;
-  unsigned int            videoSamples_;
+  ACE_UINT64              videoSamples_;
   struct AVStream*        videoStream_;
 
   struct AVFormatContext* formatContext_;
@@ -186,13 +186,13 @@ class Stream_Decoder_LibAVEncoder_2
   struct AVCodecContext*  audioCodecContext_;
   struct AVFrame*         audioFrame_;
   unsigned int            audioFrameSize_;
-  unsigned int            audioSamples_;
+  ACE_UINT64              audioSamples_;
   struct AVStream*        audioStream_;
 
   struct AVCodecContext*  videoCodecContext_;
   struct AVFrame*         videoFrame_;
   unsigned int            videoFrameSize_;
-  unsigned int            videoSamples_;
+  ACE_UINT64              videoSamples_;
   struct AVStream*        videoStream_;
 
   struct AVFormatContext* formatContext_;

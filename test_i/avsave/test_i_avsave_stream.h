@@ -442,7 +442,10 @@ class Stream_AVSave_ALSA_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_AVSave_ALSA_Stream& operator= (const Stream_AVSave_ALSA_Stream&))
 
   // modules
-  Stream_AVSave_ALSA_Source_Module      source_;
+  Stream_AVSave_ALSA_Source_Module      ALSASource_;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  Stream_AVSave_Pipewire_Source_Module  pipewireSource_;
+#endif // LIBPIPEWIRE_SUPPORT
 //  Stream_AVSave_StatisticReport_Module  statisticReport_;
   Stream_AVSave_Distributor_Module      distributor_;
   Stream_AVSave_SpectrumAnalyzer_Module analyzer_;

@@ -318,6 +318,45 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
                                  StreamStateType,
                                  StatisticContainerType,
                                  SessionManagerType,
+                                 TimerManagerType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                       bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_Pipewire_T::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::sessionData_);
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+
+  message_inout->initialize (session_data_r.sessionId,
+                             NULL);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename StatisticContainerType,
+          typename SessionManagerType,
+          typename TimerManagerType>
+void
+Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 ConfigurationType,
+                                 StreamControlType,
+                                 StreamNotificationType,
+                                 StreamStateType,
+                                 StatisticContainerType,
+                                 SessionManagerType,
                                  TimerManagerType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                           bool& passMessageDownstream_out)
 {
@@ -328,7 +367,6 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::isInitialized_);
 
   int result = -1;
 
@@ -365,9 +403,9 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
       ACE_ASSERT (parameters_a[0]);
       ACE_ASSERT (CBData_.stream);
       enum pw_stream_flags stream_flags_e =
-          static_cast<enum pw_stream_flags> (PW_STREAM_FLAG_AUTOCONNECT |
-                                             PW_STREAM_FLAG_MAP_BUFFERS /*|
-                                             PW_STREAM_FLAG_RT_PROCESS*/);
+        static_cast<enum pw_stream_flags> (PW_STREAM_FLAG_AUTOCONNECT |
+                                           PW_STREAM_FLAG_MAP_BUFFERS /*|
+                                           PW_STREAM_FLAG_RT_PROCESS*/);
       result = pw_stream_connect (CBData_.stream,
                                   PW_DIRECTION_INPUT,
                                   PW_ID_ANY,

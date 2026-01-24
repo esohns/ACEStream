@@ -573,10 +573,8 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , area ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
-   // , codecFormat (AV_PIX_FMT_NONE)
-   // , codecId (AV_CODEC_ID_NONE)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
-   //, outboundStreamName ()
+   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
@@ -593,10 +591,8 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
   struct v4l2_rect                                 area;
   __u32                                            buffers; // v4l device buffers
-  // enum AVPixelFormat                               codecFormat; // preferred output-
-  // enum AVCodecID                                   codecId;
   enum v4l2_memory                                 method; // v4l camera source
-  //std::string                                outboundStreamName; // message handler
+  std::string                                      nodeName; // pipewire source-
   struct Stream_MediaFramework_ALSA_V4L_Format     outputFormat;
   Stream_AVSave_ALSA_V4L_ISessionNotify_t*         subscriber;
   Stream_AVSave_ALSA_V4L_Subscribers_t*            subscribers;
@@ -701,9 +697,11 @@ struct Stream_AVSave_ALSA_V4L_StreamConfiguration
   Stream_AVSave_ALSA_V4L_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
    , format ()
+   , usePipewire (false)
   {}
 
   struct Stream_MediaFramework_ALSA_V4L_Format format;
+  bool                                         usePipewire;
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

@@ -4313,6 +4313,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   enum Stream_Visualization_SpectrumAnalyzer_3DMode mode_3d =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_3DMODE_INVALID;
   GtkDrawingArea* drawing_area_p = NULL;
+  GtkProgressBar* progress_bar_p = NULL;
+  GtkAllocation allocation_s;
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,10,0)
 #else
@@ -5586,17 +5588,6 @@ continue_2:
 #endif /* GTK_CHECK_VERSION (3,8,0) */
 #endif /* GTKGL_SUPPORT */
 
-//GtkProgressBar* progress_bar_p =
-//  GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-//                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-//ACE_ASSERT (progress_bar_p);
-//gint width, height;
-//gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-//gtk_progress_bar_set_pulse_step (progress_bar_p,
-//                                 1.0 / static_cast<double> (width));
-//gtk_progress_bar_set_text (progress_bar_p,
-//                           ACE_TEXT_ALWAYS_CHAR (""));
-
   // step5: (auto-)connect signals/slots
   gtk_builder_connect_signals ((*iterator).second.second,
                                userData_in);
@@ -6075,6 +6066,15 @@ continue_3:
     window_p;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (window_p);
+
+  progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
+                             &allocation_s);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (allocation_s.width));
 
   return G_SOURCE_REMOVE;
 
@@ -6617,7 +6617,7 @@ idle_update_progress_cb (gpointer userData_in)
   previous_bytes_i = data_p->statistic.bytes;
   converter <<
     static_cast<ACE_UINT32> (bytes_per_second_i / static_cast<double> (data_p->bytesPerFrame));
-  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
+  converter << ACE_TEXT_ALWAYS_CHAR (" sps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done_b ? ACE_TEXT_ALWAYS_CHAR ("")
                                      : converter.str ().c_str ()));
@@ -7053,12 +7053,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-  GtkAllocation allocation_s;
-  gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
-                             &allocation_s);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (allocation_s.width));
-  //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
+  gtk_progress_bar_set_show_text (progress_bar_p,
+                                  TRUE);
+  // gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step3: start processing thread
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -7168,12 +7165,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceId);
     ui_cb_data_base_p->progressData.eventSourceId =
-      g_idle_add (idle_update_progress_cb,
-                  &ui_cb_data_base_p->progressData);
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS, // ~10fps
+                     idle_update_progress_cb,
+                     &ui_cb_data_base_p->progressData);
     if (!ui_cb_data_base_p->progressData.eventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+                  ACE_TEXT ("failed to g_timeout_add(idle_update_progress_cb): \"%m\", returning\n")));
 
       // clean up
       ACE_THR_FUNC_RETURN exit_status;
@@ -7195,22 +7193,24 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     // schedule asynchronous updates of the info view
     guint event_source_id =
-      g_idle_add (idle_update_info_display_cb,
-                  userData_in);
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
+                     idle_update_info_display_cb,
+                     userData_in);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to g_timeout_add(idle_update_info_display_cb): \"%m\", continuing\n")));
 
-    event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS / 2, // ~60fps
-                                     idle_update_display_cb,
-                                     userData_in);
+    event_source_id =
+        g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
+                       idle_update_display_cb,
+                       userData_in);
     if (event_source_id > 0)
       state_r.eventSourceIds.insert (event_source_id);
     else
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
+                  ACE_TEXT ("failed to g_timeout_add(idle_update_display_cb): \"%m\", continuing\n")));
   } // end lock scope
 } // togglebutton_record_toggled_cb
 

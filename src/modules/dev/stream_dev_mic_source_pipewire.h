@@ -119,7 +119,9 @@ class Stream_Dev_Mic_Source_Pipewire_T
   // info
   bool isInitialized () const;
 
-//  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 

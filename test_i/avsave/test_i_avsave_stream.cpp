@@ -160,7 +160,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&converter_2, NULL, 0);
       layout_in->append (&tagger_, NULL, 0);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-      layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0); // output is AVI
+      layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0);
     } // end IF
   } // end IF
   else
@@ -1608,8 +1608,12 @@ error:
 
 Stream_AVSave_ALSA_Stream::Stream_AVSave_ALSA_Stream ()
  : inherited ()
- , source_ (this,
-            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING))
+ , ALSASource_ (this,
+                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_ALSA_DEFAULT_NAME_STRING))
+#if defined (LIBPIPEWIRE_SUPPORT)
+ , pipewireSource_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING))
+#endif // LIBPIPEWIRE_SUPPORT
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
@@ -1634,8 +1638,9 @@ Stream_AVSave_ALSA_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (configuration_);
+  ACE_ASSERT (configuration_->configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
 
   bool display_b = !(*iterator).second.second->display.device.empty ();
@@ -1643,7 +1648,12 @@ Stream_AVSave_ALSA_Stream::load (Stream_ILayout* layout_in,
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
 
-  layout_in->append (&source_, NULL, 0);
+#if defined (LIBPIPEWIRE_SUPPORT)
+  if (unlikely (configuration_->configuration_->usePipewire))
+    layout_in->append (&pipewireSource_, NULL, 0);
+  else
+#endif // LIBPIPEWIRE_SUPPORT
+    layout_in->append (&ALSASource_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
 
   layout_in->append (&tagger_, NULL, 0);

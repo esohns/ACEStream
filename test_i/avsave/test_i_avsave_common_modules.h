@@ -40,8 +40,11 @@
 #include "stream_dev_mic_source_wasapi.h"
 #include "stream_dev_mic_source_wavein.h"
 #else
-#include "stream_dev_cam_source_v4l.h"
 #include "stream_dev_mic_source_alsa.h"
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_mic_source_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
+#include "stream_dev_cam_source_v4l.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (FFMPEG_SUPPORT)
@@ -288,6 +291,19 @@ typedef Stream_Dev_Mic_Source_ALSA_T<ACE_MT_SYNCH,
                                      struct Stream_AVSave_StatisticData,
                                      Test_I_ALSA_V4L_SessionManager_t,
                                      Common_Timer_Manager_t> Stream_AVSave_ALSA_Source;
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Mic_Source_Pipewire_T<ACE_MT_SYNCH,
+                                         Stream_ControlMessage_t,
+                                         Stream_AVSave_Message_t,
+                                         Stream_AVSave_ALSA_V4L_SessionMessage_t,
+                                         struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,
+                                         enum Stream_ControlType,
+                                         enum Stream_SessionMessageType,
+                                         struct Stream_AVSave_ALSA_V4L_StreamState,
+                                         struct Stream_AVSave_StatisticData,
+                                         Test_I_ALSA_V4L_SessionManager_t,
+                                         Common_Timer_Manager_t> Stream_AVSave_Pipewire_Source;
+#endif // LIBPIPEWIRE_SUPPORT
 typedef Stream_Module_CamSource_V4L_T<ACE_MT_SYNCH,
                                       Stream_ControlMessage_t,
                                       Stream_AVSave_Message_t,
@@ -701,12 +717,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_DirectShow_SessionData,             
                               Stream_AVSave_DirectShow_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 #else
-DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_dev_mic_source_alsa_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_AVSave_ALSA_Source);                       // writer type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_AVSave_ALSA_Source);                                  // writer type
+#if defined (LIBPIPEWIRE_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                              // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_dev_mic_source_pipewire_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Stream_AVSave_Pipewire_Source);                                  // writer type
+#endif // LIBPIPEWIRE_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Stream_AVSave_ALSA_V4L_SessionData,                   // session data type
                               enum Stream_SessionMessageType,                   // session event type
                               struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration, // module handler configuration type

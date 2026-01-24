@@ -230,14 +230,14 @@ typedef Stream_Visualization_LibAVResize_T<Test_U_TaskBaseSynch_t,
                                            struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_LibAVResize;
 #endif // FFMPEG_SUPPORT
 
-typedef Stream_Decoder_RGB24_HFlip_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Stream_CameraML_Message_t,
-                                     Stream_CameraML_SessionMessage_t,
-                                     Stream_CameraML_V4L_SessionData_t,
-                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_V4L_HFlip;
+typedef Stream_Decoder_RGB_HFlip_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Stream_CameraML_Message_t,
+                                   Stream_CameraML_SessionMessage_t,
+                                   Stream_CameraML_V4L_SessionData_t,
+                                   struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_V4L_HFlip;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -634,12 +634,12 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
                               Stream_CameraML_LibAVResize);                      // writer type
 #endif // FFMPEG_SUPPORT
 
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                          // session event type
-                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration,   // module handler configuration type
-                              libacestream_default_dec_rgb24_hflip_module_name_string,
-                              Stream_INotify_t,                                        // stream notification interface type
-                              Stream_CameraML_V4L_HFlip);                              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_rgb_hflip_module_name_string,
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Stream_CameraML_V4L_HFlip);                            // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
