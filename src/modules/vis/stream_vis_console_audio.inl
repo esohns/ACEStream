@@ -119,29 +119,33 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
     std::is_integral<ValueType>::value ? 1.0f / static_cast<float> (std::numeric_limits<ValueType>::max ()) : 1.0f;
 
   iterator_.buffer_ = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  ACE_UINT32 frames_i = static_cast<ACE_UINT32> (message_inout->length ()) / frameSize_;
+  ACE_UINT64 frames_i = static_cast<ACE_UINT64> (message_inout->length ()) / frameSize_;
 
-  /* move cursor up */
-  // ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_ + 1);
-  // ACE_OS::fprintf (stdout, "captured %d frames\n", samples_i / channels_);
-  ACE_OS::fprintf (stdout,
-                   ACE_TEXT_ALWAYS_CHAR ("%c[%dA"),
-                   0x1b, channels_);
+// ACE_OS::fprintf (stdout, "captured %d frames\n", frames_i);
 
   float max_f;
   uint32_t level_i;
   for (ACE_UINT32 c = 0; c < channels_; ++c)
   {
     max_f = 0.0f;
-    for (ACE_UINT32 n = 0; n < frames_i; ++n)
+    for (ACE_UINT64 n = 0; n < frames_i; ++n)
       max_f = fmaxf (max_f, fabsf (iterator_.get (n, c) * factor_f));
 
-    level_i = (uint32_t)fminf (fmaxf (max_f * 30.0f, 0.f), 39.f);
+    level_i = static_cast<uint32_t> (fminf (fmaxf (max_f * 30.0f, 0.0f), 39.0f));
 
     ACE_OS::fprintf (stdout,
-                     ACE_TEXT_ALWAYS_CHAR ("channel %d: |%*s%*s| peak:%f\n"),
-                     c, level_i + 1, "*", 40 - level_i, "", max_f);
+                     ACE_TEXT_ALWAYS_CHAR ("channel %d: |%*s%*s| peak:%.2f\n"),
+                     c + 1,
+                     level_i + 1, ACE_TEXT_ALWAYS_CHAR ("*"), 40 - level_i, ACE_TEXT_ALWAYS_CHAR (""),
+                     max_f);
   } // end FOR
+
+  /* move cursor back up */
+  // ACE_OS::fprintf (stdout, "%c[%dA", 0x1b, channels_ + 1);
+  ACE_OS::fprintf (stdout,
+                   ACE_TEXT_ALWAYS_CHAR ("%c[%dA"),
+                   0x1b, channels_);
+
   ACE_OS::fflush (stdout);
 }
 

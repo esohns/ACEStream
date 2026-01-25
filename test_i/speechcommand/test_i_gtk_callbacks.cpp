@@ -1346,17 +1346,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_UNUSED_ARG (tooltip_timeout_i);
 #endif // GTK_CHECK_VERSION (3,0,0) || GTK_CHECK_VERSION (2,12,0)
 
-  GtkProgressBar* progress_bar_p =
-    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
-  ACE_ASSERT (progress_bar_p);
-  gint width, height;
-  gtk_widget_get_size_request (GTK_WIDGET (progress_bar_p), &width, &height);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (width));
-  gtk_progress_bar_set_text (progress_bar_p,
-                             ACE_TEXT_ALWAYS_CHAR (""));
-
   // step4: initialize text view, setup auto-scrolling
   GtkTextView* view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
@@ -1563,6 +1552,18 @@ idle_initialize_UI_cb (gpointer userData_in)
     } // end ELSE
 #endif // GTKGL_SUPPORT
   } // end lock scope
+
+  GtkProgressBar* progress_bar_p =
+    GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
+  ACE_ASSERT (progress_bar_p);
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
+                             &allocation_s);
+  gtk_progress_bar_set_pulse_step (progress_bar_p,
+                                   1.0 / static_cast<double> (allocation_s.width));
+  gtk_progress_bar_set_text (progress_bar_p,
+                             ACE_TEXT_ALWAYS_CHAR (""));
 
   return G_SOURCE_REMOVE;
 }
@@ -2261,11 +2262,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p), TRUE);
 #endif // GTK_CHECK_VERSION (3,0,0)
-  GtkAllocation allocation_s;
-  gtk_widget_get_allocation (GTK_WIDGET (progress_bar_p),
-                             &allocation_s);
-  gtk_progress_bar_set_pulse_step (progress_bar_p,
-                                   1.0 / static_cast<double> (allocation_s.width));
   //gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 
   // step3: start processing thread
@@ -2364,19 +2360,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     // step3: start progress reporting
     //ACE_ASSERT (!data_p->progressEventSourceId);
     progress_data_p->eventSourceId =
-      g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, // _LOW doesn't work (on Win32)
-                       idle_update_progress_cb,
-                       progress_data_p,
-                       NULL);
-      //g_timeout_add_full (G_PRIORITY_DEFAULT_IDLE,            // _LOW doesn't work (on Win32)
-      //                    COMMON_UI_REFRESH_DEFAULT_PROGRESS, // ms (?)
-      //                    idle_update_progress_cb,
-      //                    &ui_cb_data_base_p->progressData,
-      //                    NULL);
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_PROGRESS_MS,
+                     idle_update_progress_cb,
+                     progress_data_p);
     if (!progress_data_p->eventSourceId)
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add_full(idle_update_progress_cb): \"%m\", returning\n")));
+                  ACE_TEXT ("failed to g_timeout_add(idle_update_progress_cb): \"%m\", returning\n")));
 
       // clean up
       ACE_THR_FUNC_RETURN exit_status;

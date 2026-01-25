@@ -339,6 +339,7 @@ do_work (ACE_UINT32 bufferSize_in,
 #endif // FFMPEG_SUPPORT
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
   delay_configuration.catchUp = true;
+  delay_configuration.isMultimediaTask = true;
 
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
@@ -349,7 +350,7 @@ do_work (ACE_UINT32 bufferSize_in,
                          struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
 #else
                          struct Stream_AllocatorConfiguration
-#endif
+#endif // FFMPEG_SUPPORT
                         > heap_allocator;
   if (!heap_allocator.initialize (allocator_configuration))
   {
@@ -393,7 +394,6 @@ do_work (ACE_UINT32 bufferSize_in,
   } // end IF
 #else
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration;
-  ALSA_configuration.asynch = false;
   ALSA_configuration.rateResample = true;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   modulehandler_configuration.deviceIdentifier.identifier =

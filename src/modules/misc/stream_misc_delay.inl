@@ -259,8 +259,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         static_cast<ACE_UINT64> (average_bytes_per_second_i * (static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0f));
       token_factor_f =
         token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
+      availableTokens_ *= token_factor_f;
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
+        availableTokens_;
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
@@ -646,8 +647,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
-  {
-    ACE_ASSERT (task_ != ACE_INVALID_HANDLE);
+  { ACE_ASSERT (task_ != ACE_INVALID_HANDLE);
     AvRevertMmThreadCharacteristics (task_);
     task_ = ACE_INVALID_HANDLE;
   } // end IF
@@ -1118,8 +1118,9 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       token_factor_f =
         token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
+      availableTokens_ *= token_factor_f;
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
+        availableTokens_;
       inherited::configuration_->delayConfiguration->interval =
         ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
