@@ -2237,7 +2237,7 @@ Stream_Base_T<ACE_SYNCH_USE,
   //         external threads); transitioning to the FINISHED state must
   //         prevent more data from 'leaking' in beyond this point
   istreamcontrol_p =
-      dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<MODULE_T*> (module_p)->writer ());
+    dynamic_cast<ISTREAM_CONTROL_T*> (const_cast<MODULE_T*> (module_p)->writer ());
   if (unlikely (!istreamcontrol_p))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2269,7 +2269,6 @@ Stream_Base_T<ACE_SYNCH_USE,
   size_t message_count = 0;
   //ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (inherited::lock_);
   unsigned int head_reader_retries_i = 0;
-  // bool queue_has_data_b;
   // MESSAGE_QUEUE_T* queue_p = NULL;
 
   for (Stream_ModuleListIterator_t iterator_2 = modules_a.begin ();
@@ -2281,13 +2280,11 @@ Stream_Base_T<ACE_SYNCH_USE,
       continue; // close()d already ?
     if (task_p->msg_queue_)
     {
-      // queue_has_data_b = true;
       do
       {
-        // queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         message_count = task_p->msg_queue_->message_count ();
-        if (!message_count/* ||
-            !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
+        if (!message_count ||
+            !task_p->thr_count ()) // all threads have left; cannot dispatch further messages
           break;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s writer: waiting to process %B byte(s) in %B message(s)...\n"),
@@ -2339,13 +2336,11 @@ Stream_Base_T<ACE_SYNCH_USE,
       continue; // close()d already ?
     if (task_p->msg_queue_)
     {
-      // queue_has_data_b = true;
       do
       {
-        // queue_has_data_b = task_p->msg_queue_->message_bytes () > 0;
         message_count = task_p->msg_queue_->message_count ();
-        if (!message_count/* ||
-            !queue_has_data_b*/) // *TODO*: remove this clause: should wait for session/control messages as well
+        if (!message_count ||
+            !task_p->thr_count ()) // all threads have left; cannot dispatch further messages
           break;
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s/%s reader: waiting to process %B byte(s) in %B message(s)...\n"),
