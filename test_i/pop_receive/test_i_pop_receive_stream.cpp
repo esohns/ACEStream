@@ -45,9 +45,8 @@ Test_I_POPReceive_Stream::Test_I_POPReceive_Stream ()
 #endif // SSL_SUPPORT
  , marshal_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MARSHAL_DEFAULT_NAME_STRING))
- //, parser_ (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_PARSER_DEFAULT_NAME_STRING),
- //           NULL,
- //           false)
+ //, parser_ (this,
+ //           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_PARSER_DEFAULT_NAME_STRING))
  , statistic_ (this,
                ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , protocolHandler_ (this,
@@ -59,7 +58,7 @@ Test_I_POPReceive_Stream::Test_I_POPReceive_Stream ()
 
 bool
 Test_I_POPReceive_Stream::load (Stream_ILayout* layout_inout,
-                              bool& deleteModules_out)
+                                bool& deleteModules_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_POPReceive_Stream::load"));
 
@@ -89,7 +88,8 @@ Test_I_POPReceive_Stream::load (Stream_ILayout* layout_inout,
       (NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number () != POP_DEFAULT_SERVER_PORT))
   {
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("non-standard server port (was: %u), trying SSL connection\n"),
+                ACE_TEXT ("%s: non-standard server port (was: %u), trying SSL connection\n"),
+                ACE_TEXT (inherited::name_.c_str ()),
                 NET_CONFIGURATION_TCP_CAST ((*iterator_2).second)->socketConfiguration.address.get_port_number ()));
     use_SSL_b = true;
   } // end IF
@@ -126,7 +126,6 @@ Test_I_POPReceive_Stream::initialize (const typename inherited::CONFIGURATION_T&
   STREAM_TRACE (ACE_TEXT ("Test_I_POPReceive_Stream::initialize"));
 
   // sanity check(s)
-  ACE_ASSERT (!inherited::isInitialized_);
   ACE_ASSERT (!inherited::isRunning ());
   ACE_ASSERT (configuration_in.configuration_);
 
@@ -134,11 +133,10 @@ Test_I_POPReceive_Stream::initialize (const typename inherited::CONFIGURATION_T&
   if (!inherited::initialize (configuration_in))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_Base_T::initialize(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
-
-  inherited::isInitialized_ = true;
 
   return true;
 }
@@ -150,10 +148,11 @@ Test_I_POPReceive_Stream::collect (POP_Statistic_t& data_out)
 
   STATISTIC_WRITER_T* statistic_report_impl_p =
     dynamic_cast<STATISTIC_WRITER_T*> (statistic_.writer ());
-  if (!statistic_report_impl_p)
+  if (unlikely (!statistic_report_impl_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n")));
+                ACE_TEXT ("%s: dynamic_cast<Stream_Statistic_StatisticReport_WriterTask_T> failed, aborting\n"),
+                ACE_TEXT (inherited::name_.c_str ())));
     return false;
   } // end IF
 
@@ -170,9 +169,9 @@ Test_I_POPReceive_Stream::report () const
 //   runtimeStatistic_impl = dynamic_cast<RPG_Net_Module_RuntimeStatistic*> (//                                            myRuntimeStatistic.writer());
 //   if (!runtimeStatistic_impl)
 //   {
-//     ACE_DEBUG((LM_ERROR,
-//                ACE_TEXT("dynamic_cast<RPG_Net_Module_RuntimeStatistic) failed> (aborting\n")));
-//
+//     ACE_DEBUG ((LM_ERROR,
+//                 ACE_TEXT ("%s: dynamic_cast<RPG_Net_Module_RuntimeStatistic) failed>, returning\n"),
+//                 ACE_TEXT (inherited::name_.c_str ())));
 //     return;
 //   } // end IF
 //
