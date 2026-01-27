@@ -2430,7 +2430,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   GtkEntry* entry_p =
@@ -2450,17 +2450,17 @@ idle_initialize_UI_cb (gpointer userData_in)
                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FILEFILTER_AVI_NAME)));
   ACE_ASSERT (file_filter_p);
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("application/x-troff-msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("application/x-troff-msvideo"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/avi"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/avi"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/msvideo"));
   gtk_file_filter_add_mime_type (file_filter_p,
-                                 ACE_TEXT ("video/x-msvideo"));
+                                 ACE_TEXT_ALWAYS_CHAR ("video/x-msvideo"));
   gtk_file_filter_add_pattern (file_filter_p,
-                               ACE_TEXT ("*.avi"));
+                               ACE_TEXT_ALWAYS_CHAR ("*.avi"));
   gtk_file_filter_set_name (file_filter_p,
-                            ACE_TEXT ("AVI files"));
+                            ACE_TEXT_ALWAYS_CHAR ("AVI files"));
   //GError* error_p = NULL;
   //GFile* file_p = NULL;
   //gchar* filename_p = NULL;
@@ -2505,6 +2505,9 @@ idle_initialize_UI_cb (gpointer userData_in)
         Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
       filename_string =
         (*directshow_stream_iterator).second.second->targetFileName;
+
+      is_display_b = !(*directshow_stream_iterator).second.second->deviceIdentifier.empty ();
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2551,9 +2554,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (ui_cb_data_p->configuration);
 
     resolution_s.width =
-        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.width;
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.width;
     resolution_s.height =
-        ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.height;
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.resolution.height;
     framerate_i =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateNumerator;
     ACE_ASSERT (ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->format.frameRateDenominator == 1);
@@ -2567,7 +2570,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (libcamera_iterator_3 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     display_device_string = (*libcamera_iterator_3).second.second->display.device;
     is_display_b =
-        !(*libcamera_iterator_3).second.second->deviceIdentifier.identifier.empty ();
+      !(*libcamera_iterator_3).second.second->deviceIdentifier.identifier.empty ();
 //    is_fullscreen_b = (*libcamera_iterator_3).second.second->fullScreen;
 
     (*libcamera_iterator_3).second.second->outputFormat.resolution.height =
@@ -2589,9 +2592,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     ACE_ASSERT (ui_cb_data_p->configuration);
 
     resolution_s.width =
-        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.width;
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.width;
     resolution_s.height =
-        ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.height;
+      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format.height;
     framerate_i =
       ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.numerator;
     ACE_ASSERT (ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate.denominator == 1);
@@ -2607,10 +2610,10 @@ idle_initialize_UI_cb (gpointer userData_in)
       ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
     ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
     struct Common_UI_DisplayDevice display_device_s =
-        Common_UI_Tools::getDisplay ((*iterator_3).second.second->deviceIdentifier.identifier);
+      Common_UI_Tools::getDisplay ((*iterator_3).second.second->deviceIdentifier.identifier);
     display_device_string = display_device_s.device;
     is_display_b =
-        !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
+      !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
 //    is_fullscreen_b = (*iterator_3).second.second->fullScreen;
 
     (*iterator_3).second.second->outputFormat.format.height =
@@ -2661,7 +2664,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -2689,7 +2692,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -2717,7 +2720,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   GtkToggleButton* toggle_button_p =
@@ -2799,15 +2802,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
-  { // *TODO*
-    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
     gtk_combo_box_set_active (combo_box_p, static_cast<gint> (0));
-  } // end IF
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -2838,7 +2838,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   toggle_button_p =
@@ -4664,10 +4664,9 @@ button_cut_clicked_cb (GtkButton* button_in,
 
   ACE_UNUSED_ARG (button_in);
 
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   //Stream_IStream_t* stream_p = NULL;
@@ -4716,10 +4715,10 @@ button_report_clicked_cb (GtkButton* button_in,
   STREAM_TRACE (ACE_TEXT ("::button_report_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
-  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
   // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 } // button_report_clicked_cb
 
@@ -4873,25 +4872,12 @@ button_format_reset_clicked_cb (GtkButton* button_in,
   STREAM_TRACE (ACE_TEXT ("::button_format_reset_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
-  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
   // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_reset_activate_cb
-
-//void
-//action_settings_activate_cb (GtkAction* action_in,
-//                             gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::action_settings_activate_cb"));
-
-//  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-//    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_base_p);
-//} // action_settings_activate_cb
+} // button_format_reset_clicked_cb
 
 void
 button_snapshot_clicked_cb (GtkButton* button_in,
@@ -4900,45 +4886,12 @@ button_snapshot_clicked_cb (GtkButton* button_in,
   STREAM_TRACE (ACE_TEXT ("::button_snapshot_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
-  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
 
   // sanity check(s)
+  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_snapshot_activate_cb
-
-// -----------------------------------------------------------------------------
-
-//gint
-//button_clear_clicked_cb (GtkWidget* widget_in,
-//                         gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
-
-//  ACE_UNUSED_ARG (widget_in);
-//  struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-//    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_base_p);
-
-//  Common_UI_GTK_BuildersIterator_t iterator =
-//    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-
-//  GtkTextView* view_p =
-//    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-//                                           ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TEXTVIEW_NAME)));
-//  ACE_ASSERT (view_p);
-//  GtkTextBuffer* buffer_p =
-////    gtk_text_buffer_new (NULL); // text tag table --> create new
-//    gtk_text_view_get_buffer (view_p);
-//  ACE_ASSERT (buffer_p);
-//  gtk_text_buffer_set_text (buffer_p,
-//                            ACE_TEXT_ALWAYS_CHAR (""), 0);
-
-//  return FALSE;
-//}
+} // button_snapshot_clicked_cb
 
 gint
 button_about_clicked_cb (GtkWidget* widget_in,
@@ -4947,15 +4900,13 @@ button_about_clicked_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::button_about_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   // retrieve about dialog handle
@@ -5059,10 +5010,11 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   } // end IF
 
   // step3: wait for processing thread(s)
+  // *TODO*: cannot wait for completed actions here, as GTK dispatch is single-threaded !
   //{ ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_base_p->UIState->lock, FALSE);
-  if (wait_for_processing_thread_b)
-    while (ui_cb_data_base_p->progressData.completedActions.empty ())
-      ACE_OS::sleep (ACE_Time_Value (1, 0)); // wait for completion
+  //if (wait_for_processing_thread_b)
+  //  while (ui_cb_data_base_p->progressData.completedActions.empty ())
+  //    ACE_OS::sleep (ACE_Time_Value (1, 0)); // wait for completion
       //ui_cb_data_base_p->UIState->condition.wait (NULL);
   //} // end lock scope
 
