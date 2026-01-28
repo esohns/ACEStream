@@ -148,6 +148,7 @@
 
 // WASAPI
 // see also: HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks
+//#define STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME                     "Capture"
 #define STREAM_LIB_WASAPI_CAPTURE_DEFAULT_TASKNAME                     "Pro Audio"
 #define STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME                      "Playback"
 
