@@ -79,20 +79,14 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkListStore" id="liststore_video_format">
+  <object class="GtkListStore" id="liststore_display">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name GUID -->
+      <!-- column-name device -->
       <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
     </columns>
   </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_destination">
-    <property name="text" translatable="yes">output.avi</property>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_avi"/>
   <object class="GtkListStore" id="liststore_save">
     <columns>
       <!-- column-name text -->
@@ -113,6 +107,8 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+    <property name="hexpand">True</property>
+    <property name="vexpand">True</property>
     <property name="type_hint">normal</property>
     <property name="deletable">False</property>
     <signal name="key-press-event" handler="dialog_main_key_press_event_cb" swapped="no"/>
@@ -120,6 +116,8 @@
       <object class="GtkBox" id="box_dialog">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkBox" id="box_main">
@@ -173,7 +171,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -191,7 +189,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -209,7 +207,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
@@ -227,7 +225,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
@@ -271,6 +269,7 @@
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_session_messages">
+                                        <property name="width_request">150</property>
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
@@ -332,10 +331,13 @@
                                   <packing>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_data">
+                                    <property name="width_request">150</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
@@ -352,8 +354,8 @@
                                   <packing>
                                     <property name="top_attach">2</property>
                                     <property name="bottom_attach">3</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -383,6 +385,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_dropped_frames">
+                                        <property name="width_request">150</property>
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
@@ -402,12 +405,17 @@
                                       </packing>
                                     </child>
                                   </object>
+                                  <packing>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
+                                  </packing>
                                 </child>
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_buffersize">
+                                    <property name="width_request">150</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
+                                    <property name="can_focus">False</property>
                                     <property name="tooltip_markup" translatable="yes">frame size (bytes)</property>
                                     <property name="tooltip_text" translatable="yes">frame size (bytes)</property>
                                     <property name="editable">False</property>
@@ -425,8 +433,8 @@
                                   <packing>
                                     <property name="top_attach">3</property>
                                     <property name="bottom_attach">4</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -438,8 +446,8 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -486,8 +494,8 @@
                                     <signal name="changed" handler="combobox_video_source_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -508,7 +516,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -522,7 +530,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -573,7 +581,7 @@
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
-                                                <property name="fill">True</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">0</property>
                                               </packing>
                                             </child>
@@ -594,7 +602,7 @@
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
-                                                <property name="fill">True</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">1</property>
                                               </packing>
                                             </child>
@@ -615,7 +623,7 @@
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
-                                                <property name="fill">True</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">2</property>
                                               </packing>
                                             </child>
@@ -642,14 +650,14 @@
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
-                                                    <property name="fill">True</property>
+                                                    <property name="fill">False</property>
                                                     <property name="position">0</property>
                                                   </packing>
                                                 </child>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
-                                                <property name="fill">True</property>
+                                                <property name="fill">False</property>
                                                 <property name="position">3</property>
                                               </packing>
                                             </child>
@@ -677,7 +685,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -743,8 +751,8 @@
                                         <property name="secondary_icon_sensitive">False</property>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -772,14 +780,14 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -800,7 +808,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
@@ -814,7 +822,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -843,7 +851,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -862,7 +870,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -884,8 +892,8 @@
                                         <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -904,14 +912,14 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">2</property>
                                   </packing>
                                 </child>
@@ -936,8 +944,8 @@
                                         <signal name="toggled" handler="togglebutton_fullscreen_toggled_cb" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -953,18 +961,15 @@
                                         <signal name="clicked" handler="button_display_reset_clicked_cb" swapped="no"/>
                                       </object>
                                       <packing>
-                                        <property name="expand">True</property>
-                                        <property name="fill">True</property>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
-                                    </child>
-                                    <child>
-                                      <placeholder/>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">3</property>
                                   </packing>
                                 </child>
@@ -978,7 +983,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
@@ -1000,17 +1005,24 @@
               <object class="GtkFrame" id="frame_video">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
                 <property name="label_xalign">0</property>
                 <property name="label_yalign">0</property>
                 <child>
                   <object class="GtkAlignment" id="alignment_video">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="hexpand">True</property>
+                    <property name="vexpand">True</property>
                     <child>
                       <object class="GtkBox" id="box_video">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
+                        <property name="hexpand">True</property>
+                        <property name="vexpand">True</property>
                         <property name="orientation">vertical</property>
+                        <property name="homogeneous">True</property>
                         <child>
                           <object class="GtkDrawingArea" id="drawingarea_audio">
                             <property name="width_request">320</property>
@@ -1022,6 +1034,8 @@
                             <property name="has_tooltip">True</property>
                             <property name="tooltip_text" translatable="yes">audio</property>
                             <property name="double_buffered">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <signal name="draw" handler="drawingarea_audio_draw_cb" swapped="no"/>
                             <signal name="key-press-event" handler="drawingarea_audio_key_press_event_cb" swapped="no"/>
                             <signal name="size-allocate" handler="drawingarea_audio_size_allocate_cb" swapped="no"/>
@@ -1042,6 +1056,8 @@
                             <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
                             <property name="tooltip_text" translatable="yes">video</property>
                             <property name="double_buffered">False</property>
+                            <property name="hexpand">True</property>
+                            <property name="vexpand">True</property>
                             <signal name="draw" handler="drawingarea_video_draw_cb" swapped="no"/>
                             <signal name="size-allocate" handler="drawingarea_video_size_allocate_cb" swapped="no"/>
                           </object>
@@ -1104,7 +1120,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
+            <property name="fill">False</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -1167,6 +1183,10 @@
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
   </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_destination">
+    <property name="text" translatable="yes">output.avi</property>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_avi"/>
   <object class="GtkListStore" id="liststore_adapter">
     <columns>
       <!-- column-name text -->
@@ -1175,12 +1195,14 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststore_display">
+  <object class="GtkListStore" id="liststore_video_format">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
-      <!-- column-name device -->
+      <!-- column-name GUID -->
       <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="guint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_video_framerate">
@@ -1203,12 +1225,6 @@
       <column type="guint"/>
     </columns>
   </object>
-  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
-    <property name="upper">100</property>
-    <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
-  </object>
-  <object class="GtkTextBuffer" id="textview_textbuffer"/>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
     <property name="app_paintable">True</property>
