@@ -415,13 +415,13 @@ do_work (ACE_UINT32 bufferSize_in,
                                                 modulehandler_configuration,
                                                 stream_configuration);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Timer_Tools::configuration_.taskType = ACE_TEXT_ALWAYS_CHAR ("Playback");
+  Common_Timer_Tools::configuration_.taskPriority = AVRT_PRIORITY_HIGH;
+#endif // ACE_WIN32 || ACE_WIN64
+  Common_Timer_Tools::initialize ();
+
   // step0d: initialize regular (global) statistic reporting
-  Common_Timer_Manager_t* timer_manager_p =
-      COMMON_TIMERMANAGER_SINGLETON::instance ();
-  ACE_ASSERT (timer_manager_p);
-  Common_TimerConfiguration timer_configuration;
-  timer_manager_p->initialize (timer_configuration);
-  timer_manager_p->start (NULL);
   Stream_StatisticHandler_t statistic_handler (COMMON_STATISTIC_ACTION_REPORT,
                                                &stream,
                                                false);
@@ -442,7 +442,7 @@ do_work (ACE_UINT32 bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Signal_Tools::initialize(), returning\n")));
-    timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     return;
   } // end IF
 
@@ -451,7 +451,7 @@ do_work (ACE_UINT32 bufferSize_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
-    timer_manager_p->stop ();
+    Common_Timer_Tools::finalize ();
     return;
   } // end IF
 
@@ -462,10 +462,6 @@ do_work (ACE_UINT32 bufferSize_in,
   //    {
   //      ACE_DEBUG ((LM_ERROR,
   //                  ACE_TEXT ("failed to start stream, aborting\n")));
-
-  //      // clean up
-  //      //timer_manager_p->stop ();
-
   //      return;
   //    } // end IF
   stream.wait (true,   // wait for any worker thread(s) ?
@@ -473,7 +469,7 @@ do_work (ACE_UINT32 bufferSize_in,
                false); // wait for downstream (if any) ?
 
   // clean up
-  timer_manager_p->stop ();
+  Common_Timer_Tools::finalize ();
 
   //result = event_handler.close (ACE_Module_Base::M_DELETE_NONE);
   //if (result == -1)
