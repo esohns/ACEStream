@@ -69,68 +69,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_model">
-    <property name="text" translatable="yes">deepspeech-0.9.3-models.pbmm</property>
-  </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_save">
-    <property name="text" translatable="yes">output.txt</property>
-  </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_scorer">
-    <property name="text" translatable="yes">deepspeech-0.9.3-models.scorer</property>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_model">
-    <patterns>
-      <pattern>*.pbmm</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_scorer">
-    <patterns>
-      <pattern>*.scorer</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_txt">
-    <patterns>
-      <pattern>*.txt</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
-    <property name="can_focus">False</property>
-    <property name="modal">True</property>
-    <property name="type_hint">dialog</property>
-    <property name="action">select-folder</property>
-    <property name="filter">filefilter_txt</property>
-    <property name="local_only">False</property>
-    <property name="preview_widget_active">False</property>
-    <property name="use_preview_label">False</property>
-    <child internal-child="vbox">
-      <object class="GtkBox" id="filechooserdialog_box_save">
-        <property name="can_focus">False</property>
-        <property name="orientation">vertical</property>
-        <property name="spacing">2</property>
-        <child internal-child="action_area">
-          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
-            <property name="can_focus">False</property>
-            <property name="layout_style">end</property>
-            <child>
-              <placeholder/>
-            </child>
-            <child>
-              <placeholder/>
-            </child>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
-            <property name="pack_type">end</property>
-            <property name="position">0</property>
-          </packing>
-        </child>
-        <child>
-          <placeholder/>
-        </child>
-      </object>
-    </child>
-  </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
@@ -193,7 +131,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -207,7 +145,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -240,8 +178,8 @@
                                     <property name="track_visited_links">False</property>
                                   </object>
                                   <packing>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -265,7 +203,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -285,7 +223,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
@@ -293,8 +231,8 @@
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
-                                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -308,8 +246,8 @@
                                   <packing>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -331,8 +269,8 @@
                                     <property name="right_attach">2</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -344,15 +282,15 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
-                        <property name="fill">True</property>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -394,7 +332,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -406,6 +344,7 @@
                                       <object class="GtkHButtonBox" id="hbuttonbox_device_settings">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
+                                        <property name="homogeneous">True</property>
                                         <property name="layout_style">start</property>
                                         <child>
                                           <object class="GtkButton" id="button_settings">
@@ -422,7 +361,7 @@
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
-                                            <property name="fill">True</property>
+                                            <property name="fill">False</property>
                                             <property name="position">0</property>
                                           </packing>
                                         </child>
@@ -441,14 +380,14 @@
                                           </object>
                                           <packing>
                                             <property name="expand">False</property>
-                                            <property name="fill">True</property>
+                                            <property name="fill">False</property>
                                             <property name="position">1</property>
                                           </packing>
                                         </child>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -509,7 +448,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -523,7 +462,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">0</property>
                       </packing>
                     </child>
@@ -559,7 +498,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -580,7 +519,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -594,7 +533,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
@@ -627,7 +566,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -661,7 +600,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -689,14 +628,14 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -710,7 +649,7 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">2</property>
                       </packing>
                     </child>
@@ -746,7 +685,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -756,7 +695,7 @@
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
-                                    <property name="fill">True</property>
+                                    <property name="fill">False</property>
                                     <property name="position">0</property>
                                   </packing>
                                 </child>
@@ -782,7 +721,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">True</property>
+                                        <property name="fill">False</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -809,8 +748,8 @@
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="expand">True</property>
-                                    <property name="fill">True</property>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
                                     <property name="position">1</property>
                                   </packing>
                                 </child>
@@ -824,21 +763,21 @@
                       </object>
                       <packing>
                         <property name="expand">False</property>
-                        <property name="fill">True</property>
+                        <property name="fill">False</property>
                         <property name="position">3</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
-                    <property name="fill">True</property>
+                    <property name="fill">False</property>
                     <property name="position">1</property>
                   </packing>
                 </child>
               </object>
               <packing>
                 <property name="expand">False</property>
-                <property name="fill">True</property>
+                <property name="fill">False</property>
                 <property name="position">0</property>
               </packing>
             </child>
@@ -960,24 +899,6 @@
             <property name="homogeneous">True</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="button_clear">
-                <property name="label">gtk-clear</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="relief">half</property>
-                <property name="use_stock">True</property>
-                <property name="focus_on_click">False</property>
-                <signal name="clicked" handler="button_clear_clicked_cb" swapped="no"/>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">True</property>
-                <property name="position">0</property>
-                <property name="secondary">True</property>
-              </packing>
-            </child>
-            <child>
               <object class="GtkButton" id="about">
                 <property name="label">gtk-about</property>
                 <property name="visible">True</property>
@@ -993,7 +914,26 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
+                <property name="position">0</property>
+                <property name="secondary">True</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="button_clear">
+                <property name="label">gtk-clear</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="relief">half</property>
+                <property name="use_stock">True</property>
+                <property name="focus_on_click">False</property>
+                <signal name="clicked" handler="button_clear_clicked_cb" swapped="no"/>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
                 <property name="position">1</property>
+                <property name="secondary">True</property>
               </packing>
             </child>
             <child>
@@ -1026,10 +966,72 @@
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">button_clear</action-widget>
       <action-widget response="0">about</action-widget>
+      <action-widget response="0">button_clear</action-widget>
       <action-widget response="0">quit</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_model">
+    <property name="text" translatable="yes">deepspeech-0.9.3-models.pbmm</property>
+  </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_save">
+    <property name="text" translatable="yes">output.txt</property>
+  </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_scorer">
+    <property name="text" translatable="yes">deepspeech-0.9.3-models.scorer</property>
+  </object>
+  <object class="GtkFileChooserDialog" id="filechooserdialog_save">
+    <property name="can_focus">False</property>
+    <property name="modal">True</property>
+    <property name="type_hint">dialog</property>
+    <property name="action">select-folder</property>
+    <property name="filter">filefilter_txt</property>
+    <property name="local_only">False</property>
+    <property name="preview_widget_active">False</property>
+    <property name="use_preview_label">False</property>
+    <child internal-child="vbox">
+      <object class="GtkBox" id="filechooserdialog_box_save">
+        <property name="can_focus">False</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkButtonBox" id="filechooserdialog_buttonbox_save">
+            <property name="can_focus">False</property>
+            <property name="layout_style">end</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <placeholder/>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <placeholder/>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_model">
+    <patterns>
+      <pattern>*.pbmm</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_scorer">
+    <patterns>
+      <pattern>*.scorer</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_txt">
+    <patterns>
+      <pattern>*.txt</pattern>
+    </patterns>
   </object>
   <object class="GtkListStore" id="liststore_source">
     <columns>

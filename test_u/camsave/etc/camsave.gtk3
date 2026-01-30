@@ -31,34 +31,6 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkListStore" id="liststore_format">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_rate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name numerator -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name width -->
-      <column type="guint"/>
-      <!-- column-name height -->
-      <column type="guint"/>
-    </columns>
-  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
@@ -103,6 +75,51 @@
   </object>
   <object class="GtkEntryBuffer" id="entrybuffer_destination">
     <property name="text" translatable="yes">output.avi</property>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_avi"/>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_format">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_rate">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name numerator -->
+      <column type="guint"/>
+      <!-- column-name denominator -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name width -->
+      <column type="guint"/>
+      <!-- column-name height -->
+      <column type="guint"/>
+    </columns>
   </object>
   <object class="GtkListStore" id="liststore_source">
     <columns>
@@ -292,7 +309,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -311,7 +328,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
@@ -319,8 +336,8 @@
                                   <packing>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -339,8 +356,8 @@
                                   <packing>
                                     <property name="top_attach">2</property>
                                     <property name="bottom_attach">3</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -363,7 +380,7 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
@@ -382,14 +399,14 @@
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
-                                        <property name="fill">False</property>
+                                        <property name="fill">True</property>
                                         <property name="position">1</property>
                                       </packing>
                                     </child>
                                   </object>
                                   <packing>
-                                    <property name="x_options">GTK_EXPAND | GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                                 <child>
@@ -412,8 +429,8 @@
                                   <packing>
                                     <property name="top_attach">3</property>
                                     <property name="bottom_attach">4</property>
-                                    <property name="x_options">GTK_SHRINK | GTK_FILL</property>
-                                    <property name="y_options">GTK_SHRINK | GTK_FILL</property>
+                                    <property name="x_options">GTK_FILL</property>
+                                    <property name="y_options">GTK_FILL</property>
                                   </packing>
                                 </child>
                               </object>
@@ -425,7 +442,7 @@
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">True</property>
+                        <property name="expand">False</property>
                         <property name="fill">True</property>
                         <property name="position">1</property>
                       </packing>
@@ -1094,23 +1111,6 @@
       <action-widget response="0">about</action-widget>
       <action-widget response="0">quit</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_avi"/>
-  <object class="GtkListStore" id="liststore_adapter">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_display">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
   </object>
   <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
     <property name="upper">100</property>
