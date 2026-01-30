@@ -493,7 +493,7 @@ endif (DEFINED CMAKE_BUILD_TYPE)
 if (PATH_SUFFIX STREQUAL Debug)
  set (ARGS "${ARGS} -t")
 endif (PATH_SUFFIX STREQUAL Debug)
-# *NOTE*: model file needs to be relative to cwd
+# *NOTE*: (for tensorflow,) model file needs to be relative to cwd
 file (TO_NATIVE_PATH "share/model.pb" MODEL_PATH)
 if (UNIX)
  set (WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE})

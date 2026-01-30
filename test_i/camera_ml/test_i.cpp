@@ -212,10 +212,10 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
-            << false
-            << ACE_TEXT_ALWAYS_CHAR ("]")
-            << std::endl;
+  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
+  //          << false
+  //          << ACE_TEXT_ALWAYS_CHAR ("]")
+  //          << std::endl;
 }
 
 bool
@@ -1018,11 +1018,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration.labelFile +=
         ACE_DIRECTORY_SEPARATOR_CHAR_A;
       if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
-        directshow_modulehandler_configuration.labelFile +=
-          ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
+        directshow_modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
       else
-        directshow_modulehandler_configuration.labelFile +=
-          ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
+        directshow_modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
       directshow_modulehandler_configuration.model = modelFile_in;
 
       //if (statisticReportingInterval_in)
@@ -1072,16 +1070,14 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
   modulehandler_configuration.labelFile =
-      Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getWorkingDirectory ();
   modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
   modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
   modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
   if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
-    modulehandler_configuration.labelFile +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
+    modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
   else
-    modulehandler_configuration.labelFile +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
+    modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
   modulehandler_configuration.model = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
@@ -1119,7 +1115,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //      bufferSize_in;
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
-          &directshow_message_allocator;
+        &directshow_message_allocator;
       if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
         directshow_stream_configuration.backend = STREAM_ML_BACKEND_LIBTORCH;
       directshow_stream_configuration.renderer = renderer_in;
@@ -1145,7 +1141,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       mediafoundation_stream_configuration.allocatorConfiguration =
         &allocator_configuration;
       mediafoundation_stream_configuration.messageAllocator =
-          &mediafoundation_message_allocator;
+        &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.renderer = renderer_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
@@ -1286,9 +1282,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                     ACE_TEXT ("failed to ::do_initialize_mediafoundation(), returning\n")));
         return;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediafoundation_modulehandler_configuration.session);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       stream_p = &mediafoundation_stream;
 
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
@@ -1460,7 +1456,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,

@@ -205,10 +205,11 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
   TF_Tensor* input_tensor_p =
     TF_NewTensor (TF_UINT8, raw_input_dims_a, 4,
+                  message_inout->rd_ptr (),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                  message_inout->rd_ptr (), resolution_.cx * resolution_.cy * 3,
+                  resolution_.cx * resolution_.cy * 3,
 #else
-                  message_inout->rd_ptr (), resolution_.width * resolution_.height * 3,
+                  resolution_.width * resolution_.height * 3,
 #endif // ACE_WIN32 || ACE_WIN64
                   &test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
@@ -318,7 +319,10 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                cv::Point (3, frame_matrix.rows - 3),
                cv::FONT_HERSHEY_SIMPLEX,
                0.5,
-               cv::Scalar (255, 255, 255));
+               cv::Scalar (255, 255, 255),
+               1,
+               cv::LINE_8,
+               false);
 }
 
 template <typename ConfigurationType,
