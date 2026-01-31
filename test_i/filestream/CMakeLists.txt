@@ -9,7 +9,7 @@ if (UNIX)
  add_link_options ("LINKER:--export-dynamic")
 endif (UNIX)
 
-find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (ACENetwork
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
@@ -96,14 +96,37 @@ if (WXWIDGETS_SUPPORT)
 #       ${${EXECUTABLE_SOURCE}_EXE_SRCS})
 endif (WXWIDGETS_SUPPORT)
 
-#set_source_files_properties (etc/resources.rc PROPERTIES HEADER_FILE_ONLY TRUE)
+if (GTK_SUPPORT)
+ set (SOURCE_RESOURCE_FILES
+      etc/resources.rc)
+ set (TARGET_RESOURCE_FILES
+      etc/resources.rc)
+ if (GTK3_SUPPORT)
+  list (APPEND
+        SOURCE_RESOURCE_FILES
+        etc/source.gtk3)
+  list (APPEND
+        TARGET_RESOURCE_FILES
+        etc/target.gtk3)
+ else ()
+  list (APPEND
+        SOURCE_RESOURCE_FILES
+        etc/source.glade)
+  list (APPEND
+        TARGET_RESOURCE_FILES
+        etc/target.glade)
+ endif (GTK3_SUPPORT)
+ set_source_files_properties (${SOURCE_RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+ set_source_files_properties (${TARGET_RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
+ source_group (resources FILES ${SOURCE_RESOURCE_FILES})
+ source_group (resources FILES ${TARGET_RESOURCE_FILES})
+endif (GTK_SUPPORT)
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_SOURCE}_EXE_SRCS}
-                etc/resources.rc
-                etc/source.glade)
+                ${SOURCE_RESOURCE_FILES})
 set_property (TARGET ${EXECUTABLE_SOURCE} PROPERTY FOLDER "test_i")
 if (WIN32)
  cmake_policy (SET CMP0012 NEW)
@@ -143,42 +166,33 @@ target_link_libraries (${EXECUTABLE_SOURCE} ${PROJECT_NAME}_Test_I)
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork)
 target_link_libraries (${EXECUTABLE_SOURCE} ACENetwork_Server)
 
-# add PCH
-#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
-#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#set_target_properties (${EXECUTABLE_SOURCE} PROPERTIES
-#                       COTIRE_ENABLE_PRECOMPILED_HEADER TRUE)
-#cotire (${EXECUTABLE_SOURCE})
-#add_precompiled_header (${EXECUTABLE_SOURCE} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 target_precompile_headers (${EXECUTABLE_SOURCE}
                            PUBLIC stdafx.h)
-
-set (RESOURCE_FILES
-     etc/resources.rc
-     etc/source.glade
-     etc/target.glade)
-set_source_files_properties (${RESOURCE_FILES} PROPERTIES HEADER_FILE_ONLY TRUE)
-source_group (resources FILES ${RESOURCE_FILES})
 
 install (TARGETS ${EXECUTABLE_SOURCE}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
-if (WIN32)
- install (FILES etc/source.glade
-          DESTINATION "etc/filestream" COMPONENT config)
-#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
-elseif (UNIX)
- install (FILES etc/source.glade
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
-endif ()
 
-#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+if (GTK_USE)
+ if (WIN32)
+  install (FILES ${SOURCE_RESOURCE_FILES}
+           DESTINATION "etc/filestream" COMPONENT config)
+  install (FILES ${TARGET_RESOURCE_FILES}
+           DESTINATION "etc/filestream" COMPONENT config)
+ elseif (UNIX)
+  install (FILES ${SOURCE_RESOURCE_FILES}
+           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
+  install (FILES ${TARGET_RESOURCE_FILES}
+           DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
+ endif ()
+endif (GTK_USE)
+
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}" COMMAND)
  create_target_launcher (${EXECUTABLE_SOURCE}
                          COMMAND ${COMMAND}
 #                         ARGS "-l -t"
-                         ARGS "-f ~/Downloads/keyvalue-0.3.tgz -g -l -t"
+                         ARGS "-f /mnt/win_e/video/Akira.mkv -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/filestream
@@ -196,7 +210,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH $ENV{LIB_ROOT}/ACE_TAO/ACE/lib ACE_PATH)
  create_target_launcher (${EXECUTABLE_SOURCE}
                          COMMAND ${COMMAND}
-                         ARGS "-f G:\\\\video\\\\Akira.mkv -l -t"
+                         ARGS "-f E:\\\\video\\\\Akira.mkv -l -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${GTK_PATH}
                                               ${WXWIDGETS_PATH}
@@ -256,8 +270,7 @@ endif (WXWIDGETS_SUPPORT)
 add_executable (${EXECUTABLE_TARGET}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_TARGET}_EXE_SRCS}
-                etc/resources.rc
-                etc/target.glade)
+                ${TARGET_RESOURCE_FILES})
 set_property (TARGET ${EXECUTABLE_TARGET} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)
@@ -290,18 +303,6 @@ target_link_libraries (${EXECUTABLE_TARGET} ${PROJECT_NAME}_Test_I)
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork)
 target_link_libraries (${EXECUTABLE_TARGET} ACENetwork_Server)
 
-# add PCH
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
-#                       COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#get_target_property (_prefixHeader ${EXECUTABLE_SOURCE} COTIRE_CXX_PREFIX_HEADER)
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "${_prefixHeader}")
-#set_target_properties (${EXECUTABLE_TARGET} PROPERTIES
-#                       COTIRE_ENABLE_PRECOMPILED_HEADER FALSE)
-#cotire (${EXECUTABLE_TARGET})
-#if (WIN32)
-# add_msvc_precompiled_header (stdafx.h, stdafx.cpp, absolute_source_files)
-#endif (WIN32)
-#add_precompiled_header (${EXECUTABLE_TARGET} stdafx.h FORCEINCLUDE SOURCE_CXX stdafx.cpp)
 target_precompile_headers (${EXECUTABLE_TARGET}
                            REUSE_FROM ${EXECUTABLE_SOURCE})
 
@@ -310,15 +311,7 @@ target_precompile_headers (${EXECUTABLE_TARGET}
 install (TARGETS ${EXECUTABLE_TARGET}
          EXPORT ${PROJECT_NAME}Targets
          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT test_i)
-if (UNIX)
- install (FILES etc/target.glade
-          DESTINATION "${INSTALL_SHARE_DIR}/${PROJECT_NAME}/filestream" COMPONENT config)
-elseif (WIN32)
- install (FILES etc/target.glade
-          DESTINATION "etc/filestream" COMPONENT config)
-#          DESTINATION "$ENV{APPDATA}/${PROJECT_NAME}/filestream" COMPONENT config)
-endif ()
-#guess_runtime_library_dirs (<outputvarname> [<extralibrary> ...])
+
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_TARGET}" COMMAND)
  create_target_launcher (${EXECUTABLE_TARGET}
