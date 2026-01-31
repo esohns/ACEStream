@@ -6,10 +6,7 @@ include (SSLConfig)
 
 if (UNIX)
  include (FindPkgConfig)
-# *NOTE*: Common requires libcap
-# pkg_check_modules (PKG_CAP REQUIRED libcap)
  pkg_check_modules (PKG_V4L2 REQUIRED libv4l2)
-# pkg_check_modules (PKG_FFMPEG REQUIRED libswscale libavutil libavcodec)
 elseif (WIN32)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
  include (DirectXBaseClasses)
@@ -18,7 +15,7 @@ endif ()
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
-find_package (ACENetwork ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO}
+find_package (ACENetwork
               REQUIRED
               CONFIG
               PATHS ${CMAKE_CURRENT_SOURCE_DIR}/../../modules ${CMAKE_CURRENT_SOURCE_DIR}/../../..
@@ -29,7 +26,6 @@ if (NOT EXISTS ${ACENetwork_DIR})
 else ()
  message (STATUS "found package \"ACENetwork\": \"${ACENetwork_DIR}\"")
 endif ()
-#add_definitions (-DACENETWORK_HAS_DLL)
 
 if (WIN32)
  # *NOTE*: DirectShow uses 'DEBUG'
@@ -88,7 +84,6 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 ############## next target ################
 set (EXECUTABLE_SOURCE camsource)
 set (${EXECUTABLE_SOURCE}_EXE_SRCS
-#     stdafx.cpp
      stdafx.h
      test_i_camstream_common.h
      test_i_camstream_defines.h
@@ -126,10 +121,11 @@ if (GTK_SUPPORT)
       ${${EXECUTABLE_SOURCE}_EXE_SRCS}
       test_i_callbacks.cpp
       test_i_callbacks.h)
-# elseif (WXWIDGETS_USE)
+endif (GTK_SUPPORT)
+# if (WXWIDGETS_SUPPORT)
 #  set (${EXECUTABLE_TARGET}_EXE_SRCS
 #       ${${EXECUTABLE_TARGET}_EXE_SRCS})
-endif (GTK_SUPPORT)
+# endif (WXWIDGETS_SUPPORT)
 
 set (ui_definition_file "")
 if (GTK_USE)
@@ -141,14 +137,13 @@ if (GTK_USE)
   set (ui_definition_file_2 etc/target.gtk2)
  endif ()
 elseif (WXWIDGETS_USE)
- if (WIN32)
-#   add_definitions(-DUNICODE -D_UNICODE)
-  endif (WIN32)
+# if (WIN32)
+#  add_definitions(-DUNICODE -D_UNICODE)
+# endif (WIN32)
  set (ui_definition_file etc/source.xrc)
  set (ui_definition_file_2 etc/target.xrc)
 endif ()
 
-#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE_SOURCE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE_SOURCE}_EXE_SRCS}
@@ -196,9 +191,6 @@ elseif (WIN32)
  else ()
   target_compile_options (${EXECUTABLE_SOURCE} PUBLIC -Wa,-mbig-obj)
  endif (MSVC)
- # *NOTE*: DirectShow uses 'DEBUG'
-# add_definitions (-DDEBUG) # activate DirectShow debug logging
-# add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
 
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC evr.lib)
  target_link_libraries (${EXECUTABLE_SOURCE} PUBLIC mfplat.lib)
@@ -289,7 +281,6 @@ elseif (WIN32)
           DESTINATION ${INSTALL_BIN_DIR} COMPONENT test_i)
 endif ()
 
-#set (COMMAND "$<TARGET_FILE:${EXECUTABLE_SOURCE}>")
 set (ENVIRONMENT "")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE_SOURCE}" COMMAND)
@@ -399,7 +390,6 @@ if (WIN32)
 
  target_link_libraries (${LIBRARY_DS} PUBLIC ${PROJECT_NAME}_Test_I)
 
- set_target_properties (${LIBRARY_DS} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_DS} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
@@ -416,19 +406,42 @@ if (WIN32)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
- set (PATH_SUFFIX "Release")
- if (DEFINED CMAKE_BUILD_TYPE)
-  set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
- endif (DEFINED CMAKE_BUILD_TYPE)
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${LIBRARY_DS}.dll" TARGET_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
  file (TO_NATIVE_PATH "${ACE_LIB_DIR}" ACE_LIB_PATH_NATIVE)
  string (REPLACE "\\" "\\\\" ACE_LIB_PATH_NATIVE ${ACE_LIB_PATH_NATIVE})
- create_generic_launcher (regsvr32_directshow
-                          COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE}"
-                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
-                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
-                          ENVIRONMENT ${ENVIRONMENT})
+# file (TO_NATIVE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_LIB_PATH_NATIVE)
+# string (REPLACE "\\" "\\\\" FFMPEG_LIB_PATH_NATIVE ${FFMPEG_LIB_PATH_NATIVE})
+ file (TO_NATIVE_PATH "${wxWidgets_LIB_DIR}" WXWIDGETS_LIB_PATH_NATIVE)
+ string (REPLACE "\\" "\\\\" WXWIDGETS_LIB_PATH_NATIVE ${WXWIDGETS_LIB_PATH_NATIVE})
+
+ # copy the the dependencies to the same folder as the dll
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "${ACE_LIB_PATH_NATIVE}\\ACEd.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "$ENV{LIB_ROOT}/ffmpeg/libavutil/avutil-59.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "$ENV{LIB_ROOT}/ffmpeg/libavcodec/avcodec-61.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "${WXWIDGETS_LIB_PATH_NATIVE}\\wxbase316d_vc_x64_custom.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "$ENV{LIB_ROOT}/ffmpeg/libswresample/swresample-5.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "${VCPKG_PATH}/iconv-2.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${CMAKE_COMMAND} -E copy "${VCPKG_PATH}/liblzma.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
+
+# set (COMMAND regsvr32.exe ${TARGET_PATH_NATIVE})
+## create_target_launcher (${LIBRARY_DS}
+## create_generic_launcher (regsvr32_directshow
+##                          COMMAND ${COMMAND}
+##                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
+##                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
+##                          ENVIRONMENT ${ENVIRONMENT})
+ #*TODO*: this needs admin priviledges - how ?
+# add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
+#                     COMMAND ${COMMAND}
+#                     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
 
 #-----------------------------------------
 
