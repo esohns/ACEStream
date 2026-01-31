@@ -396,7 +396,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
         case NET_TRANSPORTLAYER_TCP:
         {
           Net_TCPSocketConfiguration_t* socket_configuration_p =
-              (Net_TCPSocketConfiguration_t*)&configuration_p->socketConfiguration;
+            (Net_TCPSocketConfiguration_t*)&configuration_p->socketConfiguration;
           ACE_ASSERT (socket_configuration_p);
           peer_SAP = socket_configuration_p->address;
           break;
@@ -472,7 +472,7 @@ link:
       ACE_ASSERT (connection_);
 
       istream_connection_p =
-          dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
+        dynamic_cast<typename ConnectorType::ISTREAM_CONNECTION_T*> (connection_);
       if (unlikely (!istream_connection_p))
       {
         ACE_DEBUG ((LM_ERROR,

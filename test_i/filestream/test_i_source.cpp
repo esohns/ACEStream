@@ -1027,9 +1027,7 @@ ACE_TMAIN (int argc_in,
                                      false,                                             // log to syslog ?
                                      false,                                             // trace messages ?
                                      trace_information,                                 // debug messages ?
-                                     NULL))                                             // (ui-) logger ?
-//                                            (gtk_glade_file.empty () ? NULL
-//                                                                     : &logger))) // (ui-) logger ?
+                                     (gtk_glade_file.empty () ? NULL : &logger)))       // (ui-) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));

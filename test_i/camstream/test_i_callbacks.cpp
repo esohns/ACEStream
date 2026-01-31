@@ -1878,7 +1878,12 @@ stream_processing_function (void* arg_in)
             //  directshow_ui_cb_data_p->CBData->stream;
             result_2 =
               directshow_thread_data_p->CBData->stream->initialize ((*directshow_stream_iterator).second);
-            ACE_ASSERT (result_2);
+            if (unlikely (!result_2))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("failed to initialize stream, returning\n")));
+              goto done;
+            } // end IF
             const Test_I_Source_DirectShow_SessionData* session_data_p =
               &directshow_thread_data_p->CBData->stream->getR_2 ();
             session_ui_cb_data_p = session_data_p;
@@ -3055,7 +3060,7 @@ idle_update_progress_source_cb (gpointer userData_in)
                   ACE_TEXT ("thread %u has joined (status was: %@)...\n"),
                   thread_id,
                   exit_status));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
     } // end IF
 
     state_r.eventSourceIds.erase (*iterator_3);

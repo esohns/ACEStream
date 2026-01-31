@@ -2242,8 +2242,7 @@ ACE_TMAIN (int argc_in,
       device_identifier =
         Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
       directshow_ui_cb_data.mediaFramework = media_framework_e;
-      //directshow_ui_cb_data.progressData.state =
-      //  &directshow_ui_cb_data;
+      directshow_ui_cb_data.progressData.state = &state_r;
       ui_cb_data_p = &directshow_ui_cb_data;
       directshow_ui_cb_data.configuration = &directshow_configuration;
 #if defined (GTK_USE)

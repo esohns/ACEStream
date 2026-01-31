@@ -307,7 +307,7 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
 
   // allocate a new session state, reset stream
   const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-      false;
+    false;
   reset_setup_pipeline_b = true;
   if (unlikely (!inherited::initialize (configuration_in)))
   {

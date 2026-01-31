@@ -22,8 +22,13 @@
 #define TEST_I_FILESTREAM_DEFINES_H
 
 #define TEST_I_DEFAULT_GTK_RC_FILE                               "resources.rc"
+#if defined (GTK3_USE)
+#define TEST_I_DEFAULT_SOURCE_GLADE_FILE                         "source.gtk3"
+#define TEST_I_DEFAULT_TARGET_GLADE_FILE                         "target.gtk3"
+#else
 #define TEST_I_DEFAULT_SOURCE_GLADE_FILE                         "source.glade"
 #define TEST_I_DEFAULT_TARGET_GLADE_FILE                         "target.glade"
+#endif // GTK3_USE
 #define TEST_I_DEFAULT_OUTPUT_FILE                               "output.tmp"
 
 #define FILESTREAM_DEFAULT_BUFFER_SIZE                           65536 // bytes
