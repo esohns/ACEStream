@@ -218,7 +218,7 @@ Stream_Module_Vis_GTK_Cairo_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::sessionData_);
-  if (surface_)
+  if (likely (surface_))
   {
     g_object_unref (surface_); surface_ = NULL;
   } // end IF

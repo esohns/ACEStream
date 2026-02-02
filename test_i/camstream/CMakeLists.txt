@@ -431,13 +431,14 @@ if (WIN32)
 # add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
 #                     COMMAND ${CMAKE_COMMAND} -E copy "${VCPKG_PATH}/liblzma.dll" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}")
 
-# set (COMMAND regsvr32.exe ${TARGET_PATH_NATIVE})
-## create_target_launcher (${LIBRARY_DS}
-## create_generic_launcher (regsvr32_directshow
-##                          COMMAND ${COMMAND}
-##                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
-##                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
-##                          ENVIRONMENT ${ENVIRONMENT})
+ set (COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE}")
+ unset (WORKING_DIRECTORY)
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}" WORKING_DIRECTORY)
+ string (REPLACE "\\" "\\\\" WORKING_DIRECTORY ${WORKING_DIRECTORY})
+ create_target_launcher (${LIBRARY_DS}
+                         COMMAND ${COMMAND}
+                         WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                         ENVIRONMENT ${ENVIRONMENT})
  #*TODO*: this needs admin priviledges - how ?
 # add_custom_command (TARGET ${LIBRARY_DS} POST_BUILD
 #                     COMMAND ${COMMAND}
@@ -483,7 +484,6 @@ endif (FFMPEG_SUPPORT)
 
  target_link_libraries (${LIBRARY_MF} PUBLIC ${PROJECT_NAME}_Test_I)
 
- set_target_properties (${LIBRARY_MF} PROPERTIES DEFINE_SYMBOL STREAM_HAS_DLL)
  set_target_properties (${LIBRARY_MF} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add PCH
@@ -500,13 +500,13 @@ endif (FFMPEG_SUPPORT)
           LIBRARY DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib
           RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT lib)
 
- file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${LIBRARY_MF}.dll" TARGET_PATH_NATIVE)
- string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE ${TARGET_PATH_NATIVE})
- create_generic_launcher (regsvr32_mediafoundation
-                          COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE}"
-                          RUNTIME_LIBRARY_DIRS ${ACE_LIB_PATH_NATIVE}
-                          WORKING_DIRECTORY ${WORKING_DIRECTORY}
-                          ENVIRONMENT ${ENVIRONMENT})
+ file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${LIBRARY_MF}.dll" TARGET_PATH_NATIVE_2)
+ string (REPLACE "\\" "\\\\" TARGET_PATH_NATIVE_2 ${TARGET_PATH_NATIVE_2})
+ set (COMMAND "regsvr32.exe ${TARGET_PATH_NATIVE_2}")
+ create_target_launcher (${LIBRARY_MF}
+                         COMMAND ${COMMAND}
+                         WORKING_DIRECTORY ${WORKING_DIRECTORY}
+                         ENVIRONMENT ${ENVIRONMENT})
 endif (WIN32)
 
 ############## next target ################

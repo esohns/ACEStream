@@ -919,7 +919,7 @@ deque:
       else if (unlikely (available_frames == 0))
       {
         result = snd_pcm_wait (deviceHandle_,
-                               SND_PCM_WAIT_IO);
+                               SND_PCM_WAIT_INFINITE);//SND_PCM_WAIT_IO);
         if (unlikely (result < 0))
         { error_i = result;
           // underrun ? --> recover
@@ -930,7 +930,7 @@ deque:
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to snd_pcm_wait(%d): \"%s\", aborting\n"),
                       inherited::mod_->name (),
-                      SND_PCM_WAIT_IO,
+                      SND_PCM_WAIT_INFINITE,//SND_PCM_WAIT_IO,
                       ACE_TEXT (snd_strerror (result))));
           head_p->release (); head_p = NULL;
           return -1;
