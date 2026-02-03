@@ -715,7 +715,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
   int result;
   ACE_UINT64 tokens_to_dispatch_i;
-  size_t total_length_i;
+  size_t total_length_i = 0;
 
 continue_:
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);

@@ -177,7 +177,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
   unsigned int number_of_frames =
     static_cast<unsigned int> (message_inout->length () / iterator_.frameSize_);
-  unsigned int frames_to_write;
+  unsigned int frames_to_write = 0;
   unsigned int offset = 0;
   unsigned int tail_slot;
 
