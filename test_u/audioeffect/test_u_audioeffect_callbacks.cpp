@@ -7053,7 +7053,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
-
 #if GTK_CHECK_VERSION (3,0,0)
   gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
 #else

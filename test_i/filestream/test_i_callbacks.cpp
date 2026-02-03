@@ -2617,12 +2617,17 @@ action_listen_activate_cb (GtkAction* action_in,
     } // end SWITCH
 
     // start progress reporting
-    GtkProgressBar* progressbar_p =
+    GtkProgressBar* progress_bar_p =
       GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_PROGRESSBAR_NAME)));
-    ACE_ASSERT (progressbar_p);
-    gtk_progress_bar_set_show_text (progressbar_p, TRUE);
-    gtk_widget_set_sensitive (GTK_WIDGET (progressbar_p), TRUE);
+    ACE_ASSERT (progress_bar_p);
+#if GTK_CHECK_VERSION (3,0,0)
+    gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
+#else
+    gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p), TRUE);
+#endif // GTK_CHECK_VERSION (3,0,0) 
+    gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
+    gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
 
     ACE_ASSERT (!ui_cb_data_p->progressData.eventSourceId);
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
