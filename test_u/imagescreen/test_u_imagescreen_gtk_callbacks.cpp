@@ -416,8 +416,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   //                                 1.0 / static_cast<double> (width));
   gtk_progress_bar_set_text (progress_bar_p,
                              ACE_TEXT_ALWAYS_CHAR (""));
-  gtk_progress_bar_set_show_text (progress_bar_p,
-                                  TRUE);
+#if GTK_CHECK_VERSION (3,0,0)
+  gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
+#else
+  gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p), TRUE);
+#endif // GTK_CHECK_VERSION (3,0,0) 
 
   // step9: draw main dialog
   gtk_widget_show_all (dialog_p);
