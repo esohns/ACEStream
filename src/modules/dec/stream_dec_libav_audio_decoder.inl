@@ -880,7 +880,7 @@ continue_:
         swr_convert (transformContext_,
                      data_a,
                      result,
-                     static_cast<uint8_t**> (frame_->data),
+                     const_cast<const uint8_t**> (static_cast<uint8_t**> (frame_->data)),
                      frame_->nb_samples);
       if (unlikely (result < 0))
       {
