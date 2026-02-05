@@ -3957,11 +3957,11 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
-#if defined (FFTW_SUPPORT)
-  Common_Math_FFTW_T<float>* fft_p = NULL;
-#else
-  Common_Math_FFT_T<float>* fft_p = NULL;
-#endif // FFTW_SUPPORT
+//#if defined (FFTW_SUPPORT)
+//  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>* fft_p = NULL;
+//#else
+  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft_p = NULL;
+//#endif // FFTW_SUPPORT
   Common_IDispatch* dispatch_p = NULL;
   guint event_source_id = 0;
   struct Test_U_MicVisualize_UI_CBDataBase* ui_data_base_p = NULL;
@@ -4036,11 +4036,11 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_IDispatch*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (dispatch_p);
   fft_p =
-#if defined (FFTW_SUPPORT)
-    dynamic_cast<Common_Math_FFTW_T<float>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-#else
-    dynamic_cast<Common_Math_FFT_T<float>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-#endif // FFTW_SUPPORT
+//#if defined (FFTW_SUPPORT)
+//    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+//#else
+    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+//#endif // FFTW_SUPPORT
   ACE_ASSERT (fft_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
@@ -12994,11 +12994,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     return FALSE;
   } // end IF
 #if defined (FFTW_SUPPORT)
-  Common_Math_FFTW_T<float>* fft_p =
-    dynamic_cast<Common_Math_FFTW_T<float>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>* fft_p =
+    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
 #else
-  Common_Math_FFT_T<float>* fft_p =
-    dynamic_cast<Common_Math_FFT_T<float>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft_p =
+    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
 #endif // FFTW_SUPPORT
   if (unlikely (!fft_p))
   {

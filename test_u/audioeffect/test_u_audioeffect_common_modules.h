@@ -673,7 +673,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_U_AudioEffect_DirectShow_SessionData_t,
                                                           Common_Timer_Manager_t,
                                                           struct _AMMediaType,
-                                                          float> Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer;
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Test_U_AudioEffect_DirectShow_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -690,7 +691,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Test_U_AudioEffect_MediaFoundation_SessionData_t,
                                                           Common_Timer_Manager_t,
                                                           IMFMediaType*,
-                                                          float> Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer;
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Test_U_AudioEffect_MediaFoundation_Vis_SpectrumAnalyzer;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
