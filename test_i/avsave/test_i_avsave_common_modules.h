@@ -583,7 +583,8 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Stream_AVSave_ALSA_V4L_SessionData_t,
                                                           Common_Timer_Manager_t,
                                                           struct Stream_MediaFramework_ALSA_V4L_Format,
-                                                          double> Stream_AVSave_SpectrumAnalyzer;
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Stream_AVSave_SpectrumAnalyzer;
 
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
