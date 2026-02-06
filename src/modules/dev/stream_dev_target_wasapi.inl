@@ -358,7 +358,6 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
       // HANDLE task_h = NULL;
       // DWORD task_index_i = 0;
       struct tWAVEFORMATEX* audio_info_2 = NULL;
-      IAudioSessionControl* audio_session_control_p = NULL;
 
       switch (inherited::configuration_->deviceIdentifier.identifierDiscriminator)
       {
@@ -504,13 +503,6 @@ retry:
 
       result_2 = audioClient_->GetBufferSize (&bufferSize_);
       ACE_ASSERT (SUCCEEDED (result_2) && bufferSize_);
-      result_2 =
-        audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
-      ACE_ASSERT (SUCCEEDED (result_2) && audio_session_control_p);
-      result_2 =
-        audio_session_control_p->RegisterAudioSessionNotification (this);
-      ACE_ASSERT (SUCCEEDED (result_2));
-      audio_session_control_p->Release (); audio_session_control_p = NULL;
 
       ACE_ASSERT (!event_);
       event_ = CreateEvent (NULL,  // lpEventAttributes
@@ -598,30 +590,6 @@ end:
       } // end IF
       if (likely (audioClient_))
       {
-        IAudioSessionControl* audio_session_control_p = NULL;
-        result_2 =
-          audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
-        if (FAILED (result_2))
-        {
-          if (result_2 == AUDCLNT_E_NOT_INITIALIZED)
-            goto continue_2;
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IAudioClient::GetService(IID_IAudioSessionControl): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
-          goto continue_2;
-        } // end IF
-        ACE_ASSERT (audio_session_control_p);
-        result_2 =
-          audio_session_control_p->UnregisterAudioSessionNotification (this);
-        // *NOTE*: needs to be the same thread that called RegisterAudioSessionNotification() ?
-        if (FAILED (result_2)) // E_NOTFOUND: 0x80070490
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to IAudioSessionControl::UnregisterAudioSessionNotification(): \"%s\", continuing\n"),
-                      inherited::mod_->name (),
-                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
-        audio_session_control_p->Release (); audio_session_control_p = NULL;
-continue_2:
         audioClient_->Release (); audioClient_ = NULL;
       } // end IF
 
@@ -1061,6 +1029,7 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
   // *NOTE*: supply the soundcard with data as fast as possible; even if it is
   //         less than the available buffer
   //bool buffer_written_b = false;
+  IAudioSessionControl* audio_session_control_p = NULL;
 
   ACE_ASSERT (!task_);
   task_ =
@@ -1074,6 +1043,14 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
     result = -1;
     goto done;
   } // end IF
+
+  ACE_ASSERT (audioClient_);
+  result_3 =
+    audioClient_->GetService (IID_PPV_ARGS (&audio_session_control_p));
+  ACE_ASSERT (SUCCEEDED (result_3) && audio_session_control_p);
+  result_3 =
+    audio_session_control_p->RegisterAudioSessionNotification (this);
+  ACE_ASSERT (SUCCEEDED (result_3));
 
   // process sample data
   do
@@ -1185,6 +1162,17 @@ continue_:
   result = -1;
 
 done:
+  ACE_ASSERT (audio_session_control_p);
+  result_3 =
+    audio_session_control_p->UnregisterAudioSessionNotification (this);
+  // *NOTE*: needs to be the same thread that called RegisterAudioSessionNotification() ?
+  if (FAILED (result_3)) // E_NOTFOUND: 0x80070490
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IAudioSessionControl::UnregisterAudioSessionNotification(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result_3, true, false).c_str ())));
+  audio_session_control_p->Release (); audio_session_control_p = NULL;
+
   if (likely (task_))
   {
     AvRevertMmThreadCharacteristics (task_);

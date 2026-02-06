@@ -21,6 +21,8 @@
 #ifndef STREAM_VISUALIZATION_COMMON_H
 #define STREAM_VISUALIZATION_COMMON_H
 
+#include "stream_vis_defines.h"
+
 enum Stream_Visualization_Framework
 {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -110,6 +112,19 @@ enum Stream_Visualization_WindowFunctionType
   ////////////////////////////////////////
   STREAM_VISUALIZATION_WINDOWFUNCTION_MAX,
   STREAM_VISUALIZATION_WINDOWFUNCTION_INVALID
+};
+
+struct Stream_Visualization_SpectrumAnalyzer_Configuration
+{
+  Stream_Visualization_SpectrumAnalyzer_Configuration ()
+   : mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
+   , numberOfBins (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS)
+   , windowFunction (STREAM_VISUALIZATION_WINDOWFUNCTION_NONE)
+  {}
+
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode mode;
+  unsigned int                                      numberOfBins;
+  enum Stream_Visualization_WindowFunctionType      windowFunction;
 };
 
 #endif

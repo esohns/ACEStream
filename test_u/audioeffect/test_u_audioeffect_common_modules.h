@@ -655,7 +655,8 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_DirectShow_Message,
                                           Test_U_AudioEffect_DirectShow_SessionMessage,
                                           struct _AMMediaType,
-                                          int16_t> Test_U_AudioEffect_DirectShow_Vis_Console;
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_U_AudioEffect_DirectShow_Vis_Console;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -803,7 +804,8 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_Message,
                                           Test_U_AudioEffect_SessionMessage,
                                           struct Stream_MediaFramework_ALSA_MediaType,
-                                          float> Test_U_AudioEffect_Vis_Console;
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_U_AudioEffect_Vis_Console;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                            // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type

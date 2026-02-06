@@ -24,6 +24,10 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_time_common.h"
+#include "common_timer_handler.h"
+
+#include "common_math_fft.h"
 #include "common_math_sample.h"
 
 #include "common_ui_windowtype_converter.h"
@@ -32,6 +36,8 @@
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
+
+#include "stream_vis_common.h"
 
 extern const char libacestream_default_vis_console_audio_module_name_string[];
 
@@ -46,7 +52,8 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType, // *IMPORTANT NOTE*: must correspond to session data 'formats' member
           ////////////////////////////////
-          typename ValueType> // sample-
+          typename ValueType, // sample-
+          enum Stream_Visualization_SpectrumAnalyzer_2DMode AnalyzerMode = STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE>
 class Stream_Module_Vis_Console_Audio_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -97,7 +104,96 @@ class Stream_Module_Vis_Console_Audio_T
   ACE_UINT32                              channels_;
   ACE_UINT32                              frameSize_;
   Common_Math_SampleIterator_T<ValueType> iterator_;
+  ValueType                               normalizationFactor_;
 };
+
+//////////////////////////////////////////
+// (partial) specialization(s)
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType, // *IMPORTANT NOTE*: must correspond to session data 'formats' member
+          ////////////////////////////////
+          typename ValueType> // sample-
+class Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
+                                        TimePolicyType,
+                                        ConfigurationType,
+                                        ControlMessageType,
+                                        DataMessageType,
+                                        SessionMessageType,
+                                        MediaType,
+                                        ValueType,
+                                        STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM>
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Common_UI_WindowTypeConverter_T<void>
+ , public Common_UI_IFullscreen
+ , public Common_Math_FFT_T<ValueType,
+                            FFT_ALGORITHM_COOLEY_TUKEY> // *TODO*: make algorithm type a template parameter
+ , public Common_ITimerHandler
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Common_UI_WindowTypeConverter_T<void> inherited3;
+  typedef Common_Math_FFT_T<ValueType,
+                            FFT_ALGORITHM_COOLEY_TUKEY> inherited4;
+
+ public:
+  Stream_Module_Vis_Console_Audio_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Module_Vis_Console_Audio_T ();
+
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
+  // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+  // implement Common_UI_IFullscreen
+  virtual void toggle ();
+
+  // implement Common_ITimerHandler
+  inline virtual const long get_2 () const { return handler_.get_2 (); }
+  virtual void handle (const void*); // asynchronous completion token
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T (const Stream_Module_Vis_Console_Audio_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Console_Audio_T& operator= (const Stream_Module_Vis_Console_Audio_T&))
+
+  ACE_UINT32                                  channels_;
+  ACE_UINT32                                  frameSize_;
+  Common_Timer_Handler                        handler_;
+  Common_Math_FFT_SampleIterator_T<ValueType> iterator_;
+  ValueType                                   normalizationFactor_;
+};
+
+//////////////////////////////////////////
 
 // include template definition
 #include "stream_vis_console_audio.inl"

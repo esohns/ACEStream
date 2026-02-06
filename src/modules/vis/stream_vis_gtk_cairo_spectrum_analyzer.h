@@ -43,22 +43,18 @@
 #include "stream_vis_gtk_window.h"
 
 struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
+ : Stream_Visualization_SpectrumAnalyzer_Configuration
 {
   Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
-   : mode (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE)
-   , numberOfBins (STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS)
+   : Stream_Visualization_SpectrumAnalyzer_Configuration ()
    , window (NULL)
-   , windowFunction (STREAM_VISUALIZATION_WINDOWFUNCTION_NONE)
   {}
 
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode mode;
-  unsigned int                                      numberOfBins;
 #if GTK_CHECK_VERSION (4,0,0)
   GdkSurface*                                       window;
 #else
   GdkWindow*                                        window;
 #endif // GTK_CHECK_VERSION (4,0,0)
-  enum Stream_Visualization_WindowFunctionType      windowFunction;
 };
 
 //////////////////////////////////////////

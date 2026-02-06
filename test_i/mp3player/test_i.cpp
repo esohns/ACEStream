@@ -341,6 +341,8 @@ do_work (ACE_UINT32 bufferSize_in,
   delay_configuration.catchUp = true;
   delay_configuration.isMultimediaTask = true;
 
+  struct Stream_Visualization_SpectrumAnalyzer_Configuration analyzer_configuration;
+
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
@@ -370,6 +372,7 @@ do_work (ACE_UINT32 bufferSize_in,
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.delayConfiguration = &delay_configuration;
+  modulehandler_configuration.spectrumAnalyzerConfiguration = &analyzer_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
     Stream_Device_Identifier::ID;

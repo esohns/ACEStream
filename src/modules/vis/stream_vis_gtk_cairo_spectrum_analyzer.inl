@@ -1441,8 +1441,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           //magnitude_d = inherited2::Magnitude2 (j, i, true) / 10.0; // *NOTE*: <-- tested with sine wave
           magnitude_d = inherited2::Magnitude2 (j, i, false);
           y =
-            sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_
-                                                  : magnitude_d * scaleFactorY_2;
+            sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_ : magnitude_d * scaleFactorY_2;
           cairo_line_to (context_p,
                          x, static_cast<double> (height_) - y);
         } // end FOR

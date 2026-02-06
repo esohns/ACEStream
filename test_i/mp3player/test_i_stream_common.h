@@ -112,6 +112,7 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
    , pushStatisticMessages (true)
+   , spectrumAnalyzerConfiguration (NULL)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
@@ -120,22 +121,23 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Stream_MediaFramework_ALSA_Configuration*        ALSAConfiguration;
+  struct Stream_MediaFramework_ALSA_Configuration*            ALSAConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration*     codecConfiguration;
 #endif // FFMPEG_SUPPORT
-  struct Stream_Miscellaneous_DelayConfiguration*         delayConfiguration;
-  struct Stream_Device_Identifier                         deviceIdentifier;
+  struct Stream_Miscellaneous_DelayConfiguration*             delayConfiguration;
+  struct Stream_Device_Identifier                             deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (SOX_SUPPORT)
-  bool                                                    manageSoX;
+  bool                                                        manageSoX;
 #endif // SOX_SUPPORT
-  struct _AMMediaType                                     outputFormat;
+  struct _AMMediaType                                         outputFormat;
 #else
-  struct Stream_MediaFramework_ALSA_MediaType             outputFormat;
+  struct Stream_MediaFramework_ALSA_MediaType                 outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                                    pushStatisticMessages;
+  bool                                                        pushStatisticMessages;
+  struct Stream_Visualization_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 };
 
 struct Test_I_MP3Player_StreamConfiguration

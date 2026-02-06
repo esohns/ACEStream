@@ -330,7 +330,8 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage,
                                           struct _AMMediaType,
-                                          float> Test_I_ConsoleVUMeter;
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
