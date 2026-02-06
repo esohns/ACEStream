@@ -65,13 +65,17 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , availableTokens_ (0)
  , condition_ (inherited::lock_)
+ , isFirstDispatchingThread_ (true)
  , queue_ (0,     // max # slots --> unlimited
            NULL)  // notification handle
+ , queue_2_ (0,    // max # slots --> unlimited
+             NULL) // notification handle
  , resetTimeoutHandler_ (this)
  , resetTimeoutHandlerId_ (-1)
  , resizeOccured_ (false)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , task_ (ACE_INVALID_HANDLE)
+ , task_2_ (ACE_INVALID_HANDLE)
 #endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::Stream_Module_Delay_T"));
@@ -115,9 +119,24 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    ACE_TEXT ("%s: aborting: flushed %u inbound data messages\n"),
                     inherited::mod_->name (),
                     result));
+
+      result = queue_2_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u outbound data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+
       break;
     }
     default:
@@ -189,8 +208,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   Common_ITimerCBBase* itimer_p =
-      (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                               : COMMON_TIMERMANAGER_SINGLETON::instance ());
+    (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                             : COMMON_TIMERMANAGER_SINGLETON::instance ());
   ACE_ASSERT (itimer_p);
   bool high_priority_b = false;
 
@@ -205,7 +224,18 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                     inherited::mod_->name ()));
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: aborting: flushed %u data messages\n"),
+                    ACE_TEXT ("%s: aborting: flushed %u inbound data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+
+      result = queue_2_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
+                    inherited::mod_->name ()));
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: aborting: flushed %u outbound data messages\n"),
                     inherited::mod_->name (),
                     result));
 
@@ -346,7 +376,7 @@ continue_:
 
       // *NOTE*: this prevents a race condition in svc()
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        inherited::threadCount_ = inherited::configuration_->numberOfThreads;
+        inherited::threadCount_ = 2;
         bool lock_activate_was_b = inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
         inherited::lockActivate_ = false;
         if (unlikely (!inherited::start (NULL)))
@@ -383,9 +413,24 @@ error:
       } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: resizing: flushed %u data messages\n"),
+                    ACE_TEXT ("%s: resizing: flushed %u inbound data messages\n"),
                     inherited::mod_->name (),
                     result));
+
+      result = queue_2_.flush (false); // flush all data messages
+      if (unlikely (result == static_cast<unsigned int> (-1)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    inherited::mod_->name ()));
+        return;
+      } // end IF
+      else if (result > 0)
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing: flushed %u outbound data messages\n"),
+                    inherited::mod_->name (),
+                    result));
+
       break;
     }
     case STREAM_SESSION_MESSAGE_END:
@@ -394,6 +439,7 @@ end:
       if (inherited::configuration_->waitForDataOnEnd)
       {
         queue_.waitForIdleState ();
+        queue_2_.waitForIdleState ();
         // wait for the next (i.e. at least one-) dispatch cycle to complete
         int result;
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
@@ -427,6 +473,8 @@ end:
       stop (true,             // wait ?
             high_priority_b); // high priority ?
 
+      isFirstDispatchingThread_ = true;
+
       break;
     }
     default:
@@ -452,7 +500,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       MediaType,
                       UserDataType>::reset ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::reset"));
+  //STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::reset"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
@@ -525,8 +573,40 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue_T::%s(): \"%m\", continuing\n"),
                 inherited::mod_->name (),
                 (highPriority_in ? ACE_TEXT ("enqueue_head") : ACE_TEXT ("enqueue_tail"))));
-    message_block_p->release ();
-    message_block_p = NULL;
+    message_block_p->release (); message_block_p = NULL;
+  } // end IF  
+  message_block_p = NULL;
+
+  // enqueue a control message
+  ACE_NEW_NORETURN (message_block_p,
+                    ACE_Message_Block (0,                                  // size
+                                       ACE_Message_Block::MB_STOP,         // type
+                                       NULL,                               // continuation
+                                       NULL,                               // data
+                                       NULL,                               // buffer allocator
+                                       NULL,                               // locking strategy
+                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
+                                       ACE_Time_Value::zero,               // execution time
+                                       ACE_Time_Value::max_time,           // deadline time
+                                       NULL,                               // data block allocator
+                                       NULL));                             // message allocator
+  if (unlikely (!message_block_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    return;
+  } // end IF
+
+  result = (highPriority_in ? queue_2_.enqueue_head (message_block_p, NULL) :
+                              queue_2_.enqueue_tail (message_block_p, NULL));
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::%s(): \"%m\", continuing\n"),
+                inherited::mod_->name (),
+                (highPriority_in ? ACE_TEXT ("enqueue_head") : ACE_TEXT ("enqueue_tail"))));
+    message_block_p->release (); message_block_p = NULL;
   } // end IF  
   message_block_p = NULL;
 
@@ -575,6 +655,50 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   int result = -1;
   int error = -1;
+  bool dispatch_outbound_queue_b = false;
+
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+    if (isFirstDispatchingThread_)
+    {
+      isFirstDispatchingThread_ = false;
+      dispatch_outbound_queue_b = true;
+    } // end IF
+  } // end lock scope
+  if (dispatch_outbound_queue_b)
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
+    {
+      DWORD task_index_i = 0;
+      ACE_ASSERT (task_2_ == ACE_INVALID_HANDLE);
+      task_2_ =
+        AvSetMmThreadCharacteristics (TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                                      &task_index_i);
+      if (unlikely (!task_2_))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to AvSetMmThreadCharacteristics(\"%s\"): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (STREAM_LIB_WASAPI_RENDER_DEFAULT_TASKNAME),
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+        result = -1;
+        goto done_2;
+      } // end IF
+    } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+
+    result = svc_2 ();
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
+    { ACE_ASSERT (task_2_ != ACE_INVALID_HANDLE);
+      AvRevertMmThreadCharacteristics (task_2_);
+      task_2_ = ACE_INVALID_HANDLE;
+    } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+
+    goto done_2;
+  } // end IF
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   if (unlikely (inherited::configuration_->delayConfiguration->isMultimediaTask))
@@ -678,12 +802,80 @@ done:
   } // end IF
 
   result = 0;
+done_2:
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) leaving\n"),
               inherited::mod_->name (),
               ACE_TEXT (inherited::threadName_.c_str ()),
               inherited::grp_id_));
+
+  return result;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+int
+Stream_Module_Delay_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      ConfigurationType,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      MediaType,
+                      UserDataType>::svc_2 (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::svc_2"));
+
+  ACE_Message_Block* message_block_p = NULL;
+  int result = -1, result_2;
+  int error = -1;
+
+  do
+  {
+    result = queue_2_.dequeue_head (message_block_p, NULL);
+    if (unlikely (result == -1))
+    {
+      error = ACE_OS::last_error ();
+      //if (error == ETIME)
+      //  goto continue_;
+
+      if (unlikely (error != ESHUTDOWN))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: worker thread %t failed to ACE_Message_Queue_T::dequeue_head(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        return -1;
+      } // end IF
+      result = 0; // OK, queue has been deactivate()d
+      break;
+    } // end IF
+    ACE_ASSERT (message_block_p);
+
+    if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
+    {
+      message_block_p->release (); message_block_p = NULL;
+      result = 0; // OK, received STOP message
+      break;
+    } // end IF
+
+    result_2 = inherited::put_next (message_block_p, NULL);
+    if (unlikely (result_2 == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      message_block_p->release (); message_block_p = NULL;
+      break;
+    } // end IF
+    message_block_p = NULL;
+  } while (true);
 
   return result;
 }
@@ -792,11 +984,11 @@ continue_:
         return;
       } // end IF
 
-      result = inherited::put_next (message_block_2, NULL);
+      result = queue_2_.enqueue_tail (message_block_2, NULL);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
         if (messageBlock_in != message_block_2)
           messageBlock_in->release ();
@@ -833,11 +1025,11 @@ continue_:
         return;
       } // end IF
 
-      result = inherited::put_next (messageBlock_in, NULL);
+      result = queue_2_.enqueue_tail (messageBlock_in, NULL);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
                     inherited::mod_->name ()));
         messageBlock_in->release ();
         return;

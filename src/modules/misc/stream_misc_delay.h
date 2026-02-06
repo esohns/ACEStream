@@ -99,18 +99,22 @@ class Stream_Module_Delay_T
 
   // override (part of) ACE_Task_Base
   virtual int svc (void);
+  int svc_2 (void); // outbound dispatch
 
   void dispatch (ACE_Message_Block*); // next message
 
   ACE_UINT64                          availableTokens_;
   ACE_SYNCH_CONDITION                 condition_;
-  typename inherited::MESSAGE_QUEUE_T queue_;
+  bool                                isFirstDispatchingThread_;
+  typename inherited::MESSAGE_QUEUE_T queue_; // inbound-
+  typename inherited::MESSAGE_QUEUE_T queue_2_; // outbound-
   Common_Timer_ResetCounterHandler    resetTimeoutHandler_;
   long                                resetTimeoutHandlerId_;
   // *NOTE*: only needed for the 'synchronous' version !
   bool                                resizeOccured_;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  HANDLE                              task_;
+  HANDLE                              task_; // inbound dispatch task
+  HANDLE                              task_2_; // outbound dispatch task
 #endif // ACE_WIN32 || ACE_WIN64
 };
 
