@@ -340,7 +340,7 @@ do_work (ACE_UINT32 bufferSize_in,
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
   delay_configuration.catchUp = true;
   delay_configuration.isMultimediaTask = true;
-  delay_configuration.tokenFactor = 1.4f;
+  delay_configuration.tokenFactor = 1.35f;
 
   struct Stream_Visualization_SpectrumAnalyzer_Configuration analyzer_configuration;
 
