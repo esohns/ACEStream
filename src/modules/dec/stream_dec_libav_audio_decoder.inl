@@ -566,8 +566,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         context_->extradata_size = (*iterator).second.size;
       } // end IF
 
-      //context_->profile =
-      //  inherited::configuration_->codecConfiguration->profile;
+      context_->profile =
+        inherited::configuration_->codecConfiguration->profile;
       context_->request_sample_fmt = outputFormat_;
       context_->sample_fmt = media_type_s.format;
       context_->sample_rate = media_type_s.sampleRate;

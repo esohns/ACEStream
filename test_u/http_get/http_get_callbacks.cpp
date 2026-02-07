@@ -23,10 +23,6 @@
 
 #include "gmodule.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
-
 #include <sstream>
 
 #include "ace/Log_Msg.h"
@@ -70,7 +66,7 @@ stream_processing_function (void* arg_in)
   result = std::numeric_limits<unsigned long>::max ();
 #else
   result = arg_in;
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   Common_UI_GTK_BuildersConstIterator_t iterator;
   struct HTTPGet_UI_ThreadData* thread_data_p =
@@ -1016,7 +1012,7 @@ button_execute_clicked_cb (GtkButton* button_in,
                                                        ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FILECHOOSERBUTTON_SAVE)));
   ACE_ASSERT (file_chooser_button_p);
   URI_p =
-      gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (file_chooser_button_p));
+    gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (file_chooser_button_p));
   if (!URI_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1032,17 +1028,13 @@ button_execute_clicked_cb (GtkButton* button_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_filename_from_uri(): \"%s\", returning\n"),
                 ACE_TEXT (error_p->message)));
-
-    // clean up
-    g_error_free (error_p);
-
+    g_error_free (error_p); error_p = NULL;
     goto error;
   } // end IF
   ACE_ASSERT (!hostname_p);
   ACE_ASSERT (!error_p);
   directory_string = Common_UI_GTK_Tools::UTF8ToLocale (directory_p, -1);
   g_free (directory_p);
-  directory_string = Common_File_Tools::directory (directory_string);
   ACE_ASSERT (Common_File_Tools::isDirectory (directory_string));
   (*iterator_2).second.second->targetFileName = directory_string;
   (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR_A;
