@@ -92,19 +92,19 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
     format.videoFormat = AV_PIX_FMT_NONE;
   }
 
-  enum AVCodecID      codecId;         // encoder-/decoder-
-  enum AVHWDeviceType deviceType;      // encoder-/decoder-
-  int                 flags;           // codec-
-  int                 flags2;          // codec-
+  enum AVCodecID        codecId;         // encoder-/decoder-
+  enum AVHWDeviceType   deviceType;      // encoder-/decoder-
+  int                   flags;           // codec-
+  int                   flags2;          // codec-
   union
   {
     enum AVSampleFormat audioFormat;
-    enum AVPixelFormat videoFormat;
-  }                   format;          // preferred format (audio/video)
-  bool                padInputBuffers; // zero AV_INPUT_BUFFER_PADDING_SIZE byte(s) beyond wr_ptr() ?
-  int                 parserFlags;     // parser-
-  int                 profile;         // (encoder-) codec-
-  bool                useParser;       // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
+    enum AVPixelFormat  videoFormat;
+  } format;                              // preferred format (audio/video)
+  bool                  padInputBuffers; // zero AV_INPUT_BUFFER_PADDING_SIZE byte(s) beyond wr_ptr() ?
+  int                   parserFlags;     // parser-
+  int                   profile;         // (encoder-) codec-
+  bool                  useParser;       // use av_parser_parse2() to frame chunks, decode packet headers, etc ?
 };
 
 //////////////////////////////////////////
