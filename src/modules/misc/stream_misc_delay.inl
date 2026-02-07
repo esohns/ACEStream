@@ -473,13 +473,43 @@ end:
       stop (true,             // wait ?
             high_priority_b); // high priority ?
 
-      isFirstDispatchingThread_ = true;
-
       break;
     }
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+bool
+Stream_Module_Delay_T<ACE_SYNCH_USE,
+                      TimePolicyType,
+                      ConfigurationType,
+                      ControlMessageType,
+                      DataMessageType,
+                      SessionMessageType,
+                      MediaType,
+                      UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                 Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::initialize"));
+
+  if (unlikely (inherited::isInitialized_))
+  {
+    availableTokens_ = 0;
+    isFirstDispatchingThread_ = true;
+    resizeOccured_ = false;
+  } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
 
 template <ACE_SYNCH_DECL,

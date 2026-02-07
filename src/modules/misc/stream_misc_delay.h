@@ -85,6 +85,10 @@ class Stream_Module_Delay_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
+  // implement Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator* = NULL);
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Delay_T (const Stream_Module_Delay_T&))
