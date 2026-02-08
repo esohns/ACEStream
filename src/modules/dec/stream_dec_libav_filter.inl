@@ -199,9 +199,9 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   struct AVPacket packet_s;
   ACE_Message_Block* message_block_p = message_inout;
-  uint8_t* data_p = NULL;
-  size_t   data_size_i = 0;
-  bool abort_session_on_error = true;
+  uint8_t* data_p;
+  size_t data_size_i;
+  static bool abort_session_on_error = true;
   bool is_first_b = true;
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
@@ -258,7 +258,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
     } // end WHILE
 
     message_block_p = message_block_p->cont ();
-    if (!message_block_p)
+    if (likely (!message_block_p))
       break;
   } while (true);
 
@@ -394,6 +394,10 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: generating output format: \"%s\"\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (args_a)));
 
       /* buffer audio sink: to terminate the filter chain. */
       result = avfilter_graph_create_filter (&bufferSinkContext_,

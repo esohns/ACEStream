@@ -58,6 +58,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
  , parameters_ ()
  , parameters2_ ()
  , sampleSize_ (0)
+ , state_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
 
@@ -104,11 +105,16 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //parameters2_.greedy.best_of = 5;
   //parameters2_.beam_search.beam_size = 5;
 
-#if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD)
-  parameters2_.vad = true;
-  parameters2_.vad_model_path = ACE_TEXT_ALWAYS_CHAR ("E:\\models\\ggml-silero-v5.1.2.bin");
-  parameters2_.vad_params = whisper_vad_default_params ();
-#endif // STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD
+  if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD) // *TODO*
+  {
+    parameters2_.vad = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    parameters2_.vad_model_path = ACE_TEXT_ALWAYS_CHAR ("E:\\models\\ggml-silero-v5.1.2.bin");
+#else
+    parameters2_.vad_model_path = ACE_TEXT_ALWAYS_CHAR ("/mnt/win_e/models/ggml-silero-v5.1.2.bin");
+#endif // ACE_WIN32 || ACE_WIN64
+    parameters2_.vad_params = whisper_vad_default_params ();
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -134,6 +140,11 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     buffer_->release ();
   if (unlikely (context_))
     whisper_free (context_);
+  if (unlikely (state_))
+    whisper_free_state (state_);
+  whisper_free_context_params (&parameters_);
+  whisper_free_params (&parameters2_);
+  //whisper_vad_free_params (parameters2_.vad_params);
 }
 
 template <ACE_SYNCH_DECL,
@@ -169,10 +180,12 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       whisper_free (context_); context_ = NULL;
     } // end IF
     sampleSize_ = 0;
+    state_ = NULL;
   } // end IF
 
-  context_ = whisper_init_from_file_with_params (configuration_in.modelFile.c_str (),
-                                                 parameters_);
+  context_ =
+    whisper_init_from_file_with_params (configuration_in.modelFile.c_str (),
+                                        parameters_);
   if (unlikely (!context_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -185,6 +198,16 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
               ACE_TEXT ("%s: using model file: \"%s\"\n"),
               inherited::mod_->name (),
               ACE_TEXT (configuration_in.modelFile.c_str ())));
+
+  state_ = whisper_init_state (context_);
+  if (unlikely (!state_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to whisper_init_state(%@), aborting\n"),
+                inherited::mod_->name (),
+                context_));
+    return false;
+  } // end IF
 
   if (!configuration_in.language.empty ())
   {
@@ -230,17 +253,19 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->messageAllocator);
 
-  if (!buffer_)
+  if (unlikely (!buffer_))
     buffer_ = message_inout;
   else
     Stream_Tools::append (buffer_,
                           message_inout);
 
   int number_of_samples_i =
-    static_cast<int> (message_inout->total_length () / sampleSize_);
-  bufferedMs_ +=
+    static_cast<int> (buffer_->total_length () / sampleSize_);
+  bufferedMs_ =
     static_cast<unsigned int> ((number_of_samples_i * 1000.0f) / static_cast<float> (WHISPER_SAMPLE_RATE));
-  if (bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BUFFER_LENGTH_MS)
+  if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_USE_BUFFER && // input needs to be >100ms
+      bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BUFFER_LENGTH_MS)
+      //bufferedMs_ < 500) // for whisper_full_parallel()
   {
     message_inout = NULL;
     return;
@@ -260,26 +285,31 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     buffer_ = static_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (!buffer_->cont ());
 
-  number_of_samples_i = static_cast<int> (buffer_->length () / sampleSize_);
   //parameters2_.duration_ms = bufferedMs_;
-  if (unlikely (whisper_full (context_,
-                              parameters2_,
-                              reinterpret_cast<float*> (buffer_->rd_ptr ()),
-                              number_of_samples_i) != 0))
+  if (unlikely (whisper_full_with_state (context_,
+                                         state_,
+                                         parameters2_,
+                                         reinterpret_cast<float*> (buffer_->rd_ptr ()),
+                                         number_of_samples_i) != 0))
+  //if (unlikely (whisper_full_parallel (context_,
+  //                                     parameters2_,
+  //                                     reinterpret_cast<float*> (buffer_->rd_ptr ()),
+  //                                     number_of_samples_i,
+  //                                     parameters2_.n_threads) != 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to whisper_full(), aborting\n"),
+                ACE_TEXT ("%s: failed to whisper_full_with_state(), aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
 
   data_p = &const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
-  n_segments = whisper_full_n_segments (context_);
+  n_segments = whisper_full_n_segments_from_state (state_);
   for (int i = 0; i < n_segments; ++i)
   {
-    n_tokens = whisper_full_n_tokens (context_, i);
+    n_tokens = whisper_full_n_tokens_from_state (state_, i);
     for (int j = 0; j < n_tokens; ++j)
-      data_p->words.push_back (whisper_full_get_token_text (context_, i, j));
+      data_p->words.push_back (whisper_full_get_token_text_from_state (context_, state_, i, j));
   } // end FOR
 
   // filter tokens
@@ -288,9 +318,9 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
                                        [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
                        data_p->words.end ());
-  if (unlikely (data_p->words.empty ()))
+  if (data_p->words.empty ())
   {
-    // nothing recognized, reset buffer and return
+    // nothing significant recognized; reset buffer and return
     buffer_->release (); buffer_ = NULL;
     bufferedMs_ = 0;
     return;

@@ -98,6 +98,7 @@ class Stream_Decoder_WhisperCppDecoder_T
   struct whisper_context_params parameters_;
   struct whisper_full_params    parameters2_;
   unsigned int                  sampleSize_;
+  struct whisper_state*         state_;
 };
 
 // include template definition
