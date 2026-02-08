@@ -39,6 +39,12 @@ class Stream_IAllocator;
 
 extern const char libacestream_default_dec_whisper_decoder_module_name_string[];
 
+// all sorts of callbacks...
+void acestream_dec_whispercpp_on_log_cb (ggml_log_level, const char*, void*);
+void acestream_dec_whispercpp_on_progress_cb (struct whisper_context*, struct whisper_state*, int, void*);
+bool acestream_dec_whispercpp_on_begin_cb (struct whisper_context*, struct whisper_state*, void*);
+bool acestream_dec_whispercpp_abort_cb (void*);
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -92,6 +98,7 @@ class Stream_Decoder_WhisperCppDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WhisperCppDecoder_T (const Stream_Decoder_WhisperCppDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_WhisperCppDecoder_T& operator= (const Stream_Decoder_WhisperCppDecoder_T&))
 
+  bool                          aborted_;
   DataMessageType*              buffer_;
   unsigned int                  bufferedMs_;
   struct whisper_context*       context_;

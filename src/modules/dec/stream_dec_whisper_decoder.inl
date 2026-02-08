@@ -52,6 +52,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                                    SessionDataContainerType,
                                    MediaType>::Stream_Decoder_WhisperCppDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , aborted_ (false)
  , buffer_ (NULL)
  , bufferedMs_ (0)
  , context_ (NULL)
@@ -64,11 +65,11 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   parameters_ = whisper_context_default_params ();
   parameters_.flash_attn =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_FLASH_ATTN;
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_FLASH_ATTENTION;
 
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
-  if (unlikely (!parameters_.use_gpu))
-    parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
+  //if (unlikely (!parameters_.use_gpu))
+  parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
   // *NOTE*: (hopefully) reduces repetitions
   parameters2_.n_max_text_ctx =
     STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_MAX_TOKEN_CONTEXT;
@@ -111,6 +112,15 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   parameters2_.greedy.best_of =
   //parameters2_.beam_search.beam_size =
     STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BEAM_SIZE;
+
+  parameters2_.progress_callback = acestream_dec_whispercpp_on_progress_cb;
+  //parameters2_.progress_callback_user_data = NULL;
+
+  parameters2_.encoder_begin_callback = acestream_dec_whispercpp_on_begin_cb;
+  parameters2_.encoder_begin_callback_user_data = &aborted_;
+
+  parameters2_.abort_callback = acestream_dec_whispercpp_abort_cb;
+  parameters2_.abort_callback_user_data = &aborted_;
 
   if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD) // *TODO*
   {
@@ -177,6 +187,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    aborted_ = false;
     if (likely (buffer_))
     {
       buffer_->release (); buffer_ = NULL;
@@ -189,6 +200,12 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     sampleSize_ = 0;
     state_ = NULL;
   } // end IF
+
+  whisper_log_set (acestream_dec_whispercpp_on_log_cb, NULL);
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: %s\n"),
+              inherited::mod_->name (),
+              ACE_TEXT (whisper_print_system_info ())));
 
   context_ =
     whisper_init_from_file_with_params (configuration_in.modelFile.c_str (),
@@ -298,6 +315,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   Stream_SessionId_t session_id_i = message_inout->sessionId ();
   message_inout = NULL;
+  static whisper_token const EOT_token = whisper_token_eot (context_);
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
@@ -330,15 +348,19 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   {
     n_tokens = whisper_full_n_tokens_from_state (state_, i);
     for (int j = 0; j < n_tokens; ++j)
+    {
+      if (EOT_token <= whisper_full_get_token_id_from_state (state_, i, j))
+        continue; // skip these tokens
       data_p->words.push_back (whisper_full_get_token_text_from_state (context_, state_, i, j));
+    } // end FOR
   } // end FOR
 
-  // filter tokens
-  static std::vector<std::string> token_filter_a = { ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"),
-                                                     ACE_TEXT_ALWAYS_CHAR ("[_EOT_]") };
-  data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
-                                       [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
-                       data_p->words.end ());
+  //// filter tokens ?
+  //static std::vector<std::string> token_filter_a = { ACE_TEXT_ALWAYS_CHAR ("<|endoftext|>"),
+  //                                                   ACE_TEXT_ALWAYS_CHAR ("[_EOT_]") };
+  //data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
+  //                                     [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
+  //                     data_p->words.end ());
   if (data_p->words.empty ())
   {
     // nothing significant recognized; reset buffer and return
@@ -419,6 +441,11 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      aborted_ = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -527,11 +554,10 @@ error:
       break;
     }
 //    case STREAM_SESSION_MESSAGE_RESIZE:
-//    {
 //      break;
-//    }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       break;
     }
     default:
