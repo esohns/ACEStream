@@ -63,6 +63,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
 
   parameters_ = whisper_context_default_params ();
+  parameters_.flash_attn =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_FLASH_ATTN;
 
   parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
   if (unlikely (!parameters_.use_gpu))
@@ -86,7 +88,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //parameters2_.max_tokens = 0;
 
   //parameters2_.debug_mode = false;
-  //parameters2_.audio_ctx = 0;
+  parameters2_.audio_ctx =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_AUDIO_CONTEXT;
 
   //parameters2_.tdrz_enable = false;
 
@@ -95,15 +98,19 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //parameters2_.suppress_blank = true;
   parameters2_.suppress_nst = true;
 
-  //parameters2_.temperature_inc = -1.0f;
+  //parameters2_.temperature = 0.0f;
+  parameters2_.length_penalty =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_LENGTH_PENALTY_F; // default: -1.0f
+
   // *NOTE*: (hopefully) reduces repetitions
   parameters2_.entropy_thold =
     STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_ENTROPY_THRESHOLD_F; // default: 2.4f
   //parameters2_.logprob_thold = -1.0f; // default: -1.0f
   //parameters2_.no_speech_thold = 0.6f; // default: 0.55f
 
-  //parameters2_.greedy.best_of = 5;
-  //parameters2_.beam_search.beam_size = 5;
+  parameters2_.greedy.best_of =
+  //parameters2_.beam_search.beam_size =
+    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BEAM_SIZE;
 
   if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD) // *TODO*
   {
@@ -209,14 +216,28 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  if (!configuration_in.language.empty ())
+  if (!configuration_in.language.empty ()                                        &&
+      ACE_OS::strcmp (parameters2_.language, configuration_in.language.c_str ()) &&
+      whisper_is_multilingual (context_))
   {
+    parameters2_.detect_language = false;
+    parameters2_.translate = true;
     parameters2_.language = configuration_in.language.c_str ();
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: setting input language: \"%s\"\n"),
+                ACE_TEXT ("%s: setting output language: \"%s\"\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (configuration_in.language.c_str ())));
   } // end IF
+  else
+  {
+    parameters2_.detect_language = false;
+    parameters2_.translate = false;
+    //parameters2_.language = NULL;
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: using default output language: \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (parameters2_.language)));
+  } // end ELSE
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -295,7 +316,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //                                     parameters2_,
   //                                     reinterpret_cast<float*> (buffer_->rd_ptr ()),
   //                                     number_of_samples_i,
-  //                                     parameters2_.n_threads) != 0))
+  //                                     4) != 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to whisper_full_with_state(), aborting\n"),
