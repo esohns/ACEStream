@@ -36,8 +36,6 @@
 
 //---------------------------------------
 
-#if defined (GTK_SUPPORT)
-#if defined (GTKGL_SUPPORT)
 #define TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE          "image.png"
 #define TEST_I_UI_OPENGL_CAMERA_DEFAULT_ZOOM_F         5.0F
 // perspective(s)
@@ -46,7 +44,6 @@
 #define TEST_I_UI_OPENGL_PERSPECTIVE_ZFAR_D            100.0
 #define TEST_I_UI_OPENGL_ORTHO_ZNEAR_D                 -1.0
 #define TEST_I_UI_OPENGL_ORTHO_ZFAR_D                  1.0
-#endif // GTKGL_SUPPORT
 
 #define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
@@ -59,6 +56,7 @@
 #define TEST_I_UI_GTK_BUTTON_REPORT_NAME               "button_report"
 #define TEST_I_UI_GTK_BUTTON_QUIT_NAME                 "button_quit"
 #define TEST_I_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME   "checkbutton_visualization"
+#define TEST_I_UI_GTK_COMBOBOX_BACKEND_NAME            "combobox_backend"
 #define TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME             "combobox_source"
 #define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
@@ -68,9 +66,11 @@
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
 #define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME      "filechooserdialog_save"
 #define TEST_I_UI_GTK_FILEFILTER_TXT_NAME              "filefilter_txt"
+#define TEST_I_UI_GTK_FRAME_BACKEND_NAME               "frame_backend"
 #define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
 #define TEST_I_UI_GTK_HSCALE_BOOST_NAME                "hscale_boost"
 #define TEST_I_UI_GTK_HSCALE_VOLUME_NAME               "hscale_volume"
+#define TEST_I_UI_GTK_LISTSTORE_BACKEND_NAME           "liststore_backend"
 #define TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME            "liststore_source"
 //#define TEST_I_UI_GTK_FRAME_OPTIONS_NAME         "frame_options"
 #define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION       "Monospace 8"
@@ -92,6 +92,5 @@
 #define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
 #define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
-#endif // GTK_SUPPORT
 
 #endif

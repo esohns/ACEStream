@@ -26,13 +26,9 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_time_common.h"
-
 #include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
-
-#include "stream_dec_common.h"
 
 // forward declaration(s)
 class Stream_IAllocator;

@@ -55,6 +55,7 @@ G_MODULE_EXPORT void button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_reset_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_settings_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void button_quit_clicked_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_backend_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gboolean dialog_main_key_press_event_cb (GtkWidget*, GdkEventKey*, gpointer);
 G_MODULE_EXPORT gboolean drawingarea_query_tooltip_cb (GtkWidget*, gint, gint, gboolean, GtkTooltip*, gpointer);
