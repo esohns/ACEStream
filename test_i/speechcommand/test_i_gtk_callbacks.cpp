@@ -948,6 +948,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (ui_cb_data_base_p->UIState);
 
   Common_UI_GTK_BuildersIterator_t iterator;
+  enum Test_I_STTBackend STT_backend_e = STT_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -958,7 +959,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_3; // renderer
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_3; // renderer
-  enum Test_I_STTBackend STT_backend_e = STT_INVALID;
   enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
   switch (ui_cb_data_base_p->mediaFramework)
   {

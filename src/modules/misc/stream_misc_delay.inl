@@ -374,6 +374,12 @@ continue_:
                   &interval,
                   resetTimeoutHandlerId_));
 
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d, aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->delayConfiguration->mode,
+                  inherited::configuration_->delayConfiguration->averageTokensPerInterval));
+
       // *NOTE*: this prevents a race condition in svc()
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         inherited::threadCount_ = 2;
@@ -864,8 +870,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::svc_2"));
 
   ACE_Message_Block* message_block_p = NULL;
-  int result = -1, result_2;
-  int error = -1;
+  int result, result_2;
+  int error;
 
   do
   {
@@ -1395,6 +1401,12 @@ continue_:
                   inherited::mod_->name (),
                   &inherited::configuration_->delayConfiguration->interval,
                   resetTimeoutHandlerId_));
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d, aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->delayConfiguration->mode,
+                  inherited::configuration_->delayConfiguration->averageTokensPerInterval));
 
       break;
 

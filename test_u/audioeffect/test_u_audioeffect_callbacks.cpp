@@ -7469,8 +7469,6 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::togglebutton_save_toggled_cb"));
 
-  ACE_UNUSED_ARG (toggleButton_in);
-
   // sanity check(s)
   struct Test_U_AudioEffect_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_AudioEffect_UI_CBDataBase*> (userData_in);

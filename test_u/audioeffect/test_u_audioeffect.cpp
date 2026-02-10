@@ -1339,6 +1339,9 @@ do_work (
       //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
       //directShowConfiguration_in.delayConfiguration.interval =
       //  ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
+      directShowConfiguration_in.delayConfiguration.isMultimediaTask = true;
+      //directShowConfiguration_in.delayConfiguration.tokenFactor = 1.35f;
+
       switch (directshow_stream_configuration.capturer)
       {
         case STREAM_DEVICE_CAPTURER_WAVEIN:
@@ -1394,6 +1397,7 @@ do_work (
           sourceFilename_in;
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
+      directshow_modulehandler_configuration.waitForDataOnEnd = true;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,

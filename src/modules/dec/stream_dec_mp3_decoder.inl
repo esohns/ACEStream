@@ -190,8 +190,9 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (configuration_in.allocatorConfiguration);
 
-  bufferSize_ = std::min (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
-                          mpg123_outblock (handle_));
+  bufferSize_ =
+    std::max (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
+              mpg123_outblock (handle_));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
