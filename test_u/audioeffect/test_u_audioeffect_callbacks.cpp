@@ -10520,7 +10520,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_LISTSTORE_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -10636,6 +10636,34 @@ combobox_source_changed_cb (GtkWidget* widget_in,
   {
     case AUDIOEFFECT_SOURCE_DEVICE:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (ui_cb_data_base_p->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          (*directshow_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            false;
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          (*mediafoundation_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            false;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      ui_cb_data_base_p->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
+      (*modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+        false;
+#endif // ACE_WIN32 || ACE_WIN64
+
       GtkBox* box_2 =
         GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
@@ -10655,6 +10683,34 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case AUDIOEFFECT_SOURCE_NOISE:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (ui_cb_data_base_p->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          (*directshow_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            false;
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          (*mediafoundation_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            false;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      ui_cb_data_base_p->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
+      (*modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+        false;
+#endif // ACE_WIN32 || ACE_WIN64
+
       GtkBox* box_2 =
         GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                          ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
@@ -10675,6 +10731,34 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     }
     case AUDIOEFFECT_SOURCE_FILE:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (ui_cb_data_base_p->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          (*directshow_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            true;
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          (*mediafoundation_modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+            true;
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      ui_cb_data_base_p->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
+      (*modulehandler_configuration_iterator).second.second->waitForDataOnEnd =
+        true;
+#endif // ACE_WIN32 || ACE_WIN64
+
       frame_p =
         GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_FRAME_FILE_NAME)));
@@ -10796,7 +10880,7 @@ continue_:
       {
         guint card_i =
           static_cast<guint> (Stream_MediaFramework_ALSA_Tools::getCardNumber ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier));
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
         GValue value = G_VALUE_INIT;
 #else
         GValue value;

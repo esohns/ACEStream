@@ -1393,11 +1393,9 @@ do_work (
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
       if (!sourceFilename_in.empty ())
-        directshow_modulehandler_configuration.fileIdentifier.identifier =
-          sourceFilename_in;
+        directshow_modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
-      directshow_modulehandler_configuration.waitForDataOnEnd = true;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1471,8 +1469,7 @@ do_work (
         directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
-        directshow_modulehandler_configuration_4.fileIdentifier.identifier =
-          targetFilename_in;
+        directshow_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));

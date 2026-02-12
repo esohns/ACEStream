@@ -430,8 +430,10 @@ end:
         } // end FOR
         data_.clear ();
 
+        branches_.clear ();
         heads_.clear ();
         modules_.clear ();
+        numberOfBranches_ = 0;
         queues_.clear ();
       } // end lock scope
 
