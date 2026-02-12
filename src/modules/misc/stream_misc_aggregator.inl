@@ -1629,8 +1629,8 @@ Stream_Module_Aggregator_WriterTask_2<ACE_SYNCH_USE,
 
 continue_:
   module_2 = const_cast<MODULE_T*> (module_p)->next ();
-  ACE_ASSERT (module_2);
-  if (!ACE_OS::strcmp (inherited::mod_->name (),
+  if (module_2 &&
+      !ACE_OS::strcmp (inherited::mod_->name (),
                        module_2->name ()))
   {
     // *NOTE*: 'this' is (the head of-) 'downstream'

@@ -262,6 +262,8 @@ Stream_AVSave_EventHandler_T<NotificationType,
         ++CBData_->progressData.statistic.totalFrames;
         break;
       }
+      case STREAM_MEDIATYPE_INVALID:
+        break;
       default:
       {
         ACE_DEBUG ((LM_ERROR,

@@ -1143,18 +1143,12 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_AudioEffect_DirectShow_Stream directshow_stream;
   Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
-
-  Test_U_AudioEffect_DirectShow_SessionData directshow_session_data;
-  Test_U_AudioEffect_MediaFoundation_SessionData mediafoundation_session_data;
-
   Test_U_DirectShow_SessionManager_t* directshow_session_manager_p =
     Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
-  directshow_session_manager_p->setR (directshow_session_data,
-                                      directshow_stream.id ());
+  ACE_ASSERT (directshow_session_manager_p);
   Test_U_MediaFoundation_SessionManager_t* mediafoundation_session_manager_p =
     Test_U_MediaFoundation_SessionManager_t::SINGLETON_T::instance ();
-  mediafoundation_session_manager_p->setR (mediafoundation_session_data,
-                                           mediafoundation_stream.id ());
+  ACE_ASSERT (mediafoundation_session_manager_p);
 
   Test_U_AudioEffect_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                  &heap_allocator,     // heap allocator handle
@@ -1163,11 +1157,9 @@ do_work (
                                                                                            &heap_allocator,     // heap allocator handle
                                                                                            true);               // block ?
 #else
-  Test_U_AudioEffect_SessionData session_data;
-
   Test_U_SessionManager_t* session_manager_p =
     Test_U_SessionManager_t::SINGLETON_T::instance ();
-  session_manager_p->setR (session_data);
+  ACE_ASSERT (session_manager_p);
 
   Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,     // heap allocator handle

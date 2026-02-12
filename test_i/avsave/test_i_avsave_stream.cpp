@@ -105,7 +105,6 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
-    //inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   bool display_b = !(*iterator_2).second.second->display.device.empty ();
@@ -130,9 +129,9 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&distributor_, NULL, 0);
       branch_p = &distributor_;
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-      //branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
       idistributor_p->initialize (branches_a);
     } // end IF
@@ -146,7 +145,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
         layout_in->append (&tagger_, branch_p, index_i);
 #if defined (GTK_USE)
 //      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-//        layout_in->append (&display_, branch_p, 0);
+//        layout_in->append (&display_, branch_p, index_i);
 //      else
 //        layout_in->append (&display_2_, branch_p, index_i);
       layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
@@ -155,12 +154,13 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // GTK_USE || WXWIDGETS_USE
       ++index_i;
     } // end IF
+
     if (save_to_file_b)
     {
-      layout_in->append (&converter_2, NULL, 0);
-      layout_in->append (&tagger_, NULL, 0);
+      layout_in->append (&converter_2, branch_p, index_i);
+      layout_in->append (&tagger_, branch_p, index_i);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
-      layout_in->append (inherited::configuration_->configuration_->module_2, NULL, 0);
+      layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i);
     } // end IF
   } // end IF
   else

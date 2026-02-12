@@ -6047,6 +6047,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -6060,6 +6061,9 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -6125,6 +6129,16 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
     {
       (*directshow_stream_iterator).second.second->codecConfiguration->codecId =
         static_cast<enum AVCodecID> (g_value_get_int (&value));
+      std::string save_format_string = g_value_get_string (&value_2);
+
+      struct _GUID format_s = GUID_NULL;
+      if (!ACE_OS::strcmp (save_format_string.c_str (),
+                           ACE_TEXT_ALWAYS_CHAR ("AVI")))
+        format_s = MEDIASUBTYPE_RGB32;
+      else // --> MP4
+        format_s = MEDIASUBTYPE_NV12;
+      Stream_MediaFramework_DirectShow_Tools::setFormat (format_s,
+                                                         (*directshow_stream_iterator_2).second.second->outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

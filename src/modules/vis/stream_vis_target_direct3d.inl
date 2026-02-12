@@ -828,11 +828,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              MediaType>::initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                                               IDirect3DDevice9Ex*& handle_inout,
 #else
                                                               IDirect3DDevice9*& handle_inout,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                                               struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::initialize_Direct3D"));
@@ -903,22 +903,22 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   destroyDevice_out = false;
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (presentationParameters_.hDeviceWindow);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   ACE_ASSERT (handle_in);
 
   HRESULT result =
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     handle_in->CheckDeviceState (presentationParameters_.hDeviceWindow);
 #else
     handle_in->TestCooperativeLevel ();
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   switch (result)
   {
     case D3D_OK:
       break;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     case D3DERR_DEVICEHUNG: // try reset first
       resetDevice_out = true;
       break;
@@ -933,7 +933,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       break;
     case S_PRESENT_OCCLUDED:
       break;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     case D3DERR_DEVICELOST:
       break;
     case D3DERR_DEVICENOTRESET:

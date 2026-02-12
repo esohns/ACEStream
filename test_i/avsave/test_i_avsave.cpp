@@ -25,9 +25,6 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_SUPPORT)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 #if defined (WXWIDGETS_SUPPORT)
@@ -1239,8 +1236,10 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_video_stream_configuration.messageAllocator =
         &directshow_message_allocator;
       directshow_video_stream_configuration.module =
-          (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
-                                             : NULL);
+        (!UIDefinitionFilename_in.empty () ? &directshow_message_handler
+                                           : NULL);
+      directshow_video_stream_configuration.moduleBranch =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME);
 
       directshow_video_stream_configuration.allocatorConfiguration =
         &allocator_configuration;
@@ -1250,6 +1249,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         directshow_video_stream_configuration;
       directshow_audio_stream_configuration.allocatorConfiguration =
         &allocator_configuration_2;
+      directshow_audio_stream_configuration.moduleBranch.clear ();
 
       directShowConfiguration_in.audioStreamConfiguration.initialize (module_configuration,
                                                                       directshow_audio_modulehandler_configuration,

@@ -200,11 +200,11 @@ Stream_Decoder_LibAVConverter_T<TaskType,
   ACE_ASSERT (result >= 0);
 
   result =
-      av_image_fill_pointers (frame_->data,
-                              static_cast<AVPixelFormat> (frame_->format),
-                              static_cast<int> (frame_->height),
-                              reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
-                              frame_->linesize);
+    av_image_fill_pointers (frame_->data,
+                            static_cast<AVPixelFormat> (frame_->format),
+                            static_cast<int> (frame_->height),
+                            reinterpret_cast<uint8_t*> (buffer_->wr_ptr ()),
+                            frame_->linesize);
   ACE_ASSERT (result >= 0);
 
   return;
@@ -232,10 +232,9 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  const typename TaskType::SESSION_MESSAGE_T::DATA_T& session_data_container_r =
-    message_inout->getR ();
+  ACE_ASSERT (inherited::sessionData_);
   typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
-    const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (session_data_container_r.getR ());
+    const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   // *TODO*: remove type inference
   ACE_ASSERT (!session_data_r.formats.empty ());
 
@@ -390,9 +389,6 @@ error:
       if (!inherited::configuration_->handleResize)
         break;
 
-      ACE_ASSERT (inherited::sessionData_);
-      typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
-        const_cast<typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,

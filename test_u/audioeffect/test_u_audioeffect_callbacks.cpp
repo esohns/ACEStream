@@ -6612,11 +6612,11 @@ idle_update_progress_cb (gpointer userData_in)
   // calculate fps
   elapsed = now - previous_timestamp;
   bytes_per_second_i =
-    static_cast<ACE_UINT32> (static_cast<double> (data_p->statistic.bytes - previous_bytes_i) * (1000 / (double)elapsed.msec ()));
+    static_cast<ACE_UINT32> (static_cast<float> (data_p->statistic.bytes - previous_bytes_i) * (1000 / (float)elapsed.msec ()));
   previous_timestamp = now;
   previous_bytes_i = data_p->statistic.bytes;
   converter <<
-    static_cast<ACE_UINT32> (bytes_per_second_i / static_cast<double> (data_p->bytesPerFrame));
+    static_cast<ACE_UINT32> (bytes_per_second_i / static_cast<float> (data_p->bytesPerFrame));
   converter << ACE_TEXT_ALWAYS_CHAR (" sps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done_b ? ACE_TEXT_ALWAYS_CHAR ("")
