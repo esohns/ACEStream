@@ -780,24 +780,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
     if (unlikely (message_block_p->msg_type () == ACE_Message_Block::MB_STOP))
     {
-      if (unlikely (inherited::thr_count_ > 1))
-      {
-        result = queue_.enqueue_tail (message_block_p, NULL);
-        if (unlikely (result == -1))
-        {
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", aborting\n"),
-                      inherited::mod_->name ()));
-          message_block_p->release ();
-          return -1;
-        } // end IF
-        message_block_p = NULL;
-      } // end IF
-      // clean up ?
-      if (message_block_p)
-      {
-        message_block_p->release (); message_block_p = NULL;
-      } // end IF
+      message_block_p->release (); message_block_p = NULL;
       break; // done
     } // end IF
 
