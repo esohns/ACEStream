@@ -161,6 +161,7 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&tagger_, branch_p, index_i);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i);
+      ++index_i;
     } // end IF
   } // end IF
   else
@@ -183,6 +184,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   struct _AllocatorProperties allocator_properties;
   IAMBufferNegotiation* buffer_negotiation_p = NULL;
   bool COM_initialized = false;
+  bool release_builder_b = false;
   HRESULT result_2 = E_FAIL;
   ULONG reference_count = 0;
   IAMStreamConfig* stream_config_p = NULL;
@@ -270,6 +272,7 @@ Stream_AVSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& c
   //ACE_ASSERT (buffer_negotiation_p);
   ACE_ASSERT (stream_config_p);
   stream_config_p->Release (); stream_config_p = NULL;
+  release_builder_b = true;
 
 continue_:
   if (!Stream_Device_DirectShow_Tools::setCaptureFormat ((*iterator).second.second->builder,
@@ -515,7 +518,7 @@ continue_:
   return true;
 
 error:
-  if ((*iterator).second.second->builder)
+  if (release_builder_b && (*iterator).second.second->builder)
   {
     (*iterator).second.second->builder->Release (); (*iterator).second.second->builder = NULL;
   } // end IF

@@ -524,7 +524,7 @@ load_formats (IAMStreamConfig* IAMStreamConfig_in,
     //         directly --> insert the Overlay Mixer
     GUIDs.insert (media_type_p->subtype);
 
-    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p);
+    Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p, true);
   } // end FOR
 
   GtkTreeIter iterator;
@@ -1643,10 +1643,7 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
   switch (CBData_in->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      // sanity check(s)
-      ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
-
+    { ACE_ASSERT ((*directshow_stream_iterator).second.second->builder);
       // step1: set capture format
       Stream_MediaFramework_DirectShow_Tools::free (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
       if (!Stream_Device_DirectShow_Tools::getVideoCaptureFormat ((*directshow_stream_iterator).second.second->builder,
@@ -2182,15 +2179,18 @@ stream_processing_function (void* arg_in)
   result = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
 
-error:
-  //guint event_source_id = g_idle_add (idle_session_end_cb,
-  //                                    data_p->CBData);
-  //if (event_source_id == 0)
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-  //else
-  //  data_p->CBData->eventSourceIds.insert (event_source_id);
+  goto continue_;
 
+error:
+  guint event_source_id = g_idle_add (idle_session_end_cb,
+                                      thread_data_p->CBData);
+  if (event_source_id == 0)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+  else
+    thread_data_p->CBData->UIState->eventSourceIds.insert (event_source_id);
+
+continue_:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, thread_data_p->CBData->UIState->lock, -1);
 #else
@@ -6134,11 +6134,19 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
       struct _GUID format_s = GUID_NULL;
       if (!ACE_OS::strcmp (save_format_string.c_str (),
                            ACE_TEXT_ALWAYS_CHAR ("AVI")))
+      {
+        (*directshow_stream_iterator_2).second.second->flipImage = true;
         format_s = MEDIASUBTYPE_RGB32;
+      } // end IF
       else // --> MP4
+      {
+        (*directshow_stream_iterator_2).second.second->flipImage = false;
         format_s = MEDIASUBTYPE_NV12;
+      } // end ELSE
       Stream_MediaFramework_DirectShow_Tools::setFormat (format_s,
                                                          (*directshow_stream_iterator_2).second.second->outputFormat);
+
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
