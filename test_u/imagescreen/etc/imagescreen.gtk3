@@ -1,6 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name id -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
   <object class="GtkAboutDialog" id="dialog_about">
     <property name="can_focus">False</property>
     <property name="resizable">False</property>
@@ -31,22 +47,6 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="liststore_adapter">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name id -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_display">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name id -->
-      <column type="gchararray"/>
-    </columns>
   </object>
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
@@ -146,6 +146,7 @@
                     <child>
                       <object class="GtkComboBox" id="combobox_adapter">
                         <property name="visible">True</property>
+                        <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="model">liststore_adapter</property>
                       </object>
@@ -306,17 +307,30 @@
   </object>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
-    <property name="app_paintable">True</property>
-    <property name="can_focus">False</property>
-    <property name="no_show_all">True</property>
-    <property name="double_buffered">False</property>
+    <property name="can_focus">True</property>
+    <property name="has_focus">True</property>
+    <property name="can_default">True</property>
+    <property name="receives_default">True</property>
+    <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
-    <property name="accept_focus">False</property>
+    <property name="hide_titlebar_when_maximized">True</property>
+    <property name="skip_taskbar_hint">True</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
+    <property name="has_resize_grip">False</property>
     <child>
-      <placeholder/>
+      <object class="GtkDrawingArea" id="drawingarea_fullscreen">
+        <property name="visible">True</property>
+        <property name="app_paintable">True</property>
+        <property name="can_focus">False</property>
+        <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
+        <property name="double_buffered">False</property>
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
+        <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
+      </object>
     </child>
   </object>
 </interface>

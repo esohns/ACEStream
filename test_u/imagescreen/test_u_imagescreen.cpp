@@ -371,6 +371,7 @@ do_work (int argc_in,
 
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_ImageScreen_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Stream_ImageScreen_ModuleHandlerConfiguration modulehandler_configuration_2; // delay
   struct Stream_ImageScreen_StreamConfiguration stream_configuration;
 
   modulehandler_configuration.allocatorConfiguration =
@@ -456,6 +457,9 @@ do_work (int argc_in,
   modulehandler_configuration.slurpFiles = true;
   modulehandler_configuration.waitForDataOnEnd = true;
 
+  modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.handleResize = false;
+
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data
 #if defined (WXWIDGETS_USE)
@@ -492,6 +496,9 @@ do_work (int argc_in,
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
                                                 stream_configuration);
+  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING),
+                                                            std::make_pair (&module_configuration,
+                                                                            &modulehandler_configuration_2)));
 //  configuration.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (renderer_in).c_str ()),
 //                                                            std::make_pair (module_configuration,
 //                                                                            modulehandler_configuration)));

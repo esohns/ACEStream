@@ -1825,7 +1825,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
        task_p;
        task_p = task_p->next_)
   { ACE_ASSERT (task_p->msg_queue_);
-    if (task_p->thr_count () &&
+    if (task_p->thr_count () ||
         !task_p->msg_queue_->is_empty ())
       return true;
   } // end FOR

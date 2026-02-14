@@ -375,7 +375,7 @@ continue_:
                   resetTimeoutHandlerId_));
 
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d, aborting\n"),
+                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->delayConfiguration->mode,
                   inherited::configuration_->delayConfiguration->averageTokensPerInterval));
@@ -408,6 +408,11 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      if (!inherited::configuration_->handleResize)
+        break;
+
       resizeOccured_ = true;
       unsigned int result = queue_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))

@@ -48,6 +48,7 @@
 #define TEST_U_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_U_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
 #define TEST_U_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
+#define TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME      "drawingarea_fullscreen"
 #define TEST_U_UI_GTK_FILECHOOSERBUTTON_DIRECTORY_NAME "filechooserbutton"
 #define TEST_U_UI_GTK_LISTSTORE_ADAPTER_NAME           "liststore_adapter"
 #define TEST_U_UI_GTK_LISTSTORE_DISPLAY_NAME           "liststore_display"

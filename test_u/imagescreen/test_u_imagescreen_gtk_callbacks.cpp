@@ -58,7 +58,7 @@ load_display_adapters (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   Common_UI_DisplayAdapters_t display_adapters_a =
-      Common_UI_Tools::getAdapters();
+    Common_UI_Tools::getAdapters();
   GtkTreeIter iterator;
   for (Common_UI_DisplayAdaptersIterator_t iterator_2 = display_adapters_a.begin ();
        iterator_2 != display_adapters_a.end ();
@@ -86,7 +86,7 @@ load_display_devices (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   Common_UI_DisplayDevices_t display_devices_a =
-      Common_UI_Tools::getDisplays ();
+    Common_UI_Tools::getDisplays ();
   GtkTreeIter iterator;
   for (Common_UI_DisplayDevicesIterator_t iterator_2 = display_devices_a.begin ();
        iterator_2 != display_devices_a.end ();
@@ -118,17 +118,21 @@ drawingarea_resize_end (gpointer userData_in)
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
   ACE_ASSERT (drawing_area_p);
-  GtkWindow* fullscreen_window_p =
-    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
-  ACE_ASSERT (fullscreen_window_p);
+  GtkDrawingArea* drawing_area_2 =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)));
+  ACE_ASSERT (drawing_area_2);
+  //GtkWindow* fullscreen_window_p =
+  //  GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+  //                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
+  //ACE_ASSERT (fullscreen_window_p);
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   bool is_fullscreen_active_b = gtk_toggle_button_get_active (toggle_button_p);
   GtkWidget* widget_p =
-    is_fullscreen_active_b ? GTK_WIDGET (fullscreen_window_p) : GTK_WIDGET (drawing_area_p);
+    is_fullscreen_active_b ? GTK_WIDGET (drawing_area_2) : GTK_WIDGET (drawing_area_p);
   ACE_ASSERT (widget_p);
 
   ACE_ASSERT (ui_cb_data_p->configuration);
@@ -150,10 +154,6 @@ drawingarea_resize_end (gpointer userData_in)
       resolution_s.cy = allocation_s.height;
       Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                              (*stream_configuration_iterator).second.second->outputFormat);
-
-      if (!ui_cb_data_p->stream->isRunning ())
-        return G_SOURCE_REMOVE;
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -163,9 +163,6 @@ drawingarea_resize_end (gpointer userData_in)
       //                      MF_MT_FRAME_SIZE,
       //                      static_cast<UINT32> (allocation_s.width), static_cast<UINT32> (allocation_s.height));
       //ACE_ASSERT (SUCCEEDED (result_2));
-
-      if (!ui_cb_data_p->stream->isRunning ())
-        return G_SOURCE_REMOVE;
 
       break;
     }
@@ -182,10 +179,9 @@ drawingarea_resize_end (gpointer userData_in)
     allocation_s.height;
   (*stream_configuration_iterator).second.second->outputFormat.resolution.width =
     allocation_s.width;
-
+#endif // ACE_WIN32 || ACE_WIN64
   if (!ui_cb_data_p->stream->isRunning ())
     return G_SOURCE_REMOVE;
-#endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: two things need doing (see below):
   //         [- drop inbound frames until the 'resize' session message is through]
@@ -944,40 +940,43 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   (*stream_iterator).second.second->fullScreen = is_active_b;
 
-  GtkWindow* window_p =
+  GdkWindow* window_p =
+    gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
+  ACE_ASSERT (window_p);
+  GdkWindow* window_2 =
+    gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME))));
+  ACE_ASSERT (window_2);
+  GtkWindow* window_fullscreen_p =
     GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
-  ACE_ASSERT (window_p);
-  if (is_active_b)
-  {
-    gtk_widget_show (GTK_WIDGET (window_p));
-    gtk_window_maximize (window_p);
-#if GTK_CHECK_VERSION (3,0,0)
-    gtk_window_fullscreen (window_p);
-#endif // GTK_CHECK_VERSION (3,0,0)
-  } // end IF
-  else
-  {
-#if GTK_CHECK_VERSION (3,0,0)
-    gtk_window_unfullscreen (window_p);
-#endif // GTK_CHECK_VERSION (3,0,0)
-    gtk_window_unmaximize (window_p);
-    gtk_widget_hide (GTK_WIDGET (window_p));
-  } // end ELSE
+  ACE_ASSERT (window_fullscreen_p);
+
 
   if (is_active_b)
   {
-    // window_p =
-    //   GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-    //                                       ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
-    ACE_ASSERT (window_p);
-    (*stream_iterator).second.second->window.gdk_window =
-      gtk_widget_get_window (GTK_WIDGET (window_p));
+    gtk_widget_show (GTK_WIDGET (window_fullscreen_p));
+    gtk_window_maximize (window_fullscreen_p);
+#if GTK_CHECK_VERSION (3,0,0)
+    gtk_window_fullscreen (window_fullscreen_p);
+#endif // GTK_CHECK_VERSION (3,0,0)
   } // end IF
   else
-    (*stream_iterator).second.second->window.gdk_window =
-      gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
-                                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
+  {
+#if GTK_CHECK_VERSION (3,0,0)
+    gtk_window_unfullscreen (window_fullscreen_p);
+#endif // GTK_CHECK_VERSION (3,0,0)
+    gtk_window_unmaximize (window_fullscreen_p);
+    gtk_widget_hide (GTK_WIDGET (window_fullscreen_p));
+  } // end ELSE
+
+  if (is_active_b)
+  { ACE_ASSERT (window_2);
+    (*stream_iterator).second.second->window.gdk_window = window_2;
+  } // end IF
+  else
+    (*stream_iterator).second.second->window.gdk_window = window_p;
   ACE_ASSERT ((*stream_iterator).second.second->window.gdk_window);
 
   ACE_ASSERT (stream_base_p);
@@ -1200,7 +1199,7 @@ key_cb (GtkWidget* widget_in,
       bool is_active_b = false;
       GtkToggleButton* toggle_button_p =
         GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+                                                   ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
       ACE_ASSERT (toggle_button_p);
       is_active_b = gtk_toggle_button_get_active (toggle_button_p);
 
@@ -1248,18 +1247,12 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      if (!ui_cb_data_p->stream->isRunning ())
-        goto continue_;
-
       module_name =
         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      if (!ui_cb_data_p->stream->isRunning ())
-        goto continue_;
-
       module_name =
         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 
@@ -1274,11 +1267,10 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  if (!ui_cb_data_p->stream->isRunning ())
-    goto continue_;
-
   module_name = ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64
+  if (!ui_cb_data_p->stream->isRunning ())
+    goto continue_;
 
   // *NOTE*: two things need doing:
   //         - drop inbound frames until the 'resize' session message is through
