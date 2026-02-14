@@ -3717,6 +3717,17 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+
+      if (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend == TTS_SAPI)
+      {
+        gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                                  &iterator_2,
+                                  0, &value);
+        ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+        voice_string = g_value_get_string (&value);
+        g_value_unset (&value);
+      } // end IF
+
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
