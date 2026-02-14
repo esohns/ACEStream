@@ -22,92 +22,98 @@
 #define TEST_I_CHAT_BOT_DEFINES_H
 
 #if defined (WHISPERCPP_SUPPORT)
-#define TEST_I_DEFAULT_STT_BACKEND                     STT_WHISPERCPP
+#define TEST_I_DEFAULT_STT_BACKEND                      STT_WHISPERCPP
 #elif defined (DEEPSPEECH_SUPPORT)
-#define TEST_I_DEFAULT_STT_BACKEND                     STT_DEEPSPEECH
+#define TEST_I_DEFAULT_STT_BACKEND                      STT_DEEPSPEECH
 #else
-#define TEST_I_DEFAULT_STT_BACKEND                     STT_INVALID
+#define TEST_I_DEFAULT_STT_BACKEND                      STT_INVALID
 #endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
 
-#define TEST_I_DEFAULT_MODEL_FILE                      "deepspeech-0.9.3-models.pbmm" // STT
-#define TEST_I_DEFAULT_SCORER_FILE                     "deepspeech-0.9.3-models.scorer"
-#define TEST_I_DEFAULT_RNNN_FILE                       "sh.rnnn"
-#define TEST_I_DEFAULT_MODEL_FILE_2                    "Llama-3.1-8B-Instruct-IQ4_XS.gguf" // LLM
+#define TEST_I_DEFAULT_MODEL_FILE                       "deepspeech-0.9.3-models.pbmm" // STT
+#define TEST_I_DEFAULT_SCORER_FILE                      "deepspeech-0.9.3-models.scorer"
+#define TEST_I_DEFAULT_RNNN_FILE                        "sh.rnnn"
+#define TEST_I_DEFAULT_MODEL_FILE_2                     "Llama-3.1-8B-Instruct-IQ4_XS.gguf" // LLM
 
 #if defined (FESTIVAL_SUPPORT)
-#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FESTIVAL
+#define TEST_I_DEFAULT_TTS_BACKEND                      TTS_FESTIVAL
 #elif defined (FLITE_SUPPORT)
-#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_FLITE
+#define TEST_I_DEFAULT_TTS_BACKEND                      TTS_FLITE
 #else
-#define TEST_I_DEFAULT_TTS_BACKEND                     TTS_INVALID
+#define TEST_I_DEFAULT_TTS_BACKEND                      TTS_INVALID
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
 
-#define TEST_I_DEFAULT_FESTIVAL_VOICE_DIRECTORY        ""
-#define TEST_I_DEFAULT_FESTVIAL_VOICE                  "cmu_us_slt_cg"
+#define TEST_I_DEFAULT_FESTIVAL_VOICE_DIRECTORY         ""
+#define TEST_I_DEFAULT_FESTVIAL_VOICE                   "cmu_us_slt_cg"
 
-#define TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY           ""
-#define TEST_I_DEFAULT_FLITE_VOICE                     "cmu_us_slt.flitevox"
+#define TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY            ""
+#define TEST_I_DEFAULT_FLITE_VOICE                      "cmu_us_slt.flitevox"
 
-#define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
+#define TEST_I_DEFAULT_OUTPUT_FILE                      "output.wav"
 
 //---------------------------------------
 
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
-#define TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE          "image.png"
-#define TEST_I_UI_OPENGL_CAMERA_DEFAULT_ZOOM_F         5.0F
+#define TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE           "image.png"
+#define TEST_I_UI_OPENGL_CAMERA_DEFAULT_ZOOM_F          5.0F
 // perspective(s)
-#define TEST_I_UI_OPENGL_PERSPECTIVE_FOVY_D            45.0
-#define TEST_I_UI_OPENGL_PERSPECTIVE_ZNEAR_D           0.1
-#define TEST_I_UI_OPENGL_PERSPECTIVE_ZFAR_D            100.0
-#define TEST_I_UI_OPENGL_ORTHO_ZNEAR_D                 -1.0
-#define TEST_I_UI_OPENGL_ORTHO_ZFAR_D                  1.0
+#define TEST_I_UI_OPENGL_PERSPECTIVE_FOVY_D             45.0
+#define TEST_I_UI_OPENGL_PERSPECTIVE_ZNEAR_D            0.1
+#define TEST_I_UI_OPENGL_PERSPECTIVE_ZFAR_D             100.0
+#define TEST_I_UI_OPENGL_ORTHO_ZNEAR_D                  -1.0
+#define TEST_I_UI_OPENGL_ORTHO_ZFAR_D                   1.0
 #endif // GTKGL_SUPPORT
 
-#define TEST_I_UI_GTK_ACTION_RECORD_NAME               "action_record"
-#define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME "adjustment_sw_v"
-#define TEST_I_UI_GTK_BOX_DISPLAY_NAME                 "vbox_display"
-#define TEST_I_UI_GTK_BOX_VISUALIZATION_NAME           "hbox_visualization_2"
-#define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                "button_about"
-#define TEST_I_UI_GTK_BUTTON_CUT_NAME                  "button_cut"
-#define TEST_I_UI_GTK_BUTTON_RESET_NAME                "button_reset"
-#define TEST_I_UI_GTK_BUTTON_SETTINGS_NAME             "button_settings"
-#define TEST_I_UI_GTK_BUTTON_REPORT_NAME               "button_report"
-#define TEST_I_UI_GTK_BUTTON_QUIT_NAME                 "button_quit"
-#define TEST_I_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME   "checkbutton_visualization"
-#define TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME             "combobox_source"
-#define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
-#define TEST_I_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
-#define TEST_I_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
-#define TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME     "filechooserbutton_model"
-#define TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME    "filechooserbutton_scorer"
-#define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
-#define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME      "filechooserdialog_save"
-#define TEST_I_UI_GTK_FILEFILTER_TXT_NAME              "filefilter_txt"
-#define TEST_I_UI_GTK_FRAME_SAVE_NAME                  "frame_save"
-#define TEST_I_UI_GTK_HSCALE_BOOST_NAME                "hscale_boost"
-#define TEST_I_UI_GTK_HSCALE_VOLUME_NAME               "hscale_volume"
-#define TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME            "liststore_source"
+#define TEST_I_UI_GTK_ACTION_RECORD_NAME                "action_record"
+#define TEST_I_UI_GTK_SCROLLEDWINDOW_ADJUSTMENT_V_NAME  "adjustment_sw_v"
+#define TEST_I_UI_GTK_BOX_DISPLAY_NAME                  "vbox_display"
+#define TEST_I_UI_GTK_BOX_VISUALIZATION_NAME            "hbox_visualization_2"
+#define TEST_I_UI_GTK_BUTTON_ABOUT_NAME                 "button_about"
+#define TEST_I_UI_GTK_BUTTON_CUT_NAME                   "button_cut"
+#define TEST_I_UI_GTK_BUTTON_RESET_NAME                 "button_reset"
+#define TEST_I_UI_GTK_BUTTON_SETTINGS_NAME              "button_settings"
+#define TEST_I_UI_GTK_BUTTON_REPORT_NAME                "button_report"
+#define TEST_I_UI_GTK_BUTTON_QUIT_NAME                  "button_quit"
+#define TEST_I_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME    "checkbutton_visualization"
+#define TEST_I_UI_GTK_COMBOBOX_SOURCE_NAME              "combobox_source"
+#define TEST_I_UI_GTK_COMBOBOX_TTS_NAME                 "combobox_tts"
+#define TEST_I_UI_GTK_COMBOBOX_VOICE_NAME               "combobox_voice"
+#define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                 "dialog_about"
+#define TEST_I_UI_GTK_DIALOG_MAIN_NAME                  "dialog_main"
+#define TEST_I_UI_GTK_DRAWINGAREA_NAME                  "drawingarea"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_LLM_NAME        "filechooserbutton_llm"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_MODEL_NAME  "filechooserbutton_stt_model"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_SCORER_NAME "filechooserbutton_stt_scorer"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_VOICE_NAME      "filechooserbutton_voice"
+#define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME       "filechooserbutton_save"
+#define TEST_I_UI_GTK_FILECHOOSERDIALOG_SAVE_NAME       "filechooserdialog_save"
+#define TEST_I_UI_GTK_FILEFILTER_TXT_NAME               "filefilter_txt"
+#define TEST_I_UI_GTK_FRAME_SAVE_NAME                   "frame_save"
+#define TEST_I_UI_GTK_HSCALE_BOOST_NAME                 "hscale_boost"
+#define TEST_I_UI_GTK_HSCALE_VOLUME_NAME                "hscale_volume"
+#define TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME             "liststore_source"
+#define TEST_I_UI_GTK_LISTSTORE_TTS_NAME                "liststore_tts"
+#define TEST_I_UI_GTK_LISTSTORE_VOICE_NAME              "liststore_voice"
 //#define TEST_I_UI_GTK_FRAME_OPTIONS_NAME         "frame_options"
-#define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION       "Monospace 8"
-#define TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE             "#FFFFFF" // white
-#define TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT             "#000000" // black
-#define TEST_I_UI_GTK_PROGRESSBAR_NAME                 "progressbar"
-#define TEST_I_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME    "radiobutton_oscilloscope"
-#define TEST_I_UI_GTK_RADIOBUTTON_SPECTRUM_NAME        "radiobutton_spectrum"
-#define TEST_I_UI_GTK_SPINBUTTON_CAPTURED_FRAMES_NAME  "spinbutton_captured_frames"
-#define TEST_I_UI_GTK_SPINBUTTON_DROPPED_FRAMES_NAME   "spinbutton_dropped_frames"
-#define TEST_I_UI_GTK_SPINBUTTON_DATA_NAME             "spinbutton_data"
-#define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"
-#define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
-#define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
-#define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"
-#define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
-#define TEST_I_UI_GTK_SCROLLMARK_NAME                  "insert"
-#define TEST_I_UI_GTK_STATUSBAR_NAME                   "statusbar"
-#define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
-#define TEST_I_UI_GTK_TEXTVIEW_NAME                    "textview"
+#define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION        "Monospace 8"
+#define TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE              "#FFFFFF" // white
+#define TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT              "#000000" // black
+#define TEST_I_UI_GTK_PROGRESSBAR_NAME                  "progressbar"
+#define TEST_I_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME     "radiobutton_oscilloscope"
+#define TEST_I_UI_GTK_RADIOBUTTON_SPECTRUM_NAME         "radiobutton_spectrum"
+#define TEST_I_UI_GTK_SPINBUTTON_CAPTURED_FRAMES_NAME   "spinbutton_captured_frames"
+#define TEST_I_UI_GTK_SPINBUTTON_DROPPED_FRAMES_NAME    "spinbutton_dropped_frames"
+#define TEST_I_UI_GTK_SPINBUTTON_DATA_NAME              "spinbutton_data"
+#define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME      "spinbutton_data_messages"
+#define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME   "spinbutton_session_messages"
+#define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME               "scrolledwindow"
+#define TEST_I_UI_GTK_TEXTBUFFER_NAME                   "textbuffer"
+#define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME          "togglebutton_record"
+#define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME            "togglebutton_save"
+#define TEST_I_UI_GTK_SCROLLMARK_NAME                   "insert"
+#define TEST_I_UI_GTK_STATUSBAR_NAME                    "statusbar"
+#define TEST_I_UI_GTK_TEXTBUFFER_NAME                   "textbuffer"
+#define TEST_I_UI_GTK_TEXTVIEW_NAME                     "textview"
 #endif // GTK_SUPPORT
 
 #endif

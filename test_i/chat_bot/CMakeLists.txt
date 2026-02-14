@@ -129,6 +129,9 @@ if (GTK_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_gtk_callbacks.cpp
       test_i_gtk_callbacks.h)
+ set (${EXECUTABLE}_EXE_CFG
+      etc/test_i.gtk2
+      etc/test_i.gtk3)
  if (GTKGL_SUPPORT)
   set (${EXECUTABLE}_EXE_SRCS
        ${${EXECUTABLE}_EXE_SRCS}
@@ -153,7 +156,7 @@ endif ()
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
-                ${ui_definition_file})
+                ${${EXECUTABLE}_EXE_CFG})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)

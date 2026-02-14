@@ -83,7 +83,8 @@ enum Test_I_STTBackend
 
 enum Test_I_TTSBackend
 {
-  TTS_FESTIVAL = 0,
+  TTS_ESPEAK_NG = 0,
+  TTS_FESTIVAL,
   TTS_FLITE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   TTS_SAPI,
@@ -514,9 +515,9 @@ struct Test_I_DirectShow_StreamConfiguration
 {
   Test_I_DirectShow_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
    , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
-   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , filterGraphConfiguration ()
    , format ()
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
@@ -526,9 +527,9 @@ struct Test_I_DirectShow_StreamConfiguration
     renderer = STREAM_DEVICE_RENDERER_DIRECTSHOW;
   }
 
+  enum Stream_Device_Capturer              capturer;
   enum Test_I_STTBackend                   STTBackend;
   enum Test_I_TTSBackend                   TTSBackend;
-  enum Stream_Device_Capturer              capturer;
   Stream_MediaFramework_DirectShow_Graph_t filterGraphConfiguration;
   struct _AMMediaType                      format;
   enum Stream_Device_Renderer              renderer;
@@ -575,9 +576,9 @@ struct Test_I_ALSA_StreamConfiguration
 {
   Test_I_ALSA_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
+   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , STTBackend (TEST_I_DEFAULT_STT_BACKEND)
    , TTSBackend (TEST_I_DEFAULT_TTS_BACKEND)
-   , capturer (STREAM_DEVICE_CAPTURER_INVALID)
    , renderer (STREAM_DEVICE_RENDERER_INVALID)
    , format ()
   {
@@ -585,9 +586,9 @@ struct Test_I_ALSA_StreamConfiguration
     renderer = STREAM_DEVICE_RENDERER_ALSA;
   }
 
+  enum Stream_Device_Capturer                 capturer;
   enum Test_I_STTBackend                      STTBackend;
   enum Test_I_TTSBackend                      TTSBackend;
-  enum Stream_Device_Capturer                 capturer;
   enum Stream_Device_Renderer                 renderer;
   struct Stream_MediaFramework_ALSA_MediaType format;
 };

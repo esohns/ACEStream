@@ -1352,7 +1352,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                   NULL);
 
   std::string filename_string; // save-
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:

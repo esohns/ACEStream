@@ -358,7 +358,7 @@ error:
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         return false;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
@@ -383,13 +383,13 @@ error:
       ACE_ASSERT (false);
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       attributes_p->Release (); attributes_p = NULL;
       for (UINT32 index = 0; index < item_count; index++)
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a,
@@ -399,7 +399,7 @@ error:
         ACE_ASSERT (false); // *TODO*
         ACE_NOTSUP_RETURN (false);
         ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -572,6 +572,123 @@ continue_:
 #endif // ACE_WIN32 || ACE_WIN64
 
   return result;
+}
+
+void
+load_TTS_backends (GtkListStore* listStore_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_TTS_backends"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("eSpeak-NG"),
+                      1, 0,
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Festival"),
+                      1, 1,
+                      -1);
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("Flite"),
+                      1, 2,
+                      -1);
+#if defined (SAPI_SUPPORT)
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("SAPI"),
+                      1, 3,
+                      -1);
+#endif // SAPI_SUPPORT
+}
+
+int
+acestream_test_i_chatbot_flite_selector (const dirent* dirEntry_in)
+{
+  //STREAM_TRACE (ACE_TEXT ("acestream_test_i_chatbot_flite_selector"));
+
+  // *NOTE*: select only files following the naming schema for
+  //         voice files: "*.flitevox"
+
+  // sanity check --> suffix ok ?
+  std::string file_extension =
+    Common_File_Tools::fileExtension (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name),
+                                      true); // return leading '.'
+  if (ACE_OS::strncmp (file_extension.c_str (),
+                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING),
+                       ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING))))
+    return 0;
+
+  return 1;
+}
+
+bool
+load_TTS_voices (GtkListStore* listStore_in,
+                 const std::string& voicesDirectory_in,
+                 enum Test_I_TTSBackend TTSBackend_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_TTS_voices"));
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  Common_File_IdentifierList_t files_a;
+  switch (TTSBackend_in)
+  {
+    case TTS_ESPEAK_NG:
+    {
+      // *TODO*
+      break;
+    }
+    case TTS_FESTIVAL:
+    {
+      // *TODO*
+      break;
+    }
+    case TTS_FLITE:
+    {
+      files_a =
+        Common_File_Tools::files (voicesDirectory_in,
+                                  acestream_test_i_chatbot_flite_selector);
+      break;
+    }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case TTS_SAPI:
+    {
+      // *TODO*
+      break;
+    }
+#endif // ACE_WIN32 || ACE_WIN64
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown TTS backend (was: %d), aborting\n"),
+                  TTSBackend_in));
+      return false;
+    }
+  } // end SWITCH
+
+  GtkTreeIter iterator;
+  std::string filename_string;
+  for (Common_File_IdentifierListIterator_t iterator_2 = files_a.begin ();
+       iterator_2 != files_a.end ();
+       ++iterator_2)
+  {
+    filename_string =
+      Common_File_Tools::basename ((*iterator_2).identifier, true);
+    gtk_list_store_append (listStore_in, &iterator);
+    gtk_list_store_set (listStore_in, &iterator,
+                        0, filename_string.c_str (),
+                        1, (*iterator_2).identifier.c_str (),
+                        -1);
+  } // end FOR
+
+  return true;
 }
 
 ACE_THR_FUNC_RETURN
@@ -927,6 +1044,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (ui_cb_data_base_p->UIState);
 
   Common_UI_GTK_BuildersIterator_t iterator;
+  std::string voices_directory_string;
+  std::string voice_string;
+  enum Test_I_TTSBackend TTS_backend_e = TTS_INVALID;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
@@ -937,6 +1057,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2; // file writer
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_3; // renderer
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_3; // renderer
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_5; // llama
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_5; // llama
   enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -960,9 +1082,21 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_modulehandler_configuration_iterator_3 =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator_3 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_modulehandler_configuration_iterator_5 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_5 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
       capturer_e =
         directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer;
+
+      voices_directory_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->voiceDirectory;
+      voice_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->voice;
+      TTS_backend_e =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1017,6 +1151,16 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_3 = // file writer
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator_3 != ui_cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_5 = // llama
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING));
+  ACE_ASSERT (modulehandler_configuration_iterator_5 != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  voices_directory_string =
+    (*modulehandler_configuration_iterator).second.second->voiceDirectory;
+  voice_string =
+    (*modulehandler_configuration_iterator).second.second->voice;
+  backend_e =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize widgets
@@ -1106,24 +1250,26 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("TXT files"));
 
-  std::string model_file_string;
-  std::string scorer_file_string;
+  std::string stt_model_file_string, stt_scorer_file_string, llm_model_file_string;
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      model_file_string =
+      stt_model_file_string =
         (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
-      //scorer_file_string =
+      //stt_scorer_file_string =
       //  (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+
+      llm_model_file_string =
+        (*directshow_modulehandler_configuration_iterator_5).second.second->modelFile;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      model_file_string =
+      stt_model_file_string =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
-      //scorer_file_string =
+      //stt_scorer_file_string =
       //  (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
       break;
     }
@@ -1136,46 +1282,135 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  model_file_string =
+  stt_model_file_string =
     (*modulehandler_configuration_iterator).second.second->modelFile;
-  //scorer_file_string =
+  //stt_scorer_file_string =
   //  (*modulehandler_configuration_iterator).second.second->scorerFile;
+
+  llm_model_file_string =
+    (*modulehandler_configuration_iterator_5).second.second->modelFile;
 #endif // ACE_WIN32 || ACE_WIN64
-  GtkFileChooserButton* model_file_chooser_button_p =
+  GtkFileChooserButton* stt_model_file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME)));
-  ACE_ASSERT (model_file_chooser_button_p);
-  GtkFileChooserButton* scorer_file_chooser_button_p =
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_MODEL_NAME)));
+  ACE_ASSERT (stt_model_file_chooser_button_p);
+  GtkFileChooserButton* stt_scorer_file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME)));
-  ACE_ASSERT (scorer_file_chooser_button_p);
-  gboolean result = false;
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_SCORER_NAME)));
+  ACE_ASSERT (stt_scorer_file_chooser_button_p);
+  gboolean result = FALSE;
   // *NOTE*: gtk does not complain if the file doesn't exist, but the button
   //         will display "(None)" --> create empty file
-  GFile* file_p = g_file_new_for_path (model_file_string.c_str ());
+  GFile* file_p = g_file_new_for_path (stt_model_file_string.c_str ());
   ACE_ASSERT (file_p);
   GError* error_p = NULL;
   result =
-    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (model_file_chooser_button_p),
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (stt_model_file_chooser_button_p),
                                file_p,
                                &error_p);
   ACE_ASSERT (result && !error_p);
   g_object_unref (file_p); file_p = NULL;
-  file_p = g_file_new_for_path (scorer_file_string.c_str ());
+  file_p = g_file_new_for_path (stt_scorer_file_string.c_str ());
   ACE_ASSERT (file_p);
   result =
-    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (scorer_file_chooser_button_p),
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (stt_scorer_file_chooser_button_p),
                                 file_p,
                                 &error_p);
   ACE_ASSERT (result && !error_p);
   g_object_unref (file_p); file_p = NULL;
-  //if (unlikely (!result))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to gtk_file_chooser_set_file(\"%s\"): \"%m\", aborting\n"),
-  //              ACE_TEXT (filename_string.c_str ())));
-  //  return G_SOURCE_REMOVE;
-  //} // end IF
+
+  GtkFileChooserButton* llm_model_file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_LLM_NAME)));
+  ACE_ASSERT (llm_model_file_chooser_button_p);
+  // *NOTE*: gtk does not complain if the file doesn't exist, but the button
+  //         will display "(None)" --> create empty file
+  file_p = g_file_new_for_path (llm_model_file_string.c_str ());
+  ACE_ASSERT (file_p);
+  result =
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (llm_model_file_chooser_button_p),
+                               file_p,
+                               &error_p);
+  ACE_ASSERT (result && !error_p);
+  g_object_unref (file_p); file_p = NULL;
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_TTS_NAME)));
+  ACE_ASSERT (list_store_p);
+  load_TTS_backends (list_store_p);
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_TTS_NAME)));
+  ACE_ASSERT (combo_box_p);
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              TRUE);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  NULL);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
+  ACE_ASSERT (list_store_p);
+  if (!load_TTS_voices (list_store_p,
+                        voices_directory_string,
+                        TTS_backend_e))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_TTS_voices(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              TRUE);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  //"cell-background", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  NULL);
+
+  ACE_ASSERT (Common_File_Tools::isDirectory (voices_directory_string));
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_VOICE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  //GtkFileChooserDialog* file_chooser_dialog_p =
+  //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERDIALOG_VOICE_NAME)));
+  //ACE_ASSERT (file_chooser_dialog_p);
+  //gboolean result = FALSE;
+  result =
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                         voices_directory_string.c_str ());
+  ACE_ASSERT (result);
+  //result =
+  //  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_dialog_p),
+  //                                       voices_directory_string.c_str ());
+  //ACE_ASSERT (result);
 
   std::string filename_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1214,7 +1449,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   if (Common_File_Tools::isDirectory (filename_string))
     (*modulehandler_configuration_iterator_3).second.second->fileIdentifier.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
-  GtkFileChooserButton* file_chooser_button_p =
+  file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
@@ -1438,8 +1673,42 @@ idle_initialize_UI_cb (gpointer userData_in)
   gint index_i = 0;
   gtk_combo_box_set_active (combo_box_p, index_i);
 
-  bool is_active_b = false;
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_TTS_NAME)));
+  ACE_ASSERT (combo_box_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  g_value_init (&value, G_TYPE_INT);
+  g_value_set_int (&value,
+                   TTS_backend_e);
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
+  g_value_unset (&value);
 
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  value = G_VALUE_INIT;
+#else
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value,
+                      voice_string.c_str ());
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
+  g_value_unset (&value);
+
+  bool is_active_b = false;
   GtkToggleButton* toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME)));

@@ -32,6 +32,10 @@
 //#endif // UUIDS_H
 #endif // _MSC_VER
 
+//#if defined (LIBTORCH_SUPPORT)
+//#include "torch/torch.h"
+//#endif // LIBTORCH_SUPPORT
+
 // C RunTime Header Files
 #include <string>
 
