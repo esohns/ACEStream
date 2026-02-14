@@ -611,6 +611,7 @@
                                     <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
                                     <property name="id_column">0</property>
+                                    <signal name="changed" handler="combobox_tts_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -641,6 +642,7 @@
                                                 <property name="model">liststore_voice</property>
                                                 <property name="has_frame">False</property>
                                                 <property name="focus_on_click">False</property>
+                                                <signal name="changed" handler="combobox_voice_changed_cb" swapped="no"/>
                                               </object>
                                               <packing>
                                                 <property name="expand">False</property>
@@ -1213,21 +1215,6 @@
       </object>
     </child>
   </object>
-  <object class="GtkFileFilter" id="filefilter_model">
-    <patterns>
-      <pattern>*.pbmm</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_scorer">
-    <patterns>
-      <pattern>*.scorer</pattern>
-    </patterns>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_txt">
-    <patterns>
-      <pattern>*.txt</pattern>
-    </patterns>
-  </object>
   <object class="GtkFileChooserDialog" id="filechooserdialog_save">
     <property name="can_focus">False</property>
     <property name="modal">True</property>
@@ -1303,6 +1290,21 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_model">
+    <patterns>
+      <pattern>*.pbmm</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_scorer">
+    <patterns>
+      <pattern>*.scorer</pattern>
+    </patterns>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_txt">
+    <patterns>
+      <pattern>*.txt</pattern>
+    </patterns>
   </object>
   <object class="GtkListStore" id="liststore_source">
     <columns>

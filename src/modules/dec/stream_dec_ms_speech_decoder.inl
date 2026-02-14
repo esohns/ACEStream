@@ -21,6 +21,7 @@
 #include "ace/Log_Msg.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "stream_macros.h"
 
@@ -126,8 +127,46 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (Common_OS_Tools::GUIDToString (CLSID_SpVoice).c_str ()),
-                ACE_TEXT (Common_Error_Tools::errorToString (result, false).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return false;
+  } // end IF
+
+  if (!configuration_in.voice.empty ())
+  {
+    //struct _GUID GUID_s = Common_OS_Tools::StringToGUID (configuration_in.voice);
+    //if (InlineIsEqualGUID (GUID_s, GUID_NULL))
+    //{
+    //  ACE_DEBUG ((LM_ERROR,
+    //              ACE_TEXT ("%s: invalid voice GUID (was: \"%s\"), aborting\n"),
+    //              inherited::mod_->name (),
+    //              ACE_TEXT (inherited::configuration_->voice.c_str ())));
+    //  return false;
+    //} // end IF
+    ISpObjectToken* token_p = getVoiceToken (configuration_in.voice);
+    if (unlikely (!token_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Decoder_SAPIDecoder_T::getVoiceToken (name was: \"%s\"), aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.voice.c_str ())));
+      return false;
+    } // end IF
+    result = voice_->SetVoice (token_p);
+    if (FAILED (result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ISpVoice::SetVoice(%s): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.voice.c_str ()),
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+      token_p->Release ();
+      return false;
+    } // end IF
+    token_p->Release ();
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: set voice to \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.voice.c_str ())));
   } // end IF
 
   result = format_.AssignFormat (SPSF_22kHz16BitMono);
@@ -493,4 +532,63 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+ISpObjectToken*
+Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
+                             TimePolicyType,
+                             ConfigurationType,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             SessionDataContainerType,
+                             MediaType>::getVoiceToken (const std::string& name_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::getVoiceToken"));
+
+  ISpObjectToken* token_p = NULL;
+
+  // sanity check(s)
+  ACE_ASSERT (!name_in.empty ());
+
+  std::string query_string = ACE_TEXT_ALWAYS_CHAR ("Name=");
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (name_in);
+  if (!InlineIsEqualGUID (GUID_s, GUID_NULL))
+    query_string = ACE_TEXT_ALWAYS_CHAR ("CLSID=");
+  query_string += name_in;
+  IEnumSpObjectTokens* enumerator_p = NULL;
+  HRESULT result = SpEnumTokens (SPCAT_VOICES,
+                                 ACE_TEXT_ALWAYS_WCHAR (query_string.c_str ()),
+                                 NULL,
+                                 &enumerator_p);
+  if (FAILED (result) || !enumerator_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to SpEnumTokens(\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (query_string.c_str ()),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+    return NULL;
+  } // end IF
+  result = enumerator_p->Next (1, &token_p, NULL);
+  if (FAILED (result) || !token_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IEnumSpObjectTokens::Next(): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+    enumerator_p->Release ();
+    return NULL;
+  } // end IF
+  enumerator_p->Release ();
+
+  return token_p;
 }

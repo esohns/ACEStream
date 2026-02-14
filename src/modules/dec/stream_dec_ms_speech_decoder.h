@@ -94,6 +94,9 @@ class Stream_Decoder_SAPIDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T (const Stream_Decoder_SAPIDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T& operator= (const Stream_Decoder_SAPIDecoder_T&))
 
+  // helper methods
+  ISpObjectToken* getVoiceToken (const std::string&); // voice description (name) -> voice token
+
   CSpStreamFormat format_;
   ISpStream*      stream_;
   std::string     tempFilePath_;
