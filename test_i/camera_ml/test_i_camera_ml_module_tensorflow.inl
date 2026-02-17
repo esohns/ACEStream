@@ -113,6 +113,15 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                               allocator_in))
     return false;
 
+//#if defined (_DEBUG)
+//  size_t pos = 0;
+//  TF_Operation* oper = NULL;
+//  while ((oper = TF_GraphNextOperation (inherited::graph_, &pos)) != NULL)
+//  {
+//    printf (TF_OperationName (oper)); printf ("\n");
+//  } // end WHILE
+//#endif // _DEBUG
+
   ACE_ASSERT (inherited::graph_);
   TF_Operation* input_operation_p =
     TF_GraphOperationByName (inherited::graph_,
@@ -197,6 +206,8 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
+  //cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
+
   // step1: run the graph on the image frame
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
@@ -211,13 +222,12 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #else
                   resolution_.width * resolution_.height * 3,
 #endif // ACE_WIN32 || ACE_WIN64
-                  &test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
+                  test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
-
   //TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
   //                                               resolution_.cx * resolution_.cy * 3);
   //ACE_ASSERT (input_tensor_p);
-  //ACE_OS::memcpy (TF_TensorData (input_tensor_p), data_p, TF_TensorByteSize (input_tensor_p));
+  //ACE_OS::memcpy (TF_TensorData (input_tensor_p), message_inout->rd_ptr (), TF_TensorByteSize (input_tensor_p));
   static TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
 
@@ -243,7 +253,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   run_output_tensors_a[2] = output_tensor_3;
   run_output_tensors_a[3] = output_tensor_4;
 
-  TF_SetStatus (inherited::status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
+  //TF_SetStatus (inherited::status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
   TF_SessionRun (inherited::session_,
                  /* RunOptions */ NULL,
                  /* Input tensors */ inputs_a_, run_input_tensors_a, 1,
@@ -271,6 +281,9 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   std::vector<int> boxes_a;
   std::vector<float> scores_a;
   std::vector<float> classes_a;
+  ACE_ASSERT (TF_TensorType (output_tensor_p) == TF_FLOAT);
+  ACE_ASSERT (TF_NumDims (output_tensor_p) == 3);
+  ACE_ASSERT (TF_TensorByteSize (output_tensor_p) >= 4 * sizeof (float));
   float* result_p = (float*)TF_TensorData (output_tensor_p);
   float* result_2 = (float*)TF_TensorData (output_tensor_2);
   float* result_3 = (float*)TF_TensorData (output_tensor_3);
@@ -294,7 +307,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
     classes_a.push_back (result_3[i]);
   } // end FOR
-
   TF_DeleteTensor (output_tensor_p);
   TF_DeleteTensor (output_tensor_2);
   TF_DeleteTensor (output_tensor_3);
@@ -547,8 +559,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 //
 //  //return goodIdxs;
 //  return sortIdxs;
-
-
 }
 
 template <typename ConfigurationType,

@@ -1264,7 +1264,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     (*modulehandler_configuration_iterator).second.second->voiceDirectory;
   voice_string =
     (*modulehandler_configuration_iterator).second.second->voice;
-  backend_e =
+  TTS_backend_e =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1295,7 +1295,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (spin_button_p);
   gtk_spin_button_set_range (spin_button_p,
                              0.0,
-                             static_cast<double> (std::numeric_limits<uint32_t>::max ()));
+                             static_cast<double> (std::numeric_limits<uint64_t>::max ()));
 
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -3560,17 +3560,12 @@ combobox_tts_changed_cb (GtkWidget* widget_in,
     }
     case TTS_FLITE:
     {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
       voices_directory_string =
         ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
       voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("flite");
       voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
-#else
-      voices_directory_string =
-        ACE_TEXT_ALWAYS_CHAR ("/usr/share/flite/voices");
-#endif // ACE_WIN32 || ACE_WIN64
       voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
       break;
     }

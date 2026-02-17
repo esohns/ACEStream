@@ -355,7 +355,7 @@ do_processArguments (int argc_in,
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
-  language_out = ACE_TEXT_ALWAYS_CHAR ("en");
+  language_out = ACE_TEXT_ALWAYS_CHAR ("");
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:e:f:h:lo::s:tuvz:");
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
@@ -2615,7 +2615,7 @@ ACE_TMAIN (int argc_in,
   bool use_framework_source = false;
   bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string language_string = ACE_TEXT_ALWAYS_CHAR ("en");
+  std::string language_string = ACE_TEXT_ALWAYS_CHAR ("");
 
   ACE_High_Res_Timer timer;
   ACE_Time_Value working_time;
