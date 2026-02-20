@@ -6009,7 +6009,7 @@ continue_3:
       radio_button_p =
           GTK_RADIO_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                     (mode_2d == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE) ? ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_OSCILLOSCOPE_NAME)
-                                                                                                                        : ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME)));
+                                                                                                                           : ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_RADIOBUTTON_SPECTRUM_NAME)));
       ACE_ASSERT (radio_button_p);
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button_p), TRUE);
     } // end IF

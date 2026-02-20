@@ -253,7 +253,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   run_output_tensors_a[2] = output_tensor_3;
   run_output_tensors_a[3] = output_tensor_4;
 
-  //TF_SetStatus (inherited::status_, TF_OK, ACE_TEXT_ALWAYS_CHAR (""));
   TF_SessionRun (inherited::session_,
                  /* RunOptions */ NULL,
                  /* Input tensors */ inputs_a_, run_input_tensors_a, 1,
@@ -314,11 +313,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   good_indices_a =
     filterBoxes (scores_a, TEST_I_CAMERA_ML_DEFAULT_THRESHOLD_SCORE_F);
-  //  for (size_t i = 0; i < goodIdxs.size(); i++)
-//      LOG(INFO) << "score:" << scores(goodIdxs.at(i)) << ",class:" << labelsMap[classes(goodIdxs.at(i))]
-//                << " (" << classes(goodIdxs.at(i)) << "), box:" << "," << boxes(0, goodIdxs.at(i), 0) << ","
-//                << boxes(0, goodIdxs.at(i), 1) << "," << boxes(0, goodIdxs.at(i), 2) << ","
-//                << boxes(0, goodIdxs.at(i), 3);
 
   // step3a: draw bboxes and captions
   drawBoundingBoxes (frame_matrix, scores_a, classes_a, boxes_a, good_indices_a);
@@ -493,8 +487,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::filterBoxes"));
 
-  //std::vector<size_t> sortIdxs (scores_in.size ());
-  //std::iota (sortIdxs.begin (), sortIdxs.end (), 0);
   std::vector<size_t> goodIdxs;
 
   for (size_t i = 0;
@@ -504,61 +496,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
       goodIdxs.push_back (i);
 
   return goodIdxs;
-
-//  // Create set of "bad" idxs
-//  std::set<size_t> badIdxs;
-//  size_t i = 0;
-//  while (i < sortIdxs.size ())
-//  {
-//    if (scores_in.at (sortIdxs.at (i)) < thresholdScore_in)
-//      badIdxs.insert (sortIdxs[i]);
-//
-////    Rect2f box1 = Rect2f(Point2f(boxes(0, sortIdxs.at(i), 1), boxes(0, sortIdxs.at(i), 0)),
-////                         Point2f(boxes(0, sortIdxs.at(i), 3), boxes(0, sortIdxs.at(i), 2)));
-////    for (size_t j = i + 1; j < sortIdxs.size(); j++) {
-////        if (scores(sortIdxs.at(j)) < thresholdScore) {
-////            badIdxs.insert(sortIdxs[j]);
-////            continue;
-////        }
-////        Rect2f box2 = Rect2f(Point2f(boxes(0, sortIdxs.at(j), 1), boxes(0, sortIdxs.at(j), 0)),
-////                             Point2f(boxes(0, sortIdxs.at(j), 3), boxes(0, sortIdxs.at(j), 2)));
-////        if (IOU(box1, box2) > thresholdIOU)
-////            badIdxs.insert(sortIdxs[j]);
-////    }
-//    i++;
-//  } // end WHILE
-//
-//  // Prepare "good" idxs for return
-//  //std::vector<size_t> goodIdxs;
-//  struct test_i_cameraml_tensorflow_index_remove_predicate
-//   //: public std::binary_function<size_t,
-//   //                              std::vector<size_t>,
-//   //                              bool>
-//  {
-//    typedef size_t first_argument_type;
-//    typedef std::vector<size_t> second_argument_type;
-//    typedef bool result_type;
-//
-//    inline bool operator() (size_t index_in,
-//                            const std::set<size_t>& array_in) const
-//    {
-//      return std::find (array_in.begin (), array_in.end (), index_in) != array_in.end ();
-//    }
-//  };
-//  sortIdxs.erase (std::remove_if (sortIdxs.begin (), sortIdxs.end (),
-//                                  std::bind (struct test_i_cameraml_tensorflow_index_remove_predicate (),
-//                                             std::placeholders::_1,
-//                                             badIdxs)),
-//                  sortIdxs.end ());
-//
-//  //for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
-//  //     iterator != sortIdxs.end ();
-//  //     ++iterator)
-//  //  if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
-//  //    goodIdxs.push_back (*iterator);
-//
-//  //return goodIdxs;
-//  return sortIdxs;
 }
 
 template <typename ConfigurationType,
@@ -1020,7 +957,7 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   for (std::vector<size_t>::iterator iterator = sortIdxs.begin ();
        iterator != sortIdxs.end ();
        ++iterator)
-    if (badIdxs.find (sortIdxs.at (*iterator)) == badIdxs.end ())
+    if (badIdxs.find (*iterator) == badIdxs.end ())
       goodIdxs.push_back (*iterator);
 
   return goodIdxs;

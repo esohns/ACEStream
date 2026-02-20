@@ -103,7 +103,7 @@ load_display_devices (GtkListStore* listStore_in)
   gtk_list_store_clear (listStore_in);
 
   Common_UI_DisplayDevices_t display_devices_a =
-      Common_UI_Tools::getDisplays ();
+    Common_UI_Tools::getDisplays ();
   GtkTreeIter iterator;
   for (Common_UI_DisplayDevicesIterator_t iterator_2 = display_devices_a.begin ();
        iterator_2 != display_devices_a.end ();
@@ -112,7 +112,6 @@ load_display_devices (GtkListStore* listStore_in)
     gtk_list_store_append (listStore_in, &iterator);
     gtk_list_store_set (listStore_in, &iterator,
                         0, (*iterator_2).description.c_str (),
-//                        0, (*iterator_2).device.c_str (),
                         1, (*iterator_2).device.c_str (),
                         -1);
   } // end FOR
@@ -536,7 +535,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -570,7 +569,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   toggle_button_p =
@@ -703,15 +702,6 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_OS::memset (&allocation, 0, sizeof (GtkAllocation));
   gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
                              &allocation);
-  //GdkWindow* window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  //ACE_ASSERT (window_p);
-  //ACE_ASSERT (gdk_win32_window_is_win32 (window_p));
-  //(*stream_iterator_3).second.second->window = window_p;
-//        gdk_win32_window_get_impl_hwnd (window_p);
-  //cb_data_p->configuration->direct3DConfiguration.focusWindow =
-  //  NULL;
-  //cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow =
-  //  gdk_win32_window_get_impl_hwnd (window_p);
 
   Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -723,21 +713,24 @@ idle_initialize_UI_cb (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
   (*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
 
-  //(*stream_iterator).second.second->area.bottom =
-  //  allocation.y + allocation.height;
-  //(*stream_iterator).second.second->area.left = allocation.x;
-  //(*stream_iterator).second.second->area.right =
-  //  allocation.x + allocation.width;
-  //(*stream_iterator).second.second->area.top = allocation.y;
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
+  ACE_ASSERT (combo_box_p);
 
-  //(*stream_iterator).second.second->pixelBuffer =
-  //  cb_data_p->pixelBuffer;
-
-  //ACE_ASSERT (IsWindow (cb_data_p->configuration->direct3DConfiguration.presentationParameters.hDeviceWindow));
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("drawing area window handle: 0x%@; size: %dx%d\n"),
-  //            (*stream_iterator).second.second->window,
-  //            allocation.width, allocation.height));
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value,
+                      (*stream_iterator).second.second->display.device.c_str ());
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    1);
+  g_value_unset (&value);
 
   return G_SOURCE_REMOVE;
 }

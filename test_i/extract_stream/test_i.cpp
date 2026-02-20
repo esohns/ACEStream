@@ -22,12 +22,9 @@
 #include <iostream>
 #include <string>
 
-#if defined (GTK_USE)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
-#endif // GTK_USE
+#endif // GTK_SUPPORT
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -375,6 +372,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
 #else
   modulehandler_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
 #endif // ACE_WIN32 || ACE_WIN64
+  modulehandler_configuration.display = Common_UI_Tools::getDefaultDisplay ();
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.subscriber = &ui_event_handler;
 #if defined (FFMPEG_SUPPORT)
@@ -699,10 +697,9 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
@@ -724,7 +721,7 @@ ACE_TMAIN (int argc_in,
 
     // *PORTABILITY*: on Windows, finalize ACE...
     Common_Tools::finalize ();
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     result = ACE::fini ();
     if (result == -1)
       ACE_DEBUG ((LM_ERROR,

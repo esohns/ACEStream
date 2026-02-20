@@ -1123,14 +1123,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
-      //directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration;
-      //directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
-      //  Stream_Device_Identifier::STRING;
-      //ACE_OS::strcpy (directshow_modulehandler_configuration_3.deviceIdentifier.identifier._string,
-      //                displayDevice_in.device.c_str ());
-      //directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
-      //                                                                       std::make_pair (&module_configuration,
-      //                                                                                       &directshow_modulehandler_configuration_3)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1223,33 +1215,29 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration_2.flipImage =
         Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
-      //media_type_p =
-      //  Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
-      //ACE_ASSERT (media_type_p);
-      //directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
-      //delete media_type_p; media_type_p = NULL;
-      //directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
-      //  directshow_modulehandler_configuration_3.window;
-      stream_p = &directshow_stream;
-
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2)));
 
+      directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration_2;
+      media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_2.outputFormat);
+      ACE_ASSERT (media_type_p);
+      directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
+      Common_Image_Resolution_t resolution_s = {800, 800};
+      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+                                                             directshow_modulehandler_configuration_3.outputFormat);
+
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_3)));
+
       if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
       {
-        directshow_modulehandler_configuration_3 = directshow_modulehandler_configuration_2;
-        media_type_p =
-          Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_2.outputFormat);
-        ACE_ASSERT (media_type_p);
-        directshow_modulehandler_configuration_3.outputFormat = *media_type_p;
-        Common_Image_Resolution_t resolution_s = {224, 224};
+        resolution_s = {224, 224}; // ResNet18
         Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                                directshow_modulehandler_configuration_3.outputFormat);
-        delete media_type_p; media_type_p = NULL;
-        directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                               std::make_pair (&module_configuration,
-                                                                                               &directshow_modulehandler_configuration_3)));
       } // end IF
 
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration_2;
@@ -1264,6 +1252,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
 
+      stream_p = &directshow_stream;
+
       directShowConfiguration_in.signalHandlerConfiguration.stream = stream_p;
       signal_handler.initialize (directShowConfiguration_in.signalHandlerConfiguration);
 
@@ -1273,9 +1263,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     {
       if (!do_initialize_mediafoundation (deviceIdentifier_in,
                                           window_handle,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                           mediafoundation_modulehandler_configuration.session,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                           load_device)) // load device ?
       {
         ACE_DEBUG ((LM_ERROR,

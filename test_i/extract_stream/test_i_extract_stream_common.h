@@ -148,6 +148,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
    , codecConfiguration (NULL)
    , deviceType (AV_HWDEVICE_TYPE_NONE)
 #endif // FFMPEG_SUPPORT
+   , display ()
    , effect (ACE_TEXT_ALWAYS_CHAR ("tempo")) // preserve pitch
    , effectOptions ()
    , manageSoX (true)
@@ -164,6 +165,7 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
   enum AVHWDeviceType                                     deviceType;
 #endif // FFMPEG_SUPPORT
+  struct Common_UI_DisplayDevice                          display;
   std::string effect;
   std::vector<std::string>                                effectOptions;
   bool                                                    manageSoX;

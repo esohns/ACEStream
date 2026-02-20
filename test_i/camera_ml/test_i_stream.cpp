@@ -120,6 +120,10 @@ Stream_CameraML_DirectShow_Stream::load (Stream_ILayout* layout_in,
   {
     case STREAM_ML_BACKEND_TENSORFLOW:
     {
+//#if defined (FFMPEG_SUPPORT)
+//      layout_in->append (&resize_, NULL, 0);
+//#endif // FFMPEG_SUPPORT
+
 #if defined (TENSORFLOW_SUPPORT)
       layout_in->append (&tensorflow_, NULL, 0);
 #endif // TENSORFLOW_SUPPORT
