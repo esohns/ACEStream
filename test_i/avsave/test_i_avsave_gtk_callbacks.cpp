@@ -1886,6 +1886,7 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
   Stream_Module_t* module_p = NULL;
   bool result_2 = false;
+  guint event_source_id;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -2182,8 +2183,8 @@ stream_processing_function (void* arg_in)
   goto continue_;
 
 error:
-  guint event_source_id = g_idle_add (idle_session_end_cb,
-                                      thread_data_p->CBData);
+  event_source_id = g_idle_add (idle_session_end_cb,
+                                thread_data_p->CBData);
   if (event_source_id == 0)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));

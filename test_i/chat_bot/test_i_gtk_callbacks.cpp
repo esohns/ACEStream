@@ -50,6 +50,8 @@
 
 #include "stream_macros.h"
 
+#include "stream_module_ml_defines.h"
+
 #include "test_i_chat_bot_defines.h"
 #include "test_i_stream.h"
 
