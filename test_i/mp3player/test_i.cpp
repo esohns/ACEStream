@@ -347,7 +347,6 @@ do_work (ACE_UINT32 bufferSize_in,
   if (bufferSize_in)
     allocator_configuration.defaultBufferSize = bufferSize_in;
 
-  Test_I_Stream stream;
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
 #if defined (FFMPEG_SUPPORT)
                          struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration
@@ -364,6 +363,8 @@ do_work (ACE_UINT32 bufferSize_in,
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
+
+  Test_I_Stream stream;
 
   // ********************** stream configuration data **************************
   // ********************** module configuration data **************************

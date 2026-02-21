@@ -372,6 +372,7 @@ error:
       int result = -1;
       int flags_i = 0;
       MediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
 
       ACE_ASSERT (inherited::sessionData_);
       typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T& session_data_r =
@@ -387,9 +388,16 @@ error:
           typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T
             iterator = session_data_r.formats.begin ();
           std::advance (iterator, formatsIndex_);
+          for (typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T iterator_2 = iterator;
+               iterator_2 != session_data_r.formats.end ();
+               ++iterator_2)
+            inherited::free_ (*iterator_2);
           session_data_r.formats.erase (iterator, session_data_r.formats.end ());
           formatsIndex_ = 0;
         } // end IF
+        inherited::getMediaType (session_data_r.formats.back (),
+                                 STREAM_MEDIATYPE_VIDEO,
+                                 media_type_s);
         inherited::getMediaType (session_data_r.formats.back (),
                                  STREAM_MEDIATYPE_VIDEO,
                                  media_type_2);
@@ -513,12 +521,8 @@ error:
       ACE_ASSERT (result >= 0);
       ACE_UNUSED_ARG (result);
 
-      ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       ACE_ASSERT (session_data_r.lock);
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-        inherited::getMediaType (session_data_r.formats.back (),
-                                 STREAM_MEDIATYPE_VIDEO,
-                                 media_type_s);
         inherited::setResolution (media_type_3.resolution,
                                   media_type_s);
         session_data_r.formats.push_back (media_type_s);

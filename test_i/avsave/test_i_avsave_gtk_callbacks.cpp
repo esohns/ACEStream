@@ -3756,7 +3756,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     stream_p->stop (false,  // wait ?
                     false,  // recurse upstream ?
                     false); // high priority ?
-    //ACE_OS::sleep (ACE_Time_Value (1, 0));
     stream_2->stop (false,  // wait ?
                     false,  // recurse upstream ?
                     false); // high priority ?
