@@ -3478,9 +3478,15 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      Net_ConnectionConfiguration_T<NET_TRANSPORTLAYER_TCP>* tcp_connection_configuration_p =
+        static_cast<Net_ConnectionConfiguration_T<NET_TRANSPORTLAYER_TCP>*> ((*connection_configuration_iterator).second);
+      ACE_ASSERT (tcp_connection_configuration_p);
+
       use_loopback =
-        NET_CONFIGURATION_TCP_CAST ((*connection_configuration_iterator).second)->socketConfiguration.useLoopBackDevice;
+        tcp_connection_configuration_p->socketConfiguration.useLoopBackDevice;
       break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,

@@ -319,10 +319,10 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${SSL_LIB_DIR}" SSL_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
- set (RUNTIME_LIBRARY_DIRS ${IMAGEMAGICK_PATH}
-                           ${VCPKG_PATH}
-                           ${FFMPEG_PATH}
+ set (RUNTIME_LIBRARY_DIRS ${FFMPEG_PATH}
                            ${FFMPEG_2_PATH}
+                           ${IMAGEMAGICK_PATH}
+                           ${VCPKG_PATH}
                            ${GTK_PATH}
                            ${WXWIDGETS_PATH}
                            ${SSL_PATH}

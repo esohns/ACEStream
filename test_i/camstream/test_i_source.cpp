@@ -2333,17 +2333,15 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR), // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT_ALWAYS_CHAR (argv_in[0]), ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT_ALWAYS_CHAR (argv_in[0]), ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                            // log file name
                                      false,                                    // log to syslog ?
                                      false,                                    // trace messages ?
                                      trace_information,                        // debug messages ?
-                                     NULL))                                    // (ui-) logger ?
-//                                            (gtk_glade_filename.empty () ? NULL
-//                                                                         : &logger))) // (ui-) logger ?
+                                     (gtk_glade_filename.empty () ? NULL
+                                                                  : &logger))) // (ui-) logger ?
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Log_Tools::initialize(), aborting\n")));

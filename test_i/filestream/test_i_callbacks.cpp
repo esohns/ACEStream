@@ -1036,8 +1036,11 @@ idle_initialize_target_UI_cb (gpointer userData_in)
   Net_ConnectionConfigurationsIterator_t iterator_3 =
     ui_cb_data_p->configuration->connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->connectionConfigurations.end ());
+  Net_ConnectionConfiguration_T<NET_TRANSPORTLAYER_TCP>* tcp_connection_configuration_p =
+    static_cast<Net_ConnectionConfiguration_T<NET_TRANSPORTLAYER_TCP>*> ((*iterator_3).second);
+  ACE_ASSERT (tcp_connection_configuration_p);
   gtk_spin_button_set_value (spin_button_p,
-                             static_cast<double> (NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address.get_port_number ()));
+                             static_cast<double> (tcp_connection_configuration_p->socketConfiguration.address.get_port_number ()));
 
   GtkRadioButton* radio_button_p = NULL;
   if (ui_cb_data_p->configuration->protocol == NET_TRANSPORTLAYER_UDP)
@@ -1059,7 +1062,7 @@ idle_initialize_target_UI_cb (gpointer userData_in)
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_UI_GTK_CHECKBUTTON_LOOPBACK_NAME)));
   ACE_ASSERT (check_button_p);
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button_p),
-                                NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.useLoopBackDevice);
+                                tcp_connection_configuration_p->socketConfiguration.useLoopBackDevice);
 
   spin_button_p =
       //GTK_SPIN_BUTTON (glade_xml_get_widget ((*iterator).second.second,

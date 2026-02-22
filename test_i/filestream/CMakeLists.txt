@@ -326,7 +326,7 @@ elseif (WIN32)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})
  create_target_launcher (${EXECUTABLE_TARGET}
                          COMMAND ${COMMAND}
-                         ARGS "-l -t"
+                         ARGS "-l -o -t"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${GTK_PATH}
                                               ${WXWIDGETS_PATH}

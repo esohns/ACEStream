@@ -1141,8 +1141,6 @@ do_work (
                          struct Common_AllocatorConfiguration> heap_allocator;
   struct Stream_SessionManager_Configuration session_manager_configuration_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
-  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
   Test_U_DirectShow_SessionManager_t* directshow_session_manager_p =
     Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
   ACE_ASSERT (directshow_session_manager_p);
@@ -1156,6 +1154,9 @@ do_work (
   Test_U_AudioEffect_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                            &heap_allocator,     // heap allocator handle
                                                                                            true);               // block ?
+
+  Test_U_AudioEffect_DirectShow_Stream directshow_stream;
+  Test_U_AudioEffect_MediaFoundation_Stream mediafoundation_stream;
 #else
   Test_U_SessionManager_t* session_manager_p =
     Test_U_SessionManager_t::SINGLETON_T::instance ();
@@ -1164,6 +1165,8 @@ do_work (
   Test_U_AudioEffect_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                            &heap_allocator,     // heap allocator handle
                                                            true);               // block ?
+
+  Test_U_AudioEffect_ALSA_Stream stream;
 #endif // ACE_WIN32 || ACE_WIN64
   bool result = false;
   Stream_IStream_t* istream_p = NULL;
@@ -1238,7 +1241,6 @@ do_work (
     }
   } // end SWITCH
 #else
-  Test_U_AudioEffect_ALSA_Stream stream;
   istream_p = &stream;
   istream_control_p = &stream;
 #if defined (GTKGL_SUPPORT)
