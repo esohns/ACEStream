@@ -509,8 +509,8 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
   data_out = (float*)malloc (stride_i * 3 * sizeof (float));
   ACE_ASSERT (data_out);
 
-  for (size_t i = 0; i != stride_i; ++i)
-    for (size_t c = 0; c != 3; ++c)
+  for (size_t i = 0; i < stride_i; ++i)
+    for (size_t c = 0; c < 3; ++c)
       data_out[c * stride_i + i] = static_cast<float> (data_in[i * 3 + c]);
 }
 
@@ -535,10 +535,10 @@ Stream_Module_ONNXRuntime_T<ConfigurationType,
   ACE_ASSERT (data_out);
 
   unsigned int stride_i = height_in * width_in;
-  for (size_t c = 0; c != 3; ++c)
+  for (size_t c = 0; c < 3; ++c)
   {
     size_t t = c * stride_i;
-    for (size_t i = 0; i != stride_i; ++i)
+    for (size_t i = 0; i < stride_i; ++i)
     {
       float f = data_in[t + i];
       if (f < 0.0f)

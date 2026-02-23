@@ -50,6 +50,7 @@ acestream_lib_pipewire_free_proxy_cb (struct spa_loop* loop_in,
   ACE_ASSERT (cb_data_p);
 
   pw_proxy_destroy (cb_data_p->proxy);
+  cb_data_p->proxy = NULL;
 
   return 0;
 }
@@ -70,6 +71,7 @@ acestream_lib_pipewire_finalize_stream_cb (struct spa_loop* loop_in,
 
   int result = pw_stream_disconnect (cb_data_p->stream);
   pw_stream_destroy (cb_data_p->stream);
+  cb_data_p->stream = NULL;
 
   return result == 0;
 }

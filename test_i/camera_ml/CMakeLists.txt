@@ -234,7 +234,7 @@ add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS})
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
-cmake_policy (SET CMP0012 NEW)
+#cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_I)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_I)
@@ -254,6 +254,9 @@ if (MEDIAPIPE_SUPPORT)
                  EXCLUDE_FROM_ALL
                  ${${EXECUTABLE_2}_EXE_SRCS})
  set_property (TARGET ${EXECUTABLE_2} PROPERTY FOLDER "test_i")
+ if (WIN32 AND NOT BUILD_TEST_I)
+  set_target_properties (${EXECUTABLE_2} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+ endif (WIN32 AND NOT BUILD_TEST_I)
 
  target_include_directories (${EXECUTABLE_2} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
 
@@ -262,6 +265,9 @@ if (MEDIAPIPE_SUPPORT)
                   EXCLUDE_FROM_ALL
                   ${${EXECUTABLE_3}_EXE_SRCS})
   set_property (TARGET ${EXECUTABLE_3} PROPERTY FOLDER "test_i")
+  if (WIN32 AND NOT BUILD_TEST_I)
+   set_target_properties (${EXECUTABLE_3} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
+  endif (WIN32 AND NOT BUILD_TEST_I)
 
   target_include_directories (${EXECUTABLE_3} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
  endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)

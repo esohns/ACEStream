@@ -1160,8 +1160,17 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                         &heap_allocator,     // heap allocator handle
                                                         true);               // block ?
   Stream_CameraML_Stream stream;
-  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
-    stream_configuration.backend = STREAM_ML_BACKEND_LIBTORCH;
+  switch (mode_in)
+  {
+    case STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW_CC:
+      stream_configuration.backend = STREAM_ML_BACKEND_TENSORFLOW_CC;
+      break;
+    case STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH:
+      stream_configuration.backend = STREAM_ML_BACKEND_LIBTORCH;
+      break;
+    default:
+      break;
+  } // end SWITCH
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.renderer = renderer_in;
   configuration_in.streamConfiguration.initialize (module_configuration,
@@ -1676,6 +1685,7 @@ ACE_TMAIN (int argc_in,
       return EXIT_SUCCESS;
     }
     case STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW:
+    case STREAM_CAMERA_ML_PROGRAMMODE_TENSORFLOW_CC:
     case STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH:
       break;
     default:

@@ -103,6 +103,8 @@ class Test_I_CameraML_Module_Tensorflow_T
                           std::vector<float>&,   // classes
                           std::vector<int>&,     // boxes
                           std::vector<size_t>&); // indices ("good")
+  // void hwc_to_chw (const cv::Mat&, // input
+  //                  cv::Mat&);      // output
 
   struct TF_Output           input0_;
   struct TF_Output           inputs_a_[1];

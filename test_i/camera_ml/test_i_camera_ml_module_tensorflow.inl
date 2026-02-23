@@ -208,6 +208,13 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   //cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
 
+  // cv::Mat chw_matrix;
+  // hwc_to_chw (frame_matrix, chw_matrix);
+
+  // cv::Mat frame_matrix_transposed;
+  // cv::resize (frame_matrix, frame_matrix_transposed,
+  //             cv::Size (resolution_.height, resolution_.width), 0, 0, cv::INTER_CUBIC);
+
   // step1: run the graph on the image frame
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
@@ -216,7 +223,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
   TF_Tensor* input_tensor_p =
     TF_NewTensor (TF_UINT8, raw_input_dims_a, 4,
-                  message_inout->rd_ptr (),
+                  frame_matrix.data,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                   resolution_.cx * resolution_.cy * 3,
 #else
@@ -224,10 +231,14 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
                   test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
-  //TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
-  //                                               resolution_.cx * resolution_.cy * 3);
-  //ACE_ASSERT (input_tensor_p);
-  //ACE_OS::memcpy (TF_TensorData (input_tensor_p), message_inout->rd_ptr (), TF_TensorByteSize (input_tensor_p));
+//   TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
+// #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                                                  resolution_.cx * resolution_.cy * 3);
+// #else
+//                                                  resolution_.width * resolution_.height * 3);
+// #endif // ACE_WIN32 || ACE_WIN64
+//   ACE_ASSERT (input_tensor_p);
+  // ACE_OS::memcpy (TF_TensorData (input_tensor_p), message_inout->rd_ptr (), TF_TensorByteSize (input_tensor_p));
   static TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
 
@@ -561,6 +572,32 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                  cv::Scalar (255, 0, 0));
   } // end FOR
 }
+
+// template <typename ConfigurationType,
+//           typename ControlMessageType,
+//           typename DataMessageType,
+//           typename SessionMessageType,
+//           typename MediaType>
+// void
+// Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
+//                                     ControlMessageType,
+//                                     DataMessageType,
+//                                     SessionMessageType,
+//                                     MediaType>::hwc_to_chw (const cv::Mat& src_in,
+//                                                             cv::Mat& dst_out)
+// {
+//   // STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::hwc_to_chw"));
+
+//   std::vector<cv::Mat> channels;
+//   cv::split (src_in, channels);
+
+//   // Stretch one-channel images to vector
+//   for (auto &img : channels)
+//     img = img.reshape (1, 1);
+
+//   // Concatenate three vectors to one
+//   cv::hconcat (channels, dst_out);
+// }
 #endif // TENSORFLOW_SUPPORT
 
 ///////////////////////////////////////////
@@ -985,10 +1022,10 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
        j < indices_in.size ();
        j++)
   {
-    double xMin = boxes_in (0, indices_in.at (j), 1);
-    double xMax = boxes_in (0, indices_in.at (j), 3);
-    double yMin = boxes_in (0, indices_in.at (j), 0);
-    double yMax = boxes_in (0, indices_in.at (j), 2);
+    float xMin = boxes_in (0, indices_in.at (j), 1);
+    float xMax = boxes_in (0, indices_in.at (j), 3);
+    float yMin = boxes_in (0, indices_in.at (j), 0);
+    float yMax = boxes_in (0, indices_in.at (j), 2);
 
     cv::Point tl, br;
     tl = cv::Point((int) (xMin * image_in.cols), (int) (yMin * image_in.rows));
