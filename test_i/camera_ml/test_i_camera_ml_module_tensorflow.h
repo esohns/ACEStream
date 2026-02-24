@@ -96,13 +96,12 @@ class Test_I_CameraML_Module_Tensorflow_T
 
   // helper methods
   bool loadLabels (const std::string&); // label file path
-  std::vector<size_t> filterBoxes (std::vector<float>&, // scores
-                                   float);              // threshold (score)
-  void drawBoundingBoxes (cv::Mat&,              // image
-                          std::vector<float>&,   // scores
-                          std::vector<float>&,   // classes
-                          std::vector<int>&,     // boxes
-                          std::vector<size_t>&); // indices ("good")
+  std::vector<size_t> scoresToValidIndices (float[], // scores
+                                            int);    // number of detections
+  void drawBoundingBoxes (cv::Mat&,            // frame
+                          const std::vector<float>&, // scores
+                          const std::vector<float>&,    // classes
+                          const std::vector<int>&);     // boxes
   // void hwc_to_chw (const cv::Mat&, // input
   //                  cv::Mat&);      // output
 
