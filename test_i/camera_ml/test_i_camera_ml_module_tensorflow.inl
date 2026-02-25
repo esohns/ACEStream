@@ -208,11 +208,6 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                         message_inout->rd_ptr (),
                         cv::Mat::AUTO_STEP);
 
-  //cv::cvtColor (frame_matrix, frame_matrix, cv::COLOR_BGR2RGB);
-
-  // cv::Mat chw_matrix;
-  // hwc_to_chw (frame_matrix, chw_matrix);
-
   // step1: run the graph on the frame
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   static int64_t raw_input_dims_a[4] = {1, resolution_.cy, resolution_.cx, 3};
@@ -229,38 +224,11 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
                   test_i_cameraml_module_tensorflow_noop_deallocator, NULL);
   ACE_ASSERT (input_tensor_p);
-//   TF_Tensor* input_tensor_p = TF_AllocateTensor (TF_UINT8, raw_input_dims_a, 4,
-// #if defined (ACE_WIN32) || defined (ACE_WIN64)
-//                                                  resolution_.cx * resolution_.cy * 3);
-// #else
-//                                                  resolution_.width * resolution_.height * 3);
-// #endif // ACE_WIN32 || ACE_WIN64
-//   ACE_ASSERT (input_tensor_p);
-  // ACE_OS::memcpy (TF_TensorData (input_tensor_p), message_inout->rd_ptr (), TF_TensorByteSize (input_tensor_p));
   static TF_Tensor* run_input_tensors_a[1];
   run_input_tensors_a[0] = input_tensor_p;
 
-  static int64_t boxes_dims_a[3] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I, 4};
-  static int64_t scores_dims_a[2] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
-  static int64_t classes_dims_a[2] = {1, TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I};
-  static int64_t num_detections_dims_a[2] = {1, 1};
-  TF_Tensor* output_tensor_p =
-    TF_AllocateTensor (TF_FLOAT, boxes_dims_a, 3, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
-  ACE_ASSERT (output_tensor_p);
-  TF_Tensor* output_tensor_2 =
-    TF_AllocateTensor (TF_FLOAT, scores_dims_a, 2, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
-  ACE_ASSERT (output_tensor_2);
-  TF_Tensor* output_tensor_3 =
-    TF_AllocateTensor (TF_FLOAT, classes_dims_a, 2, sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I);
-  ACE_ASSERT (output_tensor_3);
-  TF_Tensor* output_tensor_4 =
-    TF_AllocateTensor (TF_FLOAT, num_detections_dims_a, 2, sizeof (float));
-  ACE_ASSERT (output_tensor_4);
   static TF_Tensor* run_output_tensors_a[4];
-  run_output_tensors_a[0] = output_tensor_p;
-  run_output_tensors_a[1] = output_tensor_2;
-  run_output_tensors_a[2] = output_tensor_3;
-  run_output_tensors_a[3] = output_tensor_4;
+  ACE_OS::memset (run_output_tensors_a, 0, sizeof (TF_Tensor*) * 4);
 
   TF_SessionRun (inherited::session_,
                  /* RunOptions */ NULL,
@@ -276,27 +244,29 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
                 inherited::mod_->name (),
                 ACE_TEXT (TF_Message (inherited::status_))));
     TF_DeleteTensor (input_tensor_p);
-    TF_DeleteTensor (output_tensor_p);
-    TF_DeleteTensor (output_tensor_2);
-    TF_DeleteTensor (output_tensor_3);
-    TF_DeleteTensor (output_tensor_4);
+    TF_DeleteTensor (run_output_tensors_a[0]);
+    TF_DeleteTensor (run_output_tensors_a[1]);
+    TF_DeleteTensor (run_output_tensors_a[2]);
+    TF_DeleteTensor (run_output_tensors_a[3]);
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return;
   } // end IF
   TF_DeleteTensor (input_tensor_p);
 
+  // ACE_ASSERT (TF_TensorType (run_output_tensors_a[0]) == TF_FLOAT);
+  // ACE_ASSERT (TF_NumDims (run_output_tensors_a[0]) == 3);
+  // ACE_ASSERT (TF_TensorByteSize (run_output_tensors_a[0]) >= sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
+
+  float* result_p = (float*)TF_TensorData (run_output_tensors_a[0]); // boxes
+  float* result_2 = (float*)TF_TensorData (run_output_tensors_a[1]); // scores
+  float* result_3 = (float*)TF_TensorData (run_output_tensors_a[2]); // classes
+  float* result_4 = (float*)TF_TensorData (run_output_tensors_a[3]); // #detections
+
   // step2: extract results
   std::vector<int> boxes_a;
   std::vector<float> scores_a;
   std::vector<float> classes_a;
-  //ACE_ASSERT (TF_TensorType (output_tensor_p) == TF_FLOAT);
-  //ACE_ASSERT (TF_NumDims (output_tensor_p) == 3);
-  //ACE_ASSERT (TF_TensorByteSize (output_tensor_p) == sizeof (float) * TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I * 4);
-  float* result_p = (float*)TF_TensorData (output_tensor_p); // boxes
-  float* result_2 = (float*)TF_TensorData (output_tensor_2); // scores
-  float* result_3 = (float*)TF_TensorData (output_tensor_3); // classes
-  float* result_4 = (float*)TF_TensorData (output_tensor_4); // #detections
-  int num_detections_i = (int)(std::ceil (result_4[0]));
+  int num_detections_i = static_cast<int> (std::ceil (result_4[0]));
   if (num_detections_i <= 0)
     goto clean;
 
@@ -331,10 +301,10 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
   // clean up
 clean:
-  TF_DeleteTensor (output_tensor_p);
-  TF_DeleteTensor (output_tensor_2);
-  TF_DeleteTensor (output_tensor_3);
-  TF_DeleteTensor (output_tensor_4);
+  TF_DeleteTensor (run_output_tensors_a[0]);
+  TF_DeleteTensor (run_output_tensors_a[1]);
+  TF_DeleteTensor (run_output_tensors_a[2]);
+  TF_DeleteTensor (run_output_tensors_a[3]);
 
   // step3b: draw fps
   converter << std::fixed << std::setprecision (0) << fps;
@@ -506,7 +476,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::scoresToValidIndices"));
 
   std::vector<std::pair<float, size_t> > score_index_pairs_a;
-  for (size_t i = 0; i < TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I; ++i)
+  for (size_t i = 0; i < numberOfDetections_in; ++i)
     score_index_pairs_a.push_back (std::make_pair (scores_in[i], i));
   struct score_index_pair_comparator
   {
@@ -718,16 +688,16 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   static int nFrames = 30;
   static int iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = time (NULL);
+  static time_t start = ACE_OS::time (NULL);
   static time_t end;
 
-  if (nFrames % (iFrame + 1) == 0)
+  if (((iFrame + 1) % nFrames) == 0)
   {
-    time (&end);
-    fps = nFrames / (float)difftime (end, start);
-    time (&start);
+    ACE_OS::time (&end);
+    fps = nFrames / static_cast<float> (ACE_OS::difftime (end, start));
+    start = end;
   } // end IF
-  iFrame++;
+  ++iFrame;
 
   std::vector<tensorflow::Tensor> outputs;
   std::vector<size_t> good_indices_a;
