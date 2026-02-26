@@ -105,12 +105,7 @@ class Test_I_CameraML_Module_Tensorflow_T
   // void hwc_to_chw (const cv::Mat&, // input
   //                  cv::Mat&);      // output
 
-  struct TF_Output           input0_;
   struct TF_Output           inputs_a_[1];
-  struct TF_Output           output0_;
-  struct TF_Output           output1_;
-  struct TF_Output           output2_;
-  struct TF_Output           output3_;
   struct TF_Output           outputs_a_[4];
 
   std::map<int, std::string> labelMap_;

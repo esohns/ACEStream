@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -63,12 +64,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
- , input0_ ()
  , inputs_a_ ()
- , output0_ ()
- , output1_ ()
- , output2_ ()
- , output3_ ()
  , outputs_a_ ()
  , labelMap_ ()
  , resolution_ ()
@@ -128,9 +124,10 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     TF_GraphOperationByName (inherited::graph_,
                              ACE_TEXT_ALWAYS_CHAR ("image_tensor"));
   ACE_ASSERT (input_operation_p);
-  input0_.oper = input_operation_p;
-  input0_.index = 0;
-  inputs_a_[0] = input0_;
+  struct TF_Output input_0_s;
+  input_0_s.oper = input_operation_p;
+  input_0_s.index = 0;
+  inputs_a_[0] = input_0_s;
 
   TF_Operation* output_operation_p =
     TF_GraphOperationByName (inherited::graph_,
@@ -148,18 +145,22 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
     TF_GraphOperationByName (inherited::graph_,
                              ACE_TEXT_ALWAYS_CHAR ("num_detections"));
   ACE_ASSERT (output_operation_4);
-  output0_.oper = output_operation_p;
-  output0_.index = 0;
-  output1_.oper = output_operation_2;
-  output1_.index = 0;
-  output2_.oper = output_operation_3;
-  output2_.index = 0;
-  output3_.oper = output_operation_4;
-  output3_.index = 0;
-  outputs_a_[0] = output0_;
-  outputs_a_[1] = output1_;
-  outputs_a_[2] = output2_;
-  outputs_a_[3] = output3_;
+  struct TF_Output output_0_s;
+  output_0_s.oper = output_operation_p;
+  output_0_s.index = 0;
+  struct TF_Output output_1_s;
+  output_1_s.oper = output_operation_2;
+  output_1_s.index = 0;
+  struct TF_Output output_2_s;
+  output_2_s.oper = output_operation_3;
+  output_2_s.index = 0;
+  struct TF_Output output_3_s;
+  output_3_s.oper = output_operation_4;
+  output_3_s.index = 0;
+  outputs_a_[0] = output_0_s;
+  outputs_a_[1] = output_1_s;
+  outputs_a_[2] = output_2_s;
+  outputs_a_[3] = output_3_s;
 
   return true;
 }
@@ -182,13 +183,21 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   static ACE_INT64 nFrames = 30;
   static ACE_INT64 iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = ACE_OS::time (NULL);
-  static time_t end;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::steady_clock::time_point end;
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> end;
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
 
   if (((iFrame + 1) % nFrames) == 0)
   {
-    ACE_OS::time (&end);
-    fps = nFrames / static_cast<float> (ACE_OS::difftime (end, start));
+    end = std::chrono::high_resolution_clock::now ();
+    std::chrono::duration<float> elapsed_time = end - start;
+    fps = nFrames / elapsed_time.count ();
     start = end;
   } // end IF
   ++iFrame;
@@ -266,14 +275,14 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   std::vector<int> boxes_a;
   std::vector<float> scores_a;
   std::vector<float> classes_a;
-  int num_detections_i = static_cast<int> (std::ceil (result_4[0]));
+  int num_detections_i = static_cast<int> (result_4[0]);
   if (num_detections_i <= 0)
     goto clean;
-
   valid_indices_a =
     scoresToValidIndices (result_2, num_detections_i);
   if (valid_indices_a.empty ())
     goto clean;
+
   for (std::vector<size_t>::iterator iterator = valid_indices_a.begin ();
        iterator != valid_indices_a.end ();
        ++iterator)
@@ -538,7 +547,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
 
     // add caption of type "LABEL (X.XXX)" to the top-left corner of the
     // bounding box
-    class_index_i = static_cast<int> (std::ceil (classes_in[i]));
+    class_index_i = static_cast<int> (classes_in[i]);
     label_map_iterator = labelMap_.find (class_index_i);
     if (likely (label_map_iterator != labelMap_.end ()))
       caption = (*label_map_iterator).second;
