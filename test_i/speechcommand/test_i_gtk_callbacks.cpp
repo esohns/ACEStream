@@ -1162,6 +1162,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   std::string model_file_string;
   std::string scorer_file_string;
+  std::string language_string;
 #if defined(ACE_WIN32) || defined(ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -1171,6 +1172,8 @@ idle_initialize_UI_cb (gpointer userData_in)
         (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
       scorer_file_string =
         (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+      language_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->language;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1179,6 +1182,8 @@ idle_initialize_UI_cb (gpointer userData_in)
         (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
       scorer_file_string =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
+      language_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->language;
       break;
     }
     default:
@@ -1194,6 +1199,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     (*modulehandler_configuration_iterator).second.second->modelFile;
   scorer_file_string =
     (*modulehandler_configuration_iterator).second.second->scorerFile;
+  language_string =
+    (*modulehandler_configuration_iterator).second.second->language;
 #endif // ACE_WIN32 || ACE_WIN64
   GtkFileChooserButton* model_file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -1219,8 +1226,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_p);
   result =
     gtk_file_chooser_set_file (GTK_FILE_CHOOSER (scorer_file_chooser_button_p),
-                                file_p,
-                                &error_p);
+                               file_p,
+                               &error_p);
   ACE_ASSERT (result && !error_p);
   g_object_unref (file_p); file_p = NULL;
   //if (unlikely (!result))
@@ -1230,6 +1237,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   //              ACE_TEXT (filename_string.c_str ())));
   //  return G_SOURCE_REMOVE;
   //} // end IF
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_LANGUAGE_NAME)));
+  ACE_ASSERT (entry_p);
+  gtk_entry_set_text (entry_p,
+                      language_string.c_str ());
 
   std::string filename_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
