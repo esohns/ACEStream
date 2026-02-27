@@ -2277,6 +2277,39 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_Thread_Manager* thread_manager_p = NULL;
   struct Test_I_SpeechCommand_UI_ProgressData* progress_data_p = NULL;
 
+  // step1: update configuration according to UI
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_LANGUAGE_NAME)));
+  ACE_ASSERT (entry_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      (*directshow_modulehandler_configuration_iterator).second.second->language =
+        gtk_entry_get_text (entry_p);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->language =
+        gtk_entry_get_text (entry_p);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  (*modulehandler_configuration_iterator).second.second->language =
+    gtk_entry_get_text (entry_p);
+#endif // ACE_WIN32 || ACE_WIN64
+
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
 
@@ -4813,6 +4846,25 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
   return TRUE;
 } // drawingarea_expose_event_cb
 #endif // GTK_CHECK_VERSION(3,0,0)
+
+void
+entry_language_icon_press_cb (GtkEntry* entry_in,
+                              GtkEntryIconPosition position_in,
+                              GdkEvent* event_in,
+                              gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::entry_language_icon_press_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (entry_in);
+
+  ACE_UNUSED_ARG (position_in);
+  ACE_UNUSED_ARG (event_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  gtk_entry_set_text (entry_in,
+                      ACE_TEXT_ALWAYS_CHAR ("en"));
+}
 
 void
 filechooserbutton_save_current_folder_changed_cb (GtkFileChooserButton* button_in,

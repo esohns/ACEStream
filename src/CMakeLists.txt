@@ -29,13 +29,14 @@ else ()
  message (STATUS "found package \"Common\": \"${Common_DIR}\"")
 endif ()
 
-if (UNIX)
- add_link_options ("LINKER:--as-needed")
-endif (UNIX)
-
 # ........................................
 
 add_library (${PROJECT_NAME} STATIC "")
+
+if (UNIX)
+ target_link_options (${PROJECT_NAME} PUBLIC
+                      "LINKER:--as-needed")
+endif (UNIX)
 
 if (TREE_HH_SUPPORT)
  target_include_directories (${PROJECT_NAME} PUBLIC
@@ -216,8 +217,6 @@ endif (WIN32)
 # Include dir for installed targets
 #set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
-
 foreach (source_file ${source_files})
 get_filename_component (abs_source_file ${source_file} ABSOLUTE)
 list (APPEND absolute_source_files
@@ -235,19 +234,7 @@ target_precompile_headers (${PROJECT_NAME}
 #add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
 add_dependencies (${PROJECT_NAME} Common)
 
-#set_target_properties (${PROJECT_NAME} PROPERTIES DEFINE_SYMBOL STREAM_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME} PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
 if (WIN32)
- if (MSVC)
-#  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
-  if (MSVC_VERSION GREATER 1600)
-#  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-#   target_link_libraries (${PROJECT_NAME} vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
-  endif (MSVC_VERSION GREATER 1600)
- endif (MSVC)
-# endif ()
-
  target_link_libraries (${PROJECT_NAME} ${ACE_LIBRARY})
 endif (WIN32)
 

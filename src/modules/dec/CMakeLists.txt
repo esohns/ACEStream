@@ -399,7 +399,7 @@ target_precompile_headers (${PROJECT_NAME}_Decoder
                            PUBLIC stdafx.h)
 
 if (WIN32)
- source_group (scripts FILES ${script_files})
+ source_group (scripts FILES ${absolute_script_files})
 endif (WIN32)
 
 set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")

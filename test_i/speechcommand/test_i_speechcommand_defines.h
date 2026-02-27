@@ -34,10 +34,10 @@
 #define TEST_I_DEFAULT_RNNN_FILE                       "sh.rnnn"
 #define TEST_I_DEFAULT_OUTPUT_FILE                     "output.wav"
 
-//---------------------------------------
+//----------------------------------------
 
 #define TEST_I_UI_OPENGL_DEFAULT_TEXTURE_FILE          "image.png"
-#define TEST_I_UI_OPENGL_CAMERA_DEFAULT_ZOOM_F         5.0F
+#define TEST_I_UI_OPENGL_CAMERA_DEFAULT_ZOOM_F         5.0f
 // perspective(s)
 #define TEST_I_UI_OPENGL_PERSPECTIVE_FOVY_D            45.0
 #define TEST_I_UI_OPENGL_PERSPECTIVE_ZNEAR_D           0.1
@@ -61,6 +61,7 @@
 #define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                "dialog_about"
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME                 "dialog_main"
 #define TEST_I_UI_GTK_DRAWINGAREA_NAME                 "drawingarea"
+#define TEST_I_UI_GTK_ENTRY_LANGUAGE_NAME              "entry_language"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME     "filechooserbutton_model"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME    "filechooserbutton_scorer"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME      "filechooserbutton_save"
@@ -72,7 +73,6 @@
 #define TEST_I_UI_GTK_HSCALE_VOLUME_NAME               "hscale_volume"
 #define TEST_I_UI_GTK_LISTSTORE_BACKEND_NAME           "liststore_backend"
 #define TEST_I_UI_GTK_LISTSTORE_SOURCE_NAME            "liststore_source"
-//#define TEST_I_UI_GTK_FRAME_OPTIONS_NAME         "frame_options"
 #define TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION       "Monospace 8"
 #define TEST_I_UI_GTK_PANGO_LOG_COLOR_BASE             "#FFFFFF" // white
 #define TEST_I_UI_GTK_PANGO_LOG_COLOR_TEXT             "#000000" // black
@@ -85,7 +85,6 @@
 #define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME     "spinbutton_data_messages"
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME  "spinbutton_session_messages"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME              "scrolledwindow"
-#define TEST_I_UI_GTK_TEXTBUFFER_NAME                  "textbuffer"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME         "togglebutton_record"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME           "togglebutton_save"
 #define TEST_I_UI_GTK_SCROLLMARK_NAME                  "insert"
