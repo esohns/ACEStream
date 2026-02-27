@@ -103,13 +103,13 @@
 #if (_WIN32_WINNT < _WIN32_WINNT_WINXP)                                
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
 #elif (_WIN32_WINNT < _WIN32_WINNT_VISTA)                              
-#if defined (VMR9_SUPPORT)                                             
+#if defined (VMR9_USE)                                             
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX9
-#elif defined (VMR7_SUPPORT)                                           
+#elif defined (VMR7_USE)                                           
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_DX7
 #else                                                                  
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER
-#endif // VMR9_SUPPORT || VMR7_SUPPORT                                 
+#endif // VMR9_USE || VMR7_USE                                 
 #else                                                                  
 #define STREAM_LIB_DEFAULT_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER        STREAM_LIB_DIRECTSHOW_FILTER_CLSID_VIDEO_RENDER_ENHANCED
 #endif // _WIN32_WINNT < _WIN32_WINNT_WINXP || _WIN32_WINNT < _WIN32_WINNT_VISTA

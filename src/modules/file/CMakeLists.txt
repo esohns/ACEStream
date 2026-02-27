@@ -101,9 +101,6 @@ target_link_libraries (${PROJECT_NAME}_File PUBLIC Common)
 
 target_link_libraries (${PROJECT_NAME}_File PUBLIC ${PROJECT_NAME})
 
-#set_target_properties (${PROJECT_NAME}_File PROPERTIES DEFINE_SYMBOL STREAM_FILE_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_File PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_File
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")

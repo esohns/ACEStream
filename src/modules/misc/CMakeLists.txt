@@ -21,7 +21,7 @@ if (UNIX)
    if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
-# *TODO*: verify automatically
+# *TODO*: verify and set automatically
     target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                                 $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
    endif (GTKGLAREA_SUPPORT)
@@ -163,9 +163,6 @@ target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ACE_LIBRARY})
 target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC Common)
 
 target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${PROJECT_NAME})
-
-#set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES DEFINE_SYMBOL STREAM_MISC_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Miscellaneous PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Miscellaneous

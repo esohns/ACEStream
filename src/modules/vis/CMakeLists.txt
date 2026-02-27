@@ -41,17 +41,17 @@ endif ()
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
-if (WIN32)
- add_definitions (-D__STDC_CONSTANT_MACROS)
-
- add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
-# if (CMAKE_BUILD_TYPE STREQUAL Debug)
- # *NOTE*: DirectShow uses 'DEBUG'
-#  add_definitions (-DDEBUG) # activate DirectShow debug logging
-# endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif (WIN32)
-
 add_library (${PROJECT_NAME}_Visualization STATIC "")
+
+if (WIN32)
+ target_compile_definitions (${PROJECT_NAME}_Visualization PUBLIC
+                             -D__STDC_CONSTANT_MACROS)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  # *NOTE*: DirectShow uses 'DEBUG'
+  target_compile_definitions (${PROJECT_NAME}_Visualization PUBLIC
+                              -DDEBUG)
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WIN32)
 
 if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -97,7 +97,7 @@ if (GTK_SUPPORT)
   if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
-# *TODO*: verify automatically
+# *TODO*: verify and set automatically
    target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                                $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
   endif (GTKGLAREA_SUPPORT)
@@ -309,7 +309,7 @@ elseif (WIN32)
 endif ()
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})

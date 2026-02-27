@@ -133,6 +133,7 @@ add_dependencies (${PROJECT_NAME}_MachineLearning ${PROJECT_NAME})
 #endif (LLAMACPP_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC Common)
+
 target_link_libraries (${PROJECT_NAME}_MachineLearning PUBLIC ${PROJECT_NAME})
 
 # add all targets to the build-tree export set

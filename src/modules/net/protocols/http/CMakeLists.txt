@@ -44,10 +44,9 @@ set (source_files
      stream_module_source_http_get.h
      stream_module_source_http_get.inl
      stream_net_http_defines.h)
-#     stream_net_http_exports.h)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -58,7 +57,7 @@ foreach (source_file ${source_files})
 #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Network_Protocol_HTTPGet
-               PRIVATE stdafx.cpp
+#               PRIVATE stdafx.cpp
                PRIVATE stdafx.h
                ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_Network_Protocol_HTTPGet
@@ -73,16 +72,11 @@ add_dependencies (${PROJECT_NAME}_Network_Protocol_HTTPGet ${PROJECT_NAME}_Netwo
 if (WIN32)
  target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${ACE_LIBRARY})
 endif (WIN32)
+
 target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC Common)
+
 target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${PROJECT_NAME})
 target_link_libraries (${PROJECT_NAME}_Network_Protocol_HTTPGet PUBLIC ${PROJECT_NAME}_Network)
-
-#set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES DEFINE_SYMBOL STREAM_NET_HTTP_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Network_Protocol_HTTPGet PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Network_Protocol_HTTPGet)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Network_Protocol_HTTPGet

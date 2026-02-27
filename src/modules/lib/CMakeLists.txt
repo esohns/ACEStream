@@ -21,19 +21,30 @@ elseif (WIN32)
  include (DirectXBaseClasses)
 endif ()
 
+add_library (${PROJECT_NAME}_MediaFramework STATIC "")
+
 if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
  elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
-  option (VMR9_SUPPORT "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7" OFF)
+  option (VMR9_USE "prefer DirectShow Video Mixing Renderer 9 (VMR-9) over VMR-7" OFF)
+  if (VMR9_USE)
+   #*TODO*: this should probably be a global compile definition, use add_compile_definitions () here
+   target_compile_definitions (${PROJECT_NAME}_MediaFramework PUBLIC
+                               -DVMR9_USE)
+  endif (VMR9_USE)
  else ()                                    # Some other Windows
  endif ()
-
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DD3D_DEBUG_INFO)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WIN32)
 
-add_library (${PROJECT_NAME}_MediaFramework STATIC "")
+if (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  target_compile_definitions (${PROJECT_NAME}_MediaFramework PUBLIC
+                              -DD3D_DEBUG_INFO)
+  # *NOTE*: DirectShow uses 'DEBUG'
+  target_compile_definitions (${PROJECT_NAME}_MediaFramework PUBLIC
+                              -DDEBUG>)
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WIN32)
 
 if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_MediaFramework PUBLIC
@@ -224,9 +235,7 @@ elseif (WIN32)
 endif ()
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
-
-#set_target_properties (${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -242,12 +251,6 @@ target_sources (${PROJECT_NAME}_MediaFramework
                 PRIVATE ${absolute_source_files})
 target_precompile_headers (${PROJECT_NAME}_MediaFramework
                            PUBLIC stdafx.h)
-
-if (WIN32)
- # *NOTE*: DirectShow uses 'DEBUG'
-# add_definitions (-DDEBUG) # activate DirectShow debug logging
- add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
-endif (WIN32)
 
 set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
 
@@ -281,11 +284,7 @@ elseif (WIN32)
  if (DIRECTSHOW_BASECLASSES_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DS_BASECLASSES_LIBRARIES})
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
-# target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${ACE_LIBRARY})
 endif ()
-
-#set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES DEFINE_SYMBOL STREAM_LIB_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_MediaFramework PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_MediaFramework

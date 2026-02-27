@@ -34,16 +34,13 @@ endif (UNIX)
 
 add_library (${PROJECT_NAME}_Decoder STATIC "")
 
-if (WIN32)
- add_definitions (-D_USE_MATH_DEFINES)
-
-# set_property (TARGET ${PROJECT_NAME}_Decoder
-#               PROPERTY VS_PACKAGE_REFERENCES "DeepSpeech_0.9.3")
-# add_definitions (-DDEEPSPEECH_SUPPORT)
-endif (WIN32)
-
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
+
+if (WIN32)
+ target_compile_definitions (${PROJECT_NAME}_Decoder PUBLIC
+                             -D_USE_MATH_DEFINES)
+endif (WIN32)
 
 if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -69,7 +66,7 @@ if (WIN32)
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
  if (SAPI_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
-                              ${SAPI_INCLUDE_DIRS})
+                              $<BUILD_INTERFACE:${SAPI_INCLUDE_DIRS}>)
  endif (SAPI_SUPPORT)
 endif (WIN32)
 
@@ -401,10 +398,8 @@ target_sources (${PROJECT_NAME}_Decoder
 target_precompile_headers (${PROJECT_NAME}_Decoder
                            PUBLIC stdafx.h)
 
-# *NOTE*: generate .def file and export all symbols on Windows
 if (WIN32)
-# set (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
- source_group (scripts FILES ${PROJECT_NAME}_Decoder_LIB_SCRIPTS)
+ source_group (scripts FILES ${script_files})
 endif (WIN32)
 
 set_property (TARGET ${PROJECT_NAME}_Decoder PROPERTY FOLDER "modules")
@@ -471,11 +466,9 @@ elseif (WIN32)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC strmiids.lib)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC wmcodecdspuuid.lib)
  if (MSVC)
-#  message (STATUS "MSVC_VERSION: ${MSVC_VERSION}")
   if (MSVC_VERSION GREATER 1600)
-#  if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-   target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
-  endif ()
+#   target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC vcruntime${LIB_FILE_SUFFIX}.lib ucrt${LIB_FILE_SUFFIX}.lib)
+  endif (MSVC_VERSION GREATER 1600)
  endif (MSVC)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${ACE_LIBRARY})
 endif ()
@@ -485,7 +478,6 @@ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC CommonImage)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME})
 
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_Device)
-#target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_HTML)
 target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${PROJECT_NAME}_MediaFramework)
 
 if (WIN32)

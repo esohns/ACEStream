@@ -44,13 +44,9 @@ set (source_files
      stream_stat_statistic_report.cpp
      stream_stat_statistic_report.h
      stream_stat_statistic_report.inl)
-#if (WIN32)
-# set (source_files
-#      ${source_files})
-#endif (WIN32)
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -77,13 +73,6 @@ target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC ${ACE_LIBRARY})
 target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC Common)
 
 target_link_libraries (${PROJECT_NAME}_Statistic PUBLIC ${PROJECT_NAME})
-
-#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES DEFINE_SYMBOL STREAM_STAT_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Statistic PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Statistic)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Statistic

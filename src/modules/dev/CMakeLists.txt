@@ -19,17 +19,17 @@ if (UNIX)
  pkg_check_modules (PKG_V4L REQUIRED libv4l2)
 endif (UNIX)
 
-if (UNIX)
-elseif (WIN32)
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-  add_definitions (-DD3D_DEBUG_INFO)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif ()
-
 add_library (${PROJECT_NAME}_Device STATIC "")
 
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
+
+if (WIN32)
+ if (CMAKE_BUILD_TYPE STREQUAL Debug)
+  target_compile_definitions (${PROJECT_NAME}_Device PUBLIC
+                              -DD3D_DEBUG_INFO)
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WIN32)
 
 if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
@@ -190,7 +190,6 @@ foreach (source_file ${source_files})
    )
  #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
-#message (STATUS "absolute_source_files: ${absolute_source_files}")
 target_sources (${PROJECT_NAME}_Device
 #                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
@@ -216,7 +215,7 @@ if (UNIX)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBPIPEWIRE_LIBRARIES})
  endif (LIBPIPEWIRE_SUPPORT)
  if (LIBCAMERA_SUPPORT)
-  link_directories (/usr/local/lib64)
+  target_link_directories (${PROJECT_NAME}_Device PUBLIC /usr/local/lib64)
   target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
  endif (LIBCAMERA_SUPPORT)
 
@@ -245,7 +244,6 @@ elseif (WIN32)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Common)
 endif ()
-#target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PROJECT_NAME}_Decoder)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device

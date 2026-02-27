@@ -81,13 +81,6 @@ target_link_libraries (${PROJECT_NAME}_Document PUBLIC Common)
 
 target_link_libraries (${PROJECT_NAME}_Document PUBLIC ${PROJECT_NAME})
 
-#set_target_properties (${PROJECT_NAME}_Document PROPERTIES DEFINE_SYMBOL STREAM_DOCUMENT_BUILD_DLL)
-#set_target_properties (${PROJECT_NAME}_Document PROPERTIES VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_MICRO} SOVERSION 1)
-
-# add PCH
-#set_target_properties (${PROJECT_NAME}_Document PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${PROJECT_NAME}_Document)
-
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Document
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
