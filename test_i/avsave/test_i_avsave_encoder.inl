@@ -665,12 +665,10 @@ continue_3:
     {
       int result = -1;
 
-      // *IMPORTANT NOTE*: finalize the format context (and everything else) only once
-      if (!inherited::isLast_)
-      {
-        inherited::isLast_ = true;
+      // *IMPORTANT NOTE*: finalize the format context only once
+      ++inherited::isLast_;
+      if (static_cast<unsigned int> (inherited::isLast_) < inherited::numberOfStreamsInitialized_)
         goto continue_4;
-      } // end IF
 
       if (!inherited::headerWritten_)
         goto continue_5;

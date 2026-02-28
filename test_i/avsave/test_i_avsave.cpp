@@ -1177,17 +1177,19 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
   Stream_AVSave_MediaFoundation_Encoder_Module mediafoundation_encoder (NULL,
                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+
+  Stream_AVSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                                            &heap_allocator,     // heap allocator handle
+                                                                            true);               // block ?
+  Stream_AVSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
+                                                                                      &heap_allocator,     // heap allocator handle
+                                                                                      true);               // block ?
+
   Stream_AVSave_DirectShow_Audio_Stream directshow_audio_stream;
   Stream_AVSave_DirectShow_Stream directshow_video_stream;
   Stream_AVSave_MediaFoundation_Audio_Stream mediafoundation_audio_stream;
   Stream_AVSave_MediaFoundation_Stream mediafoundation_video_stream;
 
-  Stream_AVSave_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                             &heap_allocator,     // heap allocator handle
-                                                                             true);               // block ?
-  Stream_AVSave_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
-                                                                                       &heap_allocator,     // heap allocator handle
-                                                                                       true);               // block ?
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1254,7 +1256,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directShowConfiguration_in.audioStreamConfiguration.initialize (module_configuration,
                                                                       directshow_audio_modulehandler_configuration,
                                                                       directshow_audio_stream_configuration);
-      directShowConfiguration_in.audioStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEIN_CAPTURE_DEFAULT_NAME_STRING),
+      directShowConfiguration_in.audioStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &directshow_audio_modulehandler_configuration_2)));
       directShowConfiguration_in.audioStreamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING),
@@ -1316,12 +1318,13 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
+  Stream_AVSave_MessageHandler_Module message_handler (NULL,
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+  Stream_AVSave_ALSA_V4L_Encoder_Module encoder (NULL,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
+
   Stream_AVSave_ALSA_Stream audio_stream;
   Stream_AVSave_V4L_Stream video_stream;
-  Stream_AVSave_MessageHandler_Module message_handler (&video_stream,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Stream_AVSave_ALSA_V4L_Encoder_Module encoder (&video_stream,
-                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
 
   audio_stream_configuration.allocatorConfiguration = &allocator_configuration;
   audio_stream_configuration.messageAllocator = &message_allocator;

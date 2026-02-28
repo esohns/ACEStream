@@ -205,11 +205,11 @@ class Stream_MediaFramework_DirectShow_Tools
   static std::string toString (const struct Stream_MediaFramework_DirectShow_AudioVideoFormat&, // media type
                                bool = false); // condensed version ?
 
-  // *IMPORTANT NOTE*: callers must 'delete_' any return values
+  // *IMPORTANT NOTE*: callers must 'delete[_(mt,false)]' any return values
   static struct _AMMediaType* copy (const struct _AMMediaType&);
   // *IMPORTANT NOTE*: callers must 'free' the second argument
   static bool copy (const struct _AMMediaType&, // media type
-                    struct _AMMediaType&); // return value: media type
+                    struct _AMMediaType&);      // return value: media type
   // *IMPORTANT NOTE*: if the media type was allocated with CoTaskMemAlloc(),
   //                   it needs to be freed with CoTaskMemFree() !
   static void delete_ (struct _AMMediaType*&, // media type

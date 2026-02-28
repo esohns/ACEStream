@@ -127,11 +127,11 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         {
           // retrieve branch session data
           QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2 =
-              modules_.find ((*iterator).second);
+            modules_.find ((*iterator).second);
           ACE_ASSERT (iterator_2 != modules_.end ());
           ACE_ASSERT ((*iterator_2).second);
           HEAD_TO_SESSIONDATA_ITERATOR_T iterator_3 =
-              data_.find ((*iterator_2).second);
+            data_.find ((*iterator_2).second);
           SessionMessageType* session_message_p =
             static_cast<SessionMessageType*> (messageBlock_in);
           // *NOTE*: if some upstream initialization failed and the task sends
@@ -175,9 +175,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         } // end lock scope
       } // end IF
       else
-        result =
-          (highPriority_in ? (*iterator).second->enqueue_head (message_block_p, NULL)
-                           : (*iterator).second->enqueue_tail (message_block_p, NULL));
+        result = (highPriority_in ? (*iterator).second->enqueue_head (message_block_p, NULL)
+                                  : (*iterator).second->enqueue_tail (message_block_p, NULL));
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -360,7 +359,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
     {
       ACE_ASSERT (inherited::sessionData_);
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
+        inherited::sessionData_->getR ();
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
 

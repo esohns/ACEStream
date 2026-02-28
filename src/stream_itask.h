@@ -31,6 +31,7 @@ class Stream_ITask
                               bool&) = 0;         // return value: stop processing ?
 
   virtual bool isAggregator () = 0; // return value: is aggregator ?
+  virtual bool isHead () = 0; // return value: is head ?
 };
 
 //////////////////////////////////////////

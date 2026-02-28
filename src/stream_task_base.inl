@@ -62,7 +62,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
  , sessionDataLock_ (NULL)
  /////////////////////////////////////////
  , freeSessionData_ (false)
- , isHeadTask_ (false)
  , sessionData_2 (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::Stream_TaskBase_T"));
@@ -130,7 +129,6 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
       sessionData_->decrease (); sessionData_ = NULL;
     } // end IF
     freeSessionData_ = false;
-    isHeadTask_ = false;
     if (unlikely (sessionData_2))
     {
       sessionData_2->decrease (); sessionData_2 = NULL;
@@ -347,7 +345,7 @@ continue_:
       if (!configuration_->handleResize)
         break;
 
-      if (likely (freeSessionData_ || isHeadTask_))
+      if (likely (freeSessionData_ || isHead ()))
       { ACE_ASSERT (sessionData_);
         sessionData_->decrease ();
       } // end IF
@@ -474,9 +472,12 @@ continue_2:
       } // end IF
 
       // sanity check(s)
-      if (unlikely (sessionData_)) // --> head modules initialize this in start()
-      {
-        isHeadTask_ = true;
+      if (unlikely (sessionData_)) // --> e.g. head modules initialize this in start()
+      { 
+        if (unlikely (!isHead ())) // *NOTE*: e.g. module enqueued on several streams at once ?
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: already had session data on begin, continuing\n"),
+                      inherited::mod_->name ()));
         goto continue_3;
       } // end IF
 

@@ -243,6 +243,14 @@ struct Stream_AVSave_SessionDataBase
    , stream (NULL)
   {}
 
+  struct Stream_AVSave_SessionDataBase& operator= (const struct Stream_AVSave_SessionDataBase& rhs_in)
+  {
+    Test_I_SessionData::operator= (rhs_in);
+
+    stream = rhs_in.stream;
+
+    return *this;
+  }
   struct Stream_AVSave_SessionDataBase& operator+= (const struct Stream_AVSave_SessionDataBase& rhs_in)
   {
     // *NOTE*: the idea is to 'merge' the data
@@ -325,11 +333,11 @@ class Stream_AVSave_MediaFoundation_SessionData
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex* direct3DDevice;
 #else
   IDirect3DDevice9*   direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   UINT                direct3DManagerResetToken;
   TOPOID              rendererNodeId;
   UINT                resetToken;

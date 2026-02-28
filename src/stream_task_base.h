@@ -139,6 +139,7 @@ class Stream_TaskBase_T
   virtual void handleMessage (ACE_Message_Block*, // message handle
                               bool&);             // return value: stop processing ?
   inline virtual bool isAggregator () { return aggregate_; }
+  inline virtual bool isHead () { return false; }
 
   // convenience methods to send (session-specific) notifications downstream
   // *NOTE*: these invoke put(), so the messages are processed by 'this' module
@@ -197,7 +198,6 @@ class Stream_TaskBase_T
   inline virtual int put (ACE_Message_Block* messageBlock_in, ACE_Time_Value* timeValue_in) { ACE_ASSERT (false); return inherited::put_next (messageBlock_in, timeValue_in); }
 
   bool                                 freeSessionData_;
-  bool                                 isHeadTask_;
   // *NOTE*: these apply to 'downstream', iff linked, only
   // *TODO*: move all of this to Stream_HeadModuleTaskBase_T; it's easier to do
   //         the switch in this class though

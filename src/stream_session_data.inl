@@ -172,6 +172,7 @@ Stream_SessionDataMediaBase_T<BaseType,
         struct _AMMediaType* media_type_2 =
           Stream_MediaFramework_DirectShow_Tools::copy (*media_type_p);
         formats.push_back (*(MediaFormatType*)media_type_2);
+        delete media_type_2;
       } // end FOR
     else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
       for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
@@ -182,6 +183,24 @@ Stream_SessionDataMediaBase_T<BaseType,
         media_type_p->AddRef ();
         formats.push_back (*(MediaFormatType*)&media_type_p);
       } // end FOR
+    else if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)NULL))
+      for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+           iterator != rhs_in.formats.end ();
+           ++iterator)
+      { // *NOTE*: this should be safe because of the check above
+        struct Stream_MediaFramework_DirectShow_AudioVideoFormat* format_p =
+          (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)&(*iterator);
+        struct _AMMediaType* media_type_p =
+          Stream_MediaFramework_DirectShow_Tools::copy (format_p->audio);
+        struct _AMMediaType* media_type_2 =
+          Stream_MediaFramework_DirectShow_Tools::copy (format_p->video);
+        struct Stream_MediaFramework_DirectShow_AudioVideoFormat audio_video_format_s;
+        audio_video_format_s.audio = *media_type_p;
+        audio_video_format_s.video = *media_type_2;
+        formats.push_back (*(MediaFormatType*)&audio_video_format_s);
+        delete media_type_p;
+        delete media_type_2;
+    } // end FOR
     else
      formats = rhs_in.formats;
   } // end IF
@@ -272,6 +291,18 @@ Stream_SessionDataMediaBase_T<BaseType,
       media_type_p->Release ();
     } // end FOR
   } // end ELSE IF
+  else if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)NULL))
+  { clear_b = true;
+    for (MEDIAFORMATS_ITERATOR_T iterator = formats.begin ();
+         iterator != formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      struct Stream_MediaFramework_DirectShow_AudioVideoFormat* format_p =
+        (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)&(*iterator);
+      Stream_MediaFramework_DirectShow_Tools::free (format_p->audio);
+      Stream_MediaFramework_DirectShow_Tools::free (format_p->video);
+    } // end FOR
+  } // end ELSE IF
   else
     formats = rhs_in.formats;
   if (clear_b)
@@ -286,7 +317,8 @@ Stream_SessionDataMediaBase_T<BaseType,
       struct _AMMediaType* media_type_2 =
         Stream_MediaFramework_DirectShow_Tools::copy (*media_type_p);
       formats.push_back (*(MediaFormatType*)media_type_2);
-    } // end FOR
+      delete media_type_2;
+  } // end FOR
   else if (Common_Tools::equalType ((MediaFormatType*)NULL, (IMFMediaType**)NULL))
     for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
          iterator != rhs_in.formats.end ();
@@ -295,6 +327,24 @@ Stream_SessionDataMediaBase_T<BaseType,
       IMFMediaType* media_type_p = *(IMFMediaType**)&(*iterator);
       media_type_p->AddRef ();
       formats.push_back (*(MediaFormatType*)&media_type_p);
+    } // end FOR
+  else if (Common_Tools::equalType ((MediaFormatType*)NULL, (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)NULL))
+    for (MEDIAFORMATS_CONST_ITERATOR_T iterator = rhs_in.formats.begin ();
+         iterator != rhs_in.formats.end ();
+         ++iterator)
+    { // *NOTE*: this should be safe because of the check above
+      struct Stream_MediaFramework_DirectShow_AudioVideoFormat* format_p =
+        (struct Stream_MediaFramework_DirectShow_AudioVideoFormat*)&(*iterator);
+      struct _AMMediaType* media_type_p =
+        Stream_MediaFramework_DirectShow_Tools::copy (format_p->audio);
+      struct _AMMediaType* media_type_2 =
+        Stream_MediaFramework_DirectShow_Tools::copy (format_p->video);
+      struct Stream_MediaFramework_DirectShow_AudioVideoFormat audio_video_format_s;
+      audio_video_format_s.audio = *media_type_p;
+      audio_video_format_s.video = *media_type_2;
+      formats.push_back (*(MediaFormatType*)&audio_video_format_s);
+      delete media_type_p;
+      delete media_type_2;
     } // end FOR
 #else
   formats = rhs_in.formats;
