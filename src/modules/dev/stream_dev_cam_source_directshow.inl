@@ -293,6 +293,11 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
     {
       inherited::isHighPriorityStop_ = true;
       inherited::change (STREAM_STATE_SESSION_STOPPING);
+
+      // process session end
+      ACE_ASSERT (inherited::sessionEndProcessed_);
+      inherited::sessionEndProcessed_ = false;
+
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -652,9 +657,9 @@ error:
 end:
       // *NOTE*: only process the first 'session end' message
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
-        if (unlikely (sessionEndProcessed_))
+        if (unlikely (inherited::sessionEndProcessed_))
           break; // done
-        sessionEndProcessed_ = true;
+        inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
       bool COM_initialized = Common_Tools::initializeCOM ();
