@@ -823,8 +823,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
     } // end FOR
 
     if (c < channels_ - 1)
-      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%*c\n"),
-                      40 + 2 + 1, '+');
+      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%.*s\n"),
+                      40 + 2 + 1, ACE_TEXT_ALWAYS_CHAR ("+++++++++++++++++++++++++++++++++++++++++++"));
   } // end FOR
 
   /* move cursor back up */
