@@ -1932,6 +1932,12 @@ combobox_stream_changed_cb (GtkWidget* widget_in,
   gtk_entry_buffer_set_text (gtk_entry_get_buffer (entry_p),
                              (*stream_iterator).second.second->targetFileName.c_str (),
                              -1);
+
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_PLAY_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p), TRUE);
 } // combobox_stream_changed_cb
 
 void
@@ -2652,18 +2658,6 @@ filechooserbutton_source_file_set_cb (GtkFileChooserButton* fileChooserButton_in
                       list_store_p);
 } // filechooserbutton_source_file_set_cb
 
-//void
-//filechooserdialog_cb (GtkFileChooser* fileChooser_in,
-//                      gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::filechooserdialog_cb"));
-//
-//  ACE_UNUSED_ARG (userData_in);
-//
-//  gtk_dialog_response (GTK_DIALOG (GTK_FILE_CHOOSER_DIALOG (fileChooser_in)),
-//                       GTK_RESPONSE_ACCEPT);
-//} // filechooserdialog_cb
-
 gboolean
 key_cb (GtkWidget* widget_in,
         GdkEventKey* eventKey_in,
@@ -2723,16 +2717,6 @@ key_cb (GtkWidget* widget_in,
 
   return TRUE; // done (do not propagate further)
 } // key_cb
-
-//gboolean
-//drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
-//                                      GdkEventKey* eventKey_in,
-//                                      gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
-//
-//  return key_cb (widget_in, eventKey_in, userData_in);
-//} // drawingarea_audio_key_press_event_cb
 
 gboolean
 dialog_main_key_press_event_cb (GtkWidget* widget_in,

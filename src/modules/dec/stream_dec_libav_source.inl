@@ -227,7 +227,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to avformat_open_input(\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
-    return -1;
+    inherited::stop (false, false, true);
+    goto loop;
   } // end IF
 
   result = avformat_find_stream_info (context_,
@@ -238,7 +239,8 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: failed to avformat_find_stream_info(\"%s\"): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
-    return -1;
+    inherited::stop (false, false, true);
+    goto loop;
   } // end IF
 
   for (unsigned int i = 0; i < context_->nb_streams; i++)
@@ -342,12 +344,14 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
                     inherited::mod_->name (),
                     context_->streams[i]->codecpar->codec_type));
-        return -1;
+        inherited::stop (false, false, true);
+        goto loop;
       }
     } // end SWITCH
   } // end FOR
   session_data_r.formats.push_back (media_type_s);
 
+loop:
   do
   {
     message_block_p = NULL;
@@ -407,9 +411,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
             finished_b = true;
         } // end lock scope
         if (!finished_b)
-          inherited::stop (false,
-                           false,
-                           false);
+          inherited::stop (false, false, false);
         continue;
       } // end IF
     } // end IF
@@ -449,7 +451,10 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       break;
     } // end ELSE IF
 
-continue_:
+  continue_:
+    if (unlikely (!context_))
+      continue;
+
     av_init_packet (&packet_s);
     //result =
     //  av_packet_from_data (&packet_s,

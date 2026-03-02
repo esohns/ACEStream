@@ -138,6 +138,7 @@
                                   <object class="GtkToggleButton" id="togglebutton_play">
                                     <property name="label">gtk-media-play</property>
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="can_focus">True</property>
                                     <property name="has_focus">True</property>
                                     <property name="is_focus">True</property>
@@ -162,7 +163,6 @@
                                     <property name="label" translatable="yes">Snapshot</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">snapshot</property>
                                     <property name="tooltip_text" translatable="yes">snapshot</property>
@@ -181,7 +181,6 @@
                                     <property name="label" translatable="yes">Cut</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">cut</property>
                                     <property name="tooltip_text" translatable="yes">cut</property>
@@ -200,7 +199,6 @@
                                     <property name="label" translatable="yes">Report</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">report</property>
                                     <property name="tooltip_text" translatable="yes">report</property>
@@ -452,7 +450,6 @@
                               <object class="GtkFileChooserButton" id="filechooserbutton_source">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="can_default">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="tooltip_markup" translatable="yes">source file</property>
                                 <property name="tooltip_text" translatable="yes">source file</property>
@@ -524,7 +521,6 @@
                                         <property name="label" translatable="yes">_Slow</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">slow audio ?</property>
                                         <property name="tooltip_text" translatable="yes">slow audio ?</property>
@@ -603,7 +599,6 @@
                                     <property name="label" translatable="yes">Save</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">save to file ?</property>
                                     <property name="tooltip_text" translatable="yes">save to file ?</property>
@@ -626,7 +621,6 @@
                                       <object class="GtkEntry" id="entry_save">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">destination file</property>
                                         <property name="tooltip_text" translatable="yes">destination file</property>
@@ -653,7 +647,6 @@
                                       <object class="GtkFileChooserButton" id="filechooserbutton_save">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">destination folder</property>
                                         <property name="tooltip_text" translatable="yes">destination folder</property>
@@ -715,7 +708,6 @@
                                     <property name="label" translatable="yes">Display</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="tooltip_markup" translatable="yes">display ?</property>
                                     <property name="tooltip_text" translatable="yes">display ?</property>
@@ -754,7 +746,6 @@
                                       <object class="GtkComboBox" id="combobox_display">
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">display</property>
                                         <property name="tooltip_text" translatable="yes">display</property>
@@ -774,7 +765,6 @@
                                         <property name="label" translatable="yes">Properties</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">display settings</property>
                                         <property name="tooltip_text" translatable="yes">display settings</property>
@@ -805,7 +795,6 @@
                                         <property name="label" translatable="yes">Fullscreen</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">fullscreen display ?</property>
                                         <property name="tooltip_text" translatable="yes">fullscreen display ?</property>
@@ -826,7 +815,6 @@
                                         <property name="label">gtk-revert-to-saved</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
-                                        <property name="can_default">True</property>
                                         <property name="receives_default">True</property>
                                         <property name="tooltip_markup" translatable="yes">reset display settings</property>
                                         <property name="tooltip_text" translatable="yes">reset display settings</property>
@@ -1002,7 +990,6 @@
                 <property name="label">gtk-about</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">about</property>
                 <property name="relief">half</property>
@@ -1014,6 +1001,7 @@
                 <property name="expand">False</property>
                 <property name="fill">False</property>
                 <property name="position">1</property>
+                <property name="secondary">True</property>
               </packing>
             </child>
             <child>
@@ -1021,7 +1009,6 @@
                 <property name="label">gtk-quit</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="tooltip_text" translatable="yes">quit</property>
                 <property name="relief">half</property>
@@ -1038,8 +1025,7 @@
           </object>
           <packing>
             <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="pack_type">end</property>
+            <property name="fill">False</property>
             <property name="position">2</property>
           </packing>
         </child>

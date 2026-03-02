@@ -1567,7 +1567,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       // *NOTE*: there is no SESSION_END message in this scenario
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         sessionEndSent_ = true;
-        sessionEndProcessed_ = true;
       } // end lock scope
 
       if (likely (!abortSent_))

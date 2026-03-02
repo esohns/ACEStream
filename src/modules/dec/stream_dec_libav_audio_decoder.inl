@@ -363,31 +363,38 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
 
+      int result = -1;
+      const struct AVCodec* codec_p = NULL;
+      //      struct AVCodecParameters* codec_parameters_p = NULL;
+      struct AVDictionary* dictionary_p = NULL;
+      int flags, flags2;
+      // int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
+      //               FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      int debug_i = 0; // FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
+      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+      enum AVCodecID codec_id_e;
+      AVChannelLayout channel_layout_in_s;
+      struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_s;
+      MediaType media_type_2;
+
       // sanity check(s)
       // *TODO*: remove type inference
-      ACE_ASSERT (!session_data_r.formats.empty ());
-      struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_s;
+      if (unlikely (session_data_r.formats.empty ()))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: no inbound media type(s), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
 
-      int result = -1;
-      const struct AVCodec* codec_p = NULL;
-//      struct AVCodecParameters* codec_parameters_p = NULL;
-      struct AVDictionary* dictionary_p = NULL;
-      int flags, flags2;
-      //int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
-      //              FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
-      int debug_i = 0; //FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
-      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
-      enum AVCodecID codec_id_e = media_type_s.codecId;
-      AVChannelLayout channel_layout_in_s;
-
+      codec_id_e = media_type_s.codecId;
       if (codec_id_e == AV_CODEC_ID_NONE)
       {
         if (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_NONE)
