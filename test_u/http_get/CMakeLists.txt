@@ -36,12 +36,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ACENetwork/src/client_server)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../ACENetwork/src/protocol/http)
 elseif (WIN32)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ffmpeg)
-
-# if (SSL_SUPPORT)
-#  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../openssl_win32_bin/include)
-# endif (SSL_SUPPORT)
-
  # *TODO*: repair pkgconfig support
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/flex)
@@ -114,43 +108,33 @@ endif (UNIX)
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS}
-                etc/httpget.glade)
+                etc/httpget.gtk2
+                etc/httpget.gtk3)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
 if (WIN32)
- cmake_policy (SET CMP0012 NEW)
+# cmake_policy (SET CMP0012 NEW)
  if (NOT BUILD_TEST_U)
   set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
  endif ()
+ 
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
- endif ()
-endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WIN32)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC rt)
-
-# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_FFMPEG_LIBRARIES})
 elseif (WIN32)
  if (MSVC)
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcmt.lib\"")
   set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:\"libcpmt.lib\"")
  endif (MSVC)
-# target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-# *TODO*: repair WIN32 pkgconfig support
-# gtk
-# set_target_properties (${EXECUTABLE} PROPERTIES LINK_FLAGS /SAFESEH:NO)
-
  if (SSL_SUPPORT)
-  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/openssl/libcrypto.lib)
-  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/openssl/libssl.lib)
+#  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/openssl/libcrypto.lib)
+#  target_link_libraries (${EXECUTABLE} PUBLIC $ENV{LIB_ROOT}/openssl/libssl.lib)
  endif (SSL_SUPPORT)
 endif ()
-if (UNIX)
-# target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_CAP_LIBRARIES})
-endif (UNIX)
-#target_link_libraries (${EXECUTABLE} PUBLIC ${MYSQL_LIBRARY})
-
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${SSL_LIBRARIES})
@@ -170,9 +154,7 @@ if (GTK_SUPPORT)
 endif (GTK_SUPPORT)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME})
-#target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Device)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_File)
-#target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECT_NAME}_Network)
@@ -186,8 +168,6 @@ target_link_libraries (${EXECUTABLE} PUBLIC ACENetwork_Protocol_HTTP)
 #target_link_libraries (${EXECUTABLE} PUBLIC ACENetwork_Client)
 
 # add PCH
-#set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
-#cotire (${EXECUTABLE})
 target_precompile_headers (${EXECUTABLE}
                            PUBLIC stdafx.h)
 
@@ -211,10 +191,10 @@ endif (WIN32)
 
 #set_tests_properties (${EXECUTABLE} PROPERTIES ENVIRONMENT "PATH=%PATH%;$(ACE_ROOT)\\lib;D:\\projects\\libiconv-1.9.2\\bin;D:\\projects\\libxml2-2.9.4\\win32\\bin;$(ProgramFiles)\\LibreOffice 5\\program;$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\Common\\cmake\\src\\err\\$(Configuration);$(ProjectDir)..\\..\\src\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\dec\\$(Configuration);$(ProjectDir)..\\..\\src\\modules\\html\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\$(Configuration);$(ProjectDir)..\\..\\..\\..\\ACENetwork\\cmake\\src\\protocol\\http\\$(Configuration)")
 
-set (ARGS "-l -t -u https://www.mirc.com/servers.ini")
+set (ARGS "-l -r -t -u https://www.mirc.com/servers.ini")
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${EXECUTABLE}" COMMAND)
- set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
+# set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ATCD/ACE/lib)
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})

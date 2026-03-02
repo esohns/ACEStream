@@ -21,10 +21,8 @@
 #ifndef HTTP_GET_DEFINES_H
 #define HTTP_GET_DEFINES_H
 
-#define HTTP_GET_DEFAULT_OUTPUT_FILE "output.bin"
-#define HTTP_GET_DEFAULT_URI         "https://www.mirc.com/servers.ini"
-
-//#define HTTP_GET_DEFAULT_BUFFER_SIZE 16384 // bytes
+#define HTTP_GET_DEFAULT_OUTPUT_FILE                       "output.bin"
+#define HTTP_GET_DEFAULT_URI                               "https://www.mirc.com/servers.ini"
 
 // *** Gtk UI-related ***
 #define HTTPGET_UI_WIDGET_NAME_BUTTON_ABOUT                "button_about"
@@ -57,6 +55,10 @@
 #define HTTPGET_UI_STATUSBAR_CONTEXT_DATA                  "data"
 #define HTTPGET_UI_STATUSBAR_CONTEXT_INFORMATION           "information"
 
-#define HTTPGET_UI_DEFINITION_FILE_NAME                    "httpget.glade"
+#if defined (GTK3_USE)
+#define HTTPGET_UI_DEFINITION_FILE_NAME                    "httpget.gtk3"
+#elif defined (GTK2_USE)
+#define HTTPGET_UI_DEFINITION_FILE_NAME                    "httpget.gtk2"
+#endif // GTK3_USE || GTK2_USE
 
 #endif

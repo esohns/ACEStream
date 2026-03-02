@@ -78,7 +78,7 @@ dirent_selector_cb (const ACE_DIRENT* dirEntry_in)
 
   std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
   std::string::size_type position =
-      filename.find_last_of ('.', std::string::npos);
+    filename.find_last_of ('.', std::string::npos);
   if ((position == 0) || ((position == 1) && filename[0] == '.')) // filter '.' and '..'
     return 0;
   filename.erase (0, position + 1);
@@ -472,7 +472,7 @@ do_work (unsigned int bufferSize_in,
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.slurpFiles = true;
   modulehandler_configuration.statisticReportingInterval =
-      ACE_Time_Value (statisticReportingInterval_in, 0);
+    ACE_Time_Value (statisticReportingInterval_in, 0);
   modulehandler_configuration.subscriber = &ui_event_handler;
 
   modulehandler_configuration_2 = modulehandler_configuration;
@@ -496,16 +496,16 @@ do_work (unsigned int bufferSize_in,
 
   // step0e: initialize signal handling
   signalHandler_in.initialize (CBData_in.configuration->signalHandlerConfiguration);
-  //if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
-  //                                      signalSet_in,
-  //                                      ignoredSignalSet_in,
-  //                                      &signalHandler_in,
-  //                                      previousSignalActions_inout))
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to Common_Signal_Tools::initialize(), aborting\n")));
-  //  return;
-  //} // end IF
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                        signalSet_in,
+                                        ignoredSignalSet_in,
+                                        &signalHandler_in,
+                                        previousSignalActions_inout))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Common_Signal_Tools::initialize(), aborting\n")));
+    return;
+  } // end IF
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
@@ -539,7 +539,7 @@ do_work (unsigned int bufferSize_in,
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -643,10 +643,10 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
-  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0],
+                                                                          ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                            // log file name
                                      false,                                    // log to syslog ?
                                      false,                                    // trace messages ?
@@ -697,7 +697,7 @@ ACE_TMAIN (int argc_in,
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
-    do_printVersion (ACE::basename (argv_in[0]));
+    do_printVersion (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
                                    previous_signal_actions,
                                    previous_signal_mask);
