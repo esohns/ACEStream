@@ -668,10 +668,12 @@ struct Stream_AVSave_DirectShow_StreamConfiguration
 {
   Stream_AVSave_DirectShow_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
+   , capturer (STREAM_DEVICE_CAPTURER_WASAPI)
    , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
   {}
 
+  enum Stream_Device_Capturer                              capturer;
   struct Stream_MediaFramework_DirectShow_AudioVideoFormat format;
   enum Stream_Visualization_VideoRenderer                  renderer;
 };
@@ -686,10 +688,12 @@ struct Stream_AVSave_MediaFoundation_StreamConfiguration
 {
   Stream_AVSave_MediaFoundation_StreamConfiguration ()
    : Stream_AVSave_StreamConfiguration ()
+   , capturer (STREAM_DEVICE_CAPTURER_WASAPI)
    , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
   {}
 
+  enum Stream_Device_Capturer                                   capturer;
   struct Stream_MediaFramework_MediaFoundation_AudioVideoFormat format;
   enum Stream_Visualization_VideoRenderer                       renderer;
 };
@@ -1003,10 +1007,10 @@ struct Stream_AVSave_MediaFoundation_UI_CBData
 #else
 class Stream_AVSave_ALSA_Stream;
 class Stream_AVSave_V4L_Stream;
-struct Stream_AVSave_V4L_UI_CBData
+struct Stream_AVSave_ALSA_V4L_UI_CBData
  : Stream_AVSave_UI_CBData
 {
-  Stream_AVSave_V4L_UI_CBData ()
+  Stream_AVSave_ALSA_V4L_UI_CBData ()
    : Stream_AVSave_UI_CBData ()
    , configuration (NULL)
    , audioStream (NULL)

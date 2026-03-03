@@ -420,7 +420,7 @@ error:
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
         return false;
       } // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
       result_2 =
         attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
                                MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
@@ -445,14 +445,14 @@ error:
       ACE_ASSERT (false);
       ACE_NOTSUP_RETURN (false);
       ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
       attributes_p->Release (); attributes_p = NULL;
       ACE_ASSERT (devices_pp);
       for (UINT32 index = 0; index < item_count; index++)
       {
         ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
         length = 0;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
         result_2 =
           devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
                                         buffer_a,
@@ -462,7 +462,7 @@ error:
         ACE_ASSERT (false); // *TODO*
         ACE_NOTSUP_RETURN (false);
         ACE_NOTREACHED (return false;)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
         if (FAILED (result_2))
         {
           ACE_DEBUG ((LM_ERROR,

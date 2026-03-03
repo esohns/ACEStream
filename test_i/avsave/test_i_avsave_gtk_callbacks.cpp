@@ -22,6 +22,7 @@
 #include "test_i_avsave_gtk_callbacks.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "functiondiscoverykeys_devpkey.h"
 #include "strmif.h"
 #include "dvdmedia.h"
 #include "mferror.h"
@@ -121,13 +122,13 @@ dirent_comparator (const dirent** d1,
 
 bool
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-load_capture_devices (enum Stream_MediaFramework_Type mediaFrameWork_in,
-                      GtkListStore* listStore_in)
+load_video_capture_devices (enum Stream_MediaFramework_Type mediaFrameWork_in,
+                            GtkListStore* listStore_in)
 #else
-load_capture_devices (GtkListStore* listStore_in)
+load_video_capture_devices (GtkListStore* listStore_in)
 #endif // ACE_WIN32 || ACE_WIN64
 {
-  STREAM_TRACE (ACE_TEXT ("::load_capture_devices"));
+  STREAM_TRACE (ACE_TEXT ("::load_video_capture_devices"));
 
   bool result = false;
 
@@ -385,7 +386,7 @@ error_2:
     ACE_ASSERT (dirent_p);
 
     device_filename = directory +
-                      ACE_DIRECTORY_SEPARATOR_CHAR +
+                      ACE_DIRECTORY_SEPARATOR_STR_A +
                       dirent_p->d_name;
     ACE_ASSERT (Common_File_Tools::isValidFilename (device_filename));
 //    ACE_ASSERT (Common_File_Tools::isReadable (device_filename));
@@ -435,7 +436,7 @@ clean:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE_Dirent_Selector::close(\"%s\"): \"%m\", continuing\n"),
                 ACE_TEXT (directory.c_str ())));
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
 
   GtkTreeIter iterator;
   for (std::vector<std::pair<std::string, std::string> >::const_iterator iterator_2 = listbox_entries_a.begin ();
@@ -1397,6 +1398,616 @@ load_rates (int fd_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
 bool
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+load_audio_capture_devices (GtkListStore* listStore_in,
+                            enum Stream_Device_Capturer capturer_in)
+#else
+load_audio_capture_devices (GtkListStore* listStore_in,
+                            const std::string& deviceIdentifier_in)
+#endif // ACE_WIN32 || ACE_WIN64
+{
+  STREAM_TRACE (ACE_TEXT ("::load_audio_capture_devices"));
+
+  bool result = false;
+
+  // initialize result
+  gtk_list_store_clear (listStore_in);
+
+  GtkTreeIter iterator;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HRESULT result_2 = E_FAIL;
+  std::string device_identifier_string;
+  std::string device_friendlyname_string;
+  UINT device_id_i = 0;
+  switch (capturer_in)
+  {
+    case STREAM_DEVICE_CAPTURER_WAVEIN:
+    {
+      MMRESULT result_3 = MMSYSERR_NOERROR;
+      WAVEINCAPS capabilities_s;
+      UINT num_devices_i = waveInGetNumDevs ();
+      for (UINT i = 0;
+           i < num_devices_i;
+           ++i)
+      {
+        result_3 = waveInGetDevCaps (i,
+                                     &capabilities_s,
+                                     sizeof (WAVEINCAPS));
+        if (unlikely (result_3 != MMSYSERR_NOERROR))
+        { char error_msg_a[BUFSIZ];
+          waveInGetErrorText (result_3, error_msg_a, BUFSIZ - 1);
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to waveInGetDevCaps(%d): \"%s\", aborting\n"),
+                      i, ACE_TEXT (error_msg_a)));
+          return false;
+        } // end IF
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("found device \"%s\": [manufacturer id,product id]: %d/%d; [driver version]: %d.%d\n"),
+        //            ACE_TEXT (capabilities_s.szPname),
+        //            capabilities_s.wMid, capabilities_s.wPid,
+        //            (capabilities_s.vDriverVersion & 0xFFFF0000) >> 16, (capabilities_s.vDriverVersion & 0xFFFF)));
+
+        device_identifier_string =
+          Common_OS_Tools::GUIDToString (Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (i,
+                                                                                                                 true));
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, ACE_TEXT_ALWAYS_CHAR (capabilities_s.szPname),
+                            1, device_identifier_string.c_str (),
+                            2, i,
+                            -1);
+      } // end FOR
+
+      result = true;
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_WASAPI:
+    {
+      IMMDeviceEnumerator* enumerator_p = NULL;
+      result_2 =
+        CoCreateInstance (__uuidof (MMDeviceEnumerator), NULL,
+                          CLSCTX_INPROC_SERVER,
+                          IID_PPV_ARGS (&enumerator_p));
+      ACE_ASSERT (SUCCEEDED (result_2) && enumerator_p);
+      IMMDeviceCollection* devices_p = NULL;
+      result_2 = enumerator_p->EnumAudioEndpoints (eCapture,
+                                                   DEVICE_STATE_ACTIVE,
+                                                   &devices_p);
+      ACE_ASSERT (SUCCEEDED (result_2) && devices_p);
+      enumerator_p->Release (); enumerator_p = NULL;
+      UINT num_devices_i = 0;
+      result_2 = devices_p->GetCount (&num_devices_i);
+      ACE_ASSERT (SUCCEEDED (result_2));
+      IMMDevice* device_p = NULL;
+      struct _GUID GUID_s = GUID_NULL;
+      IPropertyStore* property_store_p = NULL;
+      struct tagPROPVARIANT property_s;
+      PropVariantInit (&property_s);
+      for (UINT i = 0;
+           i < num_devices_i;
+           ++i)
+      { ACE_ASSERT (!device_p);
+        result_2 = devices_p->Item (i,
+                                    &device_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && device_p);
+        result_2 = device_p->OpenPropertyStore (STGM_READ,
+                                                &property_store_p);
+        ACE_ASSERT (SUCCEEDED (result_2) && property_store_p);
+        device_p->Release (); device_p = NULL;
+
+        result_2 = property_store_p->GetValue (PKEY_Device_FriendlyName,
+                                               &property_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        ACE_ASSERT (property_s.vt == VT_LPWSTR);
+        device_friendlyname_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
+        PropVariantClear (&property_s);
+        result_2 = property_store_p->GetValue (PKEY_AudioEndpoint_GUID,
+                                               &property_s);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        property_store_p->Release (); property_store_p = NULL;
+        ACE_ASSERT (property_s.vt == VT_LPWSTR);
+        device_identifier_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (property_s.pwszVal));
+        PropVariantClear (&property_s);
+        GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
+        device_id_i =
+          Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (GUID_s);
+
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, device_friendlyname_string.c_str (),
+                            1, device_identifier_string.c_str (),
+                            2, device_id_i,
+                            -1);
+      } // end FOR
+      devices_p->Release (); devices_p = NULL;
+
+      result = true;
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+    {
+      ICreateDevEnum* enumerator_p = NULL;
+      IEnumMoniker* enum_moniker_p = NULL;
+      IMoniker* moniker_p = NULL;
+      IPropertyBag* properties_p = NULL;
+      struct tagVARIANT variant_s;
+      std::string description_string, device_path;
+
+      result_2 =
+        CoCreateInstance (CLSID_SystemDeviceEnum, NULL,
+                          CLSCTX_INPROC_SERVER,
+                          IID_PPV_ARGS (&enumerator_p));
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to CoCreateInstance(CLSID_SystemDeviceEnum): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+        goto error;
+      } // end IF
+      ACE_ASSERT (enumerator_p);
+      result_2 =
+        enumerator_p->CreateClassEnumerator (CLSID_AudioInputDeviceCategory,
+                                             &enum_moniker_p,
+                                             0);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ICreateDevEnum::CreateClassEnumerator(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        //result = VFW_E_NOT_FOUND;  // The category is empty. Treat as an error.
+        goto error;
+      } // end IF
+      ACE_ASSERT (enum_moniker_p);
+      enumerator_p->Release (); enumerator_p = NULL;
+
+      while (S_OK == enum_moniker_p->Next (1, &moniker_p, NULL))
+      { ACE_ASSERT (moniker_p);
+        properties_p = NULL;
+        result_2 = moniker_p->BindToStorage (NULL, NULL,
+                                             IID_PPV_ARGS (&properties_p));
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMoniker::BindToStorage(): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+          goto error;
+        } // end IF
+        moniker_p->Release (); moniker_p = NULL;
+        ACE_ASSERT (properties_p);
+
+        VariantInit (&variant_s);
+        result_2 =
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L,
+                              &variant_s,
+                              0);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", aborting\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_NAME_STRING_L),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
+          goto error;
+        } // end IF
+        device_friendlyname_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant_s.bstrVal));
+        VariantClear (&variant_s);
+        result_2 =
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L,
+                              &variant_s,
+                              0);
+        if (SUCCEEDED (result_2))
+        {
+          description_string =
+            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant_s.bstrVal));
+          VariantClear (&variant_s);
+        } // end IF
+        else // 0x80070002 : ERROR_FILE_NOT_FOUND
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_DESCRIPTION_STRING_L),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+
+        result_2 =
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L,
+                              &variant_s,
+                              0);
+        if (SUCCEEDED (result_2))
+        {
+          device_path =
+            ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (variant_s.bstrVal));
+          VariantClear (&variant_s);
+        } // end IF
+        else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_PATH_STRING_L),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+
+        result_2 =
+          properties_p->Read (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L,
+                              &variant_s,
+                              0);
+        if (SUCCEEDED (result_2))
+        {
+          device_id_i = variant_s.lVal;
+          VariantClear (&variant_s);
+        } // end IF
+        else
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IPropertyBag::Read(%s): \"%s\", continuing\n"),
+                      ACE_TEXT_WCHAR_TO_TCHAR (STREAM_LIB_DIRECTSHOW_PROPERTIES_ID_STRING_L),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        properties_p->Release (); properties_p = NULL;
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("found device \"%s\": \"%s\" @ %s (id: %d)\n"),
+        //            ACE_TEXT (device_friendlyname_string.c_str ()),
+        //            ACE_TEXT (description_string.c_str ()),
+        //            ACE_TEXT (device_path.c_str ()),
+        //            device_id_i));
+
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, device_friendlyname_string.c_str (),
+                            1, device_path.c_str (),
+                            2, device_id_i,
+                            -1);
+      } // end WHILE
+      enum_moniker_p->Release (); enum_moniker_p = NULL;
+
+      result = true;
+      break;
+
+error:
+      if (enumerator_p)
+        enumerator_p->Release ();
+      if (enum_moniker_p)
+        enum_moniker_p->Release ();
+      if (moniker_p)
+        moniker_p->Release ();
+      if (properties_p)
+        properties_p->Release ();
+      VariantClear (&variant_s);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
+    {
+      IMFAttributes* attributes_p = NULL;
+      IMFActivate** devices_pp = NULL;
+      UINT32 item_count = 0;
+      WCHAR buffer_a[BUFSIZ];
+      UINT32 length = 0;
+      std::string device_endpointid_string;
+
+      result_2 = MFCreateAttributes (&attributes_p, 1);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        return false;
+      } // end IF
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
+      result_2 =
+        attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
+                               MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to IMFAttributes::SetGUID(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        goto error_2;
+      } // end IF
+      result_2 = MFEnumDeviceSources (attributes_p,
+                                      &devices_pp,
+                                      &item_count);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to MFEnumDeviceSources(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
+        goto error_2;
+      } // end IF
+#else
+      ACE_ASSERT (false);
+      ACE_NOTSUP_RETURN (false);
+      ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
+      attributes_p->Release (); attributes_p = NULL;
+      ACE_ASSERT (devices_pp);
+      for (UINT32 index = 0; index < item_count; index++)
+      {
+        ACE_OS::memset (buffer_a, 0, sizeof (WCHAR[BUFSIZ]));
+        length = 0;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
+        result_2 =
+          devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME,
+                                        buffer_a,
+                                        sizeof (WCHAR[BUFSIZ]),
+                                        &length);
+#else
+        ACE_ASSERT (false); // *TODO*
+        ACE_NOTSUP_RETURN (false);
+        ACE_NOTREACHED (return false;)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_FRIENDLY_NAME): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          goto error_2;
+        } // end IF
+        device_friendlyname_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a));
+        length = 0;
+        result_2 =
+          devices_pp[index]->GetString (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID,
+                                        buffer_a,
+                                        sizeof (WCHAR[BUFSIZ]),
+                                        &length);
+        if (FAILED (result_2))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to IMFActivate::GetString(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_ENDPOINT_ID): \"%s\", aborting\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+          goto error_2;
+        } // end IF
+        device_endpointid_string =
+          ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (buffer_a));
+        device_id_i =
+          Stream_MediaFramework_DirectSound_Tools::directSoundGUIDToWaveDeviceId (Stream_MediaFramework_DirectSound_Tools::endpointIdToDirectSoundGUID (device_endpointid_string));
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("found device \"%s\": \"%s\"\n"),
+        //            ACE_TEXT (device_friendlyname_string.c_str ()),
+        //            ACE_TEXT (device_endpointid_string.c_str ())));
+
+        gtk_list_store_append (listStore_in, &iterator);
+        gtk_list_store_set (listStore_in, &iterator,
+                            0, device_friendlyname_string.c_str (),
+                            1, device_endpointid_string.c_str (),
+                            2, device_id_i,
+                            -1);
+      } // end FOR
+
+      for (UINT32 i = 0; i < item_count; i++)
+        devices_pp[i]->Release ();
+      CoTaskMemFree (devices_pp); devices_pp = NULL;
+
+      result = true;
+      break;
+
+error_2:
+      if (attributes_p)
+        attributes_p->Release ();
+      if (devices_pp)
+      {
+        for (UINT32 i = 0; i < item_count; i++)
+          devices_pp[i]->Release ();
+        CoTaskMemFree (devices_pp); devices_pp = NULL;
+      } // end IF
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown capturer type (was: %d), aborting\n"),
+                  capturer_in));
+      return false;
+    }
+  } // end SWITCH
+#else
+  int card_i = -1;
+  int result_2 = -1;
+  char* string_p = NULL, *string_2 = NULL;
+  void** hints_p = NULL;
+  std::string device_name_string;
+
+  if (!deviceIdentifier_in.empty ())
+  {
+    card_i = Stream_MediaFramework_ALSA_Tools::getCardNumber (deviceIdentifier_in);
+    if (unlikely (card_i == -1))
+    { // *NOTE*: might be a virtual device like "default"
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getCardNumber(\"%s\"), aborting\n"),
+                  ACE_TEXT (deviceIdentifier_in.c_str ())));
+      return false;
+    } // end IF
+    result_2 = snd_card_get_longname (card_i, &string_p);
+    if (result_2 || !string_p)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_card_get_longname(%d): \"%s\", aborting\n"),
+                  card_i,
+                  ACE_TEXT (snd_strerror (result_2))));
+      return false;
+    } // end IF
+    result_2 =
+      snd_device_name_hint (card_i,
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
+                            &hints_p);
+    if (unlikely (result_2 < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_hint(%d): \"%s\", aborting\n"),
+                  card_i,
+                  ACE_TEXT (snd_strerror (result_2))));
+      free (string_p);
+      return false;
+    } // end IF
+    for (void** i = hints_p;
+         *i;
+         ++i)
+    {
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
+      if (!string_2) // NULL --> both
+        goto continue_;
+      if (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("Input")))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      free (string_2); string_2 = NULL;
+continue_:
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(NAME): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+      if (//(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dmix:"), 5) == 0)           ||
+          //(ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("front:"), 6) == 0)          ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("plughw:"), 7) == 0)         ||
+          //(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)               ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround21:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround40:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround41:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround50:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround51:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround71:"), 11) == 0))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      device_name_string = string_2;
+      // std::string::size_type position_i = device_name_string.find (':', 0);
+      // if (position_i != std::string::npos)
+      //   device_name_string.erase (position_i, std::string::npos);
+      free (string_2); string_2 = NULL;
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("DESC"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(DESC): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("found device \"%s\"/\"%s\": \"%s\"\n"),
+                  ACE_TEXT (string_p),
+                  ACE_TEXT (device_name_string.c_str ()),
+                  ACE_TEXT (string_2)));
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, ACE_TEXT_ALWAYS_CHAR (string_2),
+                          1, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
+                          2, card_i,
+                          -1);
+
+      free (string_2); string_2 = NULL;
+      snd_device_name_free_hint (hints_p); hints_p = NULL;
+      free (string_p); string_p = NULL;
+
+      break;
+    } // end FOR
+
+    return true;
+  } // end IF
+
+  do
+  {
+    result_2 = snd_card_next (&card_i);
+    if (result_2 || (card_i == -1))
+      break;
+    if (snd_card_get_longname (card_i, &string_p) || !string_p)
+      continue;
+    result_2 =
+      snd_device_name_hint (card_i,
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
+                            &hints_p);
+    if (result_2 < 0)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to snd_device_name_hint(): \"%s\", continuing\n"),
+                  ACE_TEXT (snd_strerror (result_2))));
+      free (string_p); string_p = NULL;
+      continue;
+    } // end IF
+    for (void** i = hints_p;
+         *i;
+         ++i)
+    {
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("IOID"));
+      if (!string_2) // NULL --> both
+        goto continue_2;
+      if (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("Input")))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      free (string_2); string_2 = NULL;
+continue_2:
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("NAME"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+      if (//(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("default")) == 0)             ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dmix:"), 5) == 0)           ||
+          //(ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("dsnoop:"), 7) == 0)         ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("front:"), 6) == 0)          ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("null")) == 0)                ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("plughw:"), 7) == 0)         ||
+          //(ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pipewire")) == 0)            ||
+          (ACE_OS::strcmp (string_2, ACE_TEXT_ALWAYS_CHAR ("pulse")) == 0)               ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround21:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround40:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround41:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround50:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround51:"), 11) == 0)    ||
+          (ACE_OS::strncmp (string_2, ACE_TEXT_ALWAYS_CHAR ("surround71:"), 11) == 0))
+      {
+        free (string_2); string_2 = NULL;
+        continue;
+      } // end IF
+      device_name_string = string_2;
+      // std::string::size_type position_i = device_name_string.find (':', 0);
+      // if (position_i != std::string::npos)
+      //   device_name_string.erase (position_i, std::string::npos);
+      free (string_2); string_2 = NULL;
+      string_2 = snd_device_name_get_hint (*i, ACE_TEXT_ALWAYS_CHAR ("DESC"));
+      if (!string_2)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to snd_device_name_get_hint(): \"%m\", continuing\n")));
+        continue;
+      } // end IF
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("found device \"%s\"/\"%s\": \"%s\"\n"),
+                  ACE_TEXT (string_p),
+                  ACE_TEXT (device_name_string.c_str ()),
+                  ACE_TEXT (string_2)));
+
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, ACE_TEXT_ALWAYS_CHAR (string_2),
+                          1, ACE_TEXT_ALWAYS_CHAR (device_name_string.c_str ()),
+                          2, card_i,
+                          -1);
+
+      free (string_2); string_2 = NULL;
+    } // end FOR
+    snd_device_name_free_hint (hints_p); hints_p = NULL;
+    free (string_p); string_p = NULL;
+  } while (true);
+
+  result = true;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  return result;
+}
+
+bool
 load_save_formats (GtkListStore* listStore_in)
 {
   STREAM_TRACE (ACE_TEXT ("::load_save_formats"));
@@ -1552,7 +2163,7 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -2221,16 +2832,103 @@ idle_initialize_UI_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
+  ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  std::string audio_device_identifier_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_AVSave_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+  struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+    NULL;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_2;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      // sanity check(s)
+      directshow_ui_cb_data_p =
+        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (userData_in);
+      ACE_ASSERT (directshow_ui_cb_data_p);
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+      directshow_modulehandler_configuration_iterator_2 =
+        directshow_ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+
+
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      // sanity check(s)
+      mediafoundation_ui_cb_data_p =
+        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (userData_in);
+      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+      mediafoundation_modulehandler_configuration_iterator_2 =
+        mediafoundation_ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator_2 != mediafoundation_ui_cb_data_p->configuration->videoStreamConfiguration.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  // sanity check(s)
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (userData_in);
+  ACE_ASSERT (data_p);
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->audioStreamConfiguration.end ());
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 =
+    data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator_2 != data_p->configuration->videoStreamConfiguration.end ());
+
+  audio_device_identifier_string =
+    (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier;
+#endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  enum Stream_Device_Capturer capturer_e = STREAM_DEVICE_CAPTURER_INVALID;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      capturer_e =
+        directshow_ui_cb_data_p->configuration->audioStreamConfiguration.configuration_->capturer;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      capturer_e =
+        mediafoundation_ui_cb_data_p->configuration->audioStreamConfiguration.configuration_->capturer;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#endif // ACE_WIN32 || ACE_WIN64
 
   // step1: initialize dialog window(s)
   GtkWidget* dialog_p =
@@ -2280,37 +2978,37 @@ idle_initialize_UI_cb (gpointer userData_in)
                              0.0,
                              static_cast<gdouble> (std::numeric_limits<ACE_UINT64>::max ()));
 
-  //spin_button_p =
-  //  GTK_SPIN_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SPINBUTTON_BUFFERSIZE_NAME)));
-  //ACE_ASSERT (spin_button_p);
-  //gtk_spin_button_set_range (spin_button_p,
-  //                           0.0,
-  //                           std::numeric_limits<ACE_UINT32>::max ());
-
   GtkListStore* list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_AUDIO_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
-                                        1, GTK_SORT_DESCENDING);
+  gint sort_column_id = 1; // device
+  GtkSortType sort_order = GTK_SORT_DESCENDING;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if (!load_capture_devices (ui_cb_data_base_p->mediaFramework,
-                             list_store_p))
+  if (capturer_e == STREAM_DEVICE_CAPTURER_WAVEIN)
+  {
+    sort_column_id = 2; // card
+    sort_order = GTK_SORT_ASCENDING;
+  } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        sort_column_id, sort_order);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_audio_capture_devices (list_store_p,
+                                   capturer_e))
 #else
-  if (!load_capture_devices (list_store_p))
-#endif
+  if (!load_audio_capture_devices (list_store_p,
+                                   audio_device_identifier_string))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::load_capture_devices(), aborting\n")));
+                ACE_TEXT ("failed to ::load_audio_capture_devices(), aborting\n")));
     return G_SOURCE_REMOVE;
   } // end IF
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_SOURCE_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_AUDIO_SOURCE_NAME)));
   ACE_ASSERT (combo_box_p);
-  //gtk_combo_box_set_model (combo_box_p,
-  //                         GTK_TREE_MODEL (list_store_p));
   GtkCellRenderer* cell_renderer_p = gtk_cell_renderer_text_new ();
   if (!cell_renderer_p)
   {
@@ -2319,7 +3017,46 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                              true);
+                              TRUE);
+  // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
+  //         is GInitiallyUnowned and the floating reference has been
+  //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
+  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
+                                  NULL);
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+  gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (list_store_p),
+                                        1, GTK_SORT_DESCENDING);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!load_video_capture_devices (ui_cb_data_base_p->mediaFramework,
+                                   list_store_p))
+#else
+  if (!load_video_capture_devices (list_store_p))
+#endif
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ::load_video_capture_devices(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_SOURCE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  //gtk_combo_box_set_model (combo_box_p,
+  //                         GTK_TREE_MODEL (list_store_p));
+  cell_renderer_p = gtk_cell_renderer_text_new ();
+  if (!cell_renderer_p)
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to gtk_cell_renderer_text_new(), aborting\n")));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
+                              TRUE);
   // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
@@ -2355,14 +3092,10 @@ idle_initialize_UI_cb (gpointer userData_in)
                                ACE_TEXT_ALWAYS_CHAR ("*.avi"));
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT_ALWAYS_CHAR ("AVI files"));
-  //GError* error_p = NULL;
-  //GFile* file_p = NULL;
-  //gchar* filename_p = NULL;
   Common_Image_Resolution_t resolution_s;
   unsigned int framerate_i = 0;
   std::string filename_string;
   bool is_display_b = false, is_fullscreen_b = false;
-//  unsigned int buffer_size_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID format_s = GUID_NULL;
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
@@ -2802,10 +3535,10 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step6a: connect default signals
   gulong result_2 =
-      g_signal_connect (dialog_p,
-                        ACE_TEXT_ALWAYS_CHAR ("destroy"),
-                        G_CALLBACK (gtk_widget_destroyed),
-                        NULL);
+    g_signal_connect (dialog_p,
+                      ACE_TEXT_ALWAYS_CHAR ("destroy"),
+                      G_CALLBACK (gtk_widget_destroyed),
+                      NULL);
   ACE_ASSERT (result_2);
 
   result_2 = g_signal_connect_swapped (G_OBJECT (about_dialog_p),
@@ -2919,12 +3652,12 @@ idle_initialize_UI_cb (gpointer userData_in)
   (*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
   (*iterator_3).second.second->outputFormat.video.format.height =
-      static_cast<__u32> (allocation.height);
+    static_cast<__u32> (allocation.height);
   (*iterator_3).second.second->outputFormat.video.format.width =
-      static_cast<__u32> (allocation.width);
+    static_cast<__u32> (allocation.width);
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -2936,18 +3669,62 @@ idle_initialize_UI_cb (gpointer userData_in)
   //         --> populate the options comboboxes
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_AUDIO_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
   gint n_rows =
     gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
   if (n_rows)
   {
-//    GtkFrame* frame_p =
-//      GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-//                                         ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_SOURCE_NAME)));
-//    ACE_ASSERT (frame_p);
-//    gtk_widget_set_sensitive (GTK_WIDGET (frame_p), true);
+    combo_box_p =
+      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_AUDIO_SOURCE_NAME)));
+    ACE_ASSERT (combo_box_p);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    switch (ui_cb_data_base_p->mediaFramework)
+    {
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+        audio_device_identifier_string =
+          Common_OS_Tools::GUIDToString ((*directshow_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid);
+        g_value_set_string (&value,
+                            audio_device_identifier_string.c_str ());
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      { ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
+        audio_device_identifier_string =
+          Common_OS_Tools::GUIDToString ((*mediafoundation_modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier._guid);
+        g_value_set_string (&value,
+                            audio_device_identifier_string.c_str ());
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return G_SOURCE_REMOVE;
+      }
+    } // end SWITCH
+#else
+    g_value_set_string (&value,
+                        (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ());
+#endif // ACE_WIN32 || ACE_WIN64
+    Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                      value,
+                                      1);
+  } // end IF
+
+  list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+  n_rows =
+    gtk_tree_model_iter_n_children (GTK_TREE_MODEL (list_store_p), NULL);
+  if (n_rows)
+  {
     combo_box_p =
       GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VIDEO_SOURCE_NAME)));
@@ -2955,28 +3732,28 @@ idle_initialize_UI_cb (gpointer userData_in)
     gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-      g_value_set_string (&value,
-                          (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
-      g_value_set_string (&value,
-                          (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string);
-      break;
-    }
-    default:
+    switch (ui_cb_data_base_p->mediaFramework)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
+      case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+        g_value_set_string (&value,
+                            (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
+        break;
+      }
+      case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      { ACE_ASSERT ((*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+        g_value_set_string (&value,
+                            (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._string);
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                    ui_cb_data_base_p->mediaFramework));
+        return G_SOURCE_REMOVE;
+      }
+    } // end SWITCH
 #else
     g_value_set_string (&value,
                         (*iterator_2).second.second->deviceIdentifier.identifier.c_str ());
@@ -4800,6 +5577,128 @@ button_quit_clicked_cb (GtkWidget* widget_in,
 } // button_quit_clicked_cb
 
 void
+combobox_audio_source_changed_cb (GtkWidget* widget_in,
+                                  gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::combobox_audio_source_changed_cb"));
+
+  // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  Stream_IStream_t* stream_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      stream_p = directshow_cb_data_p->audioStream;
+      ACE_ASSERT (directshow_cb_data_p->configuration);
+      directshow_stream_iterator =
+        directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      stream_p = mediafoundation_cb_data_p->audioStream;
+      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
+      mediafoundation_stream_iterator =
+        mediafoundation_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->audioStreamConfiguration.end ());
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  stream_p = ui_cb_data_p->videoStream;
+  ACE_ASSERT (ui_cb_data_p->configuration);
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    ui_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_p);
+  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkTreeIter iterator_3;
+  if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
+                                      &iterator_3))
+    return; // <-- nothing selected
+
+  GtkListStore* list_store_p =
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_AUDIO_SOURCE_NAME)));
+  ACE_ASSERT (list_store_p);
+#if GTK_CHECK_VERSION (2,30,0)
+  GValue value = G_VALUE_INIT;
+#else
+  GValue value;
+  ACE_OS::memset (&value, 0, sizeof (struct _GValue));
+#endif // GTK_CHECK_VERSION (2,30,0)
+  gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                            &iterator_3,
+                            1, &value);
+  ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+  std::string device_identifier_string = g_value_get_string (&value);
+  g_value_unset (&value);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _GUID GUID_s = Common_OS_Tools::StringToGUID (device_identifier_string);
+  ACE_ASSERT (!InlineIsEqualGUID (GUID_s, GUID_NULL));
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._guid =
+        GUID_s;
+      (*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::GUID;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifier._guid =
+        GUID_s;
+      (*mediafoundation_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator =
+        Stream_Device_Identifier::GUID;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  (*iterator_2).second.second->deviceIdentifier.identifier =
+    device_identifier_string;
+#endif // ACE_WIN32 || ACE_WIN64
+} // combobox_audio_source_changed_cb
+
+void
 combobox_video_source_changed_cb (GtkWidget* widget_in,
                                   gpointer userData_in)
 {
@@ -4862,7 +5761,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->videoStreamConfiguration.end ());
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
@@ -4875,7 +5774,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -4898,11 +5797,11 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_FORMAT_NAME)));
   ACE_ASSERT (list_store_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -5088,7 +5987,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::ostringstream converter;
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID GUID_s = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5104,7 +6003,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       if (!media_source_p)
         if (!Stream_MediaFramework_MediaFoundation_Tools::getMediaSource ((*mediafoundation_stream_iterator).second.second->session,
                                                                           media_source_p))
@@ -5113,7 +6012,7 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
                       ACE_TEXT ("failed to Stream_MediaFramework_MediaFoundation_Tools::getMediaSource(), returning\n")));
           return;
         } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       ACE_ASSERT (media_source_p);
 
       //if (!load_formats (data_p->configuration->moduleHandlerConfiguration.sourceReader,

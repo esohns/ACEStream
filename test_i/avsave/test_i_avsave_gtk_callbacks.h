@@ -53,7 +53,7 @@ G_MODULE_EXPORT void togglebutton_save_toggled_cb (GtkToggleButton*, gpointer);
 //G_MODULE_EXPORT gint button_clear_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_about_clicked_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT gint button_quit_clicked_cb (GtkWidget*, gpointer);
-G_MODULE_EXPORT void combobox_video_source_changed_cb (GtkWidget*, gpointer);
+G_MODULE_EXPORT void combobox_audio_source_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_format_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_resolution_changed_cb (GtkWidget*, gpointer);
 G_MODULE_EXPORT void combobox_video_framerate_changed_cb (GtkWidget*, gpointer);

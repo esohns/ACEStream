@@ -79,70 +79,14 @@
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_destination">
-    <property name="text" translatable="yes">output.avi</property>
-  </object>
-  <object class="GtkFileFilter" id="filefilter_avi"/>
-  <object class="GtkListStore" id="liststore_adapter">
+  <object class="GtkListStore" id="liststore_audio_source">
     <columns>
       <!-- column-name text -->
       <column type="gchararray"/>
       <!-- column-name device -->
       <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_display">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_save">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
+      <!-- column-name id -->
       <column type="gint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_format">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name GUID -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_framerate">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name numerator -->
-      <column type="guint"/>
-      <!-- column-name denominator -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_resolution">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name width -->
-      <column type="guint"/>
-      <!-- column-name height -->
-      <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_video_source">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name device -->
-      <column type="gchararray"/>
     </columns>
   </object>
   <object class="GtkDialog" id="dialog_main">
@@ -519,21 +463,15 @@
                               <object class="GtkBox" id="box_source">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="orientation">vertical</property>
                                 <child>
-                                  <object class="GtkComboBox" id="combobox_video_source">
+                                  <object class="GtkComboBox" id="combobox_audio_source">
                                     <property name="visible">True</property>
-                                    <property name="sensitive">False</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="has_tooltip">True</property>
-                                    <property name="tooltip_markup" translatable="yes">capture device</property>
-                                    <property name="tooltip_text" translatable="yes">capture device</property>
-                                    <property name="model">liststore_video_source</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="model">liststore_audio_source</property>
                                     <property name="has_frame">False</property>
                                     <property name="focus_on_click">False</property>
-                                    <property name="id_column">0</property>
-                                    <signal name="changed" handler="combobox_video_source_changed_cb" swapped="no"/>
+                                    <signal name="changed" handler="combobox_audio_source_changed_cb" swapped="no"/>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -542,19 +480,52 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <object class="GtkButton" id="button_hw_settings">
-                                    <property name="label">gtk-properties</property>
+                                  <object class="GtkBox" id="box_video_source">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="can_default">True</property>
-                                    <property name="receives_default">True</property>
-                                    <property name="has_tooltip">True</property>
-                                    <property name="tooltip_markup" translatable="yes">hardware settings</property>
-                                    <property name="tooltip_text" translatable="yes">hardware settings</property>
-                                    <property name="relief">half</property>
-                                    <property name="use_stock">True</property>
-                                    <property name="focus_on_click">False</property>
-                                    <signal name="clicked" handler="button_hw_settings_clicked_cb" swapped="no"/>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <object class="GtkComboBox" id="combobox_video_source">
+                                        <property name="visible">True</property>
+                                        <property name="sensitive">False</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="can_default">True</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip_markup" translatable="yes">capture device</property>
+                                        <property name="tooltip_text" translatable="yes">capture device</property>
+                                        <property name="model">liststore_video_source</property>
+                                        <property name="has_frame">False</property>
+                                        <property name="focus_on_click">False</property>
+                                        <property name="id_column">0</property>
+                                        <signal name="changed" handler="combobox_video_source_changed_cb" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">0</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton" id="button_hw_settings">
+                                        <property name="label">gtk-properties</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="can_default">True</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="has_tooltip">True</property>
+                                        <property name="tooltip_markup" translatable="yes">hardware settings</property>
+                                        <property name="tooltip_text" translatable="yes">hardware settings</property>
+                                        <property name="relief">half</property>
+                                        <property name="use_stock">True</property>
+                                        <property name="focus_on_click">False</property>
+                                        <signal name="clicked" handler="button_hw_settings_clicked_cb" swapped="no"/>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">False</property>
+                                        <property name="fill">False</property>
+                                        <property name="position">1</property>
+                                      </packing>
+                                    </child>
                                   </object>
                                   <packing>
                                     <property name="expand">False</property>
@@ -1225,6 +1196,72 @@
       <action-widget response="0">button_about</action-widget>
       <action-widget response="0">button_quit</action-widget>
     </action-widgets>
+  </object>
+  <object class="GtkEntryBuffer" id="entrybuffer_destination">
+    <property name="text" translatable="yes">output.avi</property>
+  </object>
+  <object class="GtkFileFilter" id="filefilter_avi"/>
+  <object class="GtkListStore" id="liststore_adapter">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_display">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_save">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_format">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name GUID -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_framerate">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name numerator -->
+      <column type="guint"/>
+      <!-- column-name denominator -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_resolution">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name width -->
+      <column type="guint"/>
+      <!-- column-name height -->
+      <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_video_source">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name device -->
+      <column type="gchararray"/>
+    </columns>
   </object>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
