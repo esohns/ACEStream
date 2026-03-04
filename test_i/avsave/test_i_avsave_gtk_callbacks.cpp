@@ -5606,7 +5606,7 @@ combobox_audio_source_changed_cb (GtkWidget* widget_in,
       stream_p = directshow_cb_data_p->audioStream;
       ACE_ASSERT (directshow_cb_data_p->configuration);
       directshow_stream_iterator =
-        directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+        directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_CAPTURE_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
       break;
     }
