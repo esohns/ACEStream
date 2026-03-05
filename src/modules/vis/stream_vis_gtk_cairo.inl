@@ -521,34 +521,6 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-      // sanity check(s)
-//      ACE_ASSERT (inherited::sessionData_);
-//      typename SessionDataContainerType::DATA_T& session_data_r =
-//        const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-//      // *TODO*: remove type inference
-//      ACE_ASSERT (!session_data_r.formats.empty ());
-//      ACE_ASSERT (session_data_r.lock);
-//      Common_Image_Resolution_t resolution_s;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      struct _AMMediaType media_type_s;
-//      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
-//#else
-//      struct Stream_MediaFramework_V4L_MediaType media_type_s;
-//#endif // ACE_WIN32 || ACE_WIN64
-//      { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
-//        inherited3::getMediaType (session_data_r.formats.back (),
-//                                  STREAM_MEDIATYPE_VIDEO,
-//                                  media_type_s);
-//      } // end lock scope
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      resolution_s =
-//        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
-//      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
-//#else
-//      resolution_s.width = media_type_s.format.width;
-//      resolution_s.height = media_type_s.format.height;
-//#endif // ACE_WIN32 || ACE_WIN64
-
 #if GTK_CHECK_VERSION (3,10,0)
       int width_2 = 0, height_2 = 0;
       cairo_format_t format_e = CAIRO_FORMAT_INVALID;
@@ -558,18 +530,6 @@ error:
 
       ACE_GUARD (ACE_Thread_Mutex, aGuard, surfaceLock_);
 
-//#if GTK_CHECK_VERSION (3,6,0)
-//#else
-//      GDK_THREADS_ENTER ();
-//#endif // GTK_CHECK_VERSION (3,6,0)
-//      if (surface_)
-//#if GTK_CHECK_VERSION (3,10,0)
-//        cairo_surface_destroy (surface_);
-//#else
-//        g_object_unref (surface_);
-//#endif // GTK_CHECK_VERSION (3,10,0)
-//      surface_ = NULL;
-
 #if GTK_CHECK_VERSION (4,0,0)
       GdkSurface* window_h = inherited4::convert (inherited::configuration_->window);
 #else
@@ -578,10 +538,6 @@ error:
       ACE_ASSERT (window_h);
 
       setP (window_h);
-//#if GTK_CHECK_VERSION (3,6,0)
-//#else
-//      GDK_THREADS_LEAVE ();
-//#endif // GTK_CHECK_VERSION (3,6,0)
       if (unlikely (!surface_))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -602,7 +558,7 @@ error:
                     ACE_TEXT_ALWAYS_CHAR ("width"),  &width_2,
                     ACE_TEXT_ALWAYS_CHAR ("height"), &height_2,
                     NULL);
-#endif // GTK_CHECK_VERSION
+#endif // GTK_CHECK_VERSION (3,10,0)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: resized surface to %dx%d (is: %@)\n"),
                   inherited::mod_->name (),
@@ -627,7 +583,7 @@ error_2:
           cairo_surface_destroy (surface_);
 #else
           g_object_unref (surface_);
-#endif // GTK_CHECK_VERSION(3,10,0)
+#endif // GTK_CHECK_VERSION (3,10,0)
         surface_ = NULL;
       } // end lock scope
 

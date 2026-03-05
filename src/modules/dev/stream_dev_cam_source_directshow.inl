@@ -294,10 +294,6 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       inherited::isHighPriorityStop_ = true;
       inherited::change (STREAM_STATE_SESSION_STOPPING);
 
-      // process session end
-      ACE_ASSERT (inherited::sessionEndProcessed_);
-      inherited::sessionEndProcessed_ = false;
-
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:

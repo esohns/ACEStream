@@ -109,14 +109,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="liststore_save">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gint"/>
-    </columns>
-  </object>
   <object class="GtkListStore" id="liststore_video_format">
     <columns>
       <!-- column-name text -->
@@ -145,6 +137,14 @@
       <column type="guint"/>
       <!-- column-name height -->
       <column type="guint"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="liststore_save">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_video_source">
@@ -215,6 +215,7 @@
                                     <property name="can_default">True</property>
                                     <property name="has_default">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">record</property>
                                     <property name="tooltip_text" translatable="yes">record</property>
                                     <property name="relief">half</property>
                                     <property name="use_stock">True</property>
@@ -234,6 +235,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">snapshot</property>
                                     <property name="tooltip_text" translatable="yes">snapshot</property>
                                     <property name="relief">half</property>
                                     <property name="focus_on_click">False</property>
@@ -252,6 +254,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">cut</property>
                                     <property name="tooltip_text" translatable="yes">cut</property>
                                     <property name="relief">half</property>
                                     <property name="focus_on_click">False</property>
@@ -270,6 +273,7 @@
                                     <property name="can_focus">True</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">report</property>
                                     <property name="tooltip_text" translatable="yes">report</property>
                                     <property name="relief">half</property>
                                     <property name="focus_on_click">False</property>
@@ -321,7 +325,6 @@
                                     <property name="orientation">vertical</property>
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_session_messages">
-                                        <property name="width_request">150</property>
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
@@ -389,7 +392,6 @@
                                 </child>
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_data">
-                                    <property name="width_request">150</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
@@ -437,7 +439,6 @@
                                     </child>
                                     <child>
                                       <object class="GtkSpinButton" id="spinbutton_dropped_frames">
-                                        <property name="width_request">150</property>
                                         <property name="visible">True</property>
                                         <property name="sensitive">False</property>
                                         <property name="can_focus">False</property>
@@ -464,7 +465,6 @@
                                 </child>
                                 <child>
                                   <object class="GtkSpinButton" id="spinbutton_buffersize">
-                                    <property name="width_request">150</property>
                                     <property name="visible">True</property>
                                     <property name="sensitive">False</property>
                                     <property name="can_focus">False</property>
@@ -793,6 +793,8 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">save to file ?</property>
+                                    <property name="tooltip_text" translatable="yes">save to file ?</property>
                                     <property name="relief">half</property>
                                     <property name="focus_on_click">False</property>
                                     <signal name="toggled" handler="togglebutton_save_toggled_cb" swapped="no"/>
@@ -927,6 +929,8 @@
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">display ?</property>
+                                    <property name="tooltip_text" translatable="yes">display ?</property>
                                     <property name="focus_on_click">False</property>
                                     <signal name="toggled" handler="togglebutton_display_toggled_cb" swapped="no"/>
                                   </object>
@@ -969,6 +973,7 @@
                                         <property name="tooltip_markup" translatable="yes">display</property>
                                         <property name="tooltip_text" translatable="yes">display</property>
                                         <property name="model">liststore_display</property>
+                                        <property name="has_frame">False</property>
                                         <property name="focus_on_click">False</property>
                                         <signal name="changed" handler="combobox_display_changed_cb" swapped="no"/>
                                       </object>
@@ -980,7 +985,7 @@
                                     </child>
                                     <child>
                                       <object class="GtkButton" id="button_display_settings">
-                                        <property name="label" translatable="yes">Properties</property>
+                                        <property name="label">gtk-properties</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="can_default">True</property>
@@ -988,6 +993,8 @@
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_markup" translatable="yes">display settings</property>
                                         <property name="tooltip_text" translatable="yes">display settings</property>
+                                        <property name="relief">half</property>
+                                        <property name="use_stock">True</property>
                                         <property name="focus_on_click">False</property>
                                         <signal name="clicked" handler="button_display_settings_clicked_cb" swapped="no"/>
                                       </object>
@@ -1011,7 +1018,7 @@
                                     <property name="layout_style">start</property>
                                     <child>
                                       <object class="GtkToggleButton" id="togglebutton_fullscreen">
-                                        <property name="label" translatable="yes">Fullscreen</property>
+                                        <property name="label">gtk-fullscreen</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="can_default">True</property>
@@ -1019,9 +1026,9 @@
                                         <property name="has_tooltip">True</property>
                                         <property name="tooltip_markup" translatable="yes">fullscreen display ?</property>
                                         <property name="tooltip_text" translatable="yes">fullscreen display ?</property>
+                                        <property name="relief">half</property>
+                                        <property name="use_stock">True</property>
                                         <property name="focus_on_click">False</property>
-                                        <property name="xalign">0</property>
-                                        <property name="yalign">0</property>
                                         <signal name="toggled" handler="togglebutton_fullscreen_toggled_cb" swapped="no"/>
                                       </object>
                                       <packing>
@@ -1036,6 +1043,8 @@
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="tooltip_markup" translatable="yes">reset display</property>
+                                        <property name="tooltip_text" translatable="yes">reset display</property>
                                         <property name="relief">half</property>
                                         <property name="use_stock">True</property>
                                         <property name="focus_on_click">False</property>
@@ -1111,8 +1120,9 @@
                             <property name="visible">True</property>
                             <property name="app_paintable">True</property>
                             <property name="can_focus">False</property>
-                            <property name="events">GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+                            <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
                             <property name="has_tooltip">True</property>
+                            <property name="tooltip_markup" translatable="yes">audio</property>
                             <property name="tooltip_text" translatable="yes">audio</property>
                             <property name="double_buffered">False</property>
                             <property name="hexpand">True</property>
@@ -1135,6 +1145,7 @@
                             <property name="app_paintable">True</property>
                             <property name="can_focus">False</property>
                             <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+                            <property name="tooltip_markup" translatable="yes">video</property>
                             <property name="tooltip_text" translatable="yes">video</property>
                             <property name="double_buffered">False</property>
                             <property name="hexpand">True</property>

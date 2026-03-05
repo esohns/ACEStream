@@ -331,9 +331,9 @@ Stream_Visualization_LibAVResize_T<TaskType,
       inherited::frame_->height = media_type_3.resolution.height;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited::frameSize_ =
-          av_image_get_buffer_size (inherited::inputFormat_,
-                                    inherited::frame_->width, inherited::frame_->height,
-                                    1); // *TODO*: linesize alignment
+        av_image_get_buffer_size (inherited::inputFormat_,
+                                  inherited::frame_->width, inherited::frame_->height,
+                                  1); // *TODO*: linesize alignment
       ACE_ASSERT (inherited::frameSize_ >= 0);
       ACE_ASSERT (!inherited::buffer_);
       inherited::buffer_ = inherited::allocateMessage (inherited::frameSize_);
@@ -347,16 +347,16 @@ Stream_Visualization_LibAVResize_T<TaskType,
       } // end IF
       ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
       result =
-          av_image_fill_linesizes (inherited::frame_->linesize,
-                                   inherited::inputFormat_,
-                                   static_cast<int> (inherited::frame_->width));
+        av_image_fill_linesizes (inherited::frame_->linesize,
+                                 inherited::inputFormat_,
+                                 static_cast<int> (inherited::frame_->width));
       ACE_ASSERT (result >= 0);
       result =
-          av_image_fill_pointers (inherited::frame_->data,
-                                  inherited::inputFormat_,
-                                  static_cast<int> (inherited::frame_->height),
-                                  reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                                  inherited::frame_->linesize);
+        av_image_fill_pointers (inherited::frame_->data,
+                                inherited::inputFormat_,
+                                static_cast<int> (inherited::frame_->height),
+                                reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                                inherited::frame_->linesize);
       ACE_ASSERT (result >= 0);
       ACE_UNUSED_ARG (result);
 
