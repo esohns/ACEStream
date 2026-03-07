@@ -720,11 +720,12 @@
                                 <property name="orientation">vertical</property>
                                 <child>
                                   <object class="GtkToggleButton" id="togglebutton_display">
-                                    <property name="label" translatable="yes">Display</property>
+                                    <property name="label">gtk-fullscreen</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
                                     <property name="relief">half</property>
+                                    <property name="use_stock">True</property>
                                     <property name="focus_on_click">False</property>
                                     <signal name="toggled" handler="togglebutton_display_toggled_cb" swapped="no"/>
                                   </object>

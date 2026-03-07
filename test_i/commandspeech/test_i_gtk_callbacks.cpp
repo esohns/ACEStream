@@ -123,6 +123,10 @@ load_voices (GtkListStore* listStore_in,
   gtk_list_store_clear (listStore_in);
 
   Common_File_IdentifierList_t files_a;
+  bool voices_are_files_b = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::vector<std::pair<std::string, struct _GUID> > voices_a;
+#endif // ACE_WIN32 || ACE_WIN64
   switch (TTSBackend_in)
   {
     case TTS_ESPEAK_NG:
@@ -145,7 +149,88 @@ load_voices (GtkListStore* listStore_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     case TTS_SAPI:
     {
-      // *TODO*
+#if defined (SAPI_SUPPORT)
+      ISpObjectTokenCategory* category_p = NULL; 
+      HRESULT result = SpGetCategoryFromId (SPCAT_VOICES, &category_p, FALSE);
+      if (FAILED (result) || !category_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to SpGetCategoryFromId(SPCAT_VOICES): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+        break;
+      } // end IF
+      IEnumSpObjectTokens* enumerator_p = NULL; 
+      result = category_p->EnumTokens (NULL, NULL, &enumerator_p);
+      if (FAILED (result) || !enumerator_p)
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ISpObjectTokenCategory::EnumTokens(): \"%s\", aborting\n"),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+        category_p->Release (); category_p = NULL;
+        break;
+      } // end IF
+      ISpObjectToken* token_p = NULL;
+      ISpDataKey* key_p = NULL;
+      WCHAR* string_p = NULL;
+      std::string name_string;
+      struct _GUID GUID_s = GUID_NULL;
+      do
+      { ACE_ASSERT (!token_p);
+        result = enumerator_p->Next (1, &token_p, NULL);
+        if (FAILED (result) || !token_p)
+        {
+          if (result != S_FALSE)
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("failed to IEnumSpObjectTokens::Next(): \"%s\", aborting\n"),
+                        ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+          break;
+        } // end IF
+
+        result = token_p->OpenKey (L"Attributes", &key_p);
+        if ((FAILED (result)) || !key_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ISpObjectToken::OpenKey(Attributes): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+          token_p->Release (); token_p = NULL;
+          continue;
+        } // end IF
+        result = key_p->GetStringValue (L"Name", &string_p);
+        if ((FAILED (result)) || !string_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ISpDataKey::GetStringValue(Name): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+          key_p->Release (); key_p = NULL;
+          token_p->Release (); token_p = NULL;
+          continue;
+        } // end IF
+        key_p->Release (); key_p = NULL;
+        name_string = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p));
+        ::CoTaskMemFree (string_p); string_p = NULL;
+
+        token_p->GetStringValue (L"CLSID", &string_p);
+        if ((FAILED (result)) || !string_p)
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("failed to ISpObjectToken::GetStringValue(CLSID): \"%s\", continuing\n"),
+                      ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+          token_p->Release (); token_p = NULL;
+          continue;
+        } // end IF
+        GUID_s =
+          Common_OS_Tools::StringToGUID (ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (string_p)));
+        ::CoTaskMemFree (string_p); string_p = NULL;
+
+        voices_a.push_back (std::make_pair (name_string, GUID_s));
+
+        token_p->Release (); token_p = NULL;
+      } while (true);
+      enumerator_p->Release (); enumerator_p = NULL;
+      category_p->Release (); category_p = NULL;
+#endif // SAPI_SUPPORT
+      voices_are_files_b = false;
+
       break;
     }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -159,19 +244,39 @@ load_voices (GtkListStore* listStore_in,
   } // end SWITCH
 
   GtkTreeIter iterator;
-  std::string filename_string;
-  for (Common_File_IdentifierListIterator_t iterator_2 = files_a.begin ();
-       iterator_2 != files_a.end ();
-       ++iterator_2)
+  if (voices_are_files_b)
   {
-    filename_string =
-      Common_File_Tools::basename ((*iterator_2).identifier, true);
-    gtk_list_store_append (listStore_in, &iterator);
-    gtk_list_store_set (listStore_in, &iterator,
-                        0, filename_string.c_str (),
-                        1, (*iterator_2).identifier.c_str (),
-                        -1);
-  } // end FOR
+    std::string filename_string;
+    for (Common_File_IdentifierListIterator_t iterator_2 = files_a.begin ();
+         iterator_2 != files_a.end ();
+         ++iterator_2)
+    {
+      filename_string =
+        Common_File_Tools::basename ((*iterator_2).identifier, true);
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, filename_string.c_str (),
+                          1, (*iterator_2).identifier.c_str (),
+                          -1);
+    } // end FOR
+  } // end IF
+  else
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    std::string GUID_string;
+    for (std::vector<std::pair<std::string, struct _GUID> >::iterator iterator_2 = voices_a.begin ();
+         iterator_2 != voices_a.end ();
+         ++iterator_2)
+    {
+      GUID_string = Common_OS_Tools::GUIDToString ((*iterator_2).second);
+      gtk_list_store_append (listStore_in, &iterator);
+      gtk_list_store_set (listStore_in, &iterator,
+                          0, (*iterator_2).first.c_str (),
+                          1, GUID_string.c_str (),
+                          -1);
+    } // end FOR
+#endif // ACE_WIN32 || ACE_WIN64
+  } // end ELSE
 
   return true;
 }
@@ -1516,6 +1621,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                   //"cell-background", 0,
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
+
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
@@ -1738,8 +1844,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
   ACE_ASSERT (combo_box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), TRUE);
   gtk_combo_box_set_active (combo_box_p, 0);
+
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_DISPLAY_NAME)));
@@ -3331,6 +3437,18 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
+
+      // *TODO*: queries with CLSID do not work (yet)
+      if (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend == TTS_SAPI)
+      {
+        gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
+                                  &iterator_2,
+                                  0, &value);
+        ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
+        voice_string = g_value_get_string (&value);
+        g_value_unset (&value);
+      } // end IF
+
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
@@ -4360,7 +4478,7 @@ textview_size_allocate_cb (GtkWidget* widget_in,
 
   // sanity check(s)
   struct Test_I_UI_CBData* ui_cb_data_base_p =
-      static_cast<struct Test_I_UI_CBData*> (userData_in);
+    static_cast<struct Test_I_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_base_p->UIState);
   Common_UI_GTK_BuildersIterator_t iterator =
@@ -4397,21 +4515,15 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
-  GtkComboBox* combo_box_p =
-      GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_ADAPTER_NAME)));
-  ACE_ASSERT (combo_box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
-                            gtk_toggle_button_get_active (toggleButton_in));
   GtkBox* box_p =
-      GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BOX_DISPLAY_2_NAME)));
+    GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BOX_DISPLAY_2_NAME)));
   ACE_ASSERT (box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (box_p),
                             gtk_toggle_button_get_active (toggleButton_in));
   GtkButtonBox* button_box_p =
-      GTK_BUTTON_BOX (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTONBOX_DISPLAY_NAME)));
+    GTK_BUTTON_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_BUTTONBOX_DISPLAY_NAME)));
   ACE_ASSERT (button_box_p);
   gtk_widget_set_sensitive (GTK_WIDGET (button_box_p),
                             gtk_toggle_button_get_active (toggleButton_in));

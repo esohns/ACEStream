@@ -3715,6 +3715,7 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
 
+      // *TODO*: queries with CLSID do not work (yet)
       if (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->TTSBackend == TTS_SAPI)
       {
         gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),

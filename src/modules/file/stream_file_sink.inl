@@ -301,7 +301,8 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
       previousError_ = error;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //               (error == ERROR_INVALID_ACCESS); // 12 : (*TODO*: memory leakage ?)
-      ACE_ASSERT (error == ERROR_DISK_FULL);      // 112: no space left on device
+      ACE_ASSERT (error == ENXIO ||               // 6: 
+                  error == ERROR_DISK_FULL);      // 112: no space left on device
 #else
       ACE_ASSERT (error == ENOSPC);
 #endif // ACE_WIN32 || ACE_WIN64

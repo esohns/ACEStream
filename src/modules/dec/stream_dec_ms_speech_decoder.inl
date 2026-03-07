@@ -560,6 +560,7 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (!name_in.empty ());
 
   std::string query_string = ACE_TEXT_ALWAYS_CHAR ("Name=");
+  // *TODO*: queries with CLSID do not seem to work
   struct _GUID GUID_s = Common_OS_Tools::StringToGUID (name_in);
   if (!InlineIsEqualGUID (GUID_s, GUID_NULL))
     query_string = ACE_TEXT_ALWAYS_CHAR ("CLSID=");

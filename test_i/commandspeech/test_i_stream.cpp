@@ -322,6 +322,74 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   return true;
 }
 
+bool
+Test_I_DirectShow_Stream::initialize (const CONFIGURATION_T& configuration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::initialize"));
+
+  // sanity check(s)
+  ACE_ASSERT (!inherited::isRunning ());
+  ACE_ASSERT (configuration_in.configuration_);
+  Test_I_DirectShow_SessionManager_t* session_manager_p =
+    Test_I_DirectShow_SessionManager_t::SINGLETON_T::instance ();
+  ACE_ASSERT (session_manager_p);
+
+  bool result = false;
+  bool setup_pipeline = configuration_in.configuration_->setupPipeline;
+  bool reset_setup_pipeline = false;
+
+  // allocate a new session state, reset stream
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    false;
+  reset_setup_pipeline = true;
+  if (!inherited::initialize (configuration_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
+  const_cast<inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
+    setup_pipeline;
+  reset_setup_pipeline = false;
+
+  // sanity check(s)
+  Test_I_CommandSpeech_DirectShow_SessionData& session_data_r =
+    const_cast<Test_I_CommandSpeech_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_3 != configuration_in.end ());
+
+  // *TODO*: remove type inference
+  session_data_r.targetFileName =
+    (*iterator_3).second.second->fileIdentifier.identifier;
+
+  if (configuration_in.configuration_->setupPipeline)
+    if (!inherited::setup ())
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
+      goto error;
+    } // end IF
+
+  // -------------------------------------------------------------
+
+  inherited::isInitialized_ = true;
+  //inherited::dump_state ();
+
+  return true;
+
+error:
+  return false;
+}
+
 //////////////////////////////////////////
 
 Test_I_MediaFoundation_Stream::Test_I_MediaFoundation_Stream ()
