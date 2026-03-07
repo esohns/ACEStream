@@ -68,6 +68,7 @@ acestream_lib_pipewire_finalize_stream_cb (struct spa_loop* loop_in,
   struct acestream_lib_pipewire_cbdata* cb_data_p =
     static_cast<struct acestream_lib_pipewire_cbdata*> (userData_in);
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->stream);
 
   int result = pw_stream_disconnect (cb_data_p->stream);
   pw_stream_destroy (cb_data_p->stream);

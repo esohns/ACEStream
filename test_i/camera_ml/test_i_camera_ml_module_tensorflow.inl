@@ -485,7 +485,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_Tensorflow_T::scoresToValidIndices"));
 
   std::vector<std::pair<float, size_t> > score_index_pairs_a;
-  for (size_t i = 0; i < numberOfDetections_in; ++i)
+  for (size_t i = 0; i < static_cast<size_t> (numberOfDetections_in); ++i)
     score_index_pairs_a.push_back (std::make_pair (scores_in[i], i));
   struct score_index_pair_comparator
   {
@@ -494,7 +494,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
       return (lhs_in.first > rhs_in.first);
     }
   };
-  std::sort (score_index_pairs_a.begin (), score_index_pairs_a.end (), struct score_index_pair_comparator ());
+  std::sort (score_index_pairs_a.begin (), score_index_pairs_a.end (), score_index_pair_comparator ());
 
   std::vector<size_t> valid_indices_a;
   int number_of_valid_indices_i =

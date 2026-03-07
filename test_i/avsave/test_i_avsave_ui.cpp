@@ -65,8 +65,8 @@ process_stream_events (struct Stream_AVSave_UI_CBData* CBData_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (CBData_in);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
   renderer_e =
     cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer;
@@ -480,8 +480,8 @@ stream_processing_thread (void* arg_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (thread_data_p->CBData);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->audioStream);
   ACE_ASSERT (cb_data_p->videoStream);
@@ -750,7 +750,7 @@ Stream_AVSave_V4L_WxWidgetsDialog_t::wxCreateObject ()
 //////////////////////////////////////////
 
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                 Stream_AVSave_V4L_Stream>::Stream_AVSave_WxWidgetsDialog_T (wxWindow* parent_in)
  : inherited (parent_in, wxID_ANY, wxEmptyString)
  , application_ (NULL)
@@ -763,7 +763,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 bool
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                 Stream_AVSave_V4L_Stream>::OnInit_2 (IAPPLICATION_T* iapplication_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::OnInit_2"));
@@ -772,7 +772,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (!application_);
 
   application_ =
-    dynamic_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t*> (iapplication_in);
+    dynamic_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t*> (iapplication_in);
   ACE_ASSERT (application_);
 
   togglebutton_record = XRCCTRL (*this, "togglebutton_record", wxToggleButton);
@@ -823,8 +823,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
                                 std::numeric_limits<int>::max ());
 
   bool activate_source_b = true, activate_display_b = true;
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -967,7 +967,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::OnExit_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::OnExit_2"));
@@ -980,7 +980,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::dialog_main_idle_cb (wxIdleEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::dialog_main_idle_cb"));
@@ -988,8 +988,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.audioStream);
   ACE_ASSERT (cbdata_r.videoStream);
   bool finished_b = false;
@@ -1004,7 +1004,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::dialog_main_keydown_cb (wxKeyEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::dialog_main_keydown_cb"));
@@ -1012,8 +1012,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.audioStream);
   ACE_ASSERT (cbdata_r.videoStream);
 
@@ -1116,7 +1116,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
@@ -1132,8 +1132,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   ACE_ASSERT (application_);
 
   // --> user pressed play/pause/stop
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1297,7 +1297,7 @@ continue_:
   ACE_Thread_ID thread_id_2;
   bool result =
     Test_I_Tools::spawn<struct Stream_AVSave_UI_ThreadData,
-                        Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
+                        Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T> (ACE_TEXT_ALWAYS_CHAR (TEST_I_STREAM_THREAD_NAME),
                                                                               ::stream_processing_thread,
                                                                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1,
                                                                               cbdata_r,
@@ -1329,7 +1329,7 @@ continue_:
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
@@ -1337,15 +1337,15 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.videoStream);
 
   cbdata_r.videoStream->control (STREAM_CONTROL_STEP_2);
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_cut_clicked_cb"));
@@ -1353,7 +1353,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_report_clicked_cb"));
@@ -1361,7 +1361,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_source_changed_cb"));
@@ -1369,8 +1369,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1468,7 +1468,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_camera_properties_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_camera_properties_clicked_cb"));
@@ -1476,8 +1476,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1485,7 +1485,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_format_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_format_changed_cb"));
@@ -1493,8 +1493,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1562,7 +1562,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_resolution_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_resolution_changed_cb"));
@@ -1570,8 +1570,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1631,7 +1631,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_framerate_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_framerate_changed_cb"));
@@ -1639,8 +1639,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1684,7 +1684,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_reset_camera_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_reset_camera_clicked_cb"));
@@ -1692,8 +1692,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -1761,7 +1761,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::togglebutton_save_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::togglebutton_save_toggled_cb"));
@@ -1771,7 +1771,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 //  directorypicker_save->Enable (is_checked_b);
 }
 //void
-//Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_V4L_WxWidgetsIApplication_t,
+//Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
 //                                 Stream_AVSave_V4L_Stream>::picker_directory_save_changed_cb (wxFileDirPickerEvent& event_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::picker_directory_save_changed_cb"));
@@ -1780,7 +1780,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::togglebutton_display_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::togglebutton_display_toggled_cb"));
@@ -1788,8 +1788,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -1867,7 +1867,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::togglebutton_fullscreen_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::togglebutton_fullscreen_toggled_cb"));
@@ -1875,8 +1875,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -1950,7 +1950,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_displayadapter_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_displayadapter_changed_cb"));
@@ -1958,7 +1958,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_screen_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_screen_changed_cb"));
@@ -1966,8 +1966,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   // sanity check(s)
   ACE_ASSERT (application_);
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.configuration);
   Stream_AVSave_V4L_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
     cbdata_r.configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->videoStreamConfiguration.configuration_->renderer).c_str ()));
@@ -2069,7 +2069,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     initializing_ = false;
 }
 //void
-//Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_V4L_WxWidgetsIApplication_t,
+//Stream_AVSave_WxWidgetsDialog_T<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
 //                                 Stream_AVSave_V4L_Stream>::button_display_settings_clicked_cb (wxCommandEvent& event_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_display_settings_clicked_cb"));
@@ -2077,7 +2077,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 //}
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::choice_resolution_2_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::choice_resolution_2_changed_cb"));
@@ -2086,15 +2086,15 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_about_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_about_clicked_cb"));
 
   // sanity check(s)
   ACE_ASSERT (application_);
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::STATE_T& state_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::STATE_T&> (application_->getR ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::STATE_T& state_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::STATE_T&> (application_->getR ());
   ACE_ASSERT (state_r.argv);
 
   std::ostringstream converter;
@@ -2125,7 +2125,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                 Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                  Stream_AVSave_V4L_Stream>::button_quit_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AVSave_WxWidgetsDialog_T::button_quit_clicked_cb"));
@@ -2135,8 +2135,8 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 
   // step1: make sure the stream has stopped
   Stream_IStreamControlBase* stream_p = NULL, *stream_2 = NULL;
-  Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
-    const_cast<Stream_AVSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T& cbdata_r =
+    const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   stream_p = cbdata_r.audioStream;
   stream_2 = cbdata_r.videoStream;
   ACE_ASSERT (stream_p && stream_2);

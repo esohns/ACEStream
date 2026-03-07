@@ -843,9 +843,9 @@ struct Stream_AVSave_MediaFoundation_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
                                            struct Stream_AVSave_MediaFoundation_UI_CBData> Stream_AVSave_MediaFoundation_WxWidgetsIApplication_t;
 #else
-struct Stream_AVSave_V4L_UI_CBData;
+struct Stream_AVSave_ALSA_V4L_UI_CBData;
 typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                           struct Stream_AVSave_V4L_UI_CBData> Stream_AVSave_V4L_WxWidgetsIApplication_t;
+                                           struct Stream_AVSave_ALSA_V4L_UI_CBData> Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t;
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // WXWIDGETS_USE
 struct Stream_AVSave_UI_State;
@@ -1060,7 +1060,7 @@ typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          wxGUIAppTraits> Stream_AVSave_MediaFoundation_WxWidgetsApplication_t;
 #else
 typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                        Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                        Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                         Stream_AVSave_V4L_Stream> Stream_AVSave_V4L_WxWidgetsDialog_t;
 typedef Comon_UI_WxWidgets_Application_T<Stream_AVSave_WxWidgetsXRCDefinition_t,
                                          struct Common_UI_wxWidgets_State,

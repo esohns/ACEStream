@@ -1809,10 +1809,10 @@ error_2:
     card_i = Stream_MediaFramework_ALSA_Tools::getCardNumber (deviceIdentifier_in);
     if (unlikely (card_i == -1))
     { // *NOTE*: might be a virtual device like "default"
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getCardNumber(\"%s\"), aborting\n"),
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getCardNumber(\"%s\"), continuing\n"),
                   ACE_TEXT (deviceIdentifier_in.c_str ())));
-      return false;
+      goto do_loop;
     } // end IF
     result_2 = snd_card_get_longname (card_i, &string_p);
     if (result_2 || !string_p)
@@ -1911,6 +1911,7 @@ continue_:
     return true;
   } // end IF
 
+do_loop:
   do
   {
     result_2 = snd_card_next (&card_i);
@@ -2142,8 +2143,8 @@ set_capture_format (struct Stream_AVSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (CBData_in);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (CBData_in);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2393,8 +2394,8 @@ update_buffer_size (struct Stream_AVSave_UI_CBData* CBData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (CBData_in);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (CBData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -2533,8 +2534,8 @@ stream_processing_function (void* arg_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (thread_data_p->CBData);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
   ACE_ASSERT (cb_data_p->audioStream);
   ACE_ASSERT (cb_data_p->videoStream);
@@ -3168,8 +3169,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -3710,7 +3711,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     } // end SWITCH
 #else
     g_value_set_string (&value,
-                        (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ());
+                        audio_device_identifier_string.c_str ());
 #endif // ACE_WIN32 || ACE_WIN64
     Common_UI_GTK_Tools::selectValue (combo_box_p,
                                       value,
@@ -3910,8 +3911,8 @@ idle_finalize_UI_cb (gpointer userData_in)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -4510,8 +4511,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->audioStream;
   stream_2 = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
@@ -4912,8 +4913,8 @@ togglebutton_save_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5035,8 +5036,8 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -5186,8 +5187,8 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_base_p = cb_data_p->videoStream;
   stream_p = cb_data_p->videoStream;
   ACE_ASSERT (cb_data_p->configuration);
@@ -5327,8 +5328,8 @@ button_cut_clicked_cb (GtkButton* button_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   cb_data_p->videoStream->control (STREAM_CONTROL_STEP,
                               false);
 #endif
@@ -5534,8 +5535,8 @@ button_quit_clicked_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (userData_in);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (userData_in);
   // status_e = cb_data_p->videoStream->status ();
   stream_p = cb_data_p->videoStream;
   stream_2 = cb_data_p->audioStream;
@@ -5630,8 +5631,8 @@ combobox_audio_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -5754,8 +5755,8 @@ combobox_video_source_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -6173,8 +6174,8 @@ combobox_video_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -6460,8 +6461,8 @@ combobox_video_resolution_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -6807,8 +6808,8 @@ combobox_video_framerate_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -6984,8 +6985,8 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
@@ -7150,8 +7151,8 @@ combobox_display_changed_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     ui_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
@@ -7541,8 +7542,8 @@ drawingarea_audio_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (ui_cb_data_p->configuration);
   stream_p = ui_cb_data_p->audioStream;
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -7760,8 +7761,8 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->videoStream;
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
@@ -7933,8 +7934,8 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   ACE_ASSERT (cb_data_p->configuration);
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));

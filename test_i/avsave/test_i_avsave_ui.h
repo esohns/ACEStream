@@ -231,11 +231,11 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 // specializations (for V4L Linux)
 template <>
 class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                      Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                      Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                       Stream_AVSave_V4L_Stream>
  : public wxDialog_main
  , public Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
-                                          struct Stream_AVSave_V4L_UI_CBData>
+                                          struct Stream_AVSave_ALSA_V4L_UI_CBData>
 {
   typedef wxDialog_main inherited;
   //typedef Common_UI_wxWidgets_ITopLevel_T<struct Common_UI_wxWidgets_State,
@@ -244,7 +244,7 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
  public:
   // convenient types
   typedef Common_UI_wxWidgets_IApplication_T<struct Common_UI_wxWidgets_State,
-                                             struct Stream_AVSave_V4L_UI_CBData> IAPPLICATION_T;
+                                             struct Stream_AVSave_ALSA_V4L_UI_CBData> IAPPLICATION_T;
 
   Stream_AVSave_WxWidgetsDialog_T (wxWindow* = NULL); // parent window (if any)
   inline virtual ~Stream_AVSave_WxWidgetsDialog_T () {}
@@ -255,7 +255,7 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
  private:
   // convenient types
   typedef Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
-                                          Stream_AVSave_V4L_WxWidgetsIApplication_t,
+                                          Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t,
                                           Stream_AVSave_V4L_Stream> OWN_TYPE_T;
 
   // implement Common_UI_wxWidgets_ITopLevel
@@ -291,9 +291,9 @@ class Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
   wxDECLARE_DYNAMIC_CLASS (OWN_TYPE_T);
 //  wxDECLARE_EVENT_TABLE ();
 
-  Stream_AVSave_V4L_WxWidgetsIApplication_t* application_;
-  bool                                       initializing_;
-  bool                                       untoggling_;
+  Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t* application_;
+  bool                                            initializing_;
+  bool                                            untoggling_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

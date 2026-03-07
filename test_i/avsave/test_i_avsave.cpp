@@ -959,7 +959,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
          struct Stream_AVSave_DirectShow_UI_CBData& directShowCBData_in,
          struct Stream_AVSave_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
 #else
-         struct Stream_AVSave_V4L_UI_CBData& CBData_in,
+         struct Stream_AVSave_ALSA_V4L_UI_CBData& CBData_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (WXWIDGETS_USE)
          Common_UI_wxWidgets_IApplicationBase_t* iapplication_in,
@@ -2391,7 +2391,7 @@ ACE_TMAIN (int argc_in,
   } // end SWITCH
 #else
   struct Stream_AVSave_Configuration configuration;
-  struct Stream_AVSave_V4L_UI_CBData ui_cb_data;
+  struct Stream_AVSave_ALSA_V4L_UI_CBData ui_cb_data;
   ui_cb_data.configuration = &configuration;
   ui_cb_data_p = &ui_cb_data;
 
