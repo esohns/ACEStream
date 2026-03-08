@@ -347,6 +347,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
              false)
  , iterator_ (NULL)
  , normalizationFactor_ (0)
+ , scale_x_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Console_Audio_T::Stream_Module_Vis_Console_Audio_T"));
 
@@ -721,6 +722,9 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
                   timer_id,
                   &display_interval));
 
+      scale_x_ = 
+        inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins / STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
+
       break;
 
 error:
@@ -801,36 +805,38 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (arg_in);
 
   // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
+  ACE_ASSERT (scale_x_);
 
-#define NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL 10
-  static int scale_x =
-    inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins / NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
-
+  unsigned int slot_number_i;
+  ValueType magnitude;
   ACE_UINT32 level_i;
-  for (ACE_UINT32 c = 0; c < channels_; ++c)
+  for (unsigned int c = 0; c < channels_; ++c)
   {
-    for (ACE_UINT32 i = 0; i < NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL; ++i)
+    for (ACE_UINT32 i = 0;
+         i < STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
+         ++i)
     {
-      unsigned int slot_number_i = (i * scale_x) + (scale_x / 2); // *NOTE*: display the middle bin of each 'scale_x' bin block
-      ValueType magnitude = inherited4::Magnitude2 (slot_number_i, c, false);
+      slot_number_i = (i * scale_x_) + (scale_x_ / 2); // *NOTE*: display the middle bin of each 'scale_x_' bin block
+      magnitude = inherited4::Magnitude2 (slot_number_i, c, false);
+      level_i =
+        static_cast<ACE_UINT32> (std::min (std::max (magnitude * 30.0f, 0.0f), 39.0f));
 
-      level_i = static_cast<uint32_t> (fminf (fmaxf (magnitude * 30.0f, 0.0f), 39.0f));
-
-      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
-                      level_i + 1, '*', 40 - level_i, ' ');
+      //ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
+      //                level_i + 1, '*', 40 - level_i, ' ');
+      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%.*s%.*s|\n"),
+                      level_i + 1, ACE_TEXT_ALWAYS_CHAR ("****************************************"),
+                      40 - (level_i + 1), ACE_TEXT_ALWAYS_CHAR ("                                        "));
     } // end FOR
 
     if (c < channels_ - 1)
       ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%.*s\n"),
-                      40 + 2 + 1, ACE_TEXT_ALWAYS_CHAR ("+++++++++++++++++++++++++++++++++++++++++++"));
+                      40 + 2, ACE_TEXT_ALWAYS_CHAR ("++++++++++++++++++++++++++++++++++++++++++"));
   } // end FOR
 
   /* move cursor back up */
   ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%c[%dA"),
                   0x1b, // ESC
-                  channels_ * NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL + (channels_ - 1));
+                  channels_ * STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL + (channels_ - 1));
 
   ACE_OS::fflush (stdout);
 }

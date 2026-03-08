@@ -191,6 +191,7 @@ class Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   Common_Timer_Handler                        handler_;
   Common_Math_FFT_SampleIterator_T<ValueType> iterator_;
   ValueType                                   normalizationFactor_;
+  int                                         scale_x_;
 };
 
 //////////////////////////////////////////
