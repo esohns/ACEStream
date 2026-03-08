@@ -1556,12 +1556,24 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
   switch (notification_in)
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-    { ACE_ASSERT (inherited::sessionData_);
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_ASSERT (session_data_r.lock);
-      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_r.lock);
-        session_data_r.aborted = true;
+    { 
+      typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+      typename SessionMessageType::DATA_T* session_data_container_p =
+        inherited::sessionData_;
+      if (unlikely (!session_data_container_p))
+      {
+        SessionManagerType* session_manager_p =
+          SessionManagerType::SINGLETON_T::instance ();
+        ACE_ASSERT (session_manager_p);
+        session_data_p =
+          &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
+      } // end IF
+      else
+        session_data_p = &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_p->getR ());
+      ACE_ASSERT (session_data_p);
+      ACE_ASSERT (session_data_p->lock);
+      { ACE_GUARD (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock);
+        session_data_p->aborted = true;
       } // end lock scope
 
       // *NOTE*: there is no SESSION_END message in this scenario

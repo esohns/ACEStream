@@ -194,6 +194,13 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
     {
       //++index_i;
 
+      //ACE_NEW_RETURN (module_p,
+      //                Test_I_AudioTagger_Module (this,
+      //                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
+      //                false);
+      //layout_in->append (module_p, branch_p, index_i);
+      //module_p = NULL;
+
       ACE_NEW_RETURN (module_p,
                       Test_I_WAVEncoder_Module (this,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING)),
@@ -241,6 +248,20 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
       //ACE_ASSERT (false); // *TODO*
       ++index_i;
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_LibAVConverter_Module (this,
+                                                    ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2")),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+
+      ACE_NEW_RETURN (module_p,
+                      Test_I_VideoTagger_Module (this,
+                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
 
       ACE_NEW_RETURN (module_p,
                       Test_I_AVIEncoder_Module (this,

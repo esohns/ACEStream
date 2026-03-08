@@ -330,7 +330,6 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  allocator_configuration.defaultBufferSize = 131072; // 128 kB
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration_2;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   //codec_configuration.parserFlags =
@@ -338,9 +337,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration; // video
-  allocator_configuration.defaultBufferSize = 131072; // 128 kB
   struct Stream_AllocatorConfiguration allocator_configuration_2; // audio
 #endif // FFMPEG_SUPPORT
+  allocator_configuration.defaultBufferSize = 131072; // 128 kB
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
                          struct Common_AllocatorConfiguration> heap_allocator;
@@ -355,6 +354,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_2; // wav encoder
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_3; // libav converter
+  struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_4; // libav converter 2
   struct Test_I_ExtractStream_StreamConfiguration stream_configuration;
 
   Test_I_EventHandler_t ui_event_handler (&CBData_in
@@ -395,10 +395,11 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration_3.outputFormat.video.format = AV_PIX_FMT_RGB24;
 #endif // FFMPEG_SUPPORT
+  modulehandler_configuration_4 = modulehandler_configuration;
+  modulehandler_configuration_4.flipImage = true;
 
   Test_I_MessageHandler_Module message_handler (NULL,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_I_Stream stream;
 
   Test_I_MessageAllocator_t message_allocator (TEST_I_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
@@ -407,11 +408,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
 
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
-      (!UIDefinitionFilename_in.empty () ? &message_handler
-                                         : NULL);
+    (!UIDefinitionFilename_in.empty () ? &message_handler : NULL);
 
-  stream_configuration.allocatorConfiguration =
-    &allocator_configuration;
+  stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.mode = mode_in;
 
   configuration_in.streamConfiguration.initialize (module_configuration,
@@ -423,10 +422,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
-
-//  stream_iterator =
-//    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (stream_iterator != configuration_in.streamConfiguration.end ());
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_4)));
 
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
@@ -456,6 +454,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   timer_manager_p->start (NULL);
 
   // step0f: (initialize) processing stream
+  Test_I_Stream stream;
 
   // event loop(s):
   // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
@@ -555,7 +554,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION (print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,

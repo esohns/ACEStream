@@ -271,7 +271,7 @@ Stream_Decoder_LibAVConverter_T<TaskType,
       if (unlikely ((inputFormat_ == media_type_3.format) &&
                     !inherited::configuration_->flipImage))
       {
-        ACE_DEBUG ((LM_DEBUG,
+        ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: output format (was: \"%s\") is input format, nothing to do\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ())));
@@ -312,6 +312,13 @@ Stream_Decoder_LibAVConverter_T<TaskType,
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ()),
                     ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (media_type_3.format).c_str ()),
                     inherited::configuration_->flipImage ? ACE_TEXT (" and flipping image") : ACE_TEXT ("")));
+      else
+      { ACE_ASSERT (inherited::configuration_->flipImage);
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: maintaining pixel format %s and flipping image\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inputFormat_).c_str ())));
+      } // end ELSE
 
       // initialize frame buffer
       ACE_ASSERT (!frame_);
