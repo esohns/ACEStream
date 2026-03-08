@@ -1383,26 +1383,27 @@ do_work (int argc_in,
   Stream_CameraScreen_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                   &heap_allocator,     // heap allocator handle
                                                                                   true);               // block ?
-  Stream_CameraScreen_DirectShow_Stream directshow_stream;
-  Stream_CameraScreen_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
+  Stream_CameraScreen_DirectShow_MessageHandler_Module directshow_message_handler (NULL,
                                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_CameraScreen_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                                             &heap_allocator,     // heap allocator handle
                                                                                             true);               // block ?
-  Stream_CameraScreen_MediaFoundation_Stream mediafoundation_stream;
-  Stream_CameraScreen_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (&mediafoundation_stream,
+  Stream_CameraScreen_MediaFoundation_MessageHandler_Module mediafoundation_message_handler (NULL,
                                                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+
+  Stream_CameraScreen_DirectShow_Stream directshow_stream;
+  Stream_CameraScreen_MediaFoundation_Stream mediafoundation_stream;
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //if (bufferSize_in)
-      //  directShowCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      //      bufferSize_in;
+      directShowConfiguration_in.signalHandlerConfiguration.stream =
+        &directshow_stream;
+
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
-          &directshow_message_allocator;
+        &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_message_handler;
       directshow_stream_configuration.renderer = renderer_in;
@@ -1419,35 +1420,25 @@ do_work (int argc_in,
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
-      //directshow_stream_iterator =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (directshow_stream_iterator != directShowConfiguration_in.streamConfiguration.end ());
-      //directshow_stream_iterator_2 =
-      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (directshow_stream_iterator_2 != directShowConfiguration_in.streamConfiguration.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      //if (bufferSize_in)
-      //  mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
-      //      bufferSize_in;
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
+        &mediafoundation_stream;
+
       mediafoundation_stream_configuration.messageAllocator =
-          &mediafoundation_message_allocator;
+        &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
-          &mediafoundation_message_handler;
+        &mediafoundation_message_handler;
       mediafoundation_stream_configuration.renderer = renderer_in;
       mediafoundation_stream_configuration.useVideoWall = useVideoWall_in;
 
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       mediafoundation_stream_configuration);
-      //mediafoundation_stream_iterator =
-      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      //ACE_ASSERT (mediafoundation_stream_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      //mediafoundation_stream_iterator_2 =
-      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      //ACE_ASSERT (mediafoundation_stream_iterator_2 != mediaFoundationConfiguration_in.streamConfiguration.end ());
+
       break;
     }
     default:
@@ -1462,9 +1453,11 @@ do_work (int argc_in,
   Stream_CameraScreen_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                             &heap_allocator,     // heap allocator handle
                                                             true);               // block ?
-  Stream_CameraScreen_Stream stream;
+
   Stream_CameraScreen_MessageHandler_Module message_handler (&stream,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
+
+  Stream_CameraScreen_Stream stream;
 
   configuration_in.signalHandlerConfiguration.stream = &stream;
 
@@ -1529,7 +1522,7 @@ do_work (int argc_in,
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      //directshow_modulehandler_configuration_2.flipImage =
+      directshow_modulehandler_configuration_2.flipImage = true;
       //  Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.outputFormat);
 
       media_type_p =

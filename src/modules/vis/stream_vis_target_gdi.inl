@@ -131,8 +131,8 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (context_);
 
-  // *TODO*: support dynamic resizing of output window ?
-  //GetWindowRect (inherited::window_, &resolution_2);
+  // *NOTE*: support dynamic resizing of output window
+  GetWindowRect (inherited::window_, &resolution_2);
 
   if (unlikely (StretchDIBits (context_,
                                0, 0, resolution_2.right - resolution_2.left, resolution_2.bottom - resolution_2.top,
