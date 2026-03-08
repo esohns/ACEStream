@@ -148,20 +148,20 @@ do_printUsage (const std::string& programName_in)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-2          : use Direct2D renderer [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-3          : use Direct3D renderer [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #else
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : use libcamera [")
             << false
-            << ACE_TEXT_ALWAYS_CHAR ("])")
+            << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Stream_Device_Identifier device_identifier;
@@ -275,6 +275,7 @@ do_processArguments (int argc_in,
                      std::string& UIFile_out,
                      bool& logToFile_out,
                      enum Stream_Device_Capturer& capturer_out,
+                     enum Stream_Visualization_VideoRenderer& renderer_out,
                      struct Common_UI_DisplayDevice& displayDevice_out,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
@@ -312,6 +313,16 @@ do_processArguments (int argc_in,
 #else
   capturer_out = STREAM_DEVICE_CAPTURER_V4L2;
 #endif // ACE_WIN32 || ACE_WIN64
+  renderer_out =
+#if defined (GTK_USE)
+    STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO;
+#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
+#else
+    STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE
   displayDevice_out = Common_UI_Tools::getDefaultDisplay ();
   statisticReportingInterval_out =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
@@ -321,7 +332,7 @@ do_processArguments (int argc_in,
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("cd:f::g::hlmo:s:tvw"),
+                              ACE_TEXT ("23cd:f::g::hlmo:s:tvw"),
 #else
                               ACE_TEXT ("cd:f::g::hlo:s:tvwx"),
 #endif // ACE_WIN32 || ACE_WIN64
@@ -336,6 +347,18 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      case '2':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D;
+        break;
+      }
+      case '3':
+      {
+        renderer_out = STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
+        break;
+      }
+#endif // ACE_WIN32 || ACE_WIN64
       case 'c':
       {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -808,8 +831,9 @@ continue_:
       break;
     }
 #endif // GTK_USE
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D: // *TODO*: this requires 'true' RGB32 (not BGR32)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
-    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
+    case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11: // *TODO*: this requires 'true' RGB32 (not BGR32)
     {
       displayFormat_out.subtype = MEDIASUBTYPE_RGB32;
       if (InlineIsEqualGUID (displayFormat_out.formattype, FORMAT_VideoInfo))
@@ -953,9 +977,9 @@ bool
 do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                HWND windowHandle_in,
                                IMFMediaType*& captureFormat_out
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                ,IMFMediaSession*& IMFMediaSession_out
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                //,bool loadDevice_in
                               )
 {
@@ -1291,9 +1315,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
          const std::string& targetFilename_in,
          enum Stream_Device_Capturer capturer_in,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-         //enum Stream_MediaFramework_Type mediaFramework_in,
-#endif // ACE_WIN32 || ACE_WIN64
+         enum Stream_Visualization_VideoRenderer renderer_in,
          const struct Common_UI_DisplayDevice& displayDevice_in,
          unsigned int statisticReportingInterval_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1583,12 +1605,7 @@ error:
 
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.capturer = capturer_in;
-      directshow_stream_configuration.renderer =
-#if defined (GTK_USE)
-        STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO;
-#else
-        STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
-#endif // GTK_USE
+      directshow_stream_configuration.renderer = renderer_in;
 
       directShowConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                  directshow_modulehandler_configuration,
@@ -1641,7 +1658,6 @@ error:
 
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_4.flipImage = true; // *TODO*: why is this necessary ?
       directshow_modulehandler_configuration_4.handleResize = false; // write as-is
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (&module_configuration,
@@ -1652,10 +1668,10 @@ error:
     case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
     {
       mediafoundation_stream_configuration.messageAllocator =
-          &mediafoundation_message_allocator;
+        &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
-          (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
-                                             : NULL);
+        (!UIDefinitionFilename_in.empty () ? &mediafoundation_message_handler
+                                           : NULL);
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
       mediafoundation_stream_configuration.allocatorConfiguration = &allocator_configuration;
@@ -1709,12 +1725,12 @@ error:
   v4l_modulehandler_configuration.messageAllocator = &v4l_message_allocator;
 #if defined (LIBCAMERA_SUPPORT)
   libcamera_stream_configuration.module =
-      (!UIDefinitionFilename_in.empty () ? &libcamera_message_handler
-                                         : NULL);
+    (!UIDefinitionFilename_in.empty () ? &libcamera_message_handler
+                                       : NULL);
 #endif // LIBCAMERA_SUPPORT
   v4l_stream_configuration.module =
-      (!UIDefinitionFilename_in.empty () ? &v4l_message_handler
-                                         : NULL);
+    (!UIDefinitionFilename_in.empty () ? &v4l_message_handler
+                                       : NULL);
 
   if (!heap_allocator.initialize (allocator_configuration))
   {
@@ -1867,7 +1883,7 @@ error:
 
   v4l_renderer_modulehandler_configuration = v4l_modulehandler_configuration;
   v4l_renderer_modulehandler_configuration.deviceIdentifier.identifier =
-      displayDevice_in.device;
+    displayDevice_in.device;
   // *TODO*: X11 window crashes for 24 bit depths... (BadIDChoice)
 //  v4l_renderer_modulehandler_configuration.outputFormat.format = AV_PIX_FMT_RGB32;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO),
@@ -1879,7 +1895,7 @@ error:
   v4l_converter_2_modulehandler_configuration = v4l_modulehandler_configuration;
   v4l_converter_2_modulehandler_configuration.flipImage = true;
   v4l_converter_2_modulehandler_configuration.outputFormat.format.pixelformat =
-      V4L2_PIX_FMT_BGR24;
+    V4L2_PIX_FMT_BGR24;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                    std::make_pair (&module_configuration,
                                                                                    &v4l_converter_2_modulehandler_configuration)));
@@ -1891,9 +1907,9 @@ error:
                                                                                          &libcamera_display_modulehandler_configuration)));
 
   libcamera_converter_2_modulehandler_configuration =
-      libcamera_modulehandler_configuration;
+    libcamera_modulehandler_configuration;
   libcamera_converter_2_modulehandler_configuration.outputFormat.format =
-      libcamera::PixelFormat (FOURCC ('R','G', 'B', '5'), 0);
+    libcamera::PixelFormat (FOURCC ('R','G', 'B', '5'), 0);
   configuration_in.libCamera_streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                          std::make_pair (&module_configuration,
                                                                                          &libcamera_converter_2_modulehandler_configuration)));
@@ -1935,9 +1951,9 @@ error:
   //directShowConfiguration_in.direct3DConfiguration.focusWindow =
   //    GetConsoleWindow ();
   directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferWidth =
-      resolution_s.cx;
+    resolution_s.cx;
   directShowConfiguration_in.direct3DConfiguration.presentationParameters.BackBufferHeight =
-      resolution_s.cy;
+    resolution_s.cy;
   directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
     GetConsoleWindow ();
   IDirect3DDeviceManager9* direct3D_manager_p = NULL;
@@ -2470,6 +2486,16 @@ ACE_TMAIN (int argc_in,
 #else
     STREAM_DEVICE_CAPTURER_V4L2;
 #endif // ACE_WIN32 || ACE_WIN64
+  enum Stream_Visualization_VideoRenderer renderer_e =
+#if defined (GTK_USE)
+    STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO;
+#else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11;
+#else
+    STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND;
+#endif // ACE_WIN32 || ACE_WIN64
+#endif // GTK_USE
   struct Common_UI_DisplayDevice display_device_s =
     Common_UI_Tools::getDefaultDisplay ();
   unsigned int statistic_reporting_interval =
@@ -2493,12 +2519,13 @@ ACE_TMAIN (int argc_in,
                             UI_definition_filename,
                             log_to_file,
                             capturer_e,
+                            renderer_e,
                             display_device_s,
                             statistic_reporting_interval,
                             trace_information,
                             program_mode_e))
   {
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -2602,10 +2629,9 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_USE
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
@@ -2894,7 +2920,7 @@ ACE_TMAIN (int argc_in,
   std::string css_profile_path = Common_File_Tools::getWorkingDirectory ();
   css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
   css_profile_path +=
-      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   css_profile_path += ACE_DIRECTORY_SEPARATOR_STR;
   css_profile_path +=ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_CAMSAVE_UI_CSS_FILE);
 //  if (!gtk_css_provider_load_from_path (css_provider_p,
@@ -3114,9 +3140,7 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
            target_filename,
            capturer_e,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-           //media_framework_e,
-#endif // ACE_WIN32 || ACE_WIN64
+           renderer_e,
            display_device_s,
            statistic_reporting_interval,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

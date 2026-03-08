@@ -110,6 +110,7 @@ class Stream_CamSave_DirectShow_Stream
   Stream_CamSave_DirectShow_LibAVConverter_Module    converter_; // --> 24-bit RGB (display format)
   Stream_CamSave_DirectShow_LibAVResize_Module       resizer_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
+  Stream_CamSave_DirectShow_Direct2DDisplay_Module   direct2DDisplay_;
   Stream_CamSave_DirectShow_Direct3DDisplay_Module   direct3DDisplay_;
   Stream_CamSave_DirectShow_Direct3D11Display_Module direct3D11Display_;
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)

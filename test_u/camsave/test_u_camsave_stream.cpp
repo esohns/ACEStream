@@ -65,6 +65,8 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
+ , direct2DDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT2D_DEFAULT_NAME_STRING))
  , direct3DDisplay_ (this,
                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECT3D_DEFAULT_NAME_STRING))
  , direct3D11Display_ (this,
@@ -184,18 +186,22 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
     {
 #if defined (FFMPEG_SUPPORT)
       layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
-      layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
       switch (inherited::configuration_->configuration_->renderer)
       {
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
         case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+          layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
           layout_in->append (&GTKPixbufDisplay_, branch_p, index_i);
           break;
         case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+          layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
           layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
           break;
-#endif // GTK_USE
+#endif // GTK_SUPPORT
+        case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
+          layout_in->append (&direct2DDisplay_, branch_p, index_i);
+          break;
         case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
           layout_in->append (&direct3DDisplay_, branch_p, index_i);
           break;
