@@ -2447,9 +2447,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
       ACE_ASSERT (session_manager_p);
       typename SessionMessageType::DATA_T::DATA_T* session_data_p =
         &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_manager_p->getR (streamId_));
-
       ACE_ASSERT (session_data_p->lock);
+
       inherited::sessionDataLock_ = session_data_p->lock;
+      { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, *session_data_p->lock, false);
+        session_data_p->aborted = false;
+      } // end lock scope
 
       ACE_ASSERT (!inherited::sessionData_);
       ACE_NEW_NORETURN (inherited::sessionData_,
@@ -2909,7 +2912,7 @@ continue_2:
           }
         } // end IF
 
-        // *NOTE*: support sending control messages even when stream is finished...
+        // *NOTE*: support sending session messages even when stream is finished...
         typename SessionMessageType::DATA_T* session_data_container_p =
           inherited::sessionData_;
         // bool release_session_data_container_b = false;
