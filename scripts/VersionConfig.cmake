@@ -56,7 +56,7 @@ set (${PROJECT_NAME}_VERSION_DEVEL ${VERSION_DEVEL})
 
 set (PACKAGE_DESCRIPTION "\
 user-space wrapper library for the pipes-and-filters pattern, based on the ACE \
-framework \(see: http://www.cs.wustl.edu/~schmidt/ACE.html\). In particular, the \
+framework \(see: https://www.cs.wustl.edu/~schmidt/ACE.html\). In particular, the \
 library lightly encapsulates the ACE_Stream and ACE_Module classes, introducing\
  a new set of interfaces to support asynchronous operation and \
 additional concepts, such as 'session' data and messages. In conjunction with \
