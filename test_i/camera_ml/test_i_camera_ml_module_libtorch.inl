@@ -124,16 +124,16 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   static int nFrames = 30;
   static int iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = time (NULL);
+  static time_t start = ACE_OS::time (NULL);
   static time_t end;
 
   if (nFrames % (iFrame + 1) == 0)
   {
-    time (&end);
-    fps = nFrames / (float)difftime (end, start);
-    time (&start);
+    ACE_OS::time (&end);
+    fps = nFrames / (float)ACE_OS::difftime (end, start);
+    start = end;
   } // end IF
-  iFrame++;
+  ++iFrame;
 
   // step0: convert image frame to matrix
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -150,11 +150,11 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   // step1: preprocess image matrix
   cv::Mat frame_matrix_normalized;
   //cv::resize (frame_matrix, frame_matrix_normalized, cv::Size (224, 224), 0, 0, cv::INTER_LINEAR);
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
-#else
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
+//#else
   frame_matrix_normalized = frame_matrix.clone ();
-#endif // ACE_WIN32 || ACE_WIN64
+//#endif // ACE_WIN32 || ACE_WIN64
   frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
 
   torch::NoGradGuard no_grad;
@@ -178,23 +178,23 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   torch::Tensor indexs = std::get<1> (results)[0];
 
   // step5: print results
-  float probability_f = softmaxs[0].item<float> ();
-  if (probability_f > 0.9f)
-  {
-    int index_i = indexs[0].item<int> ();
-    std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[index_i] << std::endl;
-    std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
-              << probability_f * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
-  } // end IF
-  // for (int i = 0; i < 3; ++i)
-  // {
-  //   int idx = indexs[i].item<int> ();
-  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
-  //             << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
-  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
-  //   std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
-  //             << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
-  // } // end FOR
+  //float probability_f = softmaxs[0].item<float> ();
+  //if (probability_f > 0.3f)
+  //{
+  //  int index_i = indexs[0].item<int> ();
+  //  std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[index_i] << std::endl;
+  //  std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
+  //            << probability_f * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+  //} // end IF
+   for (int i = 0; i < 3; ++i)
+   {
+     int idx = indexs[i].item<int> ();
+     std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
+               << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
+     std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
+     std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
+               << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+   } // end FOR
 
   // step6: draw fps
   std::ostringstream converter;

@@ -24,10 +24,11 @@
 #define TEST_I_CAMERA_ML_DEFAULT_ML_BACKEND            STREAM_ML_BACKEND_TENSORFLOW
 
 // tensorflow
-#define TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE         "model.pb"
-#define TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE         "labels_map.pbtxt"
+#define TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE         "face_detector.pb"
+#define TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE         "face_detector_labels.pbtxt"
 // libtorch
-#define TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE         "labels_resnet18.txt"
+#define TEST_I_CAMERA_ML_DEFAULT_LT_MODEL_FILE         "resnet18.pt"
+#define TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE         "resnet18_labels.txt"
 
 #define TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I      10
 #define TEST_I_CAMERA_ML_DEFAULT_THRESHOLD_SCORE_F     0.3f

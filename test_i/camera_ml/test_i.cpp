@@ -174,11 +174,15 @@ do_print_usage (const std::string& programName_in)
             << device_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-  std::string path = Common_File_Tools::getWorkingDirectory ();
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  // *NOTE*: model file needs to be relative to cwd
-  path = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  path += ACE_DIRECTORY_SEPARATOR_STR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR ("models");
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : model file [\"")
             << path
@@ -212,10 +216,6 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  //std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : test device for method support and exit [")
-  //          << false
-  //          << ACE_TEXT_ALWAYS_CHAR ("]")
-  //          << std::endl;
 }
 
 bool
@@ -270,10 +270,17 @@ do_process_arguments (int argc_in,
   deviceIdentifier_out.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  // *NOTE*: model file needs to be relative to cwd
-  modelFile_out = ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  modelFile_out += ACE_DIRECTORY_SEPARATOR_STR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR ("models");
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
+  modelFile_out = path;
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
@@ -977,6 +984,20 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // ACE_WIN32 || ACE_WIN64
   Test_I_SignalHandler signal_handler;
 
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string label_file_path = lib_root_p;
+  label_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  label_file_path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  label_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  label_file_path += ACE_TEXT_ALWAYS_CHAR ("models");
+  label_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
+    label_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
+  else
+    label_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -1009,18 +1030,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_11_DEFAULT_SHADER_FILE);
       ACE_ASSERT (Common_File_Tools::isReadable (directshow_modulehandler_configuration.shaderFile));
 
-      directshow_modulehandler_configuration.labelFile =
-        Common_File_Tools::getWorkingDirectory ();
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_DIRECTORY_SEPARATOR_STR_A;
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-      directshow_modulehandler_configuration.labelFile +=
-        ACE_DIRECTORY_SEPARATOR_CHAR_A;
-      if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
-        directshow_modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
-      else
-        directshow_modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
+      directshow_modulehandler_configuration.labelFile = label_file_path;
       directshow_modulehandler_configuration.model = modelFile_in;
 
       //if (statisticReportingInterval_in)
@@ -1069,15 +1079,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.buffers = STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-  modulehandler_configuration.labelFile =
-    Common_File_Tools::getWorkingDirectory ();
-  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_STR;
-  modulehandler_configuration.labelFile += COMMON_LOCATION_DATA_SUBDIRECTORY;
-  modulehandler_configuration.labelFile += ACE_DIRECTORY_SEPARATOR_CHAR;
-  if (mode_in == STREAM_CAMERA_ML_PROGRAMMODE_LIBTORCH)
-    modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_LT_LABEL_FILE);
-  else
-    modulehandler_configuration.labelFile += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_LABEL_FILE);
+  modulehandler_configuration.labelFile = label_file_path;
   modulehandler_configuration.model = modelFile_in;
 //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
@@ -1537,11 +1539,17 @@ ACE_TMAIN (int argc_in,
   device_identifier.identifier +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 #endif // ACE_WIN32 || ACE_WIN64
-  // *NOTE*: model file needs to be relative to cwd
-  std::string model_file =
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_DATA_SUBDIRECTORY);
-  model_file += ACE_DIRECTORY_SEPARATOR_STR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR ("models");
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_DEFAULT_TF_MODEL_FILE);
+  std::string model_file = path;
   bool log_to_file = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   enum Stream_MediaFramework_Type media_framework_e =

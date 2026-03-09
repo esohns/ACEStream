@@ -41,10 +41,9 @@
 #else
 #include "linux/videodev2.h"
 
-//#include "X11/X.h"
-// typedef unsigned long Window;
-//#undef CursorShape
+#if defined (WAYLAND_SUPPORT)
 #include "wayland-client.h"
+#endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
