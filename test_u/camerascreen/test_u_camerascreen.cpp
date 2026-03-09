@@ -1454,7 +1454,7 @@ do_work (int argc_in,
                                                             &heap_allocator,     // heap allocator handle
                                                             true);               // block ?
 
-  Stream_CameraScreen_MessageHandler_Module message_handler (&stream,
+  Stream_CameraScreen_MessageHandler_Module message_handler (NULL,
                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_CameraScreen_Stream stream;
