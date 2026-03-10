@@ -18,6 +18,7 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#include <chrono>
 #include <fstream>
 #include <iomanip>
 #include <regex>
@@ -124,13 +125,21 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   static int nFrames = 30;
   static int iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = ACE_OS::time (NULL);
-  static time_t end;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::steady_clock::time_point end;
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> end;
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
 
-  if (nFrames % (iFrame + 1) == 0)
+  if (((iFrame + 1) % nFrames) == 0)
   {
-    ACE_OS::time (&end);
-    fps = nFrames / (float)ACE_OS::difftime (end, start);
+    end = std::chrono::high_resolution_clock::now ();
+    std::chrono::duration<float> elapsed_time = end - start;
+    fps = nFrames / elapsed_time.count ();
     start = end;
   } // end IF
   ++iFrame;
@@ -148,37 +157,42 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
                         cv::Mat::AUTO_STEP);
 
   // step1: preprocess image matrix
-  cv::Mat frame_matrix_normalized;
+  //cv::Mat frame_matrix_normalized;
   //cv::resize (frame_matrix, frame_matrix_normalized, cv::Size (224, 224), 0, 0, cv::INTER_LINEAR);
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
 //#else
-  frame_matrix_normalized = frame_matrix.clone ();
+  //frame_matrix_normalized = frame_matrix.clone ();
 //#endif // ACE_WIN32 || ACE_WIN64
-  frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
+  //frame_matrix_normalized.convertTo (frame_matrix_normalized, CV_32FC3, 1.0f / 255.0f);
 
   torch::NoGradGuard no_grad;
 
   // step2: create input tensor from matrix
   torch::Tensor tensor_image =
-    torch::from_blob (frame_matrix_normalized.data, {1, frame_matrix_normalized.rows, frame_matrix_normalized.cols, 3}, torch::kFloat);
-  tensor_image = tensor_image.permute ({0, 3, 1, 2});
-  tensor_image[0][0] = tensor_image[0][0].sub_ (0.485f).div_ (0.229f);
-  tensor_image[0][1] = tensor_image[0][1].sub_ (0.456f).div_ (0.224f);
-  tensor_image[0][2] = tensor_image[0][2].sub_ (0.406f).div_ (0.225f);
+    torch::from_blob (frame_matrix.data, {frame_matrix.rows, frame_matrix.cols, 3}, torch::kByte);
+  tensor_image = tensor_image.permute ({2, 0, 1}).to (torch::kFloat) / 255.0f;
+
+  static torch::data::transforms::Normalize<> normalize_transform ({0.485, 0.456, 0.406}, {0.229, 0.224, 0.225});
+  tensor_image = normalize_transform (tensor_image).unsqueeze (0);
+
   // to GPU ?
   tensor_image = tensor_image.to (inherited::device_);
 
   // step3: run inference
-  torch::Tensor outputs = inherited::module_.forward ({tensor_image}).toTensor ();
+  torch::Tensor outputs =
+    inherited::module_.forward ({tensor_image}).toTensor ().squeeze_ (0);
 
   // step4: process results
-  std::tuple<torch::Tensor, torch::Tensor> results = outputs.sort (-1, true);
-  torch::Tensor softmaxs = std::get<0> (results)[0].softmax (0);
-  torch::Tensor indexs = std::get<1> (results)[0];
+  //std::tuple<torch::Tensor, torch::Tensor> results = outputs.sort (-1, true);
+  torch::Tensor probabilities = outputs.softmax (0);
+  //torch::Tensor softmaxs = std::get<0> (results)[0].softmax (0);
+  //torch::Tensor indexs = std::get<1> (results)[0];
 
   // step5: print results
   //float probability_f = softmaxs[0].item<float> ();
+  auto [top_prob, top_id] = probabilities.topk (3, -1, true, true);
+
   //if (probability_f > 0.3f)
   //{
   //  int index_i = indexs[0].item<int> ();
@@ -186,26 +200,28 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   //  std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
   //            << probability_f * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
   //} // end IF
-   for (int i = 0; i < 3; ++i)
+  for (size_t i = 0; i < top_prob.numel (); ++i)
    {
-     int idx = indexs[i].item<int> ();
+     //int idx = indexs[i].item<int> ();
+     int64_t idx = top_id[static_cast<int> (i)].item<int64_t> ();
      std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
                << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
      std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
      std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
-               << softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+               //<< softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+               << top_prob[static_cast<int> (i)].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
    } // end FOR
 
   // step6: draw fps
   std::ostringstream converter;
-  converter << fps;
+  converter << std::fixed << std::setprecision (0) << fps;
   cv::putText (frame_matrix,
-               ACE_TEXT_ALWAYS_CHAR ("fps: ") + converter.str ().substr (0, 5),
-               cv::Point (12, frame_matrix.rows - 25),
-               cv::FONT_HERSHEY_SIMPLEX,
-               0.4,
+               converter.str () + ACE_TEXT_ALWAYS_CHAR (" fps"),
+               cv::Point (3, frame_matrix.rows - 7),
+               cv::HersheyFonts::FONT_HERSHEY_SIMPLEX,
+               0.5,
                cv::Scalar (255, 255, 255),
-               1, 
+               1,
                cv::LineTypes::LINE_8,
                false);
 }

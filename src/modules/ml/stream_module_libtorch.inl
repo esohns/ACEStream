@@ -83,20 +83,29 @@ Stream_Module_Libtorch_T<ConfigurationType,
 
   bool load_debug_files_b = false;
 #if defined (_DEBUG)
-  load_debug_files_b = true;
+  load_debug_files_b = configuration_in.debug;
 #endif // _DEBUG
 
-  module_ = torch::jit::load (configuration_in.model.c_str (),
-                              device_,
-                              load_debug_files_b);
-  //if (unlikely (!module_))
+  try {
+    module_ = torch::jit::load (configuration_in.model,
+                                device_,
+                                load_debug_files_b);
+  } catch (std::exception& e) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in torch::jit::load (\"%s\"): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (configuration_in.model.c_str ()),
+                ACE_TEXT (e.what ())));
+    return false;
+  }
+  // if (unlikely (!module_))
   //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("%s: failed to load model (was: \"%s\"), aborting\n"),
-  //              inherited::mod_->name (),
-  //              ACE_TEXT (configuration_in.model.c_str ())));
-  //  return false;
-  //} // end IF
+  //   ACE_DEBUG ((LM_ERROR,
+  //               ACE_TEXT ("%s: failed to load model (was: \"%s\"),
+  //               aborting\n"), inherited::mod_->name (), ACE_TEXT
+  //               (configuration_in.model.c_str ())));
+  //   return false;
+  // } // end IF
   //module_.to (device_);
   module_.eval ();
 

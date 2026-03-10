@@ -197,11 +197,11 @@ class Stream_CameraML_DirectShow_SessionData
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex* direct3DDevice;
 #else
   IDirect3DDevice9*   direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   UINT                direct3DManagerResetToken;
   UINT                resetToken;
 };
@@ -267,11 +267,11 @@ class Stream_CameraML_MediaFoundation_SessionData
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                 direct3DDevice;
 #else
   IDirect3DDevice9*                   direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   UINT                                direct3DManagerResetToken;
   TOPOID                              rendererNodeId;
   UINT                                resetToken;
@@ -347,7 +347,7 @@ struct Stream_CameraML_ModuleHandlerConfiguration
   }
 
   std::string                     labelFile; // tensorflow
-  // *NOTE*: for tensorflow, this is a file path; for mediapipe it's a string
+  // *NOTE*: for tensorflow|libtorch, this is a file path; for mediapipe it's a string
   std::string                     model; // tensorflow/mediapipe
 #if defined (MEDIAPIPE_SUPPORT)
   std::string                     outputStream;
@@ -386,7 +386,6 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
    , subscriber (NULL)
-   //, subscribers (NULL)
    , windowController (NULL)
    , windowController2 (NULL)
   {
@@ -412,7 +411,6 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
 //      Stream_MediaFramework_DirectShow_Tools::delete_ (outputFormat);
     push = rhs_in.push;
     subscriber = rhs_in.subscriber;
-    //subscribers = rhs_in.subscribers;
     if (windowController)
     {
       windowController->Release (); windowController = NULL;
@@ -443,7 +441,6 @@ struct Stream_CameraML_DirectShow_ModuleHandlerConfiguration
   struct _AMMediaType                                    outputFormat;
   bool                                                   push;
   Stream_CameraML_DirectShow_ISessionNotify_t*           subscriber;
-  //Stream_CameraML_DirectShow_Subscribers_t*              subscribers;
   IVideoWindow*                                          windowController;
   IMFVideoDisplayControl*                                windowController2; // EVR
 };
@@ -465,7 +462,7 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
    , outputFormat (NULL)
    , session (NULL)
    , subscriber (NULL)
-   , subscribers (NULL)
+   //, subscribers (NULL)
    , windowController (NULL)
   {
     mediaFramework = STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION;
@@ -478,7 +475,7 @@ struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration
   IMFMediaType*                                               outputFormat;
   IMFMediaSession*                                            session;
   Stream_CameraML_MediaFoundation_ISessionNotify_t*           subscriber;
-  Stream_CameraML_MediaFoundation_Subscribers_t*              subscribers;
+  //Stream_CameraML_MediaFoundation_Subscribers_t*              subscribers;
   IMFVideoDisplayControl*                                     windowController;
 };
 #else

@@ -320,11 +320,11 @@ clean:
   cv::putText (frame_matrix,
                converter.str () + ACE_TEXT_ALWAYS_CHAR (" fps"),
                cv::Point (3, frame_matrix.rows - 7),
-               cv::FONT_HERSHEY_SIMPLEX,
+               cv::HersheyFonts::FONT_HERSHEY_SIMPLEX,
                0.5,
                cv::Scalar (255, 255, 255),
                1,
-               cv::LINE_8,
+               cv::LineTypes::LINE_8,
                false);
 }
 
