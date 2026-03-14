@@ -61,17 +61,17 @@ Test_I_Stream::Test_I_Stream ()
 #endif // FAAD_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , distributor_ (this,
+                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+ , delay_ (this,
+           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
+ , consoleVUMeter_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING))
 #if defined (SOX_SUPPORT)
  , SoXResampler_ (this,
                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING))
-#endif // SOX_SUPPORT
- , delay_ (this,
-           ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING))
- , distributor_ (this,
-                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
- , consoleVUMeter_ (this,
-                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING))
+ #endif // SOX_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
  , waveOutPlayer_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WAVEOUT_RENDER_DEFAULT_NAME_STRING))
  , WASAPIPlayer_ (this,
@@ -177,7 +177,30 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 #else
     case STREAM_DEVICE_RENDERER_ALSA:
     {
-      layout_in->append (&ALSAPlayer_, NULL, 0);
+#if defined (SOX_SUPPORT)
+      layout_in->append (&SoXResampler_, NULL, 0);
+#endif // SOX_SUPPORT
+
+      if (inherited::configuration_->configuration_->consoleVUMeter)
+      {
+        //layout_in->append (&delay_, NULL, 0);
+
+        layout_in->append (&distributor_, NULL, 0);
+        branch_p = &distributor_;
+        branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+        branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
+        Stream_IDistributorModule* idistributor_p =
+          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+        ACE_ASSERT (idistributor_p);
+        idistributor_p->initialize (branches_a);
+
+        layout_in->append (&ALSAPlayer_, branch_p, index_i);
+        ++index_i;
+        layout_in->append (&delay_, branch_p, index_i);
+        layout_in->append (&consoleVUMeter_, branch_p, index_i);
+      } // end IF
+      else
+        layout_in->append (&ALSAPlayer_, NULL, 0);
       break;
     }
     case STREAM_DEVICE_RENDERER_PIPEWIRE:

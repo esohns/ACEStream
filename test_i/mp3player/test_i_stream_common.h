@@ -105,11 +105,9 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , delayConfiguration (NULL)
    , deviceIdentifier ()
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
 #if defined (SOX_SUPPORT)
    , manageSoX (true)
 #endif // SOX_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
    , outputFormat ()
    , pushStatisticMessages (true)
    , spectrumAnalyzerConfiguration (NULL)
@@ -128,10 +126,10 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
   struct Stream_Miscellaneous_DelayConfiguration*             delayConfiguration;
   struct Stream_Device_Identifier                             deviceIdentifier;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (SOX_SUPPORT)
   bool                                                        manageSoX;
 #endif // SOX_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                                         outputFormat;
 #else
   struct Stream_MediaFramework_ALSA_MediaType                 outputFormat;

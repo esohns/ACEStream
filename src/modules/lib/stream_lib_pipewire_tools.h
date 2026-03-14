@@ -28,17 +28,15 @@
 class Stream_MediaFramework_Pipewire_Tools
 {
  public:
-  // *NOTE*: needs to be invoked on the loop thread
   static void freeProxy (struct pw_loop*,   // loop handle
                          struct pw_proxy*); // node proxy handle
-  // *NOTE*: needs to be invoked on the loop thread
   static void finalizeStream (struct pw_loop*,    // loop handle
                               struct pw_stream*); // stream handle
 
-  // *NOTE*: needs to be invoked on the loop thread
   static bool setVolumeLevel (struct pw_loop*,   // loop handle
                               // struct pw_proxy*, // node (!) proxy handle
                               struct pw_stream*, // stream handle
+                              uint32_t,          // #channels
                               float);            // level [0.0f-1.0f]
 
  private:

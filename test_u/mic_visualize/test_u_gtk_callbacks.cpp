@@ -3957,11 +3957,11 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
-//#if defined (FFTW_SUPPORT)
-//  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>* fft_p = NULL;
-//#else
+#if defined (FFTW_SUPPORT)
+  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>* fft_p = NULL;
+#else
   Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft_p = NULL;
-//#endif // FFTW_SUPPORT
+#endif // FFTW_SUPPORT
   Common_IDispatch* dispatch_p = NULL;
   guint event_source_id = 0;
   struct Test_U_MicVisualize_UI_CBDataBase* ui_data_base_p = NULL;
@@ -4036,11 +4036,11 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_IDispatch*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (dispatch_p);
   fft_p =
-//#if defined (FFTW_SUPPORT)
-//    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//#else
+#if defined (FFTW_SUPPORT)
+    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+#else
     dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//#endif // FFTW_SUPPORT
+#endif // FFTW_SUPPORT
   ACE_ASSERT (fft_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
@@ -7667,6 +7667,7 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
     if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (pw_main_loop_get_loop (cb_data_r.loop),
                                                                // cb_data_r.node,
                                                                cb_data_r.stream,
+                                                               ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels,
                                                                volume_f))
     {
       ACE_DEBUG ((LM_ERROR,

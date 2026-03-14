@@ -112,16 +112,13 @@ class Test_I_Stream
   Test_I_AACDecoder_Module        FaadDecoder_;
 #endif // FAAD_SUPPORT
   Test_I_StatisticReport_Module   statisticReport_;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_Distributor_Module       distributor_;
+  Test_I_Delay_Module             delay_;
+  Test_I_ConsoleVUMeter_Module    consoleVUMeter_;
 #if defined (SOX_SUPPORT)
   Test_I_SoXResampler_Module      SoXResampler_;
 #endif // SOX_SUPPORT
-
-  Test_I_Delay_Module             delay_;
-  Test_I_Distributor_Module       distributor_;
-
-  Test_I_ConsoleVUMeter_Module    consoleVUMeter_;
-
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_I_WavOutPlayer_Module      waveOutPlayer_;
   Test_I_WASAPIPlayer_Module      WASAPIPlayer_;
   Test_I_XAudio2Player_Module     xaudio2Player_;

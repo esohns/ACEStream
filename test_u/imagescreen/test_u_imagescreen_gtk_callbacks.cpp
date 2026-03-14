@@ -354,10 +354,10 @@ idle_initialize_UI_cb (gpointer userData_in)
 
   // step6a: connect default signals
   gulong result_2 =
-      g_signal_connect (dialog_p,
-                        ACE_TEXT_ALWAYS_CHAR ("destroy"),
-                        G_CALLBACK (gtk_widget_destroyed),
-                        NULL);
+    g_signal_connect (dialog_p,
+                      ACE_TEXT_ALWAYS_CHAR ("destroy"),
+                      G_CALLBACK (gtk_widget_destroyed),
+                      NULL);
   ACE_ASSERT (result_2);
 
   result_2 = g_signal_connect_swapped (G_OBJECT (about_dialog_p),
@@ -431,7 +431,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DISPLAY_NAME)));
   ACE_ASSERT (combo_box_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -762,7 +762,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   (*stream_configuration_iterator).second.second->fullScreen =
-      gtk_toggle_button_get_active (toggle_button_p);
+    gtk_toggle_button_get_active (toggle_button_p);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -952,7 +952,6 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
   ACE_ASSERT (window_fullscreen_p);
-
 
   if (is_active_b)
   {
@@ -1146,8 +1145,6 @@ button_quit_clicked_cb (GtkWidget* widget_in,
   return FALSE;
 } // button_quit_clicked_cb
 
-//////////////////////////////////////////
-
 void
 filechooserbutton_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
                                              gpointer userData_in)
@@ -1222,7 +1219,7 @@ key_cb (GtkWidget* widget_in,
   } // end SWITCH
 
   return TRUE; // done (do not propagate further)
-}
+} // key_cb
 
 void
 drawingarea_size_allocate_cb (GtkWidget* widget_in,
@@ -1352,7 +1349,7 @@ drawingarea_key_press_event_cb (GtkWidget* widget_in,
   return key_cb (widget_in,
                  eventKey_in,
                  userData_in);
-}
+} // drawingarea_key_press_event_cb
 
 gboolean
 dialog_main_key_press_event_cb (GtkWidget* widget_in,
@@ -1362,8 +1359,7 @@ dialog_main_key_press_event_cb (GtkWidget* widget_in,
   return key_cb (widget_in,
                  eventKey_in,
                  userData_in);
-}
-
+} // dialog_main_key_press_event_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

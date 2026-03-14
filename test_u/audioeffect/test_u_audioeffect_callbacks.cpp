@@ -7671,6 +7671,7 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
     if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (pw_main_loop_get_loop (cb_data_r.loop),
                                                                // cb_data_r.node,
                                                                cb_data_r.stream,
+                                                               ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels,
                                                                volume_f))
     {
       ACE_DEBUG ((LM_ERROR,

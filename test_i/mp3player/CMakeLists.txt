@@ -33,12 +33,6 @@ if (UNIX)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/cmake)
 elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party)
 
@@ -46,11 +40,6 @@ elseif (WIN32)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
  include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
-
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/protocol/http)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/src/client_server)
-# include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../ACENetwork/include)
 endif ()
 include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../3rd_party/bison)
 
@@ -91,11 +80,11 @@ set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (WIN32)
  if (NOT BUILD_TEST_I)
   set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
- endif ()
+ endif (NOT BUILD_TEST_I)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
   set_target_properties (${EXECUTABLE} PROPERTIES COMPILE_FLAGS "/wd4503")
- endif ()
-endif ()
+ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
+endif (WIN32)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
@@ -142,7 +131,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-f /mnt/win_d/test.mp3 -l -t"
+                         ARGS "-f /run/media/eriksohns/ARCHIVE/test.mp3 -l -u"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
@@ -177,7 +166,7 @@ elseif (WIN32)
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-f F:\\\\test.mp3 -l -t"
+                         ARGS "-f F:\\\\test.mp3 -l -u"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}

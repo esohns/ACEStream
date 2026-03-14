@@ -51,7 +51,7 @@
   <object class="GtkDialog" id="dialog_main">
     <property name="visible">True</property>
     <property name="can_focus">False</property>
-    <property name="events">GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+    <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <property name="title" translatable="yes">imagescreen</property>
@@ -189,7 +189,7 @@
                 <property name="visible">True</property>
                 <property name="app_paintable">True</property>
                 <property name="can_focus">False</property>
-                <property name="events">GDK_KEY_PRESS_MASK | GDK_STRUCTURE_MASK</property>
+                <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
                 <property name="double_buffered">False</property>
                 <property name="hexpand">True</property>
                 <property name="vexpand">True</property>
@@ -311,7 +311,7 @@
     <property name="has_focus">True</property>
     <property name="can_default">True</property>
     <property name="receives_default">True</property>
-    <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+    <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="hexpand">True</property>
     <property name="vexpand">True</property>
     <property name="hide_titlebar_when_maximized">True</property>
@@ -324,12 +324,13 @@
         <property name="visible">True</property>
         <property name="app_paintable">True</property>
         <property name="can_focus">False</property>
-        <property name="events">GDK_EXPOSURE_MASK | GDK_STRUCTURE_MASK</property>
+        <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
         <property name="double_buffered">False</property>
         <property name="hexpand">True</property>
         <property name="vexpand">True</property>
         <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
         <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
+        <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
       </object>
     </child>
   </object>

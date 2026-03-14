@@ -173,7 +173,7 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
     torch::from_blob (frame_matrix.data, {frame_matrix.rows, frame_matrix.cols, 3}, torch::kByte);
   tensor_image = tensor_image.permute ({2, 0, 1}).to (torch::kFloat) / 255.0f;
 
-  static torch::data::transforms::Normalize<> normalize_transform ({0.485, 0.456, 0.406}, {0.229, 0.224, 0.225});
+  static torch::data::transforms::Normalize<> normalize_transform ({0.485f, 0.456f, 0.406f}, {0.229f, 0.224f, 0.225f});
   tensor_image = normalize_transform (tensor_image).unsqueeze (0);
 
   // to GPU ?
@@ -184,15 +184,14 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
     inherited::module_.forward ({tensor_image}).toTensor ().squeeze_ (0);
 
   // step4: process results
-  //std::tuple<torch::Tensor, torch::Tensor> results = outputs.sort (-1, true);
   torch::Tensor probabilities = outputs.softmax (0);
-  //torch::Tensor softmaxs = std::get<0> (results)[0].softmax (0);
-  //torch::Tensor indexs = std::get<1> (results)[0];
+  std::tuple<torch::Tensor, torch::Tensor> results =
+    probabilities.topk (TEST_I_CAMERA_ML_DEFAULT_MAX_DETECTIONS_I, -1, true, true);
+  torch::Tensor top_prob = std::get<0> (results);
+  torch::Tensor top_id = std::get<1> (results);
 
   // step5: print results
   //float probability_f = softmaxs[0].item<float> ();
-  auto [top_prob, top_id] = probabilities.topk (3, -1, true, true);
-
   //if (probability_f > 0.3f)
   //{
   //  int index_i = indexs[0].item<int> ();
@@ -200,17 +199,15 @@ Test_I_CameraML_Module_Libtorch_T<ConfigurationType,
   //  std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
   //            << probability_f * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
   //} // end IF
-  for (size_t i = 0; i < top_prob.numel (); ++i)
-   {
-     //int idx = indexs[i].item<int> ();
-     int64_t idx = top_id[static_cast<int> (i)].item<int64_t> ();
-     std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
-               << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
-     std::cout << ACE_TEXT_ALWAYS_CHAR ("    Label:  ") << labels_[idx] << std::endl;
-     std::cout << ACE_TEXT_ALWAYS_CHAR ("    With Probability:  ")
-               //<< softmaxs[i].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
-               << top_prob[static_cast<int> (i)].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
-   } // end FOR
+  for (size_t i = 0; i < 3; ++i)
+  {
+    int64_t idx = top_id[static_cast<int> (i)].item<int64_t> ();
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    ============= Top-") << i + 1
+              << ACE_TEXT_ALWAYS_CHAR (" =============") << std::endl;
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    label:  ") << labels_[idx] << std::endl;
+    std::cout << ACE_TEXT_ALWAYS_CHAR ("    @ probability:  ")
+              << top_prob[static_cast<int> (i)].item<float> () * 100.0f << ACE_TEXT_ALWAYS_CHAR ("%") << std::endl;
+  } // end FOR
 
   // step6: draw fps
   std::ostringstream converter;

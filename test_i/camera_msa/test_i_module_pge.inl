@@ -182,6 +182,12 @@ end:
       delete [] previousImage_; previousImage_ = NULL;
       delete [] currentImage_; currentImage_ = NULL;
 
+      // if (likely (inherited::thr_count_))
+      // { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+      //   itask_p->stop (false,  // wait for completion ?
+      //                  false); // high priority ?
+      // } // end IF
+
       break;
     }
     default:
@@ -406,7 +412,6 @@ Test_I_Module_PGE_T<TaskType,
                     inherited::mod_->name ()));
         return -1;
       } // end IF
-      stop_processing = true;
 
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 

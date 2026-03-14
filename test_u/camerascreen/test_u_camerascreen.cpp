@@ -193,7 +193,7 @@ do_print_usage (const std::string& programName_in)
   model_identifier_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_identifier_string +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_ONNX_MODEL_FILE_DEFAULT_STRING);
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : ONNX model fíle path [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : ONNX model fÃ­le path [")
             << model_identifier_string
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -1009,7 +1009,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   // intialize return value(s)
   ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   // sanity check(s)
   ACE_ASSERT (!deviceIdentifier_in.empty ());
@@ -1470,7 +1470,7 @@ do_work (int argc_in,
                                                    stream_configuration);
   configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                std::make_pair (&module_configuration,
-                                                               &modulehandler_configuration_3)));
+                                                                               &modulehandler_configuration_3)));
 
   if (!heap_allocator.initialize (allocator_configuration))
   {
@@ -1633,6 +1633,15 @@ do_work (int argc_in,
       //                   Xlib; XCreateImage() only 'likes' 32-bit data, regardless
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
+      modulehandler_configuration_2.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_BGRA32;
+
+      modulehandler_configuration_2c.outputFormat.format.pixelformat =
+        V4L2_PIX_FMT_BGRA32;
+      break;
+    }
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+    {
       modulehandler_configuration_2.outputFormat.format.pixelformat =
         V4L2_PIX_FMT_BGRA32;
 

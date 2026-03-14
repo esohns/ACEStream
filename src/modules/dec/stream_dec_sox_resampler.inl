@@ -296,7 +296,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     // --> copy the data out of the tmpfile() manually
     extractBuffer (output_buffer_p);
 #else
-    message_block_p->wr_ptr (output_buffer_p->tell_off);
+    message_block_p->wr_ptr (message_block_p->space ());
 #endif // ACE_WIN32 || ACE_WIN64
 
     message_block_2 = NULL;

@@ -660,7 +660,11 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_Timer_Manager_t,
                                                           struct _AMMediaType,
                                                           float,
+#if defined (FFTW_SUPPORT)
+                                                          FFT_ALGORITHM_FFTW> Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer;
+#else
                                                           FFT_ALGORITHM_UNKNOWN> Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer;
+#endif // FFTW_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -678,7 +682,11 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_Timer_Manager_t,
                                                           IMFMediaType*,
                                                           float,
+#if defined (FFTW_SUPPORT)
+                                                          FFT_ALGORITHM_FFTW> Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer;
+#else
                                                           FFT_ALGORITHM_UNKNOWN> Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer;
+#endif // FFTW_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                       // session event type
                               struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
@@ -793,7 +801,11 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_Timer_Manager_t,
                                                           struct Stream_MediaFramework_ALSA_MediaType,
                                                           float,
+#if defined (FFTW_SUPPORT)
+                                                          FFT_ALGORITHM_FFTW> Test_U_MicVisualize_Vis_SpectrumAnalyzer;
+#else
                                                           FFT_ALGORITHM_UNKNOWN> Test_U_MicVisualize_Vis_SpectrumAnalyzer;
+#endif // FFTW_SUPPORT
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                                // session event type
                               struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,     // module handler configuration type

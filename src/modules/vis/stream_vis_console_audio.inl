@@ -62,8 +62,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
  , inherited3 ()
  , channels_ (0)
  , frameSize_ (0)
- , normalizationFactor_ (0)
  , iterator_ (NULL)
+ , normalizationFactor_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Console_Audio_T::Stream_Module_Vis_Console_Audio_T"));
 
@@ -722,8 +722,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
                   timer_id,
                   &display_interval));
 
-      scale_x_ = 
-        inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins / STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
+      scale_x_ =
+        ((inherited::configuration_->spectrumAnalyzerConfiguration->numberOfBins / 2) - 1) / STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
 
       break;
 
@@ -804,22 +804,21 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (arg_in);
 
-  // sanity check(s)
-  ACE_ASSERT (scale_x_);
-
   unsigned int slot_number_i;
   ValueType magnitude;
   ACE_UINT32 level_i;
+  std::vector<ValueType> spectrum_a;
   for (unsigned int c = 0; c < channels_; ++c)
   {
+    spectrum_a = inherited4::Spectrum (c, true);
     for (ACE_UINT32 i = 0;
          i < STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
          ++i)
     {
       slot_number_i = (i * scale_x_) + (scale_x_ / 2); // *NOTE*: display the middle bin of each 'scale_x_' bin block
-      magnitude = inherited4::Magnitude2 (slot_number_i, c, false);
+      magnitude = spectrum_a[slot_number_i];
       level_i =
-        static_cast<ACE_UINT32> (std::min (std::max (magnitude * 30.0f, 0.0f), 39.0f));
+        static_cast<ACE_UINT32> (std::min (std::max (magnitude * 39.0f, 0.0f), 39.0f));
 
       //ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
       //                level_i + 1, '*', 40 - level_i, ' ');

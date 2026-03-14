@@ -134,7 +134,11 @@ typedef Stream_Decoder_FAAD_T<ACE_MT_SYNCH,
                               Test_I_Stream_Message,
                               Test_I_Stream_SessionMessage,
                               Test_I_MP3Player_SessionData_t,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
                               struct _AMMediaType> Test_I_AACDecoder;
+#else
+                              struct Stream_MediaFramework_ALSA_MediaType> Test_I_AACDecoder;
+#endif // ACE_WIN32 || ACE_WIN64
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
                               enum Stream_SessionMessageType,           // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
@@ -207,6 +211,20 @@ typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Test_I_Stream_Message,
                                       Test_I_Stream_SessionMessage,
                                       struct _AMMediaType> Test_I_SoXResampler;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_SoXResampler);                                      // name
+#else
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_I_Stream_Message,
+                                      Test_I_Stream_SessionMessage,
+                                      struct Stream_MediaFramework_ALSA_MediaType> Test_I_SoXResampler;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
@@ -330,6 +348,37 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_I_Stream_Message,
                                           Test_I_Stream_SessionMessage,
                                           struct _AMMediaType,
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_vis_console_audio_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_ConsoleVUMeter);                                    // writer type
+#else
+typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
+                              Common_TimePolicy_t,
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                              Stream_ControlMessage_t,
+                              Test_I_Stream_Message,
+                              Test_I_Stream_SessionMessage,
+                              struct Stream_MediaFramework_ALSA_MediaType,
+                              struct Stream_UserData> Test_I_Delay;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                // session data type
+                              enum Stream_SessionMessageType,                     // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_delay_module_name_string,
+                              Stream_INotify_t,                                   // stream notification interface type
+                              Test_I_Delay);                                      // writer type
+
+typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage,
+                                          struct Stream_MediaFramework_ALSA_MediaType,
                                           float,
                                           STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
