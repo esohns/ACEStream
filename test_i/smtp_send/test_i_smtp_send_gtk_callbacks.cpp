@@ -691,16 +691,9 @@ action_send_activate_cb (GtkAction* action_in,
 
   // step1: deactivate some widgets
   gtk_action_set_sensitive (action_in, FALSE);
-  //GtkFrame* frame_p =
-  //  GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
-  //                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FRAME_CONFIGURATION_NAME)));
-  //ACE_ASSERT (frame_p);
-  //gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
 
   // step2: set up progress reporting
-  ACE_OS::memset (&ui_cb_data_p->progressData.statistic,
-                  0,
-                  sizeof (SMTP_Statistic_t));
+  ACE_OS::memset (&ui_cb_data_p->progressData.statistic, 0, sizeof (SMTP_Statistic_t));
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PROGRESSBAR_NAME)));
@@ -735,6 +728,14 @@ action_send_activate_cb (GtkAction* action_in,
   ACE_ASSERT (iterator_3 != (*iterator_2).second.second->connectionConfigurations->end ());
   NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address =
     ui_cb_data_p->configuration->address;
+
+  GtkCheckButton* check_button_p =
+    GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_CHECKBUTTON_STARTTLS_NAME)));
+  ACE_ASSERT (check_button_p);
+  (*iterator_2).second.second->request->useSTARTTLS =
+    gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p));
+
   entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_USERNAME_NAME)));
@@ -774,6 +775,7 @@ action_send_activate_cb (GtkAction* action_in,
     ui_cb_data_p->configuration->username;
   (*iterator_2).second.second->protocolConfiguration->password =
     ui_cb_data_p->configuration->password;
+
   (*iterator_2).second.second->request->from = ui_cb_data_p->configuration->from;
   (*iterator_2).second.second->request->to.push_back (ui_cb_data_p->configuration->to);
   (*iterator_2).second.second->request->data = ui_cb_data_p->configuration->message;
