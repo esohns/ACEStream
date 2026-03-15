@@ -41,13 +41,13 @@ extern "C"
 
 #include "stream_macros.h"
 
-#include "stream_dec_defines.h"
-#include "stream_dec_tools.h"
-
 #include "stream_lib_ffmpeg_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "stream_dec_defines.h"
+#include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -100,6 +100,12 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVFilter_T::~Stream_Decoder_LibAVFilter_T"));
 
+  if (bufferSinkContext_)
+    avfilter_free (bufferSinkContext_);
+  if (bufferFormatContext_)
+    avfilter_free (bufferFormatContext_);
+  if (bufferSourceContext_)
+    avfilter_free (bufferSourceContext_);
   if (filterGraph_)
     avfilter_graph_free (&filterGraph_);
 
@@ -140,8 +146,22 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    if (bufferSinkContext_)
+    {
+      avfilter_free (bufferSinkContext_); bufferSinkContext_ = NULL;
+    } // end IF
+    if (bufferFormatContext_)
+    {
+      avfilter_free (bufferFormatContext_); bufferFormatContext_ = NULL;
+    } // end IF
+    if (bufferSourceContext_)
+    {
+      avfilter_free (bufferSourceContext_); bufferSourceContext_ = NULL;
+    } // end IF
     if (filterGraph_)
-      avfilter_graph_free (&filterGraph_);
+    {
+      avfilter_graph_free (&filterGraph_); ACE_ASSERT (!filterGraph_);
+    } // end IF
 
     if (frame_)
     {
@@ -155,14 +175,14 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-//#if defined (_DEBUG)
-//  if (configuration_in.debug)
-//  {
-//    av_log_set_callback (stream_decoder_libav_log_cb);
-//    // *NOTE*: this level logs all messages
-//    av_log_set_level (std::numeric_limits<int>::max ());
-//  } // end IF
-//#endif // _DEBUG
+#if defined (_DEBUG)
+  if (configuration_in.debug)
+  {
+    av_log_set_callback (stream_decoder_libav_log_cb);
+    // *NOTE*: this level logs all messages
+    av_log_set_level (std::numeric_limits<int>::max ());
+  } // end IF
+#endif // _DEBUG
 
   filterGraph_ = avfilter_graph_alloc ();
   ACE_ASSERT (filterGraph_);
@@ -195,7 +215,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  int result = -1;
+  int result;
   DataMessageType* message_p = NULL;
   struct AVPacket packet_s;
   ACE_Message_Block* message_block_p = message_inout;
@@ -206,24 +226,23 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
+  av_init_packet (&packet_s);
+
   do
   {
-    /* use the parser to split the data into frames */
     data_p = reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ());
     data_size_i = message_block_p->length ();
     while (data_size_i > 0)
     {
-      av_init_packet (&packet_s);
-
       packet_s.data = data_p;
       packet_s.size = static_cast<int> (data_size_i);
       data_size_i = 0;
-      if (!packet_s.size)
+      if (unlikely (!packet_s.size))
         continue;
 
       ACE_ASSERT (!message_p);
-      if (!filterPacket (packet_s,
-                         message_p))
+      if (unlikely (!filterPacket (packet_s,
+                                   message_p)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Decoder_LibAVFilter_T::filterPacket(), aborting\n"),
@@ -246,7 +265,9 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
         message_p->initialize (message_inout->sessionId (),
                                NULL);
       message_p->set (message_inout->type ());
-      result = inherited::put_next (message_p, NULL);
+
+      result = inherited::put_next (message_p,
+                                    NULL);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -333,18 +354,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       ACE_ASSERT (filter_2);
       const AVFilter* filter_3 = avfilter_get_by_name (ACE_TEXT_ALWAYS_CHAR ("abuffersink"));
       ACE_ASSERT (filter_3);
-
-      AVFilterInOut* outputs_p = avfilter_inout_alloc ();
-      ACE_ASSERT (outputs_p);
-      AVFilterInOut* inputs_p = avfilter_inout_alloc ();
-      ACE_ASSERT (inputs_p);
-
-      //enum AVSampleFormat out_sample_fmts[] = { media_type_2.format, (enum AVSampleFormat)-1 };
-      //struct AVChannelLayout channel_layout_s;
-      //av_channel_layout_default (&channel_layout_s, media_type_2.channels);
-      //uint64_t out_channel_layouts[] = { channel_layout_s.u.mask, -1};
-      //int out_sample_rates[] = { media_type_2.sampleRate, -1};
-      //AVFilterLink* outlink_p = NULL;
+      struct AVChannelLayout channel_layout_s;
 
       frameSize_ =
         av_get_bytes_per_sample (media_type_s.format) * media_type_s.channels;
@@ -353,12 +363,15 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       outputIsPlanar_ = av_sample_fmt_is_planar (media_type_2.format);
 
       /* buffer audio source: the decoded frames from the decoder will be inserted here. */
+      av_channel_layout_default (&channel_layout_s,
+                                 media_type_s.channels);
       ACE_OS::snprintf (args_a, sizeof (char[BUFSIZ]),
                         ACE_TEXT_ALWAYS_CHAR ("time_base=%d/%d:sample_rate=%d:sample_fmt=%s:channel_layout=0x%llx"),
                         1, media_type_s.sampleRate,
                         media_type_s.sampleRate,
                         av_get_sample_fmt_name (media_type_s.format),
-                        Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
+                        channel_layout_s.u.mask);
+                        //Stream_Module_Decoder_Tools::channelsToMask (media_type_s.channels));
       int result = avfilter_graph_create_filter (&bufferSourceContext_,
                                                  filter_p,
                                                  ACE_TEXT_ALWAYS_CHAR ("in"),
@@ -375,11 +388,14 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       } // end IF
 
       /* format audio: make sure the output format is what is requested */
+      av_channel_layout_default (&channel_layout_s,
+                                 media_type_2.channels);
       ACE_OS::snprintf (args_a, sizeof (char[BUFSIZ]),
                         ACE_TEXT_ALWAYS_CHAR ("sample_rates=%d:sample_fmts=%s:channel_layouts=0x%llx"),
                         media_type_2.sampleRate,
                         av_get_sample_fmt_name (media_type_2.format),
-                        Stream_Module_Decoder_Tools::channelsToMask (media_type_2.channels));
+                        channel_layout_s.u.mask);
+                        //Stream_Module_Decoder_Tools::channelsToMask (media_type_2.channels));
       result = avfilter_graph_create_filter (&bufferFormatContext_,
                                              filter_2,
                                              ACE_TEXT_ALWAYS_CHAR ("format"),
@@ -422,34 +438,6 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       result = avfilter_link (bufferFormatContext_, 0, bufferSinkContext_, 0);
       ACE_ASSERT (result >= 0);
 
-      ///* Endpoints for the filter graph. */
-      //outputs_p->name       = av_strdup (ACE_TEXT_ALWAYS_CHAR ("in"));
-      //outputs_p->filter_ctx = bufferSourceContext_;
-      //outputs_p->pad_idx    = 0;
-      //outputs_p->next       = NULL;
-      //inputs_p->name        = av_strdup (ACE_TEXT_ALWAYS_CHAR ("out"));
-      //inputs_p->filter_ctx  = bufferSinkContext_;
-      //inputs_p->pad_idx     = 0;
-      //inputs_p->next        = NULL;
-
-      //result =
-      //  avfilter_graph_parse (filterGraph_,
-      //                        inherited::configuration_->filtersDescription.c_str (),
-      //                        inputs_p,
-      //                        outputs_p,
-      //                        NULL);
-      //if (unlikely (result < 0))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to avfilter_graph_parse(\"%s\"): \"%s\", aborting\n"),
-      //              inherited::mod_->name (),
-      //              ACE_TEXT (inherited::configuration_->filtersDescription.c_str ()),
-      //              ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-      //  goto error;
-      //} // end IF
-      avfilter_inout_free (&inputs_p);
-      avfilter_inout_free (&outputs_p);
-
       result = avfilter_graph_config (filterGraph_,
                                       NULL);
       if (unlikely (result < 0))
@@ -460,26 +448,6 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
-
-      /* Print summary of the sink buffer
-       * Note: args_a buffer is reused to store channel layout string */
-      //outlink_p = bufferSinkContext_->inputs[0];
-      //result = av_channel_layout_describe (&outlink_p->ch_layout,
-      //                                     args_a, sizeof (char[BUFSIZ]));
-      //if (unlikely (result < 0))
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to av_channel_layout_describe(): \"%s\", aborting\n"),
-      //              inherited::mod_->name (),
-      //              ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-      //  goto error;
-      //} // end IF
-      //ACE_DEBUG ((LM_DEBUG,
-      //            ACE_TEXT ("%s: output: srate:%dHz fmt:%s chlayout:%s\n"),
-      //            inherited::mod_->name (),
-      //            outlink_p->sample_rate,
-      //            ACE_TEXT (av_x_if_null (av_get_sample_fmt_name ((enum AVSampleFormat)outlink_p->format), ACE_TEXT_ALWAYS_CHAR ("?"))),
-      //            ACE_TEXT (args_a)));
 
       ACE_ASSERT (!frame_);
       frame_ = av_frame_alloc ();
@@ -510,9 +478,6 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       goto continue_;
 
 error:
-      avfilter_inout_free (&inputs_p);
-      avfilter_inout_free (&outputs_p);
-
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -524,6 +489,30 @@ continue_:
     {
       if (likely (frame_))
         drainBuffers (message_inout->sessionId ());
+
+      if (likely (bufferSinkContext_))
+      {
+        avfilter_free (bufferSinkContext_); bufferSinkContext_ = NULL;
+      } // end IF
+      if (likely (bufferFormatContext_))
+      {
+        avfilter_free (bufferFormatContext_); bufferFormatContext_ = NULL;
+      } // end IF
+      if (likely (bufferSourceContext_))
+      {
+        avfilter_free (bufferSourceContext_); bufferSourceContext_ = NULL;
+      } // end IF
+
+      if (likely (frame_))
+      {
+        av_frame_unref (frame_);
+        av_frame_free (&frame_); ACE_ASSERT (!frame_);
+      } // end IF
+      if (likely (frame_2))
+      {
+        av_frame_unref (frame_2);
+        av_frame_free (&frame_2);
+      } // end IF
 
       break;
     }
@@ -557,15 +546,18 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   ACE_ASSERT (!message_inout);
   ACE_ASSERT (frame_);
 
+  static int flags_i = AV_BUFFERSRC_FLAG_NO_CHECK_FORMAT |
+                       AV_BUFFERSRC_FLAG_PUSH;
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
 
   /* push the audio data from decoded frame into the filtergraph */  
   frame_->data[0] = packet_in.data;
   frame_->nb_samples = packet_in.size / frameSize_;
+
   result = av_buffersrc_add_frame_flags (bufferSourceContext_,
-                                         frame_,
-                                         0);
+                                         packet_in.data ? frame_ : NULL,
+                                         flags_i);
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -681,4 +673,44 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (frame_);
+
+  struct AVPacket packet_s;
+  uint8_t* data_p = NULL;
+  size_t data_size_i = 0;
+  DataMessageType* message_p = NULL;
+  int result;
+
+  av_init_packet (&packet_s);
+
+  do
+  {
+    packet_s.data = data_p;
+    packet_s.size = static_cast<int> (data_size_i);
+
+    ACE_ASSERT (!message_p);
+    if (unlikely (!filterPacket (packet_s,
+                                 message_p)))
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_Decoder_LibAVFilter_T::filterPacket(), continuing\n"),
+                  inherited::mod_->name ()));
+    if (!message_p)
+      break;
+
+    // forward the decoded frame
+    message_p->initialize (sessionId_in,
+                           NULL);
+    //message_p->set (message_inout->type ());
+
+    result = inherited::put_next (message_p,
+                                  NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      message_p->release (); message_p = NULL;
+      break;
+    } // end IF
+    message_p = NULL;
+  } while (true);
 }

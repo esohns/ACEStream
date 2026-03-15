@@ -466,6 +466,7 @@
                                     <property name="can_focus">False</property>
                                     <property name="can_default">True</property>
                                     <property name="receives_default">True</property>
+                                    <property name="tooltip_markup" translatable="yes">capture device</property>
                                     <property name="tooltip_text" translatable="yes">capture device</property>
                                     <property name="model">liststore_source</property>
                                     <property name="has_frame">False</property>
@@ -533,6 +534,7 @@
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
                                                     <property name="has_tooltip">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">add sound effect</property>
                                                     <property name="tooltip_text" translatable="yes">add sound effect</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
@@ -615,6 +617,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">mute output</property>
                                                     <property name="tooltip_text" translatable="yes">mute output</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
@@ -633,6 +636,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">properties</property>
                                                     <property name="tooltip_text" translatable="yes">properties</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_stock">True</property>
@@ -705,6 +709,7 @@
                                                 <property name="can_focus">True</property>
                                                 <property name="receives_default">False</property>
                                                 <property name="has_tooltip">True</property>
+                                                <property name="tooltip_markup" translatable="yes">save to a file</property>
                                                 <property name="tooltip_text" translatable="yes">save to a file</property>
                                                 <property name="relief">half</property>
                                                 <property name="use_underline">True</property>
@@ -728,6 +733,7 @@
                                                 <property name="can_default">True</property>
                                                 <property name="receives_default">True</property>
                                                 <property name="has_tooltip">True</property>
+                                                <property name="tooltip_markup" translatable="yes">destination file/folder</property>
                                                 <property name="tooltip_text" translatable="yes">destination file/folder</property>
                                                 <property name="do_overwrite_confirmation">True</property>
                                                 <property name="filter">filefilter_wav</property>
@@ -783,6 +789,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
+                                                    <property name="tooltip_markup" translatable="yes">display analyzer ouput</property>
                                                     <property name="tooltip_text" translatable="yes">display analyzer ouput</property>
                                                     <property name="use_stock">True</property>
                                                     <property name="focus_on_click">False</property>
@@ -802,6 +809,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">show 3D output</property>
                                                     <property name="tooltip_text" translatable="yes">show 3D output</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
@@ -820,6 +828,7 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
+                                                    <property name="tooltip_markup" translatable="yes">apply window function</property>
                                                     <property name="tooltip_text" translatable="yes">apply window function</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_stock">True</property>
@@ -855,6 +864,7 @@
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
                                                     <property name="has_tooltip">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">show 2D oscilloscope</property>
                                                     <property name="tooltip_text" translatable="yes">show 2D oscilloscope</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
@@ -877,6 +887,7 @@
                                                     <property name="can_focus">True</property>
                                                     <property name="receives_default">False</property>
                                                     <property name="has_tooltip">True</property>
+                                                    <property name="tooltip_markup" translatable="yes">show 2D spectrum</property>
                                                     <property name="tooltip_text" translatable="yes">show 2D spectrum</property>
                                                     <property name="relief">half</property>
                                                     <property name="use_underline">True</property>
@@ -966,6 +977,7 @@
                             <property name="app_paintable">True</property>
                             <property name="can_focus">False</property>
                             <property name="has_tooltip">True</property>
+                            <property name="tooltip_markup" translatable="yes">signal</property>
                             <property name="tooltip_text" translatable="yes">signal</property>
                             <property name="double_buffered">False</property>
                             <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
@@ -986,6 +998,7 @@
                             <property name="app_paintable">True</property>
                             <property name="can_focus">False</property>
                             <property name="has_tooltip">True</property>
+                            <property name="tooltip_markup" translatable="yes">statistic analysis</property>
                             <property name="tooltip_text" translatable="yes">statistic analysis</property>
                             <property name="double_buffered">False</property>
                           </object>
@@ -1096,6 +1109,7 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="pack_type">end</property>
             <property name="position">2</property>
           </packing>
         </child>
@@ -1341,6 +1355,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_markup" translatable="yes">format</property>
                 <property name="tooltip_text" translatable="yes">format</property>
                 <property name="model">liststore_format</property>
                 <property name="has_frame">False</property>
@@ -1360,6 +1375,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_markup" translatable="yes">sampling frequency</property>
                 <property name="tooltip_text" translatable="yes">sampling frequency</property>
                 <property name="model">liststore_frequency</property>
                 <property name="has_frame">False</property>
@@ -1379,6 +1395,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_markup" translatable="yes">sample resolution</property>
                 <property name="tooltip_text" translatable="yes">sample resolution</property>
                 <property name="model">liststore_resolution</property>
                 <property name="has_frame">False</property>
@@ -1398,6 +1415,7 @@
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
                 <property name="receives_default">True</property>
+                <property name="tooltip_markup" translatable="yes">number of channels</property>
                 <property name="tooltip_text" translatable="yes">number of channels</property>
                 <property name="model">liststore_channels</property>
                 <property name="has_frame">False</property>
@@ -1441,6 +1459,7 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_markup" translatable="yes">capture device</property>
                             <property name="tooltip_text" translatable="yes">capture device</property>
                             <property name="model">liststore_device</property>
                             <property name="has_frame">False</property>
@@ -1479,6 +1498,7 @@
                                             <property name="can_focus">True</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
+                                            <property name="tooltip_markup" translatable="yes">settings</property>
                                             <property name="tooltip_text" translatable="yes">settings</property>
                                             <property name="relief">half</property>
                                             <property name="use_stock">True</property>
@@ -1498,6 +1518,7 @@
                                             <property name="can_focus">True</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
+                                            <property name="tooltip_markup" translatable="yes">reset</property>
                                             <property name="tooltip_text" translatable="yes">reset</property>
                                             <property name="relief">half</property>
                                             <property name="use_stock">True</property>
@@ -1530,6 +1551,7 @@
                                             <property name="can_focus">True</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
+                                            <property name="tooltip_markup" translatable="yes">volume (%)</property>
                                             <property name="tooltip_text" translatable="yes">volume (%)</property>
                                             <property name="adjustment">adjustment_capture_volume</property>
                                             <property name="restrict_to_fill_level">False</property>
@@ -1550,6 +1572,7 @@
                                             <property name="can_focus">True</property>
                                             <property name="can_default">True</property>
                                             <property name="receives_default">True</property>
+                                            <property name="tooltip_markup" translatable="yes">boost (dB)</property>
                                             <property name="tooltip_text" translatable="yes">boost (dB)</property>
                                             <property name="adjustment">adjustment_boost</property>
                                             <property name="restrict_to_fill_level">False</property>
@@ -1628,6 +1651,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">random noise</property>
                                 <property name="tooltip_text" translatable="yes">random noise</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1650,6 +1674,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">triangle wave</property>
                                 <property name="tooltip_text" translatable="yes">triangle wave</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1673,6 +1698,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="has_tooltip">True</property>
+                                <property name="tooltip_markup" translatable="yes">sine wave</property>
                                 <property name="tooltip_text" translatable="yes">sine wave</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1695,6 +1721,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">square wave</property>
                                 <property name="tooltip_text" translatable="yes">square wave</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1717,6 +1744,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">sawtooth wave</property>
                                 <property name="tooltip_text" translatable="yes">sawtooth wave</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1740,6 +1768,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="has_tooltip">True</property>
+                                <property name="tooltip_markup" translatable="yes">perlin noise</property>
                                 <property name="tooltip_text" translatable="yes">perlin noise</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1763,6 +1792,7 @@
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
                                 <property name="has_tooltip">True</property>
+                                <property name="tooltip_markup" translatable="yes">pink noise</property>
                                 <property name="tooltip_text" translatable="yes">pink noise</property>
                                 <property name="relief">half</property>
                                 <property name="use_underline">True</property>
@@ -1826,6 +1856,7 @@
                         <property name="can_default">True</property>
                         <property name="receives_default">True</property>
                         <property name="has_tooltip">True</property>
+                        <property name="tooltip_markup" translatable="yes">source file</property>
                         <property name="tooltip_text" translatable="yes">source file</property>
                         <property name="create_folders">False</property>
                         <property name="filter">filefilter_mp3</property>
@@ -1880,6 +1911,7 @@
                           <object class="GtkScale" id="hscale_noise_default_amplitude">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="tooltip_markup" translatable="yes">amplitude (%)</property>
                             <property name="tooltip_text" translatable="yes">amplitude (%)</property>
                             <property name="adjustment">adjustment_amplitude</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -1926,6 +1958,7 @@
                           <object class="GtkScale" id="hscale_perlin_amplitude">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="tooltip_markup" translatable="yes">amplitude (%)</property>
                             <property name="tooltip_text" translatable="yes">amplitude (%)</property>
                             <property name="adjustment">adjustment_amplitude</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -1946,6 +1979,7 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_markup" translatable="yes">frequency (Hz)</property>
                             <property name="tooltip_text" translatable="yes">frequency (Hz)</property>
                             <property name="adjustment">adjustment_perlin_frequency</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -1964,6 +1998,7 @@
                           <object class="GtkScale" id="hscale_perlin_octaves">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="tooltip_markup" translatable="yes">octaves</property>
                             <property name="tooltip_text" translatable="yes">octaves</property>
                             <property name="adjustment">adjustment_perlin_octaves</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -1983,6 +2018,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="has_tooltip">True</property>
+                            <property name="tooltip_markup" translatable="yes">persistence</property>
                             <property name="tooltip_text" translatable="yes">persistence</property>
                             <property name="adjustment">adjustment_perlin_persistence</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2002,6 +2038,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="has_tooltip">True</property>
+                            <property name="tooltip_markup" translatable="yes">lacunarity</property>
                             <property name="tooltip_text" translatable="yes">lacunarity</property>
                             <property name="adjustment">adjustment_perlin_lacunarity</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2028,6 +2065,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">quality</property>
                                 <property name="tooltip_text" translatable="yes">quality</property>
                                 <property name="use_underline">True</property>
                                 <property name="focus_on_click">False</property>
@@ -2048,6 +2086,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">quality</property>
                                 <property name="tooltip_text" translatable="yes">quality</property>
                                 <property name="use_underline">True</property>
                                 <property name="focus_on_click">False</property>
@@ -2068,6 +2107,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
+                                <property name="tooltip_markup" translatable="yes">quality</property>
                                 <property name="tooltip_text" translatable="yes">quality</property>
                                 <property name="use_underline">True</property>
                                 <property name="focus_on_click">False</property>
@@ -2121,6 +2161,7 @@
                           <object class="GtkScale" id="hscale_sinus_amplitude">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+                            <property name="tooltip_markup" translatable="yes">amplitude (%)</property>
                             <property name="tooltip_text" translatable="yes">amplitude (%)</property>
                             <property name="adjustment">adjustment_amplitude</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2141,6 +2182,7 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_markup" translatable="yes">frequency (Hz)</property>
                             <property name="tooltip_text" translatable="yes">frequency (Hz)</property>
                             <property name="adjustment">adjustment_sinus_frequency</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2189,6 +2231,7 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_markup" translatable="yes">amplitude (%)</property>
                             <property name="tooltip_text" translatable="yes">amplitude (%)</property>
                             <property name="adjustment">adjustment_amplitude</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2209,6 +2252,7 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
+                            <property name="tooltip_markup" translatable="yes">alpha</property>
                             <property name="tooltip_text" translatable="yes">alpha</property>
                             <property name="adjustment">adjustment_pink_alpha</property>
                             <property name="restrict_to_fill_level">False</property>
@@ -2229,7 +2273,8 @@
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="receives_default">True</property>
-                            <property name="tooltip_text" translatable="yes">#poles</property>
+                            <property name="tooltip_markup" translatable="yes">poles</property>
+                            <property name="tooltip_text" translatable="yes">poles</property>
                             <property name="adjustment">adjustment_pink_poles</property>
                             <property name="restrict_to_fill_level">False</property>
                             <property name="fill_level">0</property>
@@ -2292,6 +2337,7 @@
                       <object class="GtkHScale" id="hscale_win32_ds_flanger_wetdrymix">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
+                        <property name="tooltip_markup" translatable="yes">wetdrymix</property>
                         <property name="tooltip_text" translatable="yes">wetdrymix</property>
                         <property name="adjustment">adjustment_win32_ds_flanger_wetdrymix</property>
                         <property name="restrict_to_fill_level">False</property>
