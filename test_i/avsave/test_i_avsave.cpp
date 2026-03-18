@@ -1071,6 +1071,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_video_modulehandler_configuration.display = displayDevice_in;
       directshow_video_modulehandler_configuration.fileFormat =
         ACE_TEXT_ALWAYS_CHAR ("avi");
+      directshow_video_modulehandler_configuration.handleResize = false;
       directshow_video_modulehandler_configuration.lock = &state_r.subscribersLock;
       directshow_video_modulehandler_configuration.numberOfStreams = 2;
 
@@ -1198,9 +1199,9 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
         &directshow_message_allocator;
       directshow_video_modulehandler_configuration_2 =
         directshow_video_modulehandler_configuration;
-      directshow_video_modulehandler_configuration_2.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_video_modulehandler_configuration_3 =
         directshow_video_modulehandler_configuration;
+      directshow_video_modulehandler_configuration_3.handleResize = true;
       directshow_video_modulehandler_configuration_4 =
         directshow_video_modulehandler_configuration;
       directshow_video_modulehandler_configuration_5 =
@@ -1209,7 +1210,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //         positive heights, indicating the image scanlines are bottom-up
       //         in memory)
       //directshow_video_modulehandler_configuration_5.flipImage = false;
-      directshow_video_modulehandler_configuration_5.handleResize = false; // write input data as-is
 
       // capture
       directshow_audio_modulehandler_configuration_2 =

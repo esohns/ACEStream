@@ -557,11 +557,10 @@ error:
                     NULL);
 #endif // GTK_CHECK_VERSION (3,10,0)
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resized surface to %dx%d (is: %@)\n"),
+                  ACE_TEXT ("%s: resized surface to %dx%d\n"),
                   inherited::mod_->name (),
                   width_2,
-                  height_2,
-                  surface_));
+                  height_2));
 
       inherited2::resizing_ = false;
 

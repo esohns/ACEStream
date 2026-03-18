@@ -356,8 +356,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      ACE_ASSERT (inherited::sessionData_);
+    { ACE_ASSERT (inherited::sessionData_);
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       typename SessionMessageType::DATA_T* session_data_container_p = NULL;
@@ -379,6 +378,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
             goto error;
           } // end IF
           *session_data_p = session_data_r;
+
           ACE_NEW_NORETURN (session_data_container_p,
                             typename SessionMessageType::DATA_T (session_data_p,
                                                                  true)); // delete data in dtor ?
@@ -439,7 +439,16 @@ end:
       break;
     }
     default:
-    { ACE_ASSERT (inherited::sessionData_);
+    {
+      // sanity check(s)
+      if (unlikely (!inherited::sessionData_)) // out-of-session ?
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: received out-of-session session message (type was: %d); cannot update branch-specific session data, continuing\n"),
+                    inherited::mod_->name (),
+                    message_inout->type ()));
+        goto continue_;
+      } // end IF
       const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
 
@@ -463,7 +472,8 @@ end:
           *session_data_p = session_data_r;
 
           ACE_NEW_NORETURN (session_data_container_p,
-                            typename SessionMessageType::DATA_T (session_data_p));
+                            typename SessionMessageType::DATA_T (session_data_p,
+                                                                 true)); // delete data in dtor ?
           if (unlikely (!session_data_container_p))
           {
             ACE_DEBUG ((LM_CRITICAL,
@@ -484,6 +494,7 @@ end:
         } // end FOR
       } // end lock scope
 
+continue_:
       forward (message_inout,
                false,         // dispose original ?
                false);        // high priority ?
