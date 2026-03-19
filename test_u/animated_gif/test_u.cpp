@@ -391,10 +391,9 @@ do_work (unsigned int bufferSize_in,
 
   // step0a: initialize configuration
   Test_U_EventHandler ui_event_handler (&CBData_in);
-  Test_U_Stream stream;
   struct Stream_ModuleConfiguration module_configuration;
   struct Stream_AllocatorConfiguration allocator_configuration;
-  Test_U_MessageHandler_Module message_handler (&stream,
+  Test_U_MessageHandler_Module message_handler (NULL,
                                                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -408,6 +407,9 @@ do_work (unsigned int bufferSize_in,
   Test_U_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
+
+  Test_U_Stream stream;
+
   // ********************** module configuration data **************************
   struct Test_U_AnimatedGIF_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_AnimatedGIF_ModuleHandlerConfiguration modulehandler_configuration_2; // file writer

@@ -440,6 +440,10 @@ end:
     }
     default:
     {
+      const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
+      typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
+      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
+
       // sanity check(s)
       if (unlikely (!inherited::sessionData_)) // out-of-session ?
       {
@@ -449,40 +453,37 @@ end:
                     message_inout->type ()));
         goto continue_;
       } // end IF
-      const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        inherited::sessionData_->getR ();
+      session_data_p = &inherited::sessionData_->getR ();
 
       // *NOTE*: update the session data for each processing branch
-      typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
-      typename SessionMessageType::DATA_T* session_data_container_p = NULL;
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         for (BRANCH_TO_HEAD_CONST_ITERATOR_T iterator = heads_.begin ();
              iterator != heads_.end ();
              ++iterator)
         {
-          ACE_NEW_NORETURN (session_data_p,
+          ACE_NEW_NORETURN (session_data_2,
                             typename SessionMessageType::DATA_T::DATA_T ());
-          if (unlikely (!session_data_p))
+          if (unlikely (!session_data_2))
           {
             ACE_DEBUG ((LM_CRITICAL,
                         ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
                         inherited::mod_->name ()));
             goto error_2;
           } // end IF
-          *session_data_p = session_data_r;
+          *session_data_2 = *session_data_p;
 
           ACE_NEW_NORETURN (session_data_container_p,
-                            typename SessionMessageType::DATA_T (session_data_p,
+                            typename SessionMessageType::DATA_T (session_data_2,
                                                                  true)); // delete data in dtor ?
           if (unlikely (!session_data_container_p))
           {
             ACE_DEBUG ((LM_CRITICAL,
                         ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
                         inherited::mod_->name ()));
-            delete session_data_p; session_data_p = NULL;
+            delete session_data_2;
             goto error_2;
           } // end IF
-          session_data_p = NULL;
+          session_data_2 = NULL;
 
           ACE_ASSERT ((*iterator).second);
           HEAD_TO_SESSIONDATA_ITERATOR_T iterator_2 = data_.find ((*iterator).second);

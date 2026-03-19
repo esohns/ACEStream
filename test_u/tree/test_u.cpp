@@ -168,7 +168,9 @@ do_work (int argc_in,
       iterator = bush_tree.begin ();
       while (bush_tree.is_valid (iterator))
       {
-        std::cout << *iterator << std::endl;
+        ACE_DEBUG ((LM_INFO,
+                    ACE_TEXT ("%s\n"),
+                    ACE_TEXT ((*iterator).c_str ())));
         ++iterator;
       } // end WHILE
 
@@ -188,14 +190,18 @@ do_work (int argc_in,
       tree_t::fixed_depth_iterator fi = fdt.begin_fixed (felins, 0, true);
       while (fdt.is_valid (fi))
       {
-        std::cout << *fi << std::endl;
+        ACE_DEBUG ((LM_INFO,
+                    ACE_TEXT ("%s\n"),
+                    ACE_TEXT ((*fi).c_str ())));
         ++fi;
       } // end WHILE
 
       fi = fdt.begin_fixed (felins, 0, true);
       while (fi != fdt.end_fixed (felins, 0)) // *IMPORTANT NOTE*: this crashes on tree.hh v3.7-latest
       {
-        std::cout << *fi << std::endl;
+        ACE_DEBUG ((LM_INFO,
+                    ACE_TEXT ("%s\n"),
+                    ACE_TEXT ((*fi).c_str ())));
         ++fi;
       } // end WHILE
 
@@ -264,8 +270,8 @@ ACE_TMAIN (int argc_in,
   // step1c: initialize logging and/or tracing
   if (log_to_file)
     log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
-  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])), // program name
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,              // log file name
                                      false,                      // log to syslog ?
                                      false,                      // trace messages ?
@@ -285,7 +291,7 @@ ACE_TMAIN (int argc_in,
   timer.stop ();
 
   timer.elapsed_time (working_time);
-  ACE_DEBUG ((LM_INFO,
+  ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("total working time (h:m:s.us): \"%s\"\n"),
               ACE_TEXT (Common_Timer_Tools::periodToString (working_time).c_str ())));
 
