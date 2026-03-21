@@ -89,6 +89,8 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FestivalDecoder_T::initialize"));
 
+  int result;
+
   if (inherited::isInitialized_)
   { ACE_ASSERT (inherited::configuration_);
     //if (inherited::configuration_->manageFestival)
@@ -98,22 +100,34 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   static bool is_first_b = true;
   if (configuration_in.manageFestival && is_first_b)
   { is_first_b = false;
-    //festival_libdir = ACE_TEXT_ALWAYS_CHAR ("E:\\lib\\festival\\lib");
-    festival_initialize (1,
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    festival_libdir = ACE_TEXT_ALWAYS_CHAR ("E:\\lib\\festival\\lib");
+//#endif // ACE_WIN32 || ACE_WIN64
+    festival_initialize (TRUE,
                          FESTIVAL_HEAP_SIZE);
-    //festival_init_modules ();
+    festival_init_modules ();
   } // end IF
+  festival_init_lang (EST_String (ACE_TEXT_ALWAYS_CHAR ("american_english")));
+
+#if defined (_DEBUG)
+  if (configuration_in.debug)
+  {
+    //result = festival_eval_command (EST_String (ACE_TEXT_ALWAYS_CHAR ("(voice_list)")));
+    //ACE_ASSERT (result == 1);
+  } // end IF
+#endif // _DEBUG
 
   // festival_eval_command ("(load \"voices/us/cmu_us_slt_cg/festvox/cmu_us_slt_cg.scm\")");
-  int result = festival_eval_command (ACE_TEXT_ALWAYS_CHAR ("(voice_cmu_us_slt_cg)"));
-  if (unlikely (result == 0))
+  //result = festival_eval_command (ACE_TEXT_ALWAYS_CHAR ("(voice_rab_diphone)"));
+  result =
+    festival_eval_command (EST_String (ACE_TEXT_ALWAYS_CHAR ("(voice_cmu_us_slt_cg)")));
+  if (unlikely (result == FALSE))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to festival_eval_command(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  //festival_init_lang (ACE_TEXT_ALWAYS_CHAR ("american_english"));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -148,6 +162,9 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
+  //festival_say_text (string);
+  //festival_wait_for_spooler ();
+
   int result = festival_text_to_wave (string,
                                       wave);
   if (unlikely (result == FALSE))
@@ -158,10 +175,9 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
     message_inout->release (); message_inout = NULL;
     goto error;
   } // end IF
+  ACE_ASSERT (wave.num_samples () > 0);
 
   // step1: allocate message block
-  ACE_ASSERT (inherited::configuration_->messageAllocator);
-  ACE_ASSERT (wave.num_samples () > 0);
   message_p =
     inherited::allocateMessage (wave.num_samples () * sizeof (ACE_INT16));
   if (unlikely (!message_p))
@@ -273,8 +289,8 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
       break;
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_2);
 #endif // ACE_WIN32 || ACE_WIN64
 

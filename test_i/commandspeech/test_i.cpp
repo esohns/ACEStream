@@ -1258,6 +1258,9 @@ do_work (
         sourceFileName_in;
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
+#if defined (_DEBUG)
+      directshow_modulehandler_configuration.debug = true;
+#endif // _DEBUG
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
       directshow_modulehandler_configuration.messageAllocator =
@@ -1880,17 +1883,17 @@ do_work (
     CBData_in.stream = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    HWND window_p = GetConsoleWindow ();
-    if (unlikely (!window_p))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-      goto error;
-    } // end IF
-    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
-    ACE_UNUSED_ARG (was_visible_b);
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//    HWND window_p = GetConsoleWindow ();
+//    if (unlikely (!window_p))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
+//      goto error;
+//    } // end IF
+//    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+//    ACE_UNUSED_ARG (was_visible_b);
+//#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_USE)
     itask_p = gtk_manager_p;

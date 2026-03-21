@@ -23,6 +23,10 @@
 
 #undef getch
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#undef WNOHANG
+#undef F_OK
+#undef W_OK
+#undef R_OK
 #include "festival.h"
 #else
 #include "festival/festival.h"
