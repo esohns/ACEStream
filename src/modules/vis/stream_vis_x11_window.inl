@@ -18,6 +18,10 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+// #include "X11/X.h"
+#define None       0L
+#define KeyPress   2
+#define KeyRelease 3
 #include "X11/Xlib.h"
 #include "X11/Xutil.h"
 
@@ -60,6 +64,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
  , resolution_ ()
  , visual_ (NULL)
  , window_ (0)
+ , WMDeleteMessage_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::Stream_Module_Vis_X11_Window_T"));
 
@@ -171,6 +176,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     depth_ = 0;
     display_ = NULL;
     window_ = 0;
+    WMDeleteMessage_ = 0;
   } // end IF
 
   XErrorHandler error_handler_p =
@@ -290,11 +296,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       return false;
     } // end IF
 
+    long eventmask_i = (KeyPressMask |
+                        KeyReleaseMask);
     unsigned long valuemask_i =
       (CWBackPixel       |
        CWBorderPixel     |
-       CWColormap        |
-       CWOverrideRedirect);
+       // CWOverrideRedirect | // --> allow decoration
+       CWEventMask       |
+       CWDontPropagate   |
+       CWColormap);
     XSetWindowAttributes attributes_a;
     ACE_OS::memset (&attributes_a, 0, sizeof (XSetWindowAttributes));
     attributes_a.background_pixel  =
@@ -304,7 +314,9 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     attributes_a.colormap =
       XCreateColormap (display_, XDefaultRootWindow (display_),
                        visual_info_s.visual, AllocNone);
-    attributes_a.override_redirect = True;
+    // attributes_a.override_redirect = True;
+    attributes_a.event_mask = eventmask_i;
+    attributes_a.do_not_propagate_mask = eventmask_i;
     window_ =
       XCreateWindow (display_,
                      DefaultRootWindow (display_),
@@ -331,10 +343,26 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 window_,
                 width_i, height_i, depth_));
     closeWindow_ = true;
-    //    XSelectInput (display_,
-    //                  window_,
-    //                  (ExposureMask | ButtonPressMask | KeyPressMask));
-    int result = XMapRaised (display_, window_);
+
+    // register interest in the delete window message
+    WMDeleteMessage_ = XInternAtom (display_,
+                                    ACE_TEXT_ALWAYS_CHAR ("WM_DELETE_WINDOW"),
+                                    False);
+    ACE_ASSERT (WMDeleteMessage_);
+    int result = XSetWMProtocols (display_,
+                                  window_,
+                                  &WMDeleteMessage_,
+                                  1);
+    if (unlikely (!result))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to XSetWMProtocols(%@,%u): \"%m\", aborting\n"),
+                  inherited::mod_->name (),
+                  display_, window_));
+      return false;
+    } // end IF
+
+    result = XMapRaised (display_, window_);
     if (unlikely (!result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -343,6 +371,45 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                   display_, window_));
       return false;
     } // end IF
+
+    // result = XSelectInput (display_,
+    //                        window_,
+    //                        eventmask_i);
+    // if (unlikely (!result))
+    // {
+    //   ACE_DEBUG ((LM_ERROR,
+    //               ACE_TEXT ("%s: failed to XSelectInput(%@,%u): \"%m\", aborting\n"),
+    //               inherited::mod_->name (),
+    //               display_, window_));
+    //   return false;
+    // } // end IF
+
+    // result = XGrabKeyboard (display_,
+    //                         window_,
+    //                         True,
+    //                         GrabModeAsync,
+    //                         GrabModeAsync,
+    //                         CurrentTime);
+    // if (unlikely (!result))
+    // {
+    //   ACE_DEBUG ((LM_ERROR,
+    //               ACE_TEXT ("%s: failed to XGrabKeyboard(%@,%u): \"%m\", aborting\n"),
+    //               inherited::mod_->name (),
+    //               display_, window_));
+    //   return false;
+    // } // end IF
+    // result = XSetInputFocus (display_,
+    //                          window_,
+    //                          RevertToNone,
+    //                          CurrentTime);
+    // if (unlikely (!result))
+    // {
+    //   ACE_DEBUG ((LM_ERROR,
+    //               ACE_TEXT ("%s: failed to XSetInputFocus(%@,%u): \"%m\", aborting\n"),
+    //               inherited::mod_->name (),
+    //               display_, window_));
+    //   return false;
+    // } // end IF
 
     valuemask_i = (//GCFont       |
       GCFunction   |
@@ -422,15 +489,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   //                                                        window_);
 
   image_p =
-      XCreateImage (display_,
-                    visual_,
-                    static_cast<unsigned int> (depth_),
-                    ZPixmap,
-                    0,
-                    reinterpret_cast<char*> (message_inout->rd_ptr ()),
-                    resolution_.width, resolution_.height,
-                    32, // *TODO*: can this be attributes_s.depth ? no :-(
-                    0);
+    XCreateImage (display_,
+                  visual_,
+                  static_cast<unsigned int> (depth_),
+                  ZPixmap,
+                  0,
+                  reinterpret_cast<char*> (message_inout->rd_ptr ()),
+                  resolution_.width, resolution_.height,
+                  32, // *TODO*: can this be attributes_s.depth ? no :-(
+                  0);
 //                    row_size_i);
   if (unlikely (!image_p))
   {
@@ -540,8 +607,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  bool high_priority_b = false;
+
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -602,6 +676,10 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
+      inherited::stop (false,            // wait for completion ?
+                       high_priority_b); // high priority ?
+
       // sanity check(s)
       ACE_ASSERT (display_);
 
@@ -637,9 +715,9 @@ error:
                       ACE_TEXT ("%s: failed to XDestroyWindow(%@,%u): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_, window_));
-        window_ = 0;
         closeWindow_ = false;
       } // end IF
+      window_ = 0;
       if (closeDisplay_)
       { ACE_ASSERT (display_);
         result = XCloseDisplay (display_);
@@ -648,9 +726,9 @@ error:
                       ACE_TEXT ("%s: failed to XCloseDisplay(%@): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_));
-        display_ = NULL;
         closeDisplay_ = false;
       } // end IF
+      display_ = NULL;
 
       break;
     }
@@ -682,4 +760,100 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (false); // *TODO*
   ACE_NOTSUP;
   ACE_NOTREACHED (return;)
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType,
+          typename MediaType>
+int
+Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::svc (void)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::svc"));
+
+  int result = -1;
+  int result_2 = -1;
+  ACE_Message_Block* message_block_p = NULL;
+  ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
+  bool stop_processing = false;
+  XEvent event;
+
+  // step1: start processing data...
+//   ACE_DEBUG ((LM_DEBUG,
+//               ACE_TEXT ("entering processing loop...\n")));
+  do
+  {
+    result = inherited::getq (message_block_p,
+                              NULL/*&no_wait*/);
+    if (likely (result == 0))
+    { ACE_ASSERT (message_block_p);
+      ACE_Message_Block::ACE_Message_Type message_type =
+        message_block_p->msg_type ();
+      if (message_type == ACE_Message_Block::MB_STOP)
+      {
+        // clean up
+        message_block_p->release (); message_block_p = NULL;
+
+        result_2 = 0; // OK
+
+        break; // aborted
+      } // end IF
+
+      // process manually
+      inherited::handleMessage (message_block_p,
+                                stop_processing);
+    } // end IF
+    else if (result == -1)
+    {
+      int error = ACE_OS::last_error ();
+      if (error != EWOULDBLOCK) // Win32: 10035
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to ACE_Task::getq(): \"%m\", aborting\n"),
+                    inherited::mod_->name ()));
+        break;
+      } // end IF
+    } // end ELSE IF
+
+    if (unlikely (!display_))
+      continue;
+    while (XPending (display_) > 0)
+    {
+      XNextEvent (display_, &event);
+
+      /* keyboard events */
+      if (event.type == KeyPress)
+      {
+        // fprintf (stderr, "KeyPress: %x\n", event.xkey.keycode);
+
+        /* exit on ESC key press */
+        if (XLookupKeysym (&event.xkey, 0) == XK_Escape)
+        // if (event.xkey.keycode == 0x09)
+          this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      } // end IF
+      else if (event.type == KeyRelease)
+      {
+        // fprintf (stderr, "KeyRelease: %x\n", event.xkey.keycode);
+      } // end ELSE IF
+      else if (event.type == ClientMessage)
+      {
+        if (event.xclient.data.l[0] == WMDeleteMessage_)
+          this->notify (STREAM_SESSION_MESSAGE_ABORT);
+      } // end ELSE IF
+    } // end WHILE
+  } while (true);
+
+//done:
+  return result_2;
 }

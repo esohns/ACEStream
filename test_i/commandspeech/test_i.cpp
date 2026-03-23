@@ -228,6 +228,10 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : debug [") // ? (directshow|mediafoundation) renderer : WASAPI|waveOut
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -256,12 +260,12 @@ do_processArguments (int argc_in,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
-                     bool& printVersionAndExit_out
+                     bool& printVersionAndExit_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     ,bool& useFrameworkSource_out,
-                     bool& useFrameworkRenderer_out
+                     bool& useFrameworkSource_out,
+                     bool& useFrameworkRenderer_out,
 #endif // ACE_WIN32 || ACE_WIN64
-                     )
+                     bool& debug_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -311,8 +315,9 @@ do_processArguments (int argc_in,
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
+  debug_out = false;
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:f:lo::s:tuvz");
 #if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
 #endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
@@ -470,6 +475,11 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+      case 'z':
+      {
+        debug_out = true;
+        break;
+      }
       // error handling
       case ':':
       {
@@ -1072,6 +1082,7 @@ do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
+         bool debug_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_I_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_I_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
@@ -1259,7 +1270,7 @@ do_work (
       directshow_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
 #if defined (_DEBUG)
-      directshow_modulehandler_configuration.debug = true;
+      directshow_modulehandler_configuration.debug = debug_in;
 #endif // _DEBUG
       directshow_modulehandler_configuration.filterConfiguration =
         &directShowConfiguration_in.filterConfiguration;
@@ -1489,7 +1500,7 @@ do_work (
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
 #if defined (_DEBUG)
-  modulehandler_configuration.debug = true;
+  modulehandler_configuration.debug = debug_in;
 #endif // _DEBUG
   modulehandler_configuration.queue =
     &const_cast<Stream_MessageQueue_T<ACE_MT_SYNCH,
@@ -1883,17 +1894,20 @@ do_work (
     CBData_in.stream = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//    HWND window_p = GetConsoleWindow ();
-//    if (unlikely (!window_p))
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
-//      goto error;
-//    } // end IF
-//    BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
-//    ACE_UNUSED_ARG (was_visible_b);
-//#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    if (likely (!debug_in))
+    {
+      HWND window_p = GetConsoleWindow ();
+      if (unlikely (!window_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to ::GetConsoleWindow(), returning\n")));
+        goto error;
+      } // end IF
+      BOOL was_visible_b = ShowWindow (window_p, SW_HIDE);
+      ACE_UNUSED_ARG (was_visible_b);
+    } // end IF
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_USE)
     itask_p = gtk_manager_p;
@@ -2185,6 +2199,7 @@ ACE_TMAIN (int argc_in,
   bool use_framework_source = false;
   bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
+  bool debug = false;
 
   ACE_High_Res_Timer timer;
   ACE_Time_Value working_time;
@@ -2245,13 +2260,12 @@ ACE_TMAIN (int argc_in,
                             statistic_reporting_interval,
                             trace_information,
                             mute,
-                            print_version_and_exit
+                            print_version_and_exit,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            ,use_framework_source,
-                            use_framework_renderer))
-#else
-                            ))
+                            use_framework_source,
+                            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
+                            debug))
   {
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0])));
     goto error;
@@ -2501,6 +2515,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
+           debug,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,

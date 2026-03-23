@@ -66,6 +66,11 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_FestivalDecoder_T::~Stream_Decoder_FestivalDecoder_T"));
 
+  if (inherited::isInitialized_)
+  { ACE_ASSERT (inherited::configuration_);
+    if (inherited::configuration_->manageFestival)
+      festival_tidy_up ();
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -107,25 +112,30 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
                          FESTIVAL_HEAP_SIZE);
     festival_init_modules ();
   } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   festival_init_lang (EST_String (ACE_TEXT_ALWAYS_CHAR ("american_english")));
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (_DEBUG)
   if (configuration_in.debug)
   {
+    result = festival_eval_command (EST_String (ACE_TEXT_ALWAYS_CHAR ("(set_backtrace t)")));
+    ACE_ASSERT (result == TRUE);
     //result = festival_eval_command (EST_String (ACE_TEXT_ALWAYS_CHAR ("(voice_list)")));
-    //ACE_ASSERT (result == 1);
+    //ACE_ASSERT (result == TRUE);
   } // end IF
 #endif // _DEBUG
 
-  // festival_eval_command ("(load \"voices/us/cmu_us_slt_cg/festvox/cmu_us_slt_cg.scm\")");
-  //result = festival_eval_command (ACE_TEXT_ALWAYS_CHAR ("(voice_rab_diphone)"));
-  result =
-    festival_eval_command (EST_String (ACE_TEXT_ALWAYS_CHAR ("(voice_cmu_us_slt_cg)")));
+  std::string command_string = ACE_TEXT_ALWAYS_CHAR ("(voice_");
+  command_string += configuration_in.voice;
+  command_string += ACE_TEXT_ALWAYS_CHAR (")");
+  result = festival_eval_command (EST_String (command_string.c_str ()));
   if (unlikely (result == FALSE))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to festival_eval_command(): \"%m\", aborting\n"),
-                inherited::mod_->name ()));
+                ACE_TEXT ("%s: failed to festival_eval_command(\"%s\"): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (command_string.c_str ())));
     return false;
   } // end IF
 
@@ -156,7 +166,8 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 
   passMessageDownstream_out = false;
 
-  EST_String string (message_inout->rd_ptr ());
+  EST_String string (message_inout->rd_ptr (), message_inout->length (),
+                     0, message_inout->length ());
   EST_Wave wave;
   DataMessageType* message_p = NULL;
   typename DataMessageType::DATA_T& data_r =

@@ -92,8 +92,6 @@ if (WXWIDGETS_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS})
 endif (WXWIDGETS_SUPPORT)
 
-#cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
-
 set (ui_definition_file "")
 if (GTK_USE)
  if (GTK3_USE)
@@ -125,7 +123,10 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Network)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
-target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif (UNIX)
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_SSL_LIBRARY})

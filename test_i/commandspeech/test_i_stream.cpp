@@ -1453,10 +1453,10 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
     case TTS_FLITE:
     {
 #if defined (FLITE_SUPPORT)
-      // ACE_NEW_RETURN (module_p,
-      //                 Test_I_ALSA_Flite_Module (this,
-      //                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
-      //                 false);
+      ACE_NEW_RETURN (module_p,
+                      Test_I_ALSA_Flite_Module (this,
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
+                      false);
 #endif // FLITE_SUPPORT
       break;
     }

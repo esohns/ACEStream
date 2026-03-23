@@ -80,10 +80,22 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     xdg_toplevel_destroy (topLevel_);
   if (shellSurface_)
     xdg_surface_destroy (shellSurface_);
-  if (cbData_.surface)
-    wl_surface_destroy (cbData_.surface);
+  if (cbData_.keyboard)
+    wl_keyboard_destroy (cbData_.keyboard);
+  if (cbData_.seat)
+    wl_seat_destroy (cbData_.seat);
   if (cbData_.shm)
     wl_shm_destroy (cbData_.shm);
+  if (cbData_.surface)
+    wl_surface_destroy (cbData_.surface);
+  if (cbData_.wm_base)
+    xdg_wm_base_destroy (cbData_.wm_base);
+  if (cbData_.xkb_context)
+    xkb_context_unref (cbData_.xkb_context);
+  if (cbData_.xkb_keymap)
+    xkb_keymap_unref (cbData_.xkb_keymap);
+  if (cbData_.xkb_state)
+    xkb_state_unref (cbData_.xkb_state);
   if (cbData_.compositor)
     wl_compositor_destroy (cbData_.compositor);
   if (closeDisplay_)
@@ -120,12 +132,25 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbData_.shm_data);
   ACE_ASSERT (cbData_.surface);
 
-  ACE_OS::memcpy (cbData_.shm_data, message_inout->rd_ptr (), message_inout->length ());
+  ACE_OS::memcpy (cbData_.shm_data,
+                  message_inout->rd_ptr (),
+                  message_inout->length ());
   wl_surface_commit (cbData_.surface);
   wl_surface_damage (cbData_.surface,
                      0, 0,
                      cbData_.resolution.width, cbData_.resolution.height);
   wl_display_flush (cbData_.display);
+
+  if (unlikely (cbData_.escapeKeyWasPressed))
+  {
+    cbData_.escapeKeyWasPressed = false;
+    goto done;
+  } // end IF
+
+  return;
+
+done:
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -151,8 +176,15 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  bool high_priority_b = false;
+
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -180,8 +212,9 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::stop (false,  // wait for completion ?
-                       false); // high priority ?
+end:
+      inherited::stop (false,            // wait for completion ?
+                       high_priority_b); // high priority ?
 
       if (cbData_.shm_data)
       {
@@ -194,14 +227,38 @@ error:
       if (shellSurface_)
       {
         xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
-      }
-      if (cbData_.surface)
+      } // end IF
+      if (cbData_.keyboard)
       {
-        wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+        wl_keyboard_destroy (cbData_.keyboard); cbData_.keyboard = NULL;
+      } // end IF
+      if (cbData_.seat)
+      {
+        wl_seat_destroy (cbData_.seat); cbData_.seat = NULL;
       } // end IF
       if (cbData_.shm)
       {
         wl_shm_destroy (cbData_.shm); cbData_.shm = NULL;
+      } // end IF
+      if (cbData_.surface)
+      {
+        wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+      } // end IF
+      if (cbData_.wm_base)
+      {
+        xdg_wm_base_destroy (cbData_.wm_base); cbData_.wm_base = NULL;
+      } // end IF
+      if (cbData_.xkb_context)
+      {
+        xkb_context_unref (cbData_.xkb_context); cbData_.xkb_context = NULL;
+      } // end IF
+      if (cbData_.xkb_keymap)
+      {
+        xkb_keymap_unref (cbData_.xkb_keymap); cbData_.xkb_keymap = NULL;
+      } // end IF
+      if (cbData_.xkb_state)
+      {
+        xkb_state_unref (cbData_.xkb_state); cbData_.xkb_state = NULL;
       } // end IF
       if (cbData_.compositor)
       {
@@ -281,14 +338,38 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     if (shellSurface_)
     {
       xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
-    }
-    if (cbData_.surface)
+    } // end IF
+    if (cbData_.keyboard)
     {
-      wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+      wl_keyboard_destroy (cbData_.keyboard); cbData_.keyboard = NULL;
+    } // end IF
+    if (cbData_.seat)
+    {
+      wl_seat_destroy (cbData_.seat); cbData_.seat = NULL;
     } // end IF
     if (cbData_.shm)
     {
       wl_shm_destroy (cbData_.shm); cbData_.shm = NULL;
+    } // end IF
+    if (cbData_.surface)
+    {
+      wl_surface_destroy (cbData_.surface); cbData_.surface = NULL;
+    } // end IF
+    if (cbData_.wm_base)
+    {
+      xdg_wm_base_destroy (cbData_.wm_base); cbData_.wm_base = NULL;
+    } // end IF
+    if (cbData_.xkb_context)
+    {
+      xkb_context_unref (cbData_.xkb_context); cbData_.xkb_context = NULL;
+    } // end IF
+    if (cbData_.xkb_keymap)
+    {
+      xkb_keymap_unref (cbData_.xkb_keymap); cbData_.xkb_keymap = NULL;
+    } // end IF
+    if (cbData_.xkb_state)
+    {
+      xkb_state_unref (cbData_.xkb_state); cbData_.xkb_state = NULL;
     } // end IF
     if (cbData_.compositor)
     {
@@ -416,6 +497,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
               inherited::mod_->name (),
               cbData_.display, cbData_.surface, shellSurface_, topLevel_));
 
+  cbData_.xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
+  ACE_ASSERT (cbData_.xkb_context);
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -456,11 +540,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.y
 //                                             : 0);
   unsigned int width_i =
-      (inherited::configuration_->fullScreen ? display_device.clippingArea.width
-                                             : cbData_.resolution.width);
+    (inherited::configuration_->fullScreen ? display_device.clippingArea.width
+                                           : cbData_.resolution.width);
   unsigned int height_i =
-      (inherited::configuration_->fullScreen ? display_device.clippingArea.height
-                                             : cbData_.resolution.height);
+    (inherited::configuration_->fullScreen ? display_device.clippingArea.height
+                                           : cbData_.resolution.height);
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
     inherited::sessionData_->getR ();
@@ -471,12 +555,12 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                             STREAM_MEDIATYPE_VIDEO,
                             media_type_2);
   unsigned int depth_i =
-      Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
+    Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
   int stride = width_i * depth_i;
   frameSize_ = stride * height_i;
 
   static const char name_template[] =
-      ACE_TEXT_ALWAYS_CHAR ("/libacestream_vis_wayland_shared_XXXXXX");
+    ACE_TEXT_ALWAYS_CHAR ("/libacestream_vis_wayland_shared_XXXXXX");
   const char* path_p = ACE_OS::getenv ("XDG_RUNTIME_DIR");
   if (!path_p)
   {
@@ -529,10 +613,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   struct wl_shm_pool* pool_p = wl_shm_create_pool (cbData_.shm, fd, frameSize_);
   ACE_ASSERT (pool_p);
   cbData_.buffer =
-      wl_shm_pool_create_buffer (pool_p,
-                                 0,                         // offset
-                                 width_i, height_i, stride,
-                                 Stream_Visualization_Tools::depthToWaylandFormat (depth_i));
+    wl_shm_pool_create_buffer (pool_p,
+                               0,                         // offset
+                               width_i, height_i, stride,
+                               Stream_Visualization_Tools::depthToWaylandFormat (depth_i));
   if (unlikely (!cbData_.buffer))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -553,32 +637,6 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataContainerType,
-//          typename MediaType>
-//void
-//Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
-//                               TimePolicyType,
-//                               ConfigurationType,
-//                               ControlMessageType,
-//                               DataMessageType,
-//                               SessionMessageType,
-//                               SessionDataContainerType,
-//                               MediaType>::init_window ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::init_window"));
-
-//  ACE_ASSERT (inherited::configuration_);
-//  ACE_ASSERT (cbData_.surface);
-
-
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,

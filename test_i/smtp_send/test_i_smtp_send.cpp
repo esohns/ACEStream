@@ -23,9 +23,6 @@
 #include <string>
 
 #if defined (GTK_SUPPORT)
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#include "gdk/gdkwin32.h"
-#endif // ACE_WIN32 || ACE_WIN64
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
 
@@ -576,6 +573,9 @@ do_work (
   configuration_in.protocolConfiguration.domain = configuration_in.domain;
 
   // initialize signal handling
+  struct Common_EventDispatchState dispatch_state_s;
+  dispatch_state_s.configuration = &configuration_in.dispatchConfiguration;
+  configuration_in.signalHandlerConfiguration.dispatchState = &dispatch_state_s;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
   if (!Common_Signal_Tools::initialize ((useReactor_in ? COMMON_SIGNAL_DISPATCH_REACTOR
                                                        : COMMON_SIGNAL_DISPATCH_PROACTOR),
@@ -599,9 +599,6 @@ do_work (
   struct Net_UserData user_data_s;
   Test_I_SMTPSend_Connection_Manager_t* connection_manager_p =
     TEST_I_SMTPSEND_CONNECTIONMANAGER_SINGLETON::instance ();
-  struct Common_EventDispatchState dispatch_state;
-  dispatch_state.configuration =
-    &configuration_in.dispatchConfiguration;
 
   // initialize event dispatch
   configuration_in.dispatchConfiguration.dispatch =
@@ -625,7 +622,7 @@ do_work (
                              &user_data_s);
 
   // start event loop(s)
-  if (!Common_Event_Tools::startEventDispatch (dispatch_state))
+  if (!Common_Event_Tools::startEventDispatch (dispatch_state_s))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to start event dispatch, returning\n")));
@@ -703,8 +700,9 @@ clean:
   connection_manager_p->abort ();
   connection_manager_p->wait ();
 
-  Common_Event_Tools::finalizeEventDispatch (dispatch_state,
-                                             true); // wait ?
+  Common_Event_Tools::finalizeEventDispatch (dispatch_state_s,
+                                             true,   // wait ?
+                                             false); // release singletons ?
 
   timer_manager_p->stop ();
 

@@ -93,6 +93,37 @@ load_backends (GtkListStore* listStore_in)
 }
 
 int
+acestream_test_i_commandspeech_festival_selector (const dirent* dirEntry_in)
+{
+  //STREAM_TRACE (ACE_TEXT ("acestream_test_i_commandspeech_festival_selector"));
+
+  // *NOTE*: (skipping '.' and '..') select only directories under
+  //         /usr/share/festival/voices/us
+
+  if (!ACE_OS::strncmp (dirEntry_in->d_name, ACE_TEXT_ALWAYS_CHAR ("."), 1) ||
+      !ACE_OS::strncmp (dirEntry_in->d_name, ACE_TEXT_ALWAYS_CHAR (".."), 2))
+    return 0;
+
+  // sanity check --> is directory ?
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define DT_UNKNOWN 0
+#define DT_DIR     4
+  unsigned char type_c = DT_UNKNOWN;
+#else
+  unsigned char type_c = dirEntry_in->d_type;
+#endif // ACE_WIN32 || ACE_WIN64
+  if (type_c == DT_UNKNOWN)
+  {
+    ACE_stat stat_s;
+    ACE_OS::stat (dirEntry_in->d_name, &stat_s);
+    if (S_ISDIR (stat_s.st_mode))
+      type_c = DT_DIR;
+  } // end IF
+
+  return (type_c == DT_DIR) ? 1 : 0;
+}
+
+int
 acestream_test_i_commandspeech_flite_selector (const dirent* dirEntry_in)
 {
   //STREAM_TRACE (ACE_TEXT ("acestream_test_i_commandspeech_flite_selector"));
@@ -102,8 +133,8 @@ acestream_test_i_commandspeech_flite_selector (const dirent* dirEntry_in)
 
   // sanity check --> suffix ok ?
   std::string file_extension =
-      Common_File_Tools::fileExtension (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name),
-                                        true); // return leading '.'
+    Common_File_Tools::fileExtension (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name),
+                                      true); // return leading '.'
   if (ACE_OS::strncmp (file_extension.c_str (),
                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING),
                        ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING))))
@@ -136,7 +167,9 @@ load_voices (GtkListStore* listStore_in,
     }
     case TTS_FESTIVAL:
     {
-      // *TODO*
+      files_a =
+        Common_File_Tools::files (voicesDirectory_in,
+                                  acestream_test_i_commandspeech_festival_selector);
       break;
     }
     case TTS_FLITE:
@@ -246,16 +279,13 @@ load_voices (GtkListStore* listStore_in,
   GtkTreeIter iterator;
   if (voices_are_files_b)
   {
-    std::string filename_string;
     for (Common_File_IdentifierListIterator_t iterator_2 = files_a.begin ();
          iterator_2 != files_a.end ();
          ++iterator_2)
     {
-      filename_string =
-        Common_File_Tools::basename ((*iterator_2).identifier, true);
       gtk_list_store_append (listStore_in, &iterator);
       gtk_list_store_set (listStore_in, &iterator,
-                          0, filename_string.c_str (),
+                          0, (*iterator_2).identifier.c_str (),
                           1, (*iterator_2).identifier.c_str (),
                           -1);
     } // end FOR
@@ -2747,12 +2777,17 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
     }
     case TTS_FESTIVAL:
     {
-      voices_directory_string =
+      char* festlib_dir_p =
         ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("FESTLIBDIR"));
-      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      if (likely (festlib_dir_p))
+      {
+        voices_directory_string = festlib_dir_p;
+        voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      } // end IF
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
       voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("us");
+
       voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FESTVIAL_VOICE);
       break;
     }
@@ -2767,9 +2802,15 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
 #else
       voices_directory_string =
-        ACE_TEXT_ALWAYS_CHAR ("/usr/share/flite/voices");
+        // ACE_TEXT_ALWAYS_CHAR ("/usr/share/flite/voices");
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("flite");
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
 #endif // ACE_WIN32 || ACE_WIN64
-      voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+
+      voice_string = TEST_I_DEFAULT_FLITE_VOICE;
       break;
     }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2844,8 +2885,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   (*modulehandler_configuration_iterator).second.second->voiceDirectory =
     voices_directory_string;
-  (*modulehandler_configuration_iterator).second.second->voice =
-    voice_string;
+  (*modulehandler_configuration_iterator).second.second->voice = voice_string;
 #endif // ACE_WIN32 || ACE_WIN64
 
   list_store_p =
@@ -2860,6 +2900,27 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
                 ACE_TEXT ("failed to ::load_voices(), returning\n")));
     return;
   } // end IF
+
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value,
+                      voice_string.c_str ());
+  GtkComboBox* combo_box_p =
+    GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_COMBOBOX_VOICE_NAME)));
+  ACE_ASSERT (combo_box_p);
+  Common_UI_GTK_Tools::selectValue (combo_box_p,
+                                    value,
+                                    0);
+  g_value_unset (&value);
+
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_VOICE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  gboolean result_2 =
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                         voices_directory_string.c_str ());
+  ACE_ASSERT (result_2);
 } // combobox_backend_changed_cb
 
 void
@@ -3033,7 +3094,7 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (list_store_p);
   std::string device_identifier_string;
   gint card_id_i = std::numeric_limits<int>::max ();
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
   GValue value_2 = G_VALUE_INIT;
 #else
@@ -3407,6 +3468,11 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VOICE_NAME)));
   ACE_ASSERT (list_store_p);
+
+  gint column_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  column_i = 1;
+#endif // ACE_WIN32 || ACE_WIN64
   std::string voice_string;
 #if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
@@ -3416,7 +3482,7 @@ combobox_voice_changed_cb (GtkWidget* widget_in,
 #endif // GTK_CHECK_VERSION (2,30,0)
   gtk_tree_model_get_value (GTK_TREE_MODEL (list_store_p),
                             &iterator_2,
-                            1, &value);
+                            column_i, &value);
   ACE_ASSERT (G_VALUE_TYPE (&value) == G_TYPE_STRING);
   voice_string = g_value_get_string (&value);
   g_value_unset (&value);
@@ -4711,10 +4777,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     ACE_ASSERT (file_chooser_button_p);
     gchar* text_2 =
       gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
-    filename_string =
-      Common_UI_GTK_Tools::UTF8ToLocale (ACE_TEXT_ALWAYS_CHAR (text_2));
+    if (likely (text_2))
+    {
+      filename_string = Common_UI_GTK_Tools::UTF8ToLocale (ACE_TEXT_ALWAYS_CHAR (text_2));
+      filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
+    } // end IF
     g_free (text_2); text_2 = NULL;
-    filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
     filename_string +=
       Common_UI_GTK_Tools::UTF8ToLocale (ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p)));
   } // end IF

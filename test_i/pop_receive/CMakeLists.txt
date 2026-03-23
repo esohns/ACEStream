@@ -130,7 +130,10 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Network)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
-target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+ target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
+endif (UNIX)
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 if (SSL_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_SSL_LIBRARY})

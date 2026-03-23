@@ -31,7 +31,7 @@
 #include "common_ui_windowtype_converter.h"
 #include "common_ui_ifullscreen.h"
 
-#include "stream_task_base_synch.h"
+#include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -53,28 +53,28 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename MediaType> // *IMPORTANT NOTE*: must correspond to session data 'formats' member
 class Stream_Module_Vis_X11_Window_T
- : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData>
+ : public Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<Window>
  , public Common_UI_IFullscreen
 {
-  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
-                                 TimePolicyType,
-                                 ConfigurationType,
-                                 ControlMessageType,
-                                 DataMessageType,
-                                 SessionMessageType,
-                                 enum Stream_ControlType,
-                                 enum Stream_SessionMessageType,
-                                 struct Stream_UserData> inherited;
+  typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
+                                  TimePolicyType,
+                                  ConfigurationType,
+                                  ControlMessageType,
+                                  DataMessageType,
+                                  SessionMessageType,
+                                  enum Stream_ControlType,
+                                  enum Stream_SessionMessageType,
+                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_UI_WindowTypeConverter_T<Window> inherited3;
 
@@ -99,6 +99,8 @@ class Stream_Module_Vis_X11_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
 
+  virtual int svc (void);
+
   bool                      closeDisplay_;
   bool                      closeWindow_;
   GC                        context_;
@@ -108,6 +110,7 @@ class Stream_Module_Vis_X11_Window_T
   Common_Image_Resolution_t resolution_; // window-
   Visual*                   visual_;
   Window                    window_;
+  Atom                      WMDeleteMessage_;
 };
 
 // include template definition

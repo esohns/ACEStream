@@ -702,6 +702,7 @@ action_send_activate_cb (GtkAction* action_in,
   gtk_widget_set_sensitive (GTK_WIDGET (progress_bar_p), TRUE);
 
   // step3: update configuration
+  GtkCheckButton* check_button_p;
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SERVER_NAME)));
@@ -729,7 +730,7 @@ action_send_activate_cb (GtkAction* action_in,
   NET_CONFIGURATION_TCP_CAST ((*iterator_3).second)->socketConfiguration.address =
     ui_cb_data_p->configuration->address;
 
-  GtkCheckButton* check_button_p =
+  check_button_p =
     GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_CHECKBUTTON_STARTTLS_NAME)));
   ACE_ASSERT (check_button_p);
@@ -790,9 +791,16 @@ action_send_activate_cb (GtkAction* action_in,
     goto error;
   } // end IF
   thread_data_p->CBData = ui_cb_data_p;
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = static_cast<char*> (thread_name);
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

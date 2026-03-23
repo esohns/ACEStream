@@ -1,8 +1,6 @@
 #ifndef STREAM_DEV_DEFINES_H
 #define STREAM_DEV_DEFINES_H
 
-#include "ace/config-lite.h"
-
 /////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

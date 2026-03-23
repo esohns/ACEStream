@@ -823,9 +823,16 @@ button_connect_clicked_cb (GtkButton* button_in,
     goto error;
   } // end IF
   thread_data_p->CBData = ui_cb_data_p;
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));
+#else
+  ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
+  ACE_OS::strncpy (thread_name,
+                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME),
+                   std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT (TEST_I_STREAM_THREAD_NAME)))));
+#endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = static_cast<char*> (thread_name);
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);

@@ -23,6 +23,7 @@
 
 #include "wayland-client.h"
 #include "xdg-shell.h"
+#include "xkbcommon/xkbcommon.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -38,15 +39,20 @@ extern const char libacestream_default_vis_wayland_window_module_name_string[];
 struct libacestream_vis_wayland_cb_data
 {
   struct wl_buffer*         buffer;
-//  bool                  buffer_busy;
   struct wl_compositor*     compositor;
   struct wl_display*        display;
-//  struct wl_shell*      shell;
+  struct wl_keyboard*       keyboard;
   Common_Image_Resolution_t resolution;
+  struct wl_seat*           seat;
   struct wl_shm*            shm;
   void*                     shm_data;
   struct wl_surface*        surface;
   struct xdg_wm_base*       wm_base;
+  struct xkb_context*       xkb_context;
+  struct xkb_keymap*        xkb_keymap;
+  struct xkb_state*         xkb_state;
+
+  bool                      escapeKeyWasPressed;
 };
 
 void
@@ -149,7 +155,6 @@ class Stream_Module_Vis_Wayland_Window_T
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
   unsigned int                            frameSize_;
-//  struct wl_shell_surface*                shellSurface_;
   struct xdg_surface*                     shellSurface_;
   struct xdg_toplevel*                    topLevel_;
 };

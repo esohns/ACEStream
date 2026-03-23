@@ -4758,7 +4758,7 @@ continue_:
   } // end IF
   thread_data_p->CBData = ui_cb_data_base_p;
   ACE_TCHAR thread_name[BUFSIZ];
-  ACE_OS::memset (thread_name, 0, sizeof (thread_name));
+  ACE_OS::memset (thread_name, 0, sizeof (ACE_TCHAR[BUFSIZ]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_OS::strcpy (thread_name,
                   ACE_TEXT (TEST_I_STREAM_THREAD_NAME));

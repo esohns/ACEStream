@@ -16,6 +16,10 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../.
 include (fftw)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src/ui/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../../Common/src/ui/scripts")
+if (UNIX)
+ include (wayland)
+ include (x11)
+endif (UNIX)
 include (PreUIFramework)
 include (SetUIFramework)
 if (GTK_SUPPORT) # *NOTE*: _SUPPORT, not _USE !
@@ -30,13 +34,10 @@ endif (WIN32)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
 include (opencv)
 
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
-if (UNIX)
- include (wayland)
- include (x11)
-elseif (WIN32)
+if (WIN32)
+ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
  include (directx)
-endif ()
+endif (WIN32)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -116,7 +117,7 @@ endif (OPENCV_SUPPORT)
 if (UNIX)
  if (WAYLAND_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>)
+                              "$<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>")
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
  endif (WAYLAND_SUPPORT)
