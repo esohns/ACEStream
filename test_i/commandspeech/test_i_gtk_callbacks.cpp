@@ -32,6 +32,8 @@
 #include "gdk/gdkx.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <string>
+
 #include "ace/Guard_T.h"
 #include "ace/Log_Msg.h"
 #include "ace/Synch_Traits.h"
@@ -57,7 +59,10 @@
 #include "test_i_stream.h"
 
 // global variables
-bool untoggling_record_button = false;
+bool g_untoggling_record_button = false;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+std::string g_current_path_string;
+#endif // ACE_WIN32 || ACE_WIN64
 
 void
 load_backends (GtkListStore* listStore_in)
@@ -105,17 +110,25 @@ acestream_test_i_commandspeech_festival_selector (const dirent* dirEntry_in)
     return 0;
 
   // sanity check --> is directory ?
+  unsigned char type_c;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define DT_UNKNOWN 0
 #define DT_DIR     4
-  unsigned char type_c = DT_UNKNOWN;
+  type_c = DT_UNKNOWN;
 #else
-  unsigned char type_c = dirEntry_in->d_type;
+  type_c = dirEntry_in->d_type;
 #endif // ACE_WIN32 || ACE_WIN64
   if (type_c == DT_UNKNOWN)
   {
     ACE_stat stat_s;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    std::string fq_path = g_current_path_string;
+    fq_path += ACE_DIRECTORY_SEPARATOR_STR_A;
+    fq_path += dirEntry_in->d_name;
+    ACE_OS::stat (fq_path.c_str (), &stat_s);
+#else
     ACE_OS::stat (dirEntry_in->d_name, &stat_s);
+#endif // ACE_WIN32 || ACE_WIN64
     if (S_ISDIR (stat_s.st_mode))
       type_c = DT_DIR;
   } // end IF
@@ -167,6 +180,9 @@ load_voices (GtkListStore* listStore_in,
     }
     case TTS_FESTIVAL:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      g_current_path_string = voicesDirectory_in;
+#endif // ACE_WIN32 || ACE_WIN64
       files_a =
         Common_File_Tools::files (voicesDirectory_in,
                                   acestream_test_i_commandspeech_festival_selector);
@@ -2049,7 +2065,7 @@ idle_session_end_cb (gpointer userData_in)
   gtk_button_set_label (GTK_BUTTON (toggle_button_p), GTK_STOCK_MEDIA_RECORD);
   if (gtk_toggle_button_get_active (toggle_button_p))
   {
-    untoggling_record_button = true;
+    g_untoggling_record_button = true;
     gtk_toggle_button_set_active (toggle_button_p, FALSE);
     //gtk_signal_emit_by_name (GTK_OBJECT (toggle_button_p),
     //                         ACE_TEXT_ALWAYS_CHAR ("toggled"),
@@ -4618,9 +4634,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   STREAM_TRACE (ACE_TEXT ("::togglebutton_record_toggled_cb"));
 
   // handle untoggle --> RECORD
-  if (untoggling_record_button)
+  if (g_untoggling_record_button)
   {
-    untoggling_record_button = false;
+    g_untoggling_record_button = false;
     return; // done
   } // end IF
 

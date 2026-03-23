@@ -113,7 +113,7 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
     festival_init_modules ();
   } // end IF
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  festival_init_lang (EST_String (ACE_TEXT_ALWAYS_CHAR ("american_english")));
+  //festival_init_lang (EST_String (ACE_TEXT_ALWAYS_CHAR ("american_english")));
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (_DEBUG)
@@ -126,8 +126,13 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   } // end IF
 #endif // _DEBUG
 
-  std::string command_string = ACE_TEXT_ALWAYS_CHAR ("(voice_");
-  command_string += configuration_in.voice;
+  std::string voice_string = ACE_TEXT_ALWAYS_CHAR ("voice_");
+  voice_string += ACE_TEXT_ALWAYS_CHAR ("rab_diphone");
+  //voice_string += configuration_in.voice;
+
+  std::string command_string = ACE_TEXT_ALWAYS_CHAR ("(");
+  command_string += ACE_TEXT_ALWAYS_CHAR ("set! default_voice '");;
+  command_string += voice_string;
   command_string += ACE_TEXT_ALWAYS_CHAR (")");
   result = festival_eval_command (EST_String (command_string.c_str ()));
   if (unlikely (result == FALSE))
@@ -172,9 +177,6 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   typename DataMessageType::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
-
-  //festival_say_text (string);
-  //festival_wait_for_spooler ();
 
   int result = festival_text_to_wave (string,
                                       wave);
