@@ -115,6 +115,7 @@ class Test_I_Stream
   Test_I_Distributor_Module       distributor_;
   Test_I_Delay_Module             delay_;
   Test_I_ConsoleVUMeter_Module    consoleVUMeter_;
+  Test_I_ConsoleVUMeter_2_Module  consoleVUMeter_2_;
 #if defined (SOX_SUPPORT)
   Test_I_SoXResampler_Module      SoXResampler_;
 #endif // SOX_SUPPORT

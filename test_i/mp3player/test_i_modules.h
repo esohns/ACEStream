@@ -21,7 +21,6 @@
 #ifndef TEST_I_MODULES_H
 #define TEST_I_MODULES_H
 
-#include "ace/INET_Addr.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"
@@ -349,13 +348,28 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_I_Stream_SessionMessage,
                                           struct _AMMediaType,
                                           float,
-                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter;
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_I_ConsoleVUMeter;
+typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage,
+                                          struct _AMMediaType,
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter_2;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_vis_console_audio_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_ConsoleVUMeter);                                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_vis_console_audio_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_ConsoleVUMeter_2);                                  // writer type
 #else
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
@@ -380,13 +394,28 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_I_Stream_SessionMessage,
                                           struct Stream_MediaFramework_ALSA_MediaType,
                                           float,
-                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter;
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_I_ConsoleVUMeter;
+typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Test_I_Stream_Message,
+                                          Test_I_Stream_SessionMessage,
+                                          struct Stream_MediaFramework_ALSA_MediaType,
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_I_ConsoleVUMeter_2;
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
                               libacestream_default_vis_console_audio_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_ConsoleVUMeter);                                    // writer type
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_MP3Player_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_vis_console_audio_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_ConsoleVUMeter_2);                                  // writer type
 #endif // ACE_WIN32 || ACE_WIN64
 
 //typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,

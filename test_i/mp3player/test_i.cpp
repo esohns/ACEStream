@@ -113,7 +113,7 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u          : display console VU meter [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : display console VU meter [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -132,7 +132,7 @@ do_processArguments (int argc_in,
                      std::string& outputFileName_out,
                      enum Stream_Device_Renderer& renderer_out,
                      bool& traceInformation_out,
-                     bool& consoleVUMeter_out,
+                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& consoleVUMeter_out,
                      bool& printVersionAndExit_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
@@ -148,12 +148,12 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   renderer_out = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   traceInformation_out = false;
-  consoleVUMeter_out = false;
+  consoleVUMeter_out = STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   printVersionAndExit_out = false;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:lo:r:tuv"),
+                              ACE_TEXT ("b:f:lo:r:tu:v"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -205,7 +205,13 @@ do_processArguments (int argc_in,
       }
       case 'u':
       {
-        consoleVUMeter_out = true;
+        int value_i;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> value_i;
+        consoleVUMeter_out =
+          static_cast<enum Stream_Visualization_SpectrumAnalyzer_2DMode> (value_i);
         break;
       }
       case 'v':
@@ -312,7 +318,7 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 
 void
 do_work (ACE_UINT32 bufferSize_in,
-         bool consoleVUMeter_in,
+         enum Stream_Visualization_SpectrumAnalyzer_2DMode consoleVUMeter_in,
          const std::string& inputFileName_in,
          const std::string& outputFileName_in,
          enum Stream_Device_Renderer renderer_in,
@@ -340,7 +346,7 @@ do_work (ACE_UINT32 bufferSize_in,
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
   delay_configuration.catchUp = true;
   delay_configuration.isMultimediaTask = true;
-  // delay_configuration.tokenFactor = 1.35f;
+  delay_configuration.tokenFactor = 1.35f; // *TODO*: the VU meter module 'lags behind' without this; why ?
 
   struct Stream_Visualization_SpectrumAnalyzer_Configuration analyzer_configuration;
 
@@ -535,7 +541,8 @@ ACE_TMAIN (int argc_in,
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   enum Stream_Device_Renderer renderer_e = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   bool trace_information = false;
-  bool console_VU_meter_b = false;
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode console_VU_meter_e =
+    STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   bool print_version_and_exit = false;
 
   // step1b: parse/process/validate configuration
@@ -547,7 +554,7 @@ ACE_TMAIN (int argc_in,
                             output_file,
                             renderer_e,
                             trace_information,
-                            console_VU_meter_b,
+                            console_VU_meter_e,
                             print_version_and_exit))
   {
     do_printUsage (ACE::basename (argv_in[0]));
@@ -659,7 +666,7 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size_i,
-           console_VU_meter_b,
+           console_VU_meter_e,
            input_file,
            output_file,
            renderer_e,

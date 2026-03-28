@@ -144,7 +144,7 @@ class Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
  , public Common_UI_WindowTypeConverter_T<void>
  , public Common_UI_IFullscreen
  , public Common_Math_FFT_T<ValueType,
-                            FFT_ALGORITHM_COOLEY_TUKEY> // *TODO*: make algorithm type a template parameter
+                            FFT_ALGORITHM_UNKNOWN> // *TODO*: make algorithm type a template parameter
  , public Common_ITimerHandler
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -159,7 +159,7 @@ class Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
   typedef Common_UI_WindowTypeConverter_T<void> inherited3;
   typedef Common_Math_FFT_T<ValueType,
-                            FFT_ALGORITHM_COOLEY_TUKEY> inherited4;
+                            FFT_ALGORITHM_UNKNOWN> inherited4;
 
  public:
   Stream_Module_Vis_Console_Audio_T (typename inherited::ISTREAM_T*); // stream handle

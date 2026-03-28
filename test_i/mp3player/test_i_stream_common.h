@@ -143,12 +143,12 @@ struct Test_I_MP3Player_StreamConfiguration
 {
   Test_I_MP3Player_StreamConfiguration ()
    : Test_I_StreamConfiguration ()
-   , consoleVUMeter (false)
+   , consoleVUMeter (STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID)
    , renderer (STREAM_DEV_AUDIO_DEFAULT_RENDERER)
   {}
 
-  bool                        consoleVUMeter;
-  enum Stream_Device_Renderer renderer;
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode consoleVUMeter;
+  enum Stream_Device_Renderer                       renderer;
 };
 
 struct Test_I_MP3Player_StreamState

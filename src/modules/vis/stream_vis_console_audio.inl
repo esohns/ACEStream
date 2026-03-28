@@ -805,7 +805,6 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (arg_in);
 
   unsigned int slot_number_i;
-  ValueType magnitude;
   ACE_UINT32 level_i;
   std::vector<ValueType> spectrum_a;
   for (unsigned int c = 0; c < channels_; ++c)
@@ -816,26 +815,24 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
          ++i)
     {
       slot_number_i = (i * scale_x_) + (scale_x_ / 2); // *NOTE*: display the middle bin of each 'scale_x_' bin block
-      magnitude = spectrum_a[slot_number_i];
-      level_i =
-        static_cast<ACE_UINT32> (std::min (std::max (magnitude * 39.0f, 0.0f), 39.0f));
+      level_i = static_cast<ACE_UINT32> (spectrum_a[slot_number_i] * 39.0f); // *NOTE*: magnitude is normalized
 
       //ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
-      //                level_i + 1, '*', 40 - level_i, ' ');
+      //                level_i + 1, '*',
+      //                40 - (level_i + 1), ' ');
       ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%.*s%.*s|\n"),
-                      level_i + 1, ACE_TEXT_ALWAYS_CHAR ("****************************************"),
+                      level_i + 1,        ACE_TEXT_ALWAYS_CHAR ("****************************************"),
                       40 - (level_i + 1), ACE_TEXT_ALWAYS_CHAR ("                                        "));
     } // end FOR
 
     if (c < channels_ - 1)
-      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%.*s\n"),
-                      40 + 2, ACE_TEXT_ALWAYS_CHAR ("++++++++++++++++++++++++++++++++++++++++++"));
+      ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%.*s|\n"),
+                      40,                 ACE_TEXT_ALWAYS_CHAR ("++++++++++++++++++++++++++++++++++++++++"));
   } // end FOR
+  ACE_OS::fflush (stdout);
 
   /* move cursor back up */
   ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("%c[%dA"),
                   0x1b, // ESC
                   channels_ * STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL + (channels_ - 1));
-
-  ACE_OS::fflush (stdout);
 }
