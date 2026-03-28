@@ -127,11 +127,11 @@ Stream_Decoder_FestivalDecoder_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
   std::string voice_string = ACE_TEXT_ALWAYS_CHAR ("voice_");
-  voice_string += ACE_TEXT_ALWAYS_CHAR ("rab_diphone");
-  //voice_string += configuration_in.voice;
+  //voice_string += ACE_TEXT_ALWAYS_CHAR ("rab_diphone");
+  voice_string += configuration_in.voice;
 
   std::string command_string = ACE_TEXT_ALWAYS_CHAR ("(");
-  command_string += ACE_TEXT_ALWAYS_CHAR ("set! default_voice '");;
+  //command_string += ACE_TEXT_ALWAYS_CHAR ("set! default_voice '");;
   command_string += voice_string;
   command_string += ACE_TEXT_ALWAYS_CHAR (")");
   result = festival_eval_command (EST_String (command_string.c_str ()));
