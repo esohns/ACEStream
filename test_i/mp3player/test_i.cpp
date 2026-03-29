@@ -346,7 +346,7 @@ do_work (ACE_UINT32 bufferSize_in,
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
   delay_configuration.catchUp = true;
   delay_configuration.isMultimediaTask = true;
-  delay_configuration.tokenFactor = 1.35f; // *TODO*: the VU meter module 'lags behind' without this; why ?
+  delay_configuration.tokenFactor = 1.35f; // *TODO*: the VU meter module 'lags behind' the audio without this, event when 'catching up' is enabled (why ?)
 
   struct Stream_Visualization_SpectrumAnalyzer_Configuration analyzer_configuration;
 
