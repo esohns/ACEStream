@@ -848,7 +848,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       } // end ELSE IF
       else if (event.type == ClientMessage)
       {
-        if (event.xclient.data.l[0] == WMDeleteMessage_)
+        if (static_cast<Atom> (event.xclient.data.l[0]) == WMDeleteMessage_)
           this->notify (STREAM_SESSION_MESSAGE_ABORT);
       } // end ELSE IF
     } // end WHILE
