@@ -309,6 +309,16 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // DEEPSPEECH_SUPPORT
       break;
     }
+    case STT_SAPI:
+    {
+#if defined (SAPI_SUPPORT)
+      ACE_NEW_RETURN (module_p,
+                      Test_I_DirectShow_SAPI_STT_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_STT_DEFAULT_NAME_STRING)),
+                      false);
+#endif // SAPI_SUPPORT
+      break;
+    }
     case STT_WHISPERCPP:
     {
 #if defined (WHISPERCPP_SUPPORT)

@@ -75,6 +75,9 @@ class Test_I_SessionMessage_T;
 enum Test_I_STTBackend
 {
   STT_DEEPSPEECH = 0,
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  STT_SAPI,
+#endif // ACE_WIN32 || ACE_WIN64
   STT_WHISPERCPP,
   //
   STT_MAX,

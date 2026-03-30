@@ -77,6 +77,9 @@
 #if defined (DEEPSPEECH_SUPPORT)
 #include "stream_dec_deepspeech_decoder.h"
 #endif // DEEPSPEECH_SUPPORT
+#if defined (SAPI_SUPPORT)
+#include "stream_dec_ms_speech_stt.h"
+#endif // SAPI_SUPPORT
 #if defined (WHISPERCPP_SUPPORT)
 #include "stream_dec_whisper_decoder.h"
 #endif // WHISPERCPP_SUPPORT
@@ -424,6 +427,25 @@ typedef Stream_Decoder_DeepSpeechDecoder_T<ACE_MT_SYNCH,
                                            Test_I_SpeechCommand_MediaFoundation_SessionData_t,
                                            IMFMediaType*> Test_I_MediaFoundation_DeepSpeechDecoder;
 #endif // DEEPSPEECH_SUPPORT
+
+#if defined (SAPI_SUPPORT)
+typedef Stream_Decoder_SAPI_STT_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_I_DirectShow_Message,
+                                  Test_I_DirectShow_SessionMessage_t,
+                                  Test_I_SpeechCommand_DirectShow_SessionData_t,
+                                  struct _AMMediaType> Test_I_DirectShow_SAPI_STT;
+typedef Stream_Decoder_SAPI_STT_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_I_MediaFoundation_Message,
+                                  Test_I_MediaFoundation_SessionMessage_t,
+                                  Test_I_SpeechCommand_MediaFoundation_SessionData_t,
+                                  IMFMediaType*> Test_I_MediaFoundation_SAPI_STT;
+#endif // SAPI_SUPPORT
 
 #if defined (WHISPERCPP_SUPPORT)
 typedef Stream_Decoder_WhisperCppDecoder_T<ACE_MT_SYNCH,
@@ -921,19 +943,35 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData, 
 //////////////////////////////////////////
 
 #if defined (DEEPSPEECH_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                                // session event type
-                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration,   // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_deepspeech_decoder_module_name_string,
-                              Stream_INotify_t,                                              // stream notification interface type
-                              Test_I_DirectShow_DeepSpeechDecoder);                                // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                                // session event type
-                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration,   // module handler configuration type
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_DeepSpeechDecoder);                              // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_deepspeech_decoder_module_name_string,
-                              Stream_INotify_t,                                              // stream notification interface type
-                              Test_I_MediaFoundation_DeepSpeechDecoder);                                // writer type
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_DeepSpeechDecoder);                              // writer type
 #endif // DEEPSPEECH_SUPPORT
+
+#if defined (SAPI_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Test_I_SpeechCommand_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sapi_stt_module_name_string,
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Test_I_DirectShow_SAPI_STT);                                       // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Test_I_SpeechCommand_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sapi_stt_module_name_string,
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Test_I_MediaFoundation_SAPI_STT);                                       // writer type
+#endif // SAPI_SUPPORT
+
 #if defined (WHISPERCPP_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_SpeechCommand_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type

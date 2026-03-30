@@ -74,6 +74,17 @@ load_STT_backends (GtkListStore* listStore_in)
                       0, ACE_TEXT_ALWAYS_CHAR ("DeepSpeech"),
                       1, STT_DEEPSPEECH,
                       -1);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#if defined (SAPI_SUPPORT)
+  gtk_list_store_append (listStore_in, &iterator);
+  gtk_list_store_set (listStore_in, &iterator,
+                      0, ACE_TEXT_ALWAYS_CHAR ("SAPI_STT"),
+                      1, STT_SAPI,
+                      -1);
+#endif // SAPI_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
   gtk_list_store_append (listStore_in, &iterator);
   gtk_list_store_set (listStore_in, &iterator,
                       0, ACE_TEXT_ALWAYS_CHAR ("WhisperCpp"),
@@ -2684,6 +2695,10 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 
       break;
     }
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    case STT_SAPI:
+      break;
+#endif // ACE_WIN32 || ACE_WIN64
     case STT_WHISPERCPP:
     {
       model_file_string =

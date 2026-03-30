@@ -77,8 +77,8 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
   if (context_)
     context_->Release ();
-  if (event_ != ACE_INVALID_HANDLE)
-    CloseEvent (event_);
+  //if (event_ != ACE_INVALID_HANDLE)
+  //  CloseHandle (event_);
   if (grammar_)
     grammar_->Release ();
   if (recognizer_)
@@ -110,13 +110,17 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    inSession_ = false;
+    sessionId_ = 0;
+
     if (context_)
     {
       context_->Release (); context_ = NULL;
     } // end IF
     if (event_ != ACE_INVALID_HANDLE)
     {
-      CloseEvent (event_); event_ = ACE_INVALID_HANDLE;
+      //CloseHandle (event_);
+      event_ = ACE_INVALID_HANDLE;
     } // end IF
     if (grammar_)
     {
@@ -237,10 +241,10 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   ACE_ASSERT (SUCCEEDED (result));
 
   // Activate Grammar
-  result = grammar_->SetRuleState (RULE_NAME_0,
-                                   0,
-                                   SPRS_ACTIVE);
-  ACE_ASSERT (SUCCEEDED (result));
+  //result = grammar_->SetRuleState (RULE_NAME_0,
+  //                                 0,
+  //                                 SPRS_ACTIVE);
+  //ACE_ASSERT (SUCCEEDED (result));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -271,12 +275,12 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
   message_inout->release (); message_inout = NULL;
 
-  return;
-
-error:
-  message_inout->release (); message_inout = NULL;
-
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+//  return;
+//
+//error:
+//  message_inout->release (); message_inout = NULL;
+//
+//  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -342,7 +346,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      inherited::stop (true,   // wait ?
+      inherited::stop (false,  // wait ?
                        false); // high priority ?
 
       if (grammar_)
@@ -363,7 +367,8 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
       } // end IF
       if (event_ != ACE_INVALID_HANDLE)
       {
-        CloseEvent (event_); event_ = ACE_INVALID_HANDLE;
+        //CloseHandle (event_);
+        event_ = ACE_INVALID_HANDLE;
       } // end IF
       if (grammar_)
       {
@@ -376,6 +381,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
       state_ = NULL;
 
       inSession_ = false;
+      sessionId_ = 0;
 
       break;
     }
@@ -460,7 +466,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
     if (inSession_)
     {
-      WaitForMultipleObjects (1, handles_a, FALSE, INFINITE);
+      //WaitForMultipleObjects (1, handles_a, FALSE, INFINITE);
 
       result_3 = spEvent.GetFrom (context_);
       if (FAILED (result_3))
@@ -522,7 +528,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
           break;
         }
-        case SPEI_SR_END_STREAM:
+        case SPEI_END_SR_STREAM:
           break;
       } // end SWITCH
       spEvent.Clear ();
