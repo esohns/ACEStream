@@ -132,7 +132,7 @@ do_printUsage (const std::string& programName_in)
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   std::string scorer_file = path;
   scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c [STRING] : scorer file [\"")
             << scorer_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -159,7 +159,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : model file [\"")
             << model_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -283,7 +283,8 @@ do_processArguments (int argc_in,
   // initialize results
   scorerFile_out = configuration_path;
   scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorerFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  scorerFile_out +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   deviceIdentifier_out = 0;
 #else
@@ -296,7 +297,7 @@ do_processArguments (int argc_in,
   gain_out = 0.0;
   modelFile_out = configuration_path;
   modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -646,7 +647,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   ACE_OS::memset (&waveformatex_s, 0, sizeof (struct tWAVEFORMATEX));
   // *NOTE*: DeepSpeech requires PCM mono signed 16 bits at 16000Hz
-  // *NOTE*: whisper.cpp requires float mono at 16000Hz
+  // *NOTE*: whisper.cpp requires floating point mono 32 bits at 16000Hz
   waveformatex_s.nChannels = 1;
   waveformatex_s.nSamplesPerSec = 16000;
   waveformatex_s.wFormatTag = WAVE_FORMAT_PCM;
@@ -1470,13 +1471,13 @@ do_work (const std::string& scorerFile_in,
         directshow_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-2"));
       } // end ELSE
 
-      std::string rnnn_file_path_string;
+      //std::string rnnn_file_path_string;
         // = Common_File_Tools::getWorkingDirectory ();
       //rnnn_file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
-      rnnn_file_path_string +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
-      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
+      //rnnn_file_path_string +=
+      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+      //rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
+      //rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
       //std::string ffmpeg_filter_description_string = ACE_TEXT_ALWAYS_CHAR ("arnndn=m='");
       //ffmpeg_filter_description_string += rnnn_file_path_string;
       //ffmpeg_filter_description_string += ACE_TEXT_ALWAYS_CHAR ("'");
@@ -1650,16 +1651,16 @@ do_work (const std::string& scorerFile_in,
         mediafoundation_modulehandler_configuration.effectOptions.push_back (ACE_TEXT_ALWAYS_CHAR ("-2"));
       } // end ELSE
 
-      std::string rnnn_file_path_string;
+      //std::string rnnn_file_path_string;
         // = Common_File_Tools::getWorkingDirectory ();
       //rnnn_file_path_string += ACE_DIRECTORY_SEPARATOR_STR;
-      rnnn_file_path_string +=
-        ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
-      rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
-      std::string ffmpeg_filter_description_string = ACE_TEXT_ALWAYS_CHAR ("arnndn=m='");
-      ffmpeg_filter_description_string += rnnn_file_path_string;
-      ffmpeg_filter_description_string += ACE_TEXT_ALWAYS_CHAR ("'");
+      //rnnn_file_path_string +=
+      //  ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+      //rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR ("/");
+      //rnnn_file_path_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_RNNN_FILE);
+      std::string ffmpeg_filter_description_string;//= ACE_TEXT_ALWAYS_CHAR ("arnndn=m='");
+      //ffmpeg_filter_description_string += rnnn_file_path_string;
+      //ffmpeg_filter_description_string += ACE_TEXT_ALWAYS_CHAR ("'");
       mediafoundation_modulehandler_configuration.filtersDescription =
         ffmpeg_filter_description_string;
 
@@ -1954,10 +1955,14 @@ do_work (const std::string& scorerFile_in,
   } // end IF
 #endif // SOX_SUPPORT
 
-  // *NOTE*: Whisper requires floating point mono signed 16 bits at 16000Hz
-  modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_FLOAT_LE;
+  // *NOTE*: Deepspeech requires PCM mono signed 16 bits at 16000Hz
+  // *NOTE*: WhisperCpp requires floating point mono 32 bits at 16000Hz
   modulehandler_configuration.outputFormat.channels = 1;
   modulehandler_configuration.outputFormat.rate = 16000;
+  if (TEST_I_DEFAULT_STT_BACKEND == STT_WHISPERCPP)
+    modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_FLOAT_LE;
+  else if (TEST_I_DEFAULT_STT_BACKEND == STT_DEEPSPEECH)
+    modulehandler_configuration.outputFormat.format = SND_PCM_FORMAT_S16_LE;
 
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
                                                                      true, // capture
@@ -2446,7 +2451,7 @@ ACE_TMAIN (int argc_in,
   // step1a set defaults
   std::string scorer_file = path;
   scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;
 #else
@@ -2459,7 +2464,7 @@ ACE_TMAIN (int argc_in,
   double gain_d = 0.0;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
   std::string UI_definition_file = path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);

@@ -1163,7 +1163,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   std::string model_file_string;
   std::string scorer_file_string;
   std::string language_string;
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2195,8 +2195,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
-  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -2291,6 +2291,26 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   struct Test_I_SpeechCommand_UI_ProgressData* progress_data_p = NULL;
 
   // step1: update configuration according to UI
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  GFile* file_p =
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (file_p);
+  char* filename_p = g_file_get_path (file_p);
+  g_object_unref (file_p); file_p = NULL;
+
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  file_p =
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (file_p);
+  char* filename_2 = g_file_get_path (file_p);
+  g_object_unref (file_p); file_p = NULL;
+
   GtkEntry* entry_p =
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_LANGUAGE_NAME)));
@@ -2302,12 +2322,20 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       (*directshow_modulehandler_configuration_iterator).second.second->language =
         gtk_entry_get_text (entry_p);
+      (*directshow_modulehandler_configuration_iterator).second.second->modelFile =
+        filename_p;
+      (*directshow_modulehandler_configuration_iterator).second.second->scorerFile =
+        filename_2;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       (*mediafoundation_modulehandler_configuration_iterator).second.second->language =
         gtk_entry_get_text (entry_p);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile =
+        filename_p;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile =
+        filename_2;
       break;
     }
     default:
@@ -2321,7 +2349,13 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   (*modulehandler_configuration_iterator).second.second->language =
     gtk_entry_get_text (entry_p);
+  (*modulehandler_configuration_iterator).second.second->modelFile =
+    filename_p;
+  (*modulehandler_configuration_iterator).second.second->scorerFile =
+    filename_2;
 #endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p); filename_p = NULL;
+  g_free (filename_2); filename_2 = NULL;
 
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
@@ -2532,6 +2566,8 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -2544,6 +2580,11 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 
       directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->STTBackend =
         STT_backend_e;
+
+      directshow_modulehandler_configuration_iterator =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2556,6 +2597,11 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 
       mediafoundation_ui_cb_data_p->configuration->streamConfiguration.configuration_->STTBackend =
         STT_backend_e;
+
+      mediafoundation_modulehandler_configuration_iterator =
+        mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
       break;
     }
     default:
@@ -2574,7 +2620,150 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 
   ui_cb_data_p->configuration->streamConfiguration.configuration_->STTBackend =
     STT_backend_e;
+
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 #endif // ACE_WIN32 || ACE_WIN64
+
+  std::string model_file_string, scorer_file_string;
+  switch (STT_backend_e)
+  {
+    case STT_DEEPSPEECH:
+    {
+      model_file_string =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+
+      scorer_file_string = 
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      scorer_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      scorer_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      scorer_file_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
+
+      // adjust resampler output format
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (ui_cb_data_base_p->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_PCM,
+                                                             (*directshow_modulehandler_configuration_iterator).second.second->outputFormat);
+
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          //(*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat.format =
+          //  SND_PCM_FORMAT_S16_LE;
+
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      ui_cb_data_base_p->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
+      (*modulehandler_configuration_iterator).second.second->outputFormat.format =
+        SND_PCM_FORMAT_S16_LE;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      break;
+    }
+    case STT_WHISPERCPP:
+    {
+      model_file_string =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+      model_file_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_WHISPERCPP_MODEL_FILE);
+
+      // adjust resampler output format
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      switch (ui_cb_data_base_p->mediaFramework)
+      {
+        case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+        {
+          Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_IEEE_FLOAT,
+                                                             (*directshow_modulehandler_configuration_iterator).second.second->outputFormat);
+
+          break;
+        }
+        case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+        {
+          //(*mediafoundation_modulehandler_configuration_iterator).second.second->outputFormat.format =
+          //  SND_PCM_FORMAT_FLOAT_LE;
+
+          break;
+        }
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                      ui_cb_data_base_p->mediaFramework));
+          return;
+        }
+      } // end SWITCH
+#else
+      (*modulehandler_configuration_iterator).second.second->outputFormat.format =
+        SND_PCM_FORMAT_FLOAT_LE;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown STT backend (was: %d), returning\n"),
+                  STT_backend_e));
+      return;
+    }
+  } // end SWITCH
+
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_MODEL_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  GFile* file_p = g_file_new_for_path (model_file_string.c_str ());
+  ACE_ASSERT (file_p);
+  GError* error_p = NULL;
+  gboolean result =
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                               file_p,
+                               &error_p);
+  ACE_ASSERT (result && !error_p);
+  g_object_unref (file_p); file_p = NULL;
+
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SCORER_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  file_p = g_file_new_for_path (scorer_file_string.c_str ());
+  ACE_ASSERT (file_p);
+  result =
+    gtk_file_chooser_set_file (GTK_FILE_CHOOSER (file_chooser_button_p),
+                               file_p,
+                               &error_p);
+  ACE_ASSERT (result && !error_p);
+  g_object_unref (file_p); file_p = NULL;
 } // combobox_backend_changed_cb
 
 void
