@@ -24,7 +24,7 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_whisper_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_NAME_STRING);
 
 void
 acestream_dec_whispercpp_on_log_cb (ggml_log_level level_in,

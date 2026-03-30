@@ -24,7 +24,7 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_espeak_ng_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DEFAULT_NAME_STRING);
 
 //////////////////////////////////////////
 

@@ -35,21 +35,21 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::Stream_Decoder_SAPIDecoder_T (typename inherited::ISTREAM_T* stream_in)
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::Stream_Decoder_SAPI_TTS_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , format_ ()
  , stream_ (NULL)
  , tempFilePath_ ()
  , voice_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::Stream_Decoder_SAPIDecoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::Stream_Decoder_SAPI_TTS_T"));
 
 }
 
@@ -61,16 +61,16 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename SessionDataContainerType,
           typename MediaType>
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::~Stream_Decoder_SAPIDecoder_T ()
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::~Stream_Decoder_SAPI_TTS_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::~Stream_Decoder_SAPIDecoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::~Stream_Decoder_SAPI_TTS_T"));
 
   if (stream_)
   {
@@ -90,17 +90,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 bool
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                     Stream_IAllocator* allocator_in)
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                  Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::initialize"));
 
   HRESULT result;
 
@@ -146,7 +146,7 @@ Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
     if (unlikely (!token_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_Decoder_SAPIDecoder_T::getVoiceToken (name was: \"%s\"), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_Decoder_SAPI_TTS_T::getVoiceToken (name was: \"%s\"), aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (configuration_in.voice.c_str ())));
       return false;
@@ -198,17 +198,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                            bool& passMessageDownstream_out)
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                         bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::handleDataMessage"));
 
   passMessageDownstream_out = false;
 
@@ -463,17 +463,17 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 void
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                               bool& passMessageDownstream_out)
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                            bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -543,16 +543,16 @@ template <ACE_SYNCH_DECL,
           typename SessionDataContainerType,
           typename MediaType>
 ISpObjectToken*
-Stream_Decoder_SAPIDecoder_T<ACE_SYNCH_USE,
-                             TimePolicyType,
-                             ConfigurationType,
-                             ControlMessageType,
-                             DataMessageType,
-                             SessionMessageType,
-                             SessionDataContainerType,
-                             MediaType>::getVoiceToken (const std::string& name_in)
+Stream_Decoder_SAPI_TTS_T<ACE_SYNCH_USE,
+                          TimePolicyType,
+                          ConfigurationType,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          SessionDataContainerType,
+                          MediaType>::getVoiceToken (const std::string& name_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPIDecoder_T::getVoiceToken"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_SAPI_TTS_T::getVoiceToken"));
 
   ISpObjectToken* token_p = NULL;
 

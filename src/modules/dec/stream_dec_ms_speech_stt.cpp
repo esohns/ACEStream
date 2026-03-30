@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_ms_speech_decoder.h"
+#include "stream_dec_ms_speech_stt.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_sapi_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_DECODER_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_sapi_stt_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_STT_DEFAULT_NAME_STRING);

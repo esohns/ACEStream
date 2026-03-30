@@ -78,7 +78,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if defined (SAPI_SUPPORT)
-#include "stream_dec_ms_speech_decoder.h"
+#include "stream_dec_ms_speech_tts.h"
 #endif // SAPI_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -257,22 +257,22 @@ typedef Stream_Decoder_FliteDecoder_T<ACE_MT_SYNCH,
 #endif // FLITE_SUPPORT
 
 #if defined (SAPI_SUPPORT)
-typedef Stream_Decoder_SAPIDecoder_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Test_I_DirectShow_Message,
-                                     Test_I_DirectShow_SessionMessage_t,
-                                     Test_I_CommandSpeech_DirectShow_SessionData_t,
-                                     struct _AMMediaType> Test_I_DirectShow_SAPI;
-typedef Stream_Decoder_SAPIDecoder_T<ACE_MT_SYNCH,
-                                     Common_TimePolicy_t,
-                                     struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
-                                     Stream_ControlMessage_t,
-                                     Test_I_DirectShow_Message,
-                                     Test_I_MediaFoundation_SessionMessage_t,
-                                     Test_I_CommandSpeech_MediaFoundation_SessionData_t,
-                                     IMFMediaType*> Test_I_MediaFoundation_SAPI;
+typedef Stream_Decoder_SAPI_TTS_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_I_DirectShow_Message,
+                                  Test_I_DirectShow_SessionMessage_t,
+                                  Test_I_CommandSpeech_DirectShow_SessionData_t,
+                                  struct _AMMediaType> Test_I_DirectShow_SAPI_TTS;
+typedef Stream_Decoder_SAPI_TTS_T<ACE_MT_SYNCH,
+                                  Common_TimePolicy_t,
+                                  struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration,
+                                  Stream_ControlMessage_t,
+                                  Test_I_DirectShow_Message,
+                                  Test_I_MediaFoundation_SessionMessage_t,
+                                  Test_I_CommandSpeech_MediaFoundation_SessionData_t,
+                                  IMFMediaType*> Test_I_MediaFoundation_SAPI_TTS;
 #endif // SAPI_SUPPORT
 
 //////////////////////////////////////////
@@ -824,15 +824,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData, 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                    // session event type
                               struct Test_I_CommandSpeech_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_sapi_decoder_module_name_string,
+                              libacestream_default_dec_sapi_tts_module_name_string,
                               Stream_INotify_t,                                                  // stream notification interface type
-                              Test_I_DirectShow_SAPI);                                           // writer type
+                              Test_I_DirectShow_SAPI_TTS);                                       // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_CommandSpeech_MediaFoundation_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                         // session event type
                               struct Test_I_CommandSpeech_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_dec_sapi_decoder_module_name_string,
+                              libacestream_default_dec_sapi_tts_module_name_string,
                               Stream_INotify_t,                                                       // stream notification interface type
-                              Test_I_MediaFoundation_SAPI);                                           // writer type
+                              Test_I_MediaFoundation_SAPI_TTS);                                       // writer type
 #endif // SAPI_SUPPORT
 
 //////////////////////////////////////////

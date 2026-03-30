@@ -304,7 +304,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (DEEPSPEECH_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_DirectShow_DeepSpeechDecoder_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DEFAULT_NAME_STRING)),
                       false);
 #endif // DEEPSPEECH_SUPPORT
       break;
@@ -314,7 +314,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (WHISPERCPP_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_DirectShow_WhisperCppDecoder_Module (this,
-                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NAME_STRING)),
+                                                                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_NAME_STRING)),
                       false);
 #endif // WHISPERCPP_SUPPORT
       break;
@@ -1145,7 +1145,7 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
   ++index_i;
   ACE_NEW_RETURN (module_p,
                   Test_I_MediaFoundation_DeepSpeechDecoder_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;

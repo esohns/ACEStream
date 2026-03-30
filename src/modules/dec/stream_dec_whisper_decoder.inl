@@ -65,18 +65,18 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   parameters_ = whisper_context_default_params ();
   parameters_.flash_attn =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_FLASH_ATTENTION;
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_FLASH_ATTENTION;
 
-  parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SAMPLING_STRATEGY);
+  parameters2_ = whisper_full_default_params (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_SAMPLING_STRATEGY);
   //if (unlikely (!parameters_.use_gpu))
   parameters2_.n_threads = Common_Tools::getNumberOfCPUs (true);
   // *NOTE*: (hopefully) reduces repetitions
   parameters2_.n_max_text_ctx =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_MAX_TOKEN_CONTEXT;
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_MAX_TOKEN_CONTEXT;
 
   //parameters2_.translate = false;
   parameters2_.no_context =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NO_CONTEXT;
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_NO_CONTEXT;
   parameters2_.no_timestamps = true;
   //parameters2_.print_special = false;
   parameters2_.print_progress = false;
@@ -90,7 +90,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   //parameters2_.debug_mode = false;
   parameters2_.audio_ctx =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_AUDIO_CONTEXT;
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_AUDIO_CONTEXT;
 
   //parameters2_.tdrz_enable = false;
 
@@ -101,17 +101,17 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   //parameters2_.temperature = 0.0f;
   parameters2_.length_penalty =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_LENGTH_PENALTY_F; // default: -1.0f
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_LENGTH_PENALTY_F; // default: -1.0f
 
   // *NOTE*: (hopefully) reduces repetitions
   parameters2_.entropy_thold =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_ENTROPY_THRESHOLD_F; // default: 2.4f
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_ENTROPY_THRESHOLD_F; // default: 2.4f
   //parameters2_.logprob_thold = -1.0f; // default: -1.0f
   //parameters2_.no_speech_thold = 0.6f; // default: 0.55f
 
   parameters2_.greedy.best_of =
   //parameters2_.beam_search.beam_size =
-    STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BEAM_SIZE;
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_BEAM_SIZE;
 
   parameters2_.progress_callback = acestream_dec_whispercpp_on_progress_cb;
   //parameters2_.progress_callback_user_data = NULL;
@@ -122,7 +122,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   parameters2_.abort_callback = acestream_dec_whispercpp_abort_cb;
   parameters2_.abort_callback_user_data = &aborted_;
 
-  if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_SUPPORT_VAD) // *TODO*
+  if (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_SUPPORT_VAD) // *TODO*
   {
     parameters2_.vad = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -301,8 +301,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     static_cast<int> (buffer_->total_length () / sampleSize_);
   bufferedMs_ =
     static_cast<unsigned int> ((number_of_samples_i * 1000.0f) / static_cast<float> (WHISPER_SAMPLE_RATE));
-  if (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_USE_BUFFER && // input needs to be >100ms
-      bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_BUFFER_LENGTH_MS)
+  if (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_USE_BUFFER && // input needs to be >100ms
+      bufferedMs_ < STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_BUFFER_LENGTH_MS)
       //bufferedMs_ < 500) // for whisper_full_parallel()
   {
     message_inout = NULL;

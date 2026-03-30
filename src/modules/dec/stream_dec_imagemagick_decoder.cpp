@@ -24,4 +24,4 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_imagemagick_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DECODER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_IMAGEMAGICK_DEFAULT_NAME_STRING);

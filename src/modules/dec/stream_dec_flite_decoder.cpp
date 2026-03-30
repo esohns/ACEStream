@@ -24,7 +24,7 @@
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_flite_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING);
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DEFAULT_NAME_STRING);
 
 int
 libacestream_flite_audio_stream_chunk_cb (const cst_wave* wave_in,

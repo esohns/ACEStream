@@ -190,7 +190,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       const typename SessionDataContainerType::DATA_T& session_data_r =
-          inherited::sessionData_->getR ();
+        inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
       const MediaType& media_type_r = session_data_r.formats.back ();
       cbData_.resolution = inherited2::getResolution (media_type_r);

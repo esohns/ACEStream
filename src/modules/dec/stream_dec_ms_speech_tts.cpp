@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "stream_dec_festival_decoder.h"
+#include "stream_dec_ms_speech_tts.h"
 
 #include "stream_dec_defines.h"
 
-const char libacestream_default_dec_festival_decoder_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DEFAULT_NAME_STRING);
+const char libacestream_default_dec_sapi_tts_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_TTS_DEFAULT_NAME_STRING);

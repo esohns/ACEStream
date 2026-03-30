@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEC_SAPI_DECODER_T_H
-#define STREAM_DEC_SAPI_DECODER_T_H
+#ifndef STREAM_DEC_SAPI_TTS_T_H
+#define STREAM_DEC_SAPI_TTS_T_H
 
 #include "sapi.h"
 #include "sphelper.h"
@@ -39,7 +39,7 @@
 class ACE_Message_Block;
 class Stream_IAllocator;
 
-extern const char libacestream_default_dec_sapi_decoder_module_name_string[];
+extern const char libacestream_default_dec_sapi_tts_module_name_string[];
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -52,7 +52,7 @@ template <ACE_SYNCH_DECL,
           ////////////////////////////////
           typename SessionDataContainerType,
           typename MediaType> // session data-
-class Stream_Decoder_SAPIDecoder_T
+class Stream_Decoder_SAPI_TTS_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
                                  ConfigurationType,
@@ -76,8 +76,8 @@ class Stream_Decoder_SAPIDecoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Decoder_SAPIDecoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_SAPIDecoder_T ();
+  Stream_Decoder_SAPI_TTS_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_SAPI_TTS_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -90,9 +90,9 @@ class Stream_Decoder_SAPIDecoder_T
                                      bool&);               // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T (const Stream_Decoder_SAPIDecoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPIDecoder_T& operator= (const Stream_Decoder_SAPIDecoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPI_TTS_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPI_TTS_T (const Stream_Decoder_SAPI_TTS_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_SAPI_TTS_T& operator= (const Stream_Decoder_SAPI_TTS_T&))
 
   // helper methods
   ISpObjectToken* getVoiceToken (const std::string&); // voice description (name) -> voice token
@@ -104,6 +104,6 @@ class Stream_Decoder_SAPIDecoder_T
 };
 
 // include template definition
-#include "stream_dec_ms_speech_decoder.inl"
+#include "stream_dec_ms_speech_tts.inl"
 
 #endif

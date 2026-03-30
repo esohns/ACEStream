@@ -108,7 +108,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (ESPEAK_NG_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_DirectShow_ESpeakNG_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING)),
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DEFAULT_NAME_STRING)),
                       false);
 #endif // ESPEAK_NG_SUPPORT
       break;
@@ -118,7 +118,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (FESTIVAL_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_DirectShow_Festival_Module (this,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DEFAULT_NAME_STRING)),
                       false);
 #endif // FESTIVAL_SUPPORT
       break;
@@ -128,7 +128,7 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (FLITE_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_DirectShow_Flite_Module (this,
-                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
+                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DEFAULT_NAME_STRING)),
                       false);
 #endif // FLITE_SUPPORT
       break;
@@ -137,8 +137,8 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
     case TTS_SAPI:
     {
       ACE_NEW_RETURN (module_p,
-                      Test_I_DirectShow_SAPI_Module (this,
-                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_DECODER_DEFAULT_NAME_STRING)),
+                      Test_I_DirectShow_SAPI_TTS_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_SAPI_TTS_DEFAULT_NAME_STRING)),
                       false);
       break;
     }
@@ -618,7 +618,7 @@ Test_I_MediaFoundation_Stream::load (Stream_ILayout* layout_in,
 #if defined (FLITE_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_I_MediaFoundation_Flite_Module (this,
-                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
+                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DEFAULT_NAME_STRING)),
                   false);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;

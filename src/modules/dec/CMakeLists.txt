@@ -234,9 +234,12 @@ if (WIN32)
  if (SAPI_SUPPORT)
   set (source_files
        ${source_files}
-       stream_dec_ms_speech_decoder.cpp
-       stream_dec_ms_speech_decoder.h
-       stream_dec_ms_speech_decoder.inl)
+       stream_dec_ms_speech_stt.cpp
+       stream_dec_ms_speech_stt.h
+       stream_dec_ms_speech_stt.inl
+       stream_dec_ms_speech_tts.cpp
+       stream_dec_ms_speech_tts.h
+       stream_dec_ms_speech_tts.inl)
  endif (SAPI_SUPPORT)
 endif (WIN32)
 
@@ -528,8 +531,10 @@ if (WIN32)
  if (SAPI_SUPPORT)
   set (${PROJECT_NAME}_Decoder_LIB_HDRS
        ${${PROJECT_NAME}_Decoder_LIB_HDRS}
-       stream_dec_ms_speech_decoder.h
-       stream_dec_ms_speech_decoder.inl)
+       stream_dec_ms_speech_stt.h
+       stream_dec_ms_speech_stt.inl
+       stream_dec_ms_speech_tts.h
+       stream_dec_ms_speech_tts.inl)
  endif (SAPI_SUPPORT)
 endif (WIN32)
 
