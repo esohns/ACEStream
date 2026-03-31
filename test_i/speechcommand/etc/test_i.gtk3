@@ -105,7 +105,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label_xalign">0</property>
-                        <property name="label_yalign">0</property>
                         <child>
                           <object class="GtkAlignment" id="alignment_actions">
                             <property name="visible">True</property>
@@ -161,7 +160,6 @@
                         <property name="sensitive">False</property>
                         <property name="can_focus">False</property>
                         <property name="label_xalign">0</property>
-                        <property name="label_yalign">0</property>
                         <child>
                           <object class="GtkAlignment" id="alignment_information">
                             <property name="visible">True</property>
@@ -433,7 +431,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label_xalign">0</property>
-                        <property name="label_yalign">0</property>
                         <child>
                           <object class="GtkAlignment" id="alignment_source">
                             <property name="visible">True</property>
@@ -599,7 +596,6 @@
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="label_xalign">0</property>
-                        <property name="label_yalign">0</property>
                         <child>
                           <object class="GtkAlignment" id="alignment_save">
                             <property name="visible">True</property>
@@ -844,7 +840,6 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="label_xalign">0</property>
-                <property name="label_yalign">0</property>
                 <child>
                   <object class="GtkBox" id="box_display">
                     <property name="visible">True</property>

@@ -1357,8 +1357,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_file_filter_set_name (file_filter_p,
                             ACE_TEXT ("TXT files"));
 
-  std::string stt_model_file_string, stt_scorer_file_string, llm_model_file_string;
-#if defined(ACE_WIN32) || defined(ACE_WIN64)
+  std::string stt_model_file_string, stt_scorer_file_string, stt_language_string, llm_model_file_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -1367,9 +1367,12 @@ idle_initialize_UI_cb (gpointer userData_in)
         (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
       //stt_scorer_file_string =
       //  (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+      stt_language_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->language;
 
       llm_model_file_string =
         (*directshow_modulehandler_configuration_iterator_5).second.second->modelFile;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1378,6 +1381,12 @@ idle_initialize_UI_cb (gpointer userData_in)
         (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
       //stt_scorer_file_string =
       //  (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
+      stt_language_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->language;
+
+      //llm_model_file_string =
+      //  (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
+
       break;
     }
     default:
@@ -1393,6 +1402,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     (*modulehandler_configuration_iterator).second.second->modelFile;
   //stt_scorer_file_string =
   //  (*modulehandler_configuration_iterator).second.second->scorerFile;
+  stt_language_string =
+    (*modulehandler_configuration_iterator).second.second->language;
 
   llm_model_file_string =
     (*modulehandler_configuration_iterator_5).second.second->modelFile;
@@ -1425,6 +1436,13 @@ idle_initialize_UI_cb (gpointer userData_in)
                                 &error_p);
   ACE_ASSERT (result && !error_p);
   g_object_unref (file_p); file_p = NULL;
+
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_STT_LANGUAGE_NAME)));
+  ACE_ASSERT (entry_p);
+  gtk_entry_set_text (entry_p,
+                      stt_language_string.c_str ());
 
   GtkFileChooserButton* llm_model_file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -2601,6 +2619,73 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 //  GtkSpinButton* spin_button_p = NULL;
 //  unsigned int value_i = 0;
 
+  // step1: update configuration according to UI
+  GtkFileChooserButton* file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_MODEL_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  GFile* file_p =
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (file_p);
+  char* filename_p = g_file_get_path (file_p);
+  g_object_unref (file_p); file_p = NULL;
+
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_SCORER_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  file_p =
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (file_p);
+  char* filename_2 = g_file_get_path (file_p);
+  g_object_unref (file_p); file_p = NULL;
+
+  GtkEntry* entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_STT_LANGUAGE_NAME)));
+  ACE_ASSERT (entry_p);
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      (*directshow_modulehandler_configuration_iterator).second.second->language =
+        gtk_entry_get_text (entry_p);
+      (*directshow_modulehandler_configuration_iterator).second.second->modelFile =
+        filename_p;
+      (*directshow_modulehandler_configuration_iterator).second.second->scorerFile =
+        filename_2;
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->language =
+        gtk_entry_get_text (entry_p);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile =
+        filename_p;
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile =
+        filename_2;
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  (*modulehandler_configuration_iterator).second.second->language =
+    gtk_entry_get_text (entry_p);
+  (*modulehandler_configuration_iterator).second.second->modelFile =
+    filename_p;
+  (*modulehandler_configuration_iterator).second.second->scorerFile =
+    filename_2;
+#endif // ACE_WIN32 || ACE_WIN64
+  g_free (filename_p); filename_p = NULL;
+  g_free (filename_2); filename_2 = NULL;
+
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
 
@@ -3493,6 +3578,25 @@ error:
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 } // combobox_source_changed_cb
+
+void
+entry_stt_language_icon_press_cb (GtkEntry* entry_in,
+                                  GtkEntryIconPosition position_in,
+                                  GdkEvent* event_in,
+                                  gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::entry_stt_language_icon_press_cb"));
+
+  // sanity check(s)
+  ACE_ASSERT (entry_in);
+
+  ACE_UNUSED_ARG (position_in);
+  ACE_UNUSED_ARG (event_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  gtk_entry_set_text (entry_in,
+                      ACE_TEXT_ALWAYS_CHAR ("en"));
+}
 
 void
 combobox_tts_changed_cb (GtkWidget* widget_in,

@@ -81,6 +81,7 @@
 #define TEST_I_UI_GTK_DIALOG_ABOUT_NAME                 "dialog_about"
 #define TEST_I_UI_GTK_DIALOG_MAIN_NAME                  "dialog_main"
 #define TEST_I_UI_GTK_DRAWINGAREA_NAME                  "drawingarea"
+#define TEST_I_UI_GTK_ENTRY_STT_LANGUAGE_NAME           "entry_stt_language"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_LLM_NAME        "filechooserbutton_llm"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_MODEL_NAME  "filechooserbutton_stt_model"
 #define TEST_I_UI_GTK_FILECHOOSERBUTTON_STT_SCORER_NAME "filechooserbutton_stt_scorer"
