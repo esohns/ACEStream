@@ -467,71 +467,77 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
     if (inSession_)
     {
       //WaitForMultipleObjects (1, handles_a, FALSE, INFINITE);
+      do
+      { 
+        result_3 = spEvent.GetFrom (context_);
+        if (result_3 == S_FALSE)
+          break;
 
-      result_3 = spEvent.GetFrom (context_);
-      if (FAILED (result_3))
-        continue;
-
-      switch (spEvent.eEventId)
-      {
-        case SPEI_RECOGNITION:
+        switch (spEvent.eEventId)
         {
-          ISpRecoResult* result_p = spEvent.RecoResult ();
-          ACE_ASSERT (result_p);
-
-          text_p = NULL;
-          result_3 = result_p->GetText (SP_GETWHOLEPHRASE,
-                                        SP_GETWHOLEPHRASE,
-                                        FALSE,
-                                        &text_p,
-                                        NULL);
-          ACE_ASSERT (SUCCEEDED (result_3) && text_p);
-          text_string = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (text_p));
-          CoTaskMemFree (text_p);
-
-          message_p =
-            inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-          if (unlikely (!message_p))
+          case SPEI_RECOGNITION:
           {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to allocateMessage(%u): \"%m\", aborting\n"),
-                        inherited::mod_->name (),
-                        inherited::configuration_->allocatorConfiguration->defaultBufferSize));
-            spEvent.Clear ();
-            goto error;
-          } // end IF
+            ISpRecoResult* result_p = spEvent.RecoResult ();
+            ACE_ASSERT (result_p);
 
-          result = message_p->copy (text_string.c_str (),
-                                    text_string.size ());
-          if (unlikely (result == -1))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%Q): \"%m\", aborting\n"),
-                        inherited::mod_->name (),
-                        text_string.size ()));
-            message_p->release ();
-            spEvent.Clear ();
-            goto error;
-          } // end IF
-          message_p->initialize (sessionId_, NULL);
+            text_p = NULL;
+            result_3 = result_p->GetText (SP_GETWHOLEPHRASE,
+                                          SP_GETWHOLEPHRASE,
+                                          FALSE,
+                                          &text_p,
+                                          NULL);
+            ACE_ASSERT (SUCCEEDED (result_3) && text_p);
+            text_string = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (text_p));
+            CoTaskMemFree (text_p);
 
-          result = inherited::put_next (message_p, NULL);
-          if (unlikely (result == -1))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
-                        inherited::mod_->name ()));
-            message_p->release ();
-            spEvent.Clear ();
-            goto error;
-          } // end IF
+            message_p =
+              inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+            if (unlikely (!message_p))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to allocateMessage(%u): \"%m\", aborting\n"),
+                          inherited::mod_->name (),
+                          inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+              spEvent.Clear ();
+              goto error;
+            } // end IF
 
-          break;
-        }
-        case SPEI_END_SR_STREAM:
-          break;
-      } // end SWITCH
-      spEvent.Clear ();
+            typename DataMessageType::DATA_T& data_r =
+              const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+            data_r.words.push_back (text_string);
+ 
+            result = message_p->copy (text_string.c_str (),
+                                      text_string.size ());
+            if (unlikely (result == -1))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%Q): \"%m\", aborting\n"),
+                          inherited::mod_->name (),
+                          text_string.size ()));
+              message_p->release ();
+              spEvent.Clear ();
+              goto error;
+            } // end IF
+            message_p->initialize (sessionId_, NULL);
+
+            result = inherited::put_next (message_p, NULL);
+            if (unlikely (result == -1))
+            {
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                          inherited::mod_->name ()));
+              message_p->release ();
+              spEvent.Clear ();
+              goto error;
+            } // end IF
+
+            break;
+          }
+          default:
+            break;
+        } // end SWITCH
+        spEvent.Clear ();
+      } while (true);
     } // end IF
   } while (true);
 
