@@ -421,7 +421,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   HRESULT result_3;
   wchar_t* text_p;
   std::string text_string;
-  DataMessageType* message_p = NULL;
+  DataMessageType* message_p;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
