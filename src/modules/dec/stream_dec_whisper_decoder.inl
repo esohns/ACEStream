@@ -485,7 +485,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid sample resolution (expected %d; was: %u), aborting\n"),
                     inherited::mod_->name (),
-                    16, waveformatex_p->wBitsPerSample));
+                    32, waveformatex_p->wBitsPerSample));
         CoTaskMemFree (waveformatex_p); waveformatex_p = NULL;
         goto error;
       } // end IF
