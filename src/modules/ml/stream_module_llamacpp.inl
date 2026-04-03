@@ -65,11 +65,12 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LlamaCpp_T::~Stream_Module_LlamaCpp_T"));
 
+  //llama_kv_cache_clear (context_);
   llama_sampler_free (sampler_);
   llama_free (context_);
   llama_model_free (model_);
 
-  for (struct llama_chat_message& msg: messages_)
+  for (struct llama_chat_message& msg : messages_)
     free (const_cast<char*> (msg.content));
 }
 
@@ -88,6 +89,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   if (inherited::isInitialized_)
   {
+    //llama_kv_cache_clear (context_);
     llama_sampler_free (sampler_); sampler_ = NULL;
     llama_free (context_); context_ = NULL;
     llama_model_free (model_); model_ = NULL;
@@ -120,6 +122,11 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   struct llama_context_params ctx_params = llama_context_default_params ();
   ctx_params.n_ctx = MODULE_ML_LLAMA_CPP_DEFAULT_CONTEXT_SIZE;
   ctx_params.n_batch = MODULE_ML_LLAMA_CPP_DEFAULT_CONTEXT_SIZE;
+  ctx_params.n_threads = Common_Tools::getNumberOfCPUs (false);
+  ctx_params.n_threads_batch = ctx_params.n_threads;
+  //ctx_params.offload_kqv = true; // offload KQV ops to GPU
+  ctx_params.no_perf = true; // disable performance metrics
+  //ctx_params.op_offload = true;  // offload host tensor operations to device
   context_ = llama_init_from_model (model_, ctx_params);
   if (unlikely (!context_))
   {
@@ -131,6 +138,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   // initialize the sampler
   struct llama_sampler_chain_params smpl_params = llama_sampler_chain_default_params ();
+  smpl_params.no_perf = true; // disable performance metrics
   sampler_ = llama_sampler_chain_init (smpl_params);
   if (unlikely (!sampler_))
   {
@@ -139,8 +147,8 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-  llama_sampler_chain_add (sampler_, llama_sampler_init_min_p (0.05f, 1));
-  llama_sampler_chain_add (sampler_, llama_sampler_init_temp (0.8f));
+  llama_sampler_chain_add (sampler_, llama_sampler_init_min_p (MODULE_ML_LLAMA_CPP_DEFAULT_MIN_P, 1));
+  llama_sampler_chain_add (sampler_, llama_sampler_init_temp (MODULE_ML_LLAMA_CPP_DEFAULT_TEMPERATURE));
   llama_sampler_chain_add (sampler_, llama_sampler_init_dist (LLAMA_DEFAULT_SEED));
 
   template_ = llama_model_chat_template (model_, NULL);
@@ -190,9 +198,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   prompt_string_2.assign (formatted_.begin () + previousLength_, formatted_.begin () + new_len);
 
   // generate a response
-  //printf ("\033[33m");
   response = generate (prompt_string_2);
-  //printf ("\n\033[0m");
 
   // add the response to the messages
   messages_.push_back ({"assistant", ACE_OS::strdup (response.c_str ())});
@@ -212,7 +218,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%s,%Q): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Block::copy(\"%s\",%Q): \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (response.c_str ()),
                 response.size ()));
@@ -242,12 +248,11 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   std::string response;
 
-  const bool is_first = llama_memory_seq_pos_max (llama_get_memory (context_), 0) == -1;
-
   // tokenize the prompt
-  const int n_prompt_tokens = -llama_tokenize (vocab_, prompt_in.c_str (), prompt_in.size (), NULL, 0, is_first, true);
-  std::vector<llama_token> prompt_tokens (n_prompt_tokens);
-  if (llama_tokenize (vocab_, prompt_in.c_str (), prompt_in.size (), prompt_tokens.data (), prompt_tokens.size (), is_first, true) < 0)
+  const bool is_first_b = llama_memory_seq_pos_max (llama_get_memory (context_), 0) == -1;
+  const int n_prompt_tokens = -llama_tokenize (vocab_, prompt_in.c_str (), prompt_in.size (), NULL, 0, is_first_b, true);
+  std::vector<llama_token> prompt_tokens_a (n_prompt_tokens);
+  if (unlikely (llama_tokenize (vocab_, prompt_in.c_str (), prompt_in.size (), prompt_tokens_a.data (), prompt_tokens_a.size (), is_first_b, true) < 0))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to tokenize the prompt (was: \"%s\"), returning\n"),
@@ -257,16 +262,18 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   } // end IF
 
   // prepare a batch for the prompt
-  llama_batch batch = llama_batch_get_one (prompt_tokens.data (), prompt_tokens.size ());
+  llama_batch batch = llama_batch_get_one (prompt_tokens_a.data (), prompt_tokens_a.size ());
   llama_token new_token_id;
+  char buffer_a[256];
+  int n_ctx, n_ctx_used, result, n;
+  std::string piece_string;
   while (true)
   {
     // check if we have enough space in the context to evaluate this batch
-    int n_ctx = llama_n_ctx (context_);
-    int n_ctx_used = llama_memory_seq_pos_max (llama_get_memory (context_), 0) + 1;
-    if (n_ctx_used + batch.n_tokens > n_ctx)
+    n_ctx = llama_n_ctx (context_);
+    n_ctx_used = llama_memory_seq_pos_max (llama_get_memory (context_), 0) + 1;
+    if (unlikely (n_ctx_used + batch.n_tokens > n_ctx))
     {
-      //printf ("\033[0m\n");
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: context size exceeded (was: %d, is: %d), returning\n"),
                   inherited::mod_->name (),
@@ -275,14 +282,14 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
       return response;
     } // end IF
 
-    int ret = llama_decode (context_, batch);
-    if (ret != 0)
+    result = llama_decode (context_, batch);
+    if (unlikely (result != 0))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to decode the prompt (was: \"%s\"): %d, returning\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (prompt_in.c_str ()),
-                  ret));
+                  result));
       return response;
     } // end IF
 
@@ -294,9 +301,8 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
       break;
 
     // convert the token to a string, print it and add it to the response
-    char buf[256];
-    int n = llama_token_to_piece (vocab_, new_token_id, buf, sizeof (char[256]), 0, true);
-    if (n < 0)
+    n = llama_token_to_piece (vocab_, new_token_id, buffer_a, sizeof (char[256]), 0, true);
+    if (unlikely (n < 0))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to convert token to piece (prompt was: \"%s\"): %d, returning\n"),
@@ -305,10 +311,8 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
                   n));
       return response;
     } // end IF
-    std::string piece (buf, n);
-    //printf ("%s", piece.c_str ());
-    //fflush (stdout);
-    response += piece;
+    piece_string.assign (buffer_a, n);
+    response += piece_string;
 
     // prepare the next batch with the sampled token
     batch = llama_batch_get_one (&new_token_id, 1);
