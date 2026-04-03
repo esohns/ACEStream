@@ -104,6 +104,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   // initialize the model
   struct llama_model_params model_params = llama_model_default_params ();
   model_params.n_gpu_layers = MODULE_ML_LLAMA_CPP_DEFAULT_NUMBER_OF_GPU_LAYERS;
+  model_params.use_mmap = true; // use mmap if possible
   model_ =
     llama_model_load_from_file (configuration_in.modelFile.c_str (),
                                 model_params);
@@ -156,6 +157,29 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   formatted_.resize (llama_n_ctx (context_));
 
+  // set output language ?
+  if (!configuration_in.language.empty () &&
+       configuration_in.language != ACE_TEXT_ALWAYS_CHAR ("en"))
+  {
+    std::string message_string =
+      ACE_TEXT_ALWAYS_CHAR ("You are a helpful assistant that speaks ");
+    if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("de"))
+      message_string += ACE_TEXT_ALWAYS_CHAR ("german");
+    else if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("fr"))
+      message_string += ACE_TEXT_ALWAYS_CHAR ("french");
+    else if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("es"))
+      message_string += ACE_TEXT_ALWAYS_CHAR ("spanish");
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown language (was: \"%s\"), aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.language.c_str ())));
+      return false;
+    } // end ELSE
+    messages_.push_back ({ACE_TEXT_ALWAYS_CHAR ("system"), ACE_OS::strdup (message_string.c_str ())});
+  } // end IF
+
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -178,7 +202,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   int result;
 
   // add the user input to the message list and format it
-  messages_.push_back ({"user", ACE_OS::strdup (prompt_string.c_str ())});
+  messages_.push_back ({ACE_TEXT_ALWAYS_CHAR ("user"), ACE_OS::strdup (prompt_string.c_str ())});
   int new_len = llama_chat_apply_template (template_, messages_.data (), messages_.size (), true, formatted_.data (), formatted_.size ());
   if (new_len > (int)formatted_.size ())
   {
@@ -201,7 +225,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   response = generate (prompt_string_2);
 
   // add the response to the messages
-  messages_.push_back ({"assistant", ACE_OS::strdup (response.c_str ())});
+  messages_.push_back (ACE_TEXT_ALWAYS_CHAR ({"assistant"), ACE_OS::strdup (response.c_str ())});
   previousLength_ = llama_chat_apply_template (template_, messages_.data (), messages_.size (), false, NULL, 0);
   if (unlikely (previousLength_ < 0))
   {
