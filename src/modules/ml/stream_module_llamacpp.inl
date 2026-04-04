@@ -162,7 +162,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
        configuration_in.language != ACE_TEXT_ALWAYS_CHAR ("en"))
   {
     std::string message_string =
-      ACE_TEXT_ALWAYS_CHAR ("You are a helpful assistant that speaks ");
+      ACE_TEXT_ALWAYS_CHAR ("You are a helpful assistant that speaks only ");
     if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("de"))
       message_string += ACE_TEXT_ALWAYS_CHAR ("german");
     else if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("fr"))
@@ -199,15 +199,17 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   std::string prompt_string = message_inout->rd_ptr ();
   std::string prompt_string_2, response;
-  int result;
+  int result, new_len;
 
   // add the user input to the message list and format it
   messages_.push_back ({ACE_TEXT_ALWAYS_CHAR ("user"), ACE_OS::strdup (prompt_string.c_str ())});
-  int new_len = llama_chat_apply_template (template_, messages_.data (), messages_.size (), true, formatted_.data (), formatted_.size ());
-  if (new_len > (int)formatted_.size ())
+  new_len =
+    llama_chat_apply_template (template_, messages_.data (), messages_.size (), true, formatted_.data (), formatted_.size ());
+  if (new_len > static_cast<int> (formatted_.size ()))
   {
     formatted_.resize (new_len);
-    new_len = llama_chat_apply_template (template_, messages_.data (), messages_.size (), true, formatted_.data (), formatted_.size ());
+    new_len =
+      llama_chat_apply_template (template_, messages_.data (), messages_.size (), true, formatted_.data (), formatted_.size ());
   } // end IF
   if (unlikely (new_len < 0))
   {
@@ -226,7 +228,8 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
 
   // add the response to the messages
   messages_.push_back (ACE_TEXT_ALWAYS_CHAR ({"assistant"), ACE_OS::strdup (response.c_str ())});
-  previousLength_ = llama_chat_apply_template (template_, messages_.data (), messages_.size (), false, NULL, 0);
+  previousLength_ =
+    llama_chat_apply_template (template_, messages_.data (), messages_.size (), false, NULL, 0);
   if (unlikely (previousLength_ < 0))
   {
     ACE_DEBUG ((LM_ERROR,

@@ -2034,7 +2034,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #if defined (DEEPSPEECH_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_ALSA_DeepSpeechDecoder_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DECODER_DEFAULT_NAME_STRING)),
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_DEEPSPEECH_DEFAULT_NAME_STRING)),
                       false);
 #endif // DEEPSPEECH_SUPPORT
       break;
@@ -2044,7 +2044,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #if defined (WHISPERCPP_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_ALSA_WhisperCppDecoder_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DECODER_DEFAULT_NAME_STRING)),
+                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_NAME_STRING)),
                       false);
 #endif // WHISPERCPP_SUPPORT
       break;

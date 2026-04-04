@@ -2362,8 +2362,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_entry_get_text (entry_p);
   (*modulehandler_configuration_iterator).second.second->modelFile =
     filename_p;
-  (*modulehandler_configuration_iterator).second.second->scorerFile =
-    filename_2;
+  (*modulehandler_configuration_iterator).second.second->scorerFile.clear ();
+  if (filename_2)
+    (*modulehandler_configuration_iterator).second.second->scorerFile = filename_2;
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p); filename_p = NULL;
   g_free (filename_2); filename_2 = NULL;

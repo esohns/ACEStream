@@ -489,7 +489,8 @@ error:
       } // end IF
       if (likely (CBData_.core))
       {
-        pw_core_disconnect (CBData_.core); CBData_.core = NULL;
+        pw_core_disconnect (CBData_.core);
+        CBData_.core = NULL;
       } // end IF
       if (likely (context_))
       {

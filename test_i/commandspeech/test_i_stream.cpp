@@ -1435,7 +1435,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #if defined (ESPEAK_NG_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_ALSA_ESpeakNG_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DECODER_DEFAULT_NAME_STRING)),
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_ESPEAK_NG_DEFAULT_NAME_STRING)),
                       false);
 #endif // ESPEAK_NG_SUPPORT
       break;
@@ -1445,7 +1445,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #if defined (FESTIVAL_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_ALSA_Festival_Module (this,
-                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DECODER_DEFAULT_NAME_STRING)),
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FESTIVAL_DEFAULT_NAME_STRING)),
                       false);
 #endif // FESTIVAL_SUPPORT
       break;
@@ -1455,7 +1455,7 @@ Test_I_ALSA_Stream::load (Stream_ILayout* layout_in,
 #if defined (FLITE_SUPPORT)
       ACE_NEW_RETURN (module_p,
                       Test_I_ALSA_Flite_Module (this,
-                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DECODER_DEFAULT_NAME_STRING)),
+                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FLITE_DEFAULT_NAME_STRING)),
                       false);
 #endif // FLITE_SUPPORT
       break;

@@ -7,10 +7,10 @@ if (UNIX)
   set (DEEPSPEECH_INCLUDE_DIRS "${PKG_DEEPSPEECH_INCLUDE_DIRS}")
   set (DEEPSPEECH_LIBRARIES "${PKG_DEEPSPEECH_LIBRARIES}")
  else ()
-  set (DEEPSPEECH_LIB_FILE "libdeepspeech.so.remove_when_link_succeeds")
+  set (DEEPSPEECH_LIB_FILE "libdeepspeech.so")
   find_library (DEEPSPEECH_LIBRARY ${DEEPSPEECH_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/DeepSpeech/tensorflow/bazel-bin
-                PATH_SUFFIXES native_client
+                PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client/linux
+                PATH_SUFFIXES bin
                 DOC "searching for ${DEEPSPEECH_LIB_FILE}")
   if (NOT DEEPSPEECH_LIBRARY)
    message (WARNING "could not find ${DEEPSPEECH_LIB_FILE}, continuing")
@@ -23,7 +23,6 @@ if (UNIX)
  endif (PKG_DEEPSPEECH_FOUND)
 elseif (WIN32)
  if (VCPKG_USE)
-#  cmake_policy (SET CMP0074 OLD)
   find_package (deepspeech CONFIG)
   if (deepspeech_FOUND)
    set (DEEPSPEECH_FOUND TRUE)
@@ -34,8 +33,8 @@ elseif (WIN32)
  if (NOT deepspeech_FOUND)
   set (DEEPSPEECH_LIB_FILE "libdeepspeech.so.if.lib")
   find_library (DEEPSPEECH_LIBRARY ${DEEPSPEECH_LIB_FILE}
-                PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client/windows/bin
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATHS $ENV{LIB_ROOT}/DeepSpeech/native_client/windows
+                PATH_SUFFIXES bin
                 DOC "searching for ${DEEPSPEECH_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT DEEPSPEECH_LIBRARY)
@@ -53,7 +52,6 @@ if (DEEPSPEECH_FOUND)
  option (DEEPSPEECH_SUPPORT "enable deepspeech support" ${DEEPSPEECH_SUPPORT_DEFAULT})
  if (DEEPSPEECH_SUPPORT)
   add_definitions (-DDEEPSPEECH_SUPPORT)
-#  include_directories (${DEEPSPEECH_INCLUDE_DIRS})
  endif (DEEPSPEECH_SUPPORT)
 endif (DEEPSPEECH_FOUND)
 

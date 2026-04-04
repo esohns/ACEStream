@@ -103,11 +103,6 @@ acestream_lib_pipewire_set_volume_cb (struct spa_loop* loop_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->channels <= SPA_AUDIO_MAX_CHANNELS);
 
-  // int result = pw_node_set_param ((struct pw_node*)cb_data_p->proxy,
-  //                                 SPA_PARAM_Route, // parameter type we are setting
-  //                                 0,               // flags
-  //                                 cb_data_p->pod);
-
   float volumes_a[SPA_AUDIO_MAX_CHANNELS];
   for (uint32_t i = 0; i < cb_data_p->channels; i++)
     volumes_a[i] = cb_data_p->volume;

@@ -2680,8 +2680,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_entry_get_text (entry_p);
   (*modulehandler_configuration_iterator).second.second->modelFile =
     filename_p;
-  (*modulehandler_configuration_iterator).second.second->scorerFile =
-    filename_2;
+  (*modulehandler_configuration_iterator).second.second->scorerFile.clear ();
+  if (filename_2)
+    (*modulehandler_configuration_iterator).second.second->scorerFile = filename_2;
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p); filename_p = NULL;
   g_free (filename_2); filename_2 = NULL;
@@ -3969,7 +3970,7 @@ continue_:
     static_cast<struct Test_I_ALSA_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p->configuration);
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
