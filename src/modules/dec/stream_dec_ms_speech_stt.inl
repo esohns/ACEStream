@@ -136,7 +136,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   result = CoCreateInstance (CLSID_SpSharedRecognizer, NULL,
                              CLSCTX_INPROC_SERVER,
                              IID_PPV_ARGS (&recognizer_));
-  if (FAILED (result) || !recognizer_)
+  if (unlikely (FAILED (result) || !recognizer_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CoCreateInstance(%s): \"%s\", aborting\n"),
@@ -164,7 +164,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   //audio_p->Release (); audio_p = NULL;
 
   result = recognizer_->CreateRecoContext (&context_);
-  if (FAILED (result) || !context_)
+  if (unlikely (FAILED (result) || !context_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISpRecognizer::CreateRecoContext(): \"%s\", aborting\n"),
@@ -176,7 +176,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   ACE_ASSERT (SUCCEEDED (result));
 
   result = context_->CreateGrammar (NULL, &grammar_);
-  if (FAILED (result) || !grammar_)
+  if (unlikely (FAILED (result) || !grammar_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISpRecoContext::CreateGrammar(): \"%s\", aborting\n"),
@@ -185,8 +185,46 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+  if (!configuration_in.language.empty () &&
+       configuration_in.language != ACE_TEXT_ALWAYS_CHAR ("en"))
+  {
+    WORD langId;
+    if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("de"))
+      langId = MAKELANGID (LANG_GERMAN, SUBLANG_GERMAN);
+    else if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("fr"))
+      langId = MAKELANGID (LANG_FRENCH, SUBLANG_FRENCH);
+    else if (configuration_in.language == ACE_TEXT_ALWAYS_CHAR ("es"))
+      langId = MAKELANGID (LANG_SPANISH, SUBLANG_SPANISH);
+    else
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unknown language (was: \"%s\"), aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (configuration_in.language.c_str ())));
+      return false;
+    } // end ELSE
+    bool already_retried_b = false;
+retry:
+    result = grammar_->ResetGrammar (langId);
+    if (unlikely (FAILED (result)))
+    {
+      ACE_DEBUG ((already_retried_b ? LM_ERROR : LM_WARNING,
+                  ACE_TEXT ("%s: failed to ISpRecoGrammar::ResetGrammar(%d): \"%s\", %s\n"),
+                  inherited::mod_->name (),
+                  langId,
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ()),
+                  already_retried_b ? ACE_TEXT ("aborting") : ACE_TEXT ("falling back")));
+      if (!already_retried_b)
+      { already_retried_b = true;
+        langId = GetUserDefaultUILanguage ();//MAKELANGID (LANG_ENGLISH, SUBLANG_ENGLISH_US);
+        goto retry;
+      } // end IF
+      return false;
+    } // end IF
+  } // end IF
+
   result = grammar_->LoadDictation (NULL, SPLO_STATIC);
-  if (FAILED (result))
+  if (unlikely (FAILED (result)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ISpRecoGrammar::LoadDictation(): \"%s\", aborting\n"),
@@ -195,11 +233,6 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-//  WORD langId = MAKELANGID (LANG_ENGLISH, SUBLANG_ENGLISH_US);
-//  result = grammar_->ResetGrammar (langId);
-//  // TODO: Catch error and use default langId => GetUserDefaultUILanguage()
-//  ACE_ASSERT (SUCCEEDED (result));
-//
 //  // Create rules
 //#define RULE_NAME_0 ACE_TEXT_ALWAYS_WCHAR ("Rule_0")
 //  result = grammar_->GetRule (RULE_NAME_0,
@@ -224,6 +257,12 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 //  result = grammar_->Commit (0);
 //  ACE_ASSERT (SUCCEEDED (result));
 
+// // Activate Grammar
+// result = grammar_->SetRuleState (RULE_NAME_0,
+//                                  0,
+//                                  SPRS_ACTIVE);
+// ACE_ASSERT (SUCCEEDED (result));
+
   result = context_->SetNotifyWin32Event ();
   ACE_ASSERT (SUCCEEDED (result));
 
@@ -239,12 +278,6 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
   ULONGLONG interest_i = SPFEI (SPEI_RECOGNITION);
   result = context_->SetInterest (interest_i, interest_i);
   ACE_ASSERT (SUCCEEDED (result));
-
-  // Activate Grammar
-  //result = grammar_->SetRuleState (RULE_NAME_0,
-  //                                 0,
-  //                                 SPRS_ACTIVE);
-  //ACE_ASSERT (SUCCEEDED (result));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
