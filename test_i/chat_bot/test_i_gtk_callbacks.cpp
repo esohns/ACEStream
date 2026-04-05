@@ -2518,6 +2518,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     NULL;
   Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator;
   Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator;
+  Test_I_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_2; // llama
   bool use_framework_source_b = false;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -2532,6 +2533,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
+      directshow_modulehandler_configuration_iterator_2 =
+        directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_modulehandler_configuration_iterator_2 != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
       ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
 
       stream_p = directshow_ui_cb_data_p->stream;
@@ -2578,6 +2582,9 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator_2 =
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LLAMA_CPP_DEFAULT_NAME_STRING));
+  ACE_ASSERT (modulehandler_configuration_iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   stream_p = ui_cb_data_p->stream;
   //is_file_source_b =
@@ -2644,6 +2651,16 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_STT_LANGUAGE_NAME)));
   ACE_ASSERT (entry_p);
+
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_LLM_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  file_p =
+    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (file_p);
+  char* filename_3 = g_file_get_path (file_p);
+  g_object_unref (file_p); file_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -2651,10 +2668,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     {
       (*directshow_modulehandler_configuration_iterator).second.second->language =
         gtk_entry_get_text (entry_p);
+      (*directshow_modulehandler_configuration_iterator_2).second.second->language =
+        gtk_entry_get_text (entry_p);
       (*directshow_modulehandler_configuration_iterator).second.second->modelFile =
         filename_p;
       (*directshow_modulehandler_configuration_iterator).second.second->scorerFile =
         filename_2;
+      (*directshow_modulehandler_configuration_iterator_2).second.second->modelFile =
+        filename_3;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2683,9 +2704,12 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   (*modulehandler_configuration_iterator).second.second->scorerFile.clear ();
   if (filename_2)
     (*modulehandler_configuration_iterator).second.second->scorerFile = filename_2;
+  (*modulehandler_configuration_iterator_2).second.second->modelFile =
+    filename_3;
 #endif // ACE_WIN32 || ACE_WIN64
   g_free (filename_p); filename_p = NULL;
   g_free (filename_2); filename_2 = NULL;
+  g_free (filename_3); filename_3 = NULL;
 
   // step2: modify widgets
   gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
