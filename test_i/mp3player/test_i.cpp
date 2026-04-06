@@ -505,6 +505,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
+
   // *PORTABILITY*: on Windows, initialize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = ACE::init ();
@@ -525,9 +529,6 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
-#if defined (LIBPIPEWIRE_SUPPORT)
-  pw_init (&argc_in, &argv_in);
-#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -557,7 +558,7 @@ ACE_TMAIN (int argc_in,
                             console_VU_meter_e,
                             print_version_and_exit))
   {
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -576,7 +577,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     // *PORTABILITY*: on Windows, finalize ACE...
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -646,7 +647,7 @@ ACE_TMAIN (int argc_in,
   // step1f: handle specific program modes
   if (print_version_and_exit)
   {
-    do_printVersion (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     Common_Signal_Tools::finalize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                    previous_signal_actions,
@@ -761,19 +762,16 @@ ACE_TMAIN (int argc_in,
   Common_Tools::finalize ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (LIBPIPEWIRE_SUPPORT)
-  pw_deinit ();
-#endif // LIBPIPEWIRE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
   if (result == -1)
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
 
   return EXIT_SUCCESS;
 } // end main
