@@ -35,13 +35,11 @@
 
 #include "cppuhelper/implbase1.hxx"
 
-using namespace ::com::sun::star;
-
 class Stream_Module_LibreOffice_Document_Handler
- : public ::cppu::WeakAggImplHelper1<task::XInteractionHandler>
+ : public ::cppu::WeakAggImplHelper1<::com::sun::star::task::XInteractionHandler>
 // : public ::cppu::WeakImplHelper1<task::XInteractionHandler>
 {
-  typedef ::cppu::WeakAggImplHelper1<task::XInteractionHandler> inherited;
+  typedef ::cppu::WeakAggImplHelper1<::com::sun::star::task::XInteractionHandler> inherited;
 //  typedef ::cppu::WeakImplHelper1<task::XInteractionHandler> inherited;
 
  public:
@@ -53,7 +51,7 @@ class Stream_Module_LibreOffice_Document_Handler
   //virtual void SAL_CALL acquire () /* throw () */;
   //virtual void SAL_CALL release () /* throw () */;
 
-  virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
+  virtual void SAL_CALL handle (const ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Handler (const Stream_Module_LibreOffice_Document_Handler&))

@@ -37,8 +37,6 @@
 
 extern const char libacestream_default_doc_libreoffice_writer_module_name_string[];
 
-using namespace ::com::sun::star;
-
 // forward declarations
 class Stream_Module_LibreOffice_Document_Handler;
 
@@ -94,11 +92,11 @@ class Stream_Module_LibreOffice_Document_Writer_T
   //virtual const ModuleHandlerConfigurationType& get () const;
 
  protected:
-  uno::Reference<lang::XComponent>            component_;
-  uno::Reference<uno::XComponentContext>      componentContext_;
-  uno::Reference<task::XInteractionHandler>   interactionHandler_;
-  bool                                        manageProcess_;
-  bool                                        releaseHandler_;
+  ::com::sun::star::uno::Reference<::com::sun::star::lang::XComponent>          component_;
+  ::com::sun::star::uno::Reference<::com::sun::star::uno::XComponentContext>    componentContext_;
+  ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionHandler> interactionHandler_;
+  bool                                                                          manageProcess_;
+  bool                                                                          releaseHandler_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_LibreOffice_Document_Writer_T ())

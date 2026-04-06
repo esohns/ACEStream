@@ -70,10 +70,10 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::Stream_Module_LibreOffice_Document_Writer_T"));
 
-  // *TODO*: for some reason, this doesn't work
+  // *TODO*: find out why std::nothrow-new doesn't work
   //ACE_NEW_NORETURN (handler_,
   //                  Stream_Module_LibreOffice_Document_Handler ());
-  handler_ = new Stream_Module_LibreOffice_Document_Handler ();
+  handler_ = new Stream_Module_LibreOffice_Document_Handler;
   if (unlikely (!handler_))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -85,7 +85,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   releaseHandler_ = true;
 
   bool result = interactionHandler_.set (*handler_,
-                                         uno::UNO_QUERY);
+                                         ::com::sun::star::uno::UNO_QUERY);
   ACE_ASSERT (result && interactionHandler_.is ());
 }
 
@@ -132,20 +132,6 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   } // end IF
 }
 
-//template <typename SessionMessageType,
-//          typename MessageType,
-//          typename ConnectionConfigurationIteratorType,
-//          typename SessionDataType>
-//void
-//Stream_Module_LibreOffice_Document_Writer_T<SessionMessageType,
-//                            MessageType,
-//                            ConnectionConfigurationIteratorType,
-//                            SessionDataType>::handleDataMessage (MessageType*& message_inout,
-//                                                                 bool& passMessageDownstream_out)
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Writer_T::handleDataMessage"));
-//}
-
 template <typename SynchStrategyType,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -182,7 +168,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   ::rtl::OUString absolute_filename_url;
   result_2 = osl_getProcessWorkingDir (&working_directory.pData);
   ACE_ASSERT (result_2 == osl_Process_E_None);
-  uno::Sequence<beans::PropertyValue> document_properties;
+  ::com::sun::star::uno::Sequence<::com::sun::star::beans::PropertyValue> document_properties;
 
 //  const typename SessionMessageType::DATA_T& session_data_container_r =
 //      message_inout->getR ();
@@ -192,20 +178,20 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      uno::Reference<uno::XInterface> interface_p;
-      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_p;
+      ::com::sun::star::uno::Reference<::com::sun::star::uno::XInterface> interface_p;
+      ::com::sun::star::uno::Reference<::com::sun::star::lang::XMultiComponentFactory> multi_component_factory_p;
       std::string connection_string = ACE_TEXT_ALWAYS_CHAR ("uno:socket,host=");
       std::ostringstream converter;
       ::rtl::OUString connection_string_2;
-      uno::Reference<bridge::XUnoUrlResolver> resolver_p;
-      uno::Reference<frame::XComponentLoader> component_loader_p;
-      uno::Reference<lang::XMultiComponentFactory> multi_component_factory_2;
-      uno::Reference<beans::XPropertySet> property_set_p;
+      ::com::sun::star::uno::Reference<::com::sun::star::bridge::XUnoUrlResolver> resolver_p;
+      ::com::sun::star::uno::Reference<::com::sun::star::frame::XComponentLoader> component_loader_p;
+      ::com::sun::star::uno::Reference<::com::sun::star::lang::XMultiComponentFactory> multi_component_factory_2;
+      ::com::sun::star::uno::Reference<::com::sun::star::beans::XPropertySet> property_set_p;
 
       // --> create new frame (see below)
       ::rtl::OUString target_frame_name (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_FRAME_BLANK)));
 //      const char* result_p = NULL;
-      sal_Int32 search_flags = frame::FrameSearchFlag::AUTO;
+      sal_Int32 search_flags = ::com::sun::star::frame::FrameSearchFlag::AUTO;
       document_properties.realloc (3);
       document_properties[0].Name =
         ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_HIDDEN)));
@@ -216,7 +202,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       document_properties[2].Name =
         ::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_FILE_MACROEXECCUTIONMODE)));
       document_properties[2].Value <<=
-        document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
+        ::com::sun::star::document::MacroExecMode::ALWAYS_EXECUTE_NO_WARN;
 
       // sanity check(s)
 //      ACE_ASSERT (inherited::configuration_->connectionConfigurations);
@@ -267,14 +253,14 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
         interface_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.bridge.UnoUrlResolver"))),
                                                                                componentContext_));
       ACE_ASSERT (result_4);
-      uno::Reference<lang::XComponent>::query (multi_component_factory_p)->dispose ();
+      ::com::sun::star::uno::Reference<::com::sun::star::lang::XComponent>::query (multi_component_factory_p)->dispose ();
       result_4 = resolver_p.set (interface_p,
-                                 uno::UNO_QUERY);
+                                 ::com::sun::star::uno::UNO_QUERY);
       ACE_ASSERT (result_4);
       try {
         result_4 = interface_p.set (resolver_p->resolve (connection_string_2),
-                                    uno::UNO_QUERY);
-      } catch (uno::Exception& exception_in) {
+                                    ::com::sun::star::uno::UNO_QUERY);
+      } catch (::com::sun::star::uno::Exception& exception_in) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to establish a LibreOffice connection (was: \"%s\"): \"%s\", aborting\n"),
                     inherited::mod_->name (),
@@ -287,16 +273,14 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
         goto error;
       }
       ACE_ASSERT (result_4);
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: opened LibreOffice connection (was: \"%s\")\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (connection_string_2,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-#endif // _DEBUG
       result_4 = property_set_p.set (interface_p,
-                                     uno::UNO_QUERY);
+                                     ::com::sun::star::uno::UNO_QUERY);
       ACE_ASSERT (result_4);
       property_set_p->getPropertyValue (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR (STREAM_DOCUMENT_LIBREOFFICE_PROPERTY_DEFAULT_CONTEXT)))) >>= componentContext_;
       //result_4 = server_p.set (component_componentContext_p->getServiceManager ());
@@ -305,7 +289,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
       result_4 =
         component_loader_p.set (multi_component_factory_p->createInstanceWithContext (::rtl::OUString (RTL_CONSTASCII_USTRINGPARAM (ACE_TEXT_ALWAYS_CHAR ("com.sun.star.frame.Desktop"))),
                                                                                       componentContext_),
-                                uno::UNO_QUERY);
+                                ::com::sun::star::uno::UNO_QUERY);
       ACE_ASSERT (component_loader_p.is ());
       ACE_ASSERT (result_4);
 
@@ -326,16 +310,14 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
                                                                   target_frame_name,     // target frame name
                                                                   search_flags,          // search flags
                                                                   document_properties),  // properties
-                        uno::UNO_QUERY);
+                        ::com::sun::star::uno::UNO_QUERY);
       ACE_ASSERT (result_4);
-#if defined (_DEBUG)
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: loaded LibreOffice document (was: \"%s\")\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (::rtl::OUStringToOString (absolute_filename_url,
                                                       RTL_TEXTENCODING_ASCII_US,
                                                       OUSTRING_TO_OSTRING_CVTFLAGS).getStr ())));
-#endif // _DEBUG
       break;
 
 error:
@@ -345,14 +327,14 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      // *TODO*: ::lang::XComponent::dispose crashes the application
+      // *TODO*: ::com::sun::star::lang::XComponent::dispose crashes the application
       if (component_.is ())
       {
         component_->dispose (); component_ = NULL;
       } // end IF
       if (componentContext_.is ())
       {
-        uno::Reference<lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
+        ::com::sun::star::uno::Reference<::com::sun::star::lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
       } // end IF
 
       break;
@@ -392,7 +374,7 @@ Stream_Module_LibreOffice_Document_Writer_T<SynchStrategyType,
     } // end IF
     if (componentContext_.is ())
     {
-      uno::Reference<lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
+      ::com::sun::star::uno::Reference<::com::sun::star::lang::XComponent>::query (componentContext_)->dispose (); componentContext_ = NULL;
     } // end IF
     manageProcess_ = true;
   } // end IF

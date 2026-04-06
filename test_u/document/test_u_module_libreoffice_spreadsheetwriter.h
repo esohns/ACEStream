@@ -42,8 +42,6 @@
 #include "test_u_message.h"
 #include "test_u_session_message.h"
 
-using namespace ::com::sun::star;
-
 class Test_U_LibreOffice_DocumentHandler
  : public Stream_Module_LibreOffice_Document_Handler
 {
@@ -53,16 +51,16 @@ class Test_U_LibreOffice_DocumentHandler
   Test_U_LibreOffice_DocumentHandler ();
   inline virtual ~Test_U_LibreOffice_DocumentHandler () {}
 
-  void initialize (uno::Reference<uno::XComponentContext>&);
+  void initialize (::com::sun::star::uno::Reference<::com::sun::star::uno::XComponentContext>&);
 
   // implement XInteractionHandler
-  virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
+  virtual void SAL_CALL handle (const ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_DocumentHandler (const Test_U_LibreOffice_DocumentHandler&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_DocumentHandler& operator= (const Test_U_LibreOffice_DocumentHandler&))
 
-  uno::Reference<task::XInteractionRequestStringResolver> resolver_;
+  ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequestStringResolver> resolver_;
 };
 
 //////////////////////////////////////////
@@ -75,7 +73,7 @@ class Test_U_LibreOffice_SpreadsheetWriter
                                                       Test_U_Message,
                                                       Test_U_SessionMessage,
                                                       struct Test_U_SessionData,
-                                                      sheet::XSpreadsheetDocument>
+                                                      ::com::sun::star::sheet::XSpreadsheetDocument>
 {
   typedef Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -84,7 +82,7 @@ class Test_U_LibreOffice_SpreadsheetWriter
                                                       Test_U_Message,
                                                       Test_U_SessionMessage,
                                                       struct Test_U_SessionData,
-                                                      sheet::XSpreadsheetDocument> inherited;
+                                                      ::com::sun::star::sheet::XSpreadsheetDocument> inherited;
 
  public:
   Test_U_LibreOffice_SpreadsheetWriter (ISTREAM_T*); // stream handle
@@ -99,8 +97,8 @@ class Test_U_LibreOffice_SpreadsheetWriter
   ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_SpreadsheetWriter (const Test_U_LibreOffice_SpreadsheetWriter&))
   ACE_UNIMPLEMENTED_FUNC (Test_U_LibreOffice_SpreadsheetWriter& operator= (const Test_U_LibreOffice_SpreadsheetWriter&))
 
-  uno::Reference<sheet::XSpreadsheetDocument> document_;
-  Test_U_LibreOffice_DocumentHandler*         handler_2;
+  ::com::sun::star::uno::Reference<::com::sun::star::sheet::XSpreadsheetDocument> document_;
+  Test_U_LibreOffice_DocumentHandler*                                             handler_2;
 };
 
 // declare module

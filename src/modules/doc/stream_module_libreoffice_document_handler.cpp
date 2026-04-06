@@ -68,7 +68,7 @@ Stream_Module_LibreOffice_Document_Handler::Stream_Module_LibreOffice_Document_H
 //}
 
 void SAL_CALL
-Stream_Module_LibreOffice_Document_Handler::handle (const uno::Reference<task::XInteractionRequest>& request_in)
+Stream_Module_LibreOffice_Document_Handler::handle (const ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequest>& request_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_LibreOffice_Document_Handler::handle"));
 
