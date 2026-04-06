@@ -109,6 +109,14 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkListStore" id="liststore_save">
+    <columns>
+      <!-- column-name text -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gint"/>
+    </columns>
+  </object>
   <object class="GtkListStore" id="liststore_video_format">
     <columns>
       <!-- column-name text -->
@@ -137,14 +145,6 @@
       <column type="guint"/>
       <!-- column-name height -->
       <column type="guint"/>
-    </columns>
-  </object>
-  <object class="GtkListStore" id="liststore_save">
-    <columns>
-      <!-- column-name text -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gint"/>
     </columns>
   </object>
   <object class="GtkListStore" id="liststore_video_source">
@@ -586,7 +586,7 @@
                                         <property name="relief">half</property>
                                         <property name="use_stock">True</property>
                                         <property name="focus_on_click">False</property>
-                                        <signal name="clicked" handler="button_hw_settings_clicked_cb" swapped="no"/>
+                                        <signal name="clicked" handler="button_video_hw_settings_clicked_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -727,7 +727,7 @@
                                                     <property name="relief">half</property>
                                                     <property name="use_stock">True</property>
                                                     <property name="focus_on_click">False</property>
-                                                    <signal name="clicked" handler="button_format_reset_clicked_cb" swapped="no"/>
+                                                    <signal name="clicked" handler="button_video_format_reset_clicked_cb" swapped="no"/>
                                                   </object>
                                                   <packing>
                                                     <property name="expand">False</property>
@@ -859,7 +859,7 @@
                                         <property name="use_preview_label">False</property>
                                         <property name="focus_on_click">False</property>
                                         <property name="title" translatable="yes">choose a folder</property>
-                                        <signal name="current-folder-changed" handler="filechooserbutton_cb" swapped="no"/>
+                                        <signal name="current-folder-changed" handler="filechooserbutton_save_current_folder_changed_cb" swapped="no"/>
                                       </object>
                                       <packing>
                                         <property name="expand">False</property>
@@ -1291,9 +1291,9 @@
     <property name="focus_on_map">False</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
-    <signal name="draw" handler="drawingarea_draw_cb" swapped="no"/>
-    <signal name="key-press-event" handler="drawingarea_key_press_event_cb" swapped="no"/>
-    <signal name="size-allocate" handler="drawingarea_size_allocate_cb" swapped="no"/>
+    <signal name="draw" handler="window_fullscreen_draw_cb" swapped="no"/>
+    <signal name="key-press-event" handler="drawingarea_audio_key_press_event_cb" swapped="no"/>
+    <signal name="size-allocate" handler="window_fullscreen_size_allocate_cb" swapped="no"/>
     <child>
       <placeholder/>
     </child>

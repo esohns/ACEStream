@@ -3548,19 +3548,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                        about_dialog_p);
   ACE_ASSERT (result_2);
 
-  //result_2 =
-  //  g_signal_connect (file_chooser_button_p,
-  //                    ACE_TEXT_ALWAYS_CHAR ("file-set"),
-  //                    G_CALLBACK (filechooserbutton_cb),
-  //                    userData_in);
-  //ACE_ASSERT (result_2);
-  //result_2 =
-  //  g_signal_connect (file_chooser_dialog_p,
-  //                    ACE_TEXT_ALWAYS_CHAR ("file-activated"),
-  //                    G_CALLBACK (filechooserdialog_cb),
-  //                    NULL);
-  //ACE_ASSERT (result_2);
-
   // set defaults
   //file_chooser_button_p =
   //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5122,7 +5109,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
   (*iterator_2).second.second->display.device = g_value_get_string (&value);
 #endif // ACE_WIN32 || ACE_WIN64
   g_value_unset (&value);
-}
+} // togglebutton_display_toggled_cb
 
 void
 togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
@@ -5273,6 +5260,16 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 } // toggleaction_fullscreen_toggled_cb
 
 void
+button_display_settings_clicked_cb (GtkButton* button_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::button_display_settings_clicked_cb"));
+
+  ACE_UNUSED_ARG (button_in);
+  ACE_UNUSED_ARG (userData_in);
+} // button_display_settings_clicked_cb
+
+void
 button_display_reset_clicked_cb (GtkButton* button_in,
                                  gpointer userData_in)
 {
@@ -5280,7 +5277,7 @@ button_display_reset_clicked_cb (GtkButton* button_in,
 
   ACE_UNUSED_ARG (button_in);
   ACE_UNUSED_ARG (userData_in);
-}
+} // button_display_reset_clicked_cb
 
 void
 button_cut_clicked_cb (GtkButton* button_in,
@@ -5348,14 +5345,13 @@ button_report_clicked_cb (GtkButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_report_activate_cb
-
+} // button_report_clicked_cb
 
 void
-button_hw_settings_clicked_cb (GtkButton* button_in,
-                               gpointer userData_in)
+button_video_hw_settings_clicked_cb (GtkButton* button_in,
+                                     gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::button_hw_settings_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_video_hw_settings_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
 
@@ -5364,13 +5360,13 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_hw_settings_activate_cb
+} // button_video_hw_settings_clicked_cb
 
 void
-button_format_reset_clicked_cb (GtkButton* button_in,
-                                gpointer userData_in)
+button_video_format_reset_clicked_cb (GtkButton* button_in,
+                                      gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::button_format_reset_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_video_format_reset_clicked_cb"));
 
   ACE_UNUSED_ARG (button_in);
 
@@ -5379,20 +5375,7 @@ button_format_reset_clicked_cb (GtkButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_reset_activate_cb
-
-//void
-//action_settings_activate_cb (GtkAction* action_in,
-//                             gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::action_settings_activate_cb"));
-
-//  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
-//    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-//  // sanity check(s)
-//  ACE_ASSERT (ui_cb_data_base_p);
-//} // action_settings_activate_cb
+} // button_video_format_reset_clicked_cb
 
 void
 button_snapshot_clicked_cb (GtkButton* button_in,
@@ -5407,7 +5390,7 @@ button_snapshot_clicked_cb (GtkButton* button_in,
 
   // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-} // action_snapshot_activate_cb
+} // button_snapshot_clicked_cb
 
 // -----------------------------------------------------------------------------
 
@@ -6199,7 +6182,7 @@ combobox_video_format_changed_cb (GtkWidget* widget_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_VIDEO_SOURCE_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;
@@ -7878,21 +7861,16 @@ drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
 } // drawingarea_video_size_allocate_cb
 
 void
-filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
-                      gpointer userData_in)
+filechooserbutton_save_current_folder_changed_cb (GtkFileChooser* fileChooser_in,
+                                                  gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_cb"));
+  STREAM_TRACE (ACE_TEXT ("::filechooserbutton_save_current_folder_changed_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (fileChooserButton_in);
-  ACE_ASSERT (userData_in);
-
+  ACE_ASSERT (fileChooser_in);
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -7943,8 +7921,7 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
 #endif
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
-  GFile* file_p =
-    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (fileChooserButton_in));
+  GFile* file_p = gtk_file_chooser_get_file (fileChooser_in);
   if (!file_p)
     return; // nothing selected (yet)
   char* string_p = g_file_get_path (file_p);
@@ -7999,7 +7976,30 @@ filechooserbutton_cb (GtkFileChooserButton* fileChooserButton_in,
 #else
   (*iterator_2).second.second->targetFileName = filename_string;
 #endif
-} // filechooserbutton_cb
+} // filechooserbutton_save_current_folder_changed_cb
+
+gboolean
+drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
+                                      GdkEventKey* eventKey_in,
+                                      gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
+
+  return key_cb (widget_in, eventKey_in, userData_in);
+} // drawingarea_audio_key_press_event_cb
+
+gboolean
+dialog_main_key_press_event_cb (GtkWidget* widget_in,
+                                GdkEventKey* eventKey_in,
+                                gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
+
+  return key_cb (widget_in, eventKey_in, userData_in);
+} // dialog_main_key_press_event_cb
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 gboolean
 key_cb (GtkWidget* widget_in,
@@ -8063,27 +8063,3 @@ key_cb (GtkWidget* widget_in,
 
   return TRUE; // done (do not propagate further)
 } // key_cb
-
-gboolean
-drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
-                                      GdkEventKey* eventKey_in,
-                                      gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
-
-  return key_cb (widget_in, eventKey_in, userData_in);
-} // drawingarea_audio_key_press_event_cb
-
-gboolean
-dialog_main_key_press_event_cb (GtkWidget* widget_in,
-                                GdkEventKey* eventKey_in,
-                                gpointer userData_in)
-{
-  STREAM_TRACE (ACE_TEXT ("::dialog_main_key_press_event_cb"));
-
-  return key_cb (widget_in, eventKey_in, userData_in);
-} // dialog_main_key_press_event_cb
-
-#ifdef __cplusplus
-}
-#endif /* __cplusplus */
