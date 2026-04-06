@@ -1767,7 +1767,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i =
-    (8 + videoFrameSize_) * 30 + 8 + (wave_format_ex_p ? wave_format_ex_p->nAvgBytesPerSec : 0);
+    ((8 + videoFrameSize_) * fps_i) + (8 + (wave_format_ex_p ? wave_format_ex_p->nAvgBytesPerSec : 0));
   AVI_header_avih.dwSuggestedBufferSize =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -1861,7 +1861,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_i = videoFrameSize_;
-  AVI_header_strh.dwSampleSize = 
+  AVI_header_strh.dwSampleSize =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   value_2 =

@@ -446,11 +446,13 @@ end:
 
       // sanity check(s)
       if (unlikely (!inherited::sessionData_)) // out-of-session ?
-      {
+      { std::string type_string;
+        SessionMessageType::MessageTypeToString (message_inout->type (),
+                                                 type_string);
         ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: received out-of-session session message (type was: %d); cannot update branch-specific session data, continuing\n"),
+                    ACE_TEXT ("%s: received out-of-session session message (type was: \"%s\"); cannot update branch-specific session data, continuing\n"),
                     inherited::mod_->name (),
-                    message_inout->type ()));
+                    ACE_TEXT (type_string.c_str ())));
         goto continue_;
       } // end IF
       session_data_p = &inherited::sessionData_->getR ();

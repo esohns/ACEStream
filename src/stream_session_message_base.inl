@@ -365,6 +365,8 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
       string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT"); break;
     case STREAM_SESSION_MESSAGE_LINK:
       string_out = ACE_TEXT_ALWAYS_CHAR ("LINK"); break;
+    case STREAM_SESSION_MESSAGE_RESIZE:
+      string_out = ACE_TEXT_ALWAYS_CHAR ("RESIZE"); break;
     case STREAM_SESSION_MESSAGE_UNLINK:
       string_out = ACE_TEXT_ALWAYS_CHAR ("UNLINK"); break;
     // *** control ***
@@ -374,6 +376,8 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
       string_out = ACE_TEXT_ALWAYS_CHAR ("END"); break;
     case STREAM_SESSION_MESSAGE_STEP:
       string_out = ACE_TEXT_ALWAYS_CHAR ("STEP"); break;
+    case STREAM_SESSION_MESSAGE_STEP_DATA:
+      string_out = ACE_TEXT_ALWAYS_CHAR ("STEP_DATA"); break;
     // *** data ***
     case STREAM_SESSION_MESSAGE_STATISTIC:
       string_out = ACE_TEXT_ALWAYS_CHAR ("STATISTIC"); break;
