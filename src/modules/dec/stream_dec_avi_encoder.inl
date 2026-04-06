@@ -1582,7 +1582,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_ASSERT (messageBlock_inout);
 #else
-  if (!formatContext_)
+  if (unlikely (!formatContext_))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: missing format context, aborting\n"),
@@ -1592,7 +1592,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (!formatContext_->pb);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  int result = -1;
+  int result;
   const SessionDataType& session_data_r = inherited::sessionData_->getR ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // sanity check(s)
@@ -1618,16 +1618,15 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   struct tagVIDEOINFOHEADER* video_info_header_p = NULL;
   struct tagVIDEOINFOHEADER2* video_info_header2_p = NULL;
   struct tWAVEFORMATEX* wave_format_ex_p = NULL;
-  ACE_UINT32 value_i = 0;
-  ACE_INT16 value_2 = 0;
+  ACE_UINT32 value_i;
+  ACE_INT16 value_2;
   struct tWAVEFORMATEX AVI_header_strf_audio; // dummy
+  ACE_UINT32 fps_i;
 
   if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo))
-    video_info_header_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
+    video_info_header_p = reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
   else if (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2))
-    video_info_header2_p =
-      reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
+    video_info_header2_p = reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
   else
   { // --> no video *TODO*: support audio-only streams
     ACE_DEBUG ((LM_ERROR,
@@ -1637,9 +1636,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
     goto error;
   } // end ELSE
 
+  fps_i =
+    10000000 / (video_info_header_p ? video_info_header_p->AvgTimePerFrame
+                                    : video_info_header2_p->AvgTimePerFrame);
+
   if (InlineIsEqualGUID (media_type_2.formattype, FORMAT_WaveFormatEx))
-    wave_format_ex_p =
-      reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);
+    wave_format_ex_p = reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);
   else
   { // --> no audio *TODO*: write only one strl in this case; adjust offset(s), pad bytes accordingly
     ACE_DEBUG ((LM_WARNING,
@@ -1736,7 +1738,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                            : value_i);
   // *NOTE*: tagVIDEOINFOHEADER.AvgTimePerFrame uses 100ns units
   //         --> divide by 10 to get microseconds / frame
-  value_i = 
+  value_i =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame / 10)
                                                                    : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame / 10));
   AVI_header_avih.dwMicroSecPerFrame =
@@ -1745,6 +1747,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   value_i =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? video_info_header_p->dwBitRate / 8
                                                                    : video_info_header2_p->dwBitRate) / 8;
+  value_i += wave_format_ex_p ? wave_format_ex_p->nAvgBytesPerSec : 0;
   AVI_header_avih.dwMaxBytesPerSec =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -1763,11 +1766,12 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   AVI_header_avih.dwStreams =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
-  value_i = 8 + videoFrameSize_; // *NOTE*: unreliable
+  value_i =
+    (8 + videoFrameSize_) * 30 + 8 + (wave_format_ex_p ? wave_format_ex_p->nAvgBytesPerSec : 0);
   AVI_header_avih.dwSuggestedBufferSize =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
-  value_i = 
+  value_i =
     (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? video_info_header_p->bmiHeader.biWidth
                                                                    : video_info_header2_p->bmiHeader.biWidth);
   AVI_header_avih.dwWidth =
@@ -1836,19 +1840,19 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //AVI_header_strh.wLanguage = 0;
   //AVI_header_strh.dwInitialFrames = 0;
   // *NOTE*: dwRate / dwScale == fps
-  value_i = 10000000; // 100th nanoseconds --> seconds
+  value_i = fps_i; // 10000000; // 100th nanoseconds --> seconds
   AVI_header_strh.dwRate =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
-  value_i =
-    (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
-                                                                   : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
+  value_i = 1;
+    //(InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo) ? static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)
+    //                                                               : static_cast<DWORD> (video_info_header2_p->AvgTimePerFrame));
   AVI_header_strh.dwScale =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
   //AVI_header_strh.dwStart = 0;
   //AVI_header_strh.dwLength = 0; // post-prcessing
-  value_i = 8 + videoFrameSize_; // *NOTE*: unreliable
+  value_i = (8 + videoFrameSize_) * fps_i; // *NOTE*: unreliable
   AVI_header_strh.dwSuggestedBufferSize = 
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
@@ -1983,7 +1987,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   //AVI_header_strh.dwStart = 0;
   //AVI_header_strh.dwLength = 0; // post-prcessing
   value_i =
-    8 + STREAM_DEC_AVI_AUDIO_STRH_SUGGESTED_BUFFER_SIZE; // *NOTE*: unreliable
+    8 + (wave_format_ex_p ? wave_format_ex_p->nAvgBytesPerSec : 0); // *NOTE*: unreliable
   AVI_header_strh.dwSuggestedBufferSize =
     ((ACE_BYTE_ORDER != ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (value_i)
                                            : value_i);
