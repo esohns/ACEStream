@@ -1391,7 +1391,7 @@ continue_:
                   resetTimeoutHandlerId_));
 
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d, aborting\n"),
+                  ACE_TEXT ("%s: mode: %d, #tokens/interval: %d\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->delayConfiguration->mode,
                   inherited::configuration_->delayConfiguration->averageTokensPerInterval));

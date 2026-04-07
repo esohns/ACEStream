@@ -193,10 +193,7 @@ test_u_glut_draw (void)
       spectrum_1 = cb_data_p->fft->Spectrum (1, false); // do not normalize
     } // end IF
     else
-    {
-      spectrum_0.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
-      spectrum_1.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
-    } // end ELSE
+      return;
   } // end lock scope
 
   glPolygonMode (GL_FRONT_AND_BACK,

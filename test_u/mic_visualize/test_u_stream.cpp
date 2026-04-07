@@ -119,6 +119,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   bool add_display_branch_b =
     inherited::configuration_->configuration_->displayAnalyzer;
   Stream_Branches_t branches_a;
+  std::string branch_name_string;
 
   (*iterator_3).second.second->waitForDataOnEnd = false;
   switch (inherited::configuration_->configuration_->sourceType)
@@ -183,6 +184,8 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       add_resampler_b = true; // *TODO*: depends on file format !
       add_delay_b = true;
       (*iterator_3).second.second->waitForDataOnEnd = true;
+      branch_name_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME);
       break;
     }
     default:
@@ -294,6 +297,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, NULL, 0);
     module_p = NULL;
   } // end IF
+  inherited::configuration_->configuration_->moduleBranch = branch_name_string;
 
   if (add_renderer_branch_b)
   {
@@ -309,16 +313,16 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #endif // SOX_SUPPORT
     } // end IF
 
-    if (add_delay_b)
-    {
-      ACE_NEW_RETURN (module_p,
-                      Test_U_MicVisualize_DirectShow_Delay_Module (this,
-                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
-                      false);
-      ACE_ASSERT (module_p);
-      layout_in->append (module_p, branch_p, index_i);
-      module_p = NULL;
-    } // end IF
+    //if (add_delay_b)
+    //{
+    //  ACE_NEW_RETURN (module_p,
+    //                  Test_U_MicVisualize_DirectShow_Delay_Module (this,
+    //                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DELAY_DEFAULT_NAME_STRING)),
+    //                  false);
+    //  ACE_ASSERT (module_p);
+    //  layout_in->append (module_p, branch_p, index_i);
+    //  module_p = NULL;
+    //} // end IF
 
     switch (inherited::configuration_->configuration_->renderer)
     {
