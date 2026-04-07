@@ -18,8 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_MODULE_SPREADSHEETWRITER_H
-#define TEST_I_MODULE_SPREADSHEETWRITER_H
+#ifndef TEST_I_LIBREOFFICE_SPREADSHEETWRITER_H
+#define TEST_I_LIBREOFFICE_SPREADSHEETWRITER_H
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -45,32 +45,30 @@
 
 #include "test_i_http_get_common.h"
 
-using namespace ::com::sun::star;
-
-class Test_I_Stream_DocumentHandler
+class Test_I_LibreOffice_DocumentHandler
  : public Stream_Module_LibreOffice_Document_Handler
 {
   typedef Stream_Module_LibreOffice_Document_Handler inherited;
   
  public:
-  Test_I_Stream_DocumentHandler ();
-  inline virtual ~Test_I_Stream_DocumentHandler () {}
+  Test_I_LibreOffice_DocumentHandler ();
+  inline virtual ~Test_I_LibreOffice_DocumentHandler () {}
 
-  void initialize (uno::Reference<uno::XComponentContext>&);
+  void initialize (::com::sun::star::uno::Reference<::com::sun::star::uno::XComponentContext>&);
 
   // implement XInteractionHandler
-  virtual void SAL_CALL handle (const uno::Reference<task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
+  virtual void SAL_CALL handle (const ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequest>&) /* throw (uno::RuntimeException, ::std::exception) */;
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler (const Test_I_Stream_DocumentHandler&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_DocumentHandler& operator= (const Test_I_Stream_DocumentHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_LibreOffice_DocumentHandler (const Test_I_LibreOffice_DocumentHandler&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_LibreOffice_DocumentHandler& operator= (const Test_I_LibreOffice_DocumentHandler&))
 
-  uno::Reference<task::XInteractionRequestStringResolver> resolver_;
+  ::com::sun::star::uno::Reference<::com::sun::star::task::XInteractionRequestStringResolver> resolver_;
 };
 
 //////////////////////////////////////////
 
-class Test_I_Stream_SpreadsheetWriter
+class Test_I_LibreOffice_SpreadsheetWriter
  : public Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
                                                       struct Test_I_HTTPGet_ModuleHandlerConfiguration,
@@ -78,7 +76,7 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
                                                       struct Test_I_HTTPGet_SessionData,
-                                                      sheet::XSpreadsheetDocument>
+                                                      ::com::sun::star::sheet::XSpreadsheetDocument>
 {
   typedef Stream_Module_LibreOffice_Document_Writer_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -87,23 +85,23 @@ class Test_I_Stream_SpreadsheetWriter
                                                       Test_I_Stream_Message,
                                                       Test_I_Stream_SessionMessage,
                                                       struct Test_I_HTTPGet_SessionData,
-                                                      sheet::XSpreadsheetDocument> inherited;
+                                                      ::com::sun::star::sheet::XSpreadsheetDocument> inherited;
 
  public:
-  Test_I_Stream_SpreadsheetWriter (ISTREAM_T*); // stream handle
-  virtual ~Test_I_Stream_SpreadsheetWriter ();
+  Test_I_LibreOffice_SpreadsheetWriter (ISTREAM_T*); // stream handle
+  virtual ~Test_I_LibreOffice_SpreadsheetWriter ();
 
   // implement (part of) Stream_ITaskBase
   virtual void handleSessionMessage (Test_I_Stream_SessionMessage*&, // session message handle
                                      bool&);                         // return value: pass message downstream ?
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter (const Test_I_Stream_SpreadsheetWriter&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_Stream_SpreadsheetWriter& operator= (const Test_I_Stream_SpreadsheetWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_LibreOffice_SpreadsheetWriter ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_LibreOffice_SpreadsheetWriter (const Test_I_LibreOffice_SpreadsheetWriter&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_LibreOffice_SpreadsheetWriter& operator= (const Test_I_LibreOffice_SpreadsheetWriter&))
 
-  uno::Reference<sheet::XSpreadsheetDocument> document_;
-  Test_I_Stream_DocumentHandler*              handler_2;
+  ::com::sun::star::uno::Reference<::com::sun::star::sheet::XSpreadsheetDocument> document_;
+  Test_I_LibreOffice_DocumentHandler*                                             handler_2;
 };
 
 // declare module
@@ -112,6 +110,6 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_HTTPGet_SessionData,                
                               struct Test_I_HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_doc_libreoffice_writer_module_name_string,
                               Stream_INotify_t,                                 // stream notification interface type
-                              Test_I_Stream_SpreadsheetWriter);                 // writer type
+                              Test_I_LibreOffice_SpreadsheetWriter);            // writer type
 
 #endif

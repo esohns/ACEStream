@@ -40,9 +40,6 @@
 #include "test_i_common.h"
 #include "test_i_common_modules.h"
 #include "test_i_message.h"
-#include "test_i_module_htmlparser.h"
-#include "test_i_module_httpget.h"
-#include "test_i_module_spreadsheetwriter.h"
 #include "test_i_session_message.h"
 
 #include "test_i_http_get_common.h"
@@ -73,7 +70,7 @@ class Test_I_HTTPGet_Stream_T
 {
  public:
   Test_I_HTTPGet_Stream_T ();
-  virtual ~Test_I_HTTPGet_Stream_T ();
+  inline virtual ~Test_I_HTTPGet_Stream_T () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*,
@@ -132,6 +129,7 @@ class Test_I_HTTPGet_Stream_T
 //////////////////////////////////////////
 
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPConnector_t> Test_I_HTTPGet_Stream_t;
+typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
 #if defined (SSL_SUPPORT)
 typedef Net_TCPConnectionBase_T<ACE_MT_SYNCH,
                                 Net_SSLSocketHandler_t,
@@ -149,6 +147,5 @@ typedef Net_Client_SSL_Connector_T<Test_I_SSLConnection_t,
                                    struct Net_UserData> Test_I_HTTPGet_SSLConnector_t;
 typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_SSLConnector_t> Test_I_HTTPGet_SSL_Stream_t;
 #endif // SSL_SUPPORT
-typedef Test_I_HTTPGet_Stream_T<Test_I_HTTPGet_TCPAsynchConnector_t> Test_I_HTTPGet_AsynchStream_t;
 
 #endif

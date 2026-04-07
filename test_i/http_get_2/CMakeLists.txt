@@ -102,8 +102,8 @@ set (${EXECUTABLE}_EXE_SRCS
 if (LIBREOFFICE_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS}
-      test_i_module_spreadsheetwriter.cpp
-      test_i_module_spreadsheetwriter.h)
+      test_i_module_libreoffice_spreadsheetwriter.cpp
+      test_i_module_libreoffice_spreadsheetwriter.h)
 endif (LIBREOFFICE_SUPPORT)
 if (WIN32)
  set (${EXECUTABLE}_EXE_SRCS

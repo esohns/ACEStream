@@ -22,9 +22,13 @@
 
 #include "stream_macros.h"
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "test_i_module_htmlparser.h"
+#include "test_i_module_httpget.h"
+#if defined (LIBREOFFICE_SUPPORT)
+#include "test_i_module_libreoffice_spreadsheetwriter.h"
+#elif defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "test_i_module_msoffice_spreadsheetwriter.h"
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // LIBREOFFICE_SUPPORT || ACE_WIN32 || ACE_WIN64
 
 template <typename ConnectorType>
 Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
@@ -32,14 +36,6 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::Test_I_HTTPGet_Stream_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::Test_I_HTTPGet_Stream_T"));
 
-}
-
-template <typename ConnectorType>
-Test_I_HTTPGet_Stream_T<ConnectorType>::~Test_I_HTTPGet_Stream_T ()
-{
-  STREAM_TRACE (ACE_TEXT ("Test_I_HTTPGet_Stream_T::~Test_I_HTTPGet_Stream_T"));
-
-  inherited::shutdown ();
 }
 
 template <typename ConnectorType>
@@ -58,12 +54,14 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
   //ACE_NEW_RETURN (module_p,
   //                Test_I_StatisticReport_Module (this,
   //                                               ACE_TEXT_ALWAYS_CHAR ("StatisticReport")),
   //                false);
   //modules_out.push_back (module_p);
   //module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_ZIPDecompressor_Module (this,
                                                  ACE_TEXT_ALWAYS_CHAR ("ZIPDecompressor")),
@@ -71,6 +69,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   SOURCE_MODULE_T (this,
                                    ACE_TEXT_ALWAYS_CHAR ("NetSource")),
@@ -78,6 +77,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTTPGet_Module (this,
                                                 ACE_TEXT_ALWAYS_CHAR ("HTTPGet")),
@@ -85,6 +85,7 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
   ACE_NEW_RETURN (module_p,
                   Test_I_Stream_HTMLParser_Module (this,
                                                    ACE_TEXT_ALWAYS_CHAR ("HTMLParser")),
@@ -92,20 +93,21 @@ Test_I_HTTPGet_Stream_T<ConnectorType>::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
+
+#if defined (LIBREOFFICE_SUPPORT)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_SpreadsheetWriter_Module (this,
-    //Test_I_MSOffice_SpreadsheetWriter_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
+                  Test_I_LibreOffice_SpreadsheetWriter_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
                   false);
-#else
+#elif defined (ACE_WIN32) || defined (ACE_WIN64)
   ACE_NEW_RETURN (module_p,
-                  Test_I_Stream_SpreadsheetWriter_Module (this,
-                                                          ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
+                  Test_I_MSOffice_SpreadsheetWriter_Module (this,
+                                                            ACE_TEXT_ALWAYS_CHAR ("SpreadsheetWriter")),
                   false);
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // LIBREOFFICE_SUPPORT || ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
+
   module_p = NULL;
 
   delete_out = true;
