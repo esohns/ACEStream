@@ -504,7 +504,7 @@ struct Stream_CameraML_V4L_ModuleHandlerConfiguration
   {
     // *PORTABILITY*: v4l2: device path (e.g. "[/dev/]video0")
     deviceIdentifier.identifier =
-        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
+      ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEFAULT_VIDEO_DEVICE);
 
     ACE_OS::memset (&outputFormat, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
   }

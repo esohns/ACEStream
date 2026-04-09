@@ -49,8 +49,10 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
  : inherited ()
+#if defined (FFMPEG_SUPPORT)
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_SOURCE_DEFAULT_NAME_STRING))
+#endif // FFMPEG_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , splitter_ (this,
@@ -109,6 +111,14 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
+  const typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+  ACE_ASSERT ((*iterator).second.second->codecConfiguration);
+  const typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
+  ACE_ASSERT ((*iterator_2).second.second->codecConfiguration);
 
   Stream_Branches_t branches_a;
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
@@ -126,10 +136,32 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
 
-  //layout_in->append (&audioDecode_, branch_p, index_i);
+  if ((*iterator_2).second.second->codecConfiguration->codecId == AV_CODEC_ID_AAC)
 #if defined (FAAD_SUPPORT)
-  layout_in->append (&faadAudioDecode_, branch_p, index_i);
-#endif // FAAD_SUPPORT
+    layout_in->append (&faadAudioDecode_, branch_p, index_i);
+#elif defined (FFMPEG_SUPPORT)
+    layout_in->append (&audioDecode_, branch_p, index_i);
+#else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no audio decoder available (codec id was: %d), aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                (*iterator_2).second.second->codecConfiguration->codecID));
+    return false;
+  } // end IF
+#endif // FAAD_SUPPORT || FFMPEG_SUPPORT
+  else
+#if defined (FFMPEG_SUPPORT)
+    layout_in->append (&audioDecode_, branch_p, index_i);
+#else
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: no audio decoder available (codec id was: %d), aborting\n"),
+                ACE_TEXT (stream_name_string_),
+                (*iterator_2).second.second->codecConfiguration->codecID));
+    return false;
+  } // end IF
+#endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
   //layout_in->append (&SOXResample_, branch_p, index_i);
 #endif // SOX_SUPPORT

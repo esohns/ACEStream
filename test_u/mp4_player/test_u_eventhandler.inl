@@ -32,6 +32,8 @@ Test_U_EventHandler_T<NotificationType,
                       DataMessageType,
                       SessionMessageType>::Test_U_EventHandler_T ()
  : sessionData_ (NULL)
+ , numberOfAudioFrames_ (0)
+ , numberOfVideoFrames_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_EventHandler_T::Test_U_EventHandler_T"));
 
@@ -89,8 +91,15 @@ Test_U_EventHandler_T<NotificationType,
 
   ACE_UNUSED_ARG (sessionId_in);
 
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("processed %Q audio frames, %Q video frames\n"),
+              numberOfAudioFrames_,
+              numberOfVideoFrames_));
+
   if (sessionData_)
     sessionData_ = NULL;
+  numberOfAudioFrames_ = 0;
+  numberOfVideoFrames_ = 0;
 }
 
 template <typename NotificationType,
@@ -105,6 +114,22 @@ Test_U_EventHandler_T<NotificationType,
   STREAM_TRACE (ACE_TEXT ("Test_U_EventHandler_T::notify"));
 
   ACE_UNUSED_ARG (sessionId_in);
+
+  switch (message_in.getMediaType ())
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      ++numberOfAudioFrames_;
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      ++numberOfVideoFrames_;
+      break;
+    }
+    default:
+      return;
+  } // end SWITCH
 }
 
 template <typename NotificationType,

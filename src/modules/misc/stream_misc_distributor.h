@@ -259,7 +259,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   // override Common_ITask members
   virtual void stop (bool = true,   // wait for completion ?
                      bool = false); // high priority ?
-  virtual void idle ();
+  virtual void idle () const;
 
   // implement Stream_IModuleLinkCB
   virtual void onLink (ACE_Module_Base*);

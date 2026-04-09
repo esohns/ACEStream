@@ -56,6 +56,9 @@ class Test_U_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Test_U_EventHandler_T& operator= (const Test_U_EventHandler_T&))
 
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
+
+  ACE_UINT64                                   numberOfAudioFrames_;
+  ACE_UINT64                                   numberOfVideoFrames_;
 };
 
 // include template definition

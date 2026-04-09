@@ -4517,7 +4517,8 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType ty
 }
 
 enum AVPixelFormat
-Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWDeviceType type_in)
+Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWDeviceType type_in,
+                                                                      enum AVCodecID codecId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat"));
 
@@ -4526,7 +4527,25 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
   switch (type_in)
   {
     case AV_HWDEVICE_TYPE_DXVA2:
-      return AV_PIX_FMT_NV12; // supported by H264 decoder
+    {
+      switch (codecId_in)
+      {
+        case AV_CODEC_ID_H264:
+          return AV_PIX_FMT_NV12; // supported by H264 decoder
+        case AV_CODEC_ID_HEVC:
+          return AV_PIX_FMT_P010LE; // supported by HEVC decoder
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown codec id (was: %d: \"%s\") for hardware device type, aborting\n"),
+                      codecId_in,
+                      ACE_TEXT (avcodec_get_name (codecId_in))));
+          break;
+        }
+      } // end SWITCH
+
+      break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,

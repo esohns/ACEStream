@@ -602,6 +602,64 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 }
 #endif // ACE_WIN32 || ACE_WIN64
 
+#if defined (FFMPEG_SUPPORT)
+bool
+load_media_streams (const std::string& filename_in,
+                    enum AVCodecID& audioCodecId_out,
+                    enum AVCodecID& videoCodecId_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::load_media_streams"));
+
+  // initialize return value(s)
+  audioCodecId_out = AV_CODEC_ID_NONE;
+  videoCodecId_out = AV_CODEC_ID_NONE;
+
+  struct AVFormatContext* context_p = avformat_alloc_context ();
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to avformat_alloc_context(): \"%m\", aborting\n")));
+    return false;
+  } // end IF
+  int result = avformat_open_input (&context_p,
+                                    filename_in.c_str (),
+                                    NULL,
+                                    NULL);
+  if (unlikely (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to avformat_open_input(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (filename_in.c_str ())));
+    avformat_free_context (context_p);
+    return false;
+  } // end IF
+  result = avformat_find_stream_info (context_p,
+                                      NULL);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to avformat_find_stream_info(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (filename_in.c_str ())));
+    avformat_free_context (context_p);
+    return false;
+  } // end IF
+  for (unsigned int i = 0;
+       i < context_p->nb_streams;
+       ++i)
+  {
+    if (avcodec_get_type (context_p->streams[i]->codecpar->codec_id) == AVMEDIA_TYPE_AUDIO)
+      audioCodecId_out = context_p->streams[i]->codecpar->codec_id;
+    else if (avcodec_get_type (context_p->streams[i]->codecpar->codec_id) == AVMEDIA_TYPE_VIDEO)
+      videoCodecId_out = context_p->streams[i]->codecpar->codec_id;
+  } // end FOR
+
+  avformat_close_input (&context_p); ACE_ASSERT (context_p == NULL);
+  //avformat_free_context (context_p); context_p = NULL;
+
+  return true;
+}
+#endif // FFMPEG_SUPPORT
+
 void
 do_initializeSignals (ACE_Sig_Set& signals_out)
 {
@@ -742,12 +800,19 @@ do_work (int argc_in,
 
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // audio
+  if (!load_media_streams (inputFilePath_in,
+                           codec_configuration_2.codecId,
+                           codec_configuration.codecId))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to load media streams, aborting\n")));
+    return;
+  } // end IF
+
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
   allocator_configuration.defaultBufferSize = 32768;
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
-  codec_configuration.codecId = AV_CODEC_ID_H264;
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // audio
-  codec_configuration_2.codecId = AV_CODEC_ID_AAC;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   codec_configuration.deviceType = AV_HWDEVICE_TYPE_DXVA2;
   //video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_D3D11VA;
@@ -764,6 +829,7 @@ do_work (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
   //codec_configuration_2.parserFlags = 0;
+  codec_configuration.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
@@ -818,6 +884,7 @@ do_work (int argc_in,
       directshow_modulehandler_configuration.streamIndex = -1;
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
+      directshow_modulehandler_configuration.waitForDataOnEnd = true;
 
       directshow_modulehandler_configuration_3 =
         directshow_modulehandler_configuration;
@@ -888,7 +955,7 @@ do_work (int argc_in,
   stream_configuration.allocatorConfiguration = &allocator_configuration;
   stream_configuration.renderer = renderer_in;
   stream_configuration.useHardwareDecoder = useHardwareDecoder_in;
-#if defined (ACE_WIN32) || defined(ACE_WIN64)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
                                                                      &heap_allocator,     // heap allocator handle
                                                                      true);               // block ?
