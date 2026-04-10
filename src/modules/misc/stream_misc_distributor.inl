@@ -315,7 +315,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
 
   bool high_priority_b = false;
- 
+  int result;
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -413,9 +414,23 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
+      //if (!high_priority_b &&
+      //    inherited::configuration_->waitForDataOnEnd)
+      //  idle ();
+
       forward (message_inout,
                false,            // dispose original ?
                high_priority_b); // high priority ?
+
+      //result = inherited::put_next (message_inout, NULL);
+      //if (unlikely (result == -1))
+      //  ACE_DEBUG ((LM_ERROR,
+      //              ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
+      //              inherited::mod_->name ()));
+
+      //// clean up
+      //message_inout = NULL;
+      //passMessageDownstream_out = false;
 
       stop (true,             // wait ?
             high_priority_b); // high priority ?
@@ -438,7 +453,7 @@ end:
 
       break;
     }
-    default:
+    case STREAM_SESSION_MESSAGE_RESIZE:
     {
       const typename SessionMessageType::DATA_T::DATA_T* session_data_p = NULL;
       typename SessionMessageType::DATA_T::DATA_T* session_data_2 = NULL;
@@ -508,6 +523,12 @@ error_2:
       inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
+    }
+    default:
+    {
+      forward (message_inout,
+               false,  // dispose original ?
+               false); // high priority ?
     }
   } // end SWITCH
 }
@@ -854,7 +875,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                               ControlMessageType,
                                               DataMessageType,
                                               SessionMessageType,
-                                              SessionDataType>::idle ()
+                                              SessionDataType>::idle () const
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::idle"));
 

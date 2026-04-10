@@ -387,7 +387,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-      int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM | FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+      const int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM | FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
+                          //| FF_DEBUG_SKIP | FF_DEBUG_BUGS | FF_DEBUG_BUFFERS | FF_DEBUG_THREADS;
 
       // sanity check(s)
       // *TODO*: remove type inference
@@ -761,12 +762,12 @@ continue_:
         flags = (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
                  SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
         transformContext_ =
-            sws_getCachedContext (NULL,
-                                  formatWidth_, formatHeight_, context_->pix_fmt,
-                                  formatWidth_, formatHeight_, outputFormat_,
-                                  flags,                        // flags
-                                  NULL, NULL,                   // filters
-                                  0);                           // parameters
+          sws_getCachedContext (NULL,
+                                formatWidth_, formatHeight_, context_->pix_fmt,
+                                formatWidth_, formatHeight_, outputFormat_,
+                                flags,                        // flags
+                                NULL, NULL,                   // filters
+                                0);                           // parameters
         if (unlikely (!transformContext_))
         {
           ACE_DEBUG ((LM_ERROR,
@@ -911,12 +912,21 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (frame_);
   ACE_ASSERT (frameSize_);
 
-  int result = avcodec_send_packet (context_,
-                                    &packet_in);
+  int result; 
+  bool retry_b = false, retried_b = false;
+
+send:
+  result = avcodec_send_packet (context_,
+                                &packet_in);
   if (result < 0)
   {
     if (likely (result == AVERROR (EAGAIN)))
-      return true;
+    {
+      if (retried_b)
+        return true;
+      retry_b = true;
+      goto receive;
+    } // end IF
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
@@ -1031,12 +1041,21 @@ continue_:
     } // end IF
   } // end IF
 
+receive:
   result = avcodec_receive_frame (context_,
                                   frame_);
   if (result < 0)
   {
     if (likely (result == AVERROR (EAGAIN)))
+    {
+      if (retry_b && !retried_b)
+      {
+        retried_b = true;
+        goto send;
+      } // end IF
       return true;
+    } // end IF
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -1081,7 +1100,8 @@ continue_:
                               line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
+                ///* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
+                                                         context_->width, context_->height, context_->pix_fmt,
                                                          frame_->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a)))

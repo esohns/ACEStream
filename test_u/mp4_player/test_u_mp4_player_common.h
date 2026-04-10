@@ -28,8 +28,10 @@
 #include "evr.h"
 #else
 #include "X11/X.h"
+#if defined (WAYLAND_SUPPORT)
 #undef CursorShape
 #include "wayland-client.h"
+#endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Synch_Traits.h"
@@ -204,11 +206,11 @@ class Test_U_MP4Player_MediaFoundation_SessionData
     return *this;
   }
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IDirect3DDevice9Ex*                 direct3DDevice;
 #else
   IDirect3DDevice9*                   direct3DDevice;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   UINT                                direct3DManagerResetToken;
   TOPOID                              rendererNodeId;
   UINT                                resetToken;

@@ -838,6 +838,7 @@ do_work (int argc_in,
   struct Test_U_MP4Player_StreamConfiguration stream_configuration;
   struct Stream_Miscellaneous_DelayConfiguration delay_configuration;
   delay_configuration.averageTokensPerInterval = 1;
+  delay_configuration.catchUp = true;
   delay_configuration.mode = STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;

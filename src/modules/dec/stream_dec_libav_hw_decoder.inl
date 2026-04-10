@@ -468,24 +468,25 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       } // end IF
 
       ACE_ASSERT (!parserContext_);
+      if (unlikely (!inherited::configuration_->codecConfiguration->useParser))
+        goto continue_3;
       parserContext_ =
         av_parser_init (inherited::configuration_->codecConfiguration->codecId);
-      if (!parserContext_)
+      if (unlikely (!parserContext_))
       {
-        ACE_DEBUG ((LM_WARNING,
-                    ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", continuing\n"),
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: av_parser_init(\"%s\"[%d]) failed: \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)), inherited::configuration_->codecConfiguration->codecId));
+        goto error;
       } // end IF
-      else
-      {
-        parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
-        // parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
-        // parserContext_->flags |= PARSER_FLAG_ONCE;
-        // parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
-        // parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
-      } // end ELSE
+      parserContext_->flags = inherited::configuration_->codecConfiguration->parserFlags;
+      // parserContext_->flags |= PARSER_FLAG_COMPLETE_FRAMES;
+      // parserContext_->flags |= PARSER_FLAG_ONCE;
+      // parserContext_->flags |= PARSER_FLAG_FETCHED_OFFSET;
+      // parserContext_->flags |= PARSER_FLAG_USE_CODEC_TS;
 
+continue_3:
       context_ = avcodec_alloc_context3 (codec_p);
       if (unlikely (!context_))
       {
@@ -760,7 +761,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       if (!hw_frames_constraints_p)
       {
         intermediateFormat_ =
-          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType);
+          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType,
+                                                                                inherited::configuration_->codecConfiguration->codecId);
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to av_hwdevice_get_hwframe_constraints(); trying intermediate format: \"%s\"\n"),
                     inherited::mod_->name (),
@@ -787,7 +789,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       if (unlikely (intermediateFormat_ == AV_PIX_FMT_NONE))
       {
         intermediateFormat_ =
-          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType);
+          Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (inherited::configuration_->codecConfiguration->deviceType,
+                                                                                inherited::configuration_->codecConfiguration->codecId);
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to retrieve suitable intermediate format; trying: \"%s\"\n"),
                     inherited::mod_->name (),
@@ -1043,14 +1046,22 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (hwFrame_);
   ACE_ASSERT (frameSize_);
 
+  int result;
+  bool retry_b = false, retried_b = false;
   struct AVFrame* frame_p = NULL;
 
-  int result = avcodec_send_packet (context_,
-                                    &packet_in);
+send:
+  result = avcodec_send_packet (context_,
+                                &packet_in);
   if (result < 0)
   {
     if (likely (result == AVERROR (EAGAIN)))
-      return true;
+    {
+      if (retried_b)
+        return true;
+      retry_b = true;
+      goto receive;
+    } // end IF
 
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_send_packet(): \"%s\", aborting\n"),
@@ -1148,12 +1159,21 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
+receive:
   result = avcodec_receive_frame (context_,
                                   hwFrame_);
   if (result < 0)
   {
     if (likely (result == AVERROR (EAGAIN)))
+    {
+      if (retry_b && !retried_b)
+      {
+        retried_b = true;
+        goto send;
+      } // end IF
       return true;
+    } // end IF
+
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to avcodec_receive_frame(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -1225,7 +1245,8 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                               line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, intermediateFormat_,
+                ///* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, intermediateFormat_,
+                                                         context_->width, context_->height, intermediateFormat_,
                                                          frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a,
