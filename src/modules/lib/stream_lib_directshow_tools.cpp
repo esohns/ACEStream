@@ -4496,14 +4496,14 @@ Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& 
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
     result =
-      (NANOSECONDS / static_cast<unsigned int> (video_info_header_p->AvgTimePerFrame));
+      static_cast<unsigned int> (std::ceil (NANOSECONDS / static_cast<float> (video_info_header_p->AvgTimePerFrame)));
   } // end IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
   { ACE_ASSERT (mediaType_in.pbFormat);
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result =
-      (NANOSECONDS / static_cast<unsigned int> (video_info_header2_p->AvgTimePerFrame));
+      static_cast<unsigned int> (std::ceil (NANOSECONDS / static_cast<float> (video_info_header2_p->AvgTimePerFrame)));
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
   { ACE_ASSERT (mediaType_in.pbFormat);
