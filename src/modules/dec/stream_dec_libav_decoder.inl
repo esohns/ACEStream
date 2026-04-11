@@ -1265,7 +1265,8 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                   line_sizes_a);
       ACE_ASSERT (result >= 0);
       if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                                                           context_->width, context_->height, context_->pix_fmt,
+                  /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
+                                                           //context_->width, context_->height, context_->pix_fmt,
                                                            frame_->data,
                                                            context_->width, context_->height, outputFormat_,
                                                            data_a)))
