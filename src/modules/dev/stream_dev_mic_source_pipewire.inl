@@ -489,7 +489,12 @@ error:
       } // end IF
       if (likely (CBData_.core))
       {
-        pw_core_disconnect (CBData_.core);
+        result = pw_core_disconnect (CBData_.core);
+        if (unlikely (result))
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to pw_core_disconnect (%@), continuing\n"),
+                      inherited::mod_->name (),
+                      CBData_.core));
         CBData_.core = NULL;
       } // end IF
       if (likely (context_))

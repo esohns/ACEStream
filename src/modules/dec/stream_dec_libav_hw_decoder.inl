@@ -1245,8 +1245,8 @@ receive:
                               line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                ///* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, intermediateFormat_,
-                                                         context_->width, context_->height, intermediateFormat_,
+                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, intermediateFormat_,
+                                                         //context_->width, context_->height, intermediateFormat_,
                                                          frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
                                                          data_a,

@@ -823,7 +823,7 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
     const AVPixFmtDescriptor* pix_desc_p =
       av_pix_fmt_desc_get (sourcePixelFormat_in);
     ACE_ASSERT (pix_desc_p);
-    const int num_planes_i = av_pix_fmt_count_planes (sourcePixelFormat_in);
+    int num_planes_i = av_pix_fmt_count_planes (sourcePixelFormat_in);
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
     {
       unsigned int plane_h = sourceHeight_in;
@@ -912,7 +912,7 @@ Stream_Module_Decoder_Tools::scale (struct SwsContext* context_in,
     const AVPixFmtDescriptor* pix_desc_p =
       av_pix_fmt_desc_get (pixelFormat_in);
     ACE_ASSERT (pix_desc_p);
-    const int num_planes_i = av_pix_fmt_count_planes (pixelFormat_in);
+    int num_planes_i = av_pix_fmt_count_planes (pixelFormat_in);
     for (int i = 0; i < AV_NUM_DATA_POINTERS; ++i)
     {
       unsigned int plane_h = sourceHeight_in;

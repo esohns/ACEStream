@@ -949,7 +949,7 @@ send:
       SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
 
     if ((context_->pix_fmt == outputFormat_) &&
-         (context_->width == static_cast<int> (formatWidth_) && context_->height == static_cast<int> (formatHeight_)))
+        (context_->width == static_cast<int> (formatWidth_) && context_->height == static_cast<int> (formatHeight_)))
     {
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: reinit occurred; decoded pixel format %s (@ %ux%u) is output format\n"),
@@ -1100,11 +1100,12 @@ receive:
                               line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                ///* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
-                                                         context_->width, context_->height, context_->pix_fmt,
+                /* *TODO*: this is a dirty hack ! --> */ frame_->linesize[0], context_->height, context_->pix_fmt,
+                                                         //context_->width, context_->height, context_->pix_fmt,
                                                          frame_->data,
                                                          context_->width, context_->height, outputFormat_,
-                                                         data_a)))
+                                                         data_a,
+                                                         false)))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), aborting\n"),
