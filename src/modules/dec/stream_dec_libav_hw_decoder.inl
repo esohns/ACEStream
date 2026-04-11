@@ -1245,7 +1245,8 @@ receive:
                               line_sizes_a);
     ACE_ASSERT (result >= 0);
     if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                /* *TODO*: this is a dirty hack ! --> */ frame_p->linesize[0], context_->height, intermediateFormat_,
+                                                         /* *TODO*: this is a dirty hack to support e.g. AV_PIX_FMT_YUV420P and AV_PIX_FMT_NV12 */
+                                                         frame_p->linesize[0], context_->height, intermediateFormat_,
                                                          //context_->width, context_->height, intermediateFormat_,
                                                          frame_p->data,
                                                          context_->width, context_->height, outputFormat_,
@@ -1435,11 +1436,13 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                                 line_sizes_a);
       ACE_ASSERT (result >= 0);
       if (unlikely (!Stream_Module_Decoder_Tools::convert (transformContext_,
-                  /* *TODO*: this is a dirty hack ! --> */ frame_p->linesize[0], context_->height, intermediateFormat_,
+                                                           /* *TODO*: this is a dirty hack to support e.g. AV_PIX_FMT_YUV420P */
+                                                           frame_p->linesize[0], context_->height, intermediateFormat_,
                                                            //context_->width, context_->height, intermediateFormat_,
                                                            frame_p->data,
                                                            context_->width, context_->height, outputFormat_,
-                                                           data_a)))
+                                                           data_a,
+                                                           false))) // flip vertically ?
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_Module_Decoder_Tools::convert(), returning\n"),
