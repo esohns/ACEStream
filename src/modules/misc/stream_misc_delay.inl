@@ -322,7 +322,7 @@ continue_:
                                       STREAM_MEDIATYPE_VIDEO,
                                       media_type_s);
             frame_rate_f =
-              static_cast<float> (Stream_MediaFramework_DirectShow_Tools::toFramerate (media_type_s));
+              Stream_MediaFramework_DirectShow_Tools::toFramerate (media_type_s);
             Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
             inherited2::getMediaType (session_data_r.formats.back (),

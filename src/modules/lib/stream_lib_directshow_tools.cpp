@@ -98,12 +98,12 @@ CopyMediaType (struct _AMMediaType* pmtTarget,
     {
       pmtTarget->cbFormat = 0;
       return E_OUTOFMEMORY;
-    }
+    } // end IF
     CopyMemory ((PVOID)pmtTarget->pbFormat, (PVOID)pmtSource->pbFormat, pmtTarget->cbFormat);
-  }
+  } // end IF
 
   if (pmtTarget->pUnk != NULL)
-    pmtTarget->pUnk->AddRef();
+    pmtTarget->pUnk->AddRef ();
 
   return S_OK;
 }
@@ -115,12 +115,12 @@ FreeMediaType (struct _AMMediaType& mt)
   {
     CoTaskMemFree ((PVOID)mt.pbFormat); mt.pbFormat = NULL;
     mt.cbFormat = 0;
-  }
+  } // end IF
 
   if (mt.pUnk != NULL)
   {
     mt.pUnk->Release (); mt.pUnk = NULL;
-  }
+  } // end IF
 }
 
 void
@@ -4484,32 +4484,32 @@ Stream_MediaFramework_DirectShow_Tools::toRowStride (const struct _AMMediaType& 
   return result;
 }
 
-unsigned int
+float
 Stream_MediaFramework_DirectShow_Tools::toFramerate (const struct _AMMediaType& mediaType_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Tools::toFramerate"));
 
-  unsigned int result = 0;
+  float result = 0.0f;
 
   if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo))
   { ACE_ASSERT (mediaType_in.pbFormat);
     struct tagVIDEOINFOHEADER* video_info_header_p =
       (struct tagVIDEOINFOHEADER*)mediaType_in.pbFormat;
     result =
-      static_cast<unsigned int> (std::ceil (NANOSECONDS / static_cast<float> (video_info_header_p->AvgTimePerFrame)));
+      (NANOSECONDS / static_cast<float> (video_info_header_p->AvgTimePerFrame));
   } // end IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_VideoInfo2))
   { ACE_ASSERT (mediaType_in.pbFormat);
     struct tagVIDEOINFOHEADER2* video_info_header2_p =
       (struct tagVIDEOINFOHEADER2*)mediaType_in.pbFormat;
     result =
-      static_cast<unsigned int> (std::ceil (NANOSECONDS / static_cast<float> (video_info_header2_p->AvgTimePerFrame)));
+      (NANOSECONDS / static_cast<float> (video_info_header2_p->AvgTimePerFrame));
   } // end ELSE IF
   else if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
   { ACE_ASSERT (mediaType_in.pbFormat);
     struct tWAVEFORMATEX* waveformatex_p =
       (struct tWAVEFORMATEX*)mediaType_in.pbFormat;
-    result = waveformatex_p->nSamplesPerSec;
+    result = static_cast<float> (waveformatex_p->nSamplesPerSec);
   } // end ELSE IF
   else
   {

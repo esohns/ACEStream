@@ -175,7 +175,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   mediaType_out.channels =
       Stream_MediaFramework_DirectShow_Tools::toChannels (mediaType_in);
   mediaType_out.sampleRate =
-      Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in);
+      static_cast<unsigned int> (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in));
 }
 
 template <typename MediaType>
@@ -191,12 +191,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype);
+    Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype);
   mediaType_out.frameRate.den = 1;
   mediaType_out.frameRate.num =
-      Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in);
+    static_cast<int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in)));
   mediaType_out.resolution =
-      Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
 }
 
 template <typename MediaType>

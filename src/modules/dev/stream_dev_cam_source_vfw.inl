@@ -230,7 +230,7 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       HWND window_h = NULL;
       struct tagBITMAPINFO format_s;
       struct tagCaptureParms capture_parameters_s;
-      unsigned int framerate_i;
+      float framerate_f;
       BOOL result_2 = FALSE;
 
       CBData_.sessionId = session_data_r.sessionId;
@@ -327,14 +327,14 @@ Stream_Dev_Cam_Source_VfW_T<ACE_SYNCH_USE,
       //            ACE_TEXT ("%s: set capture format\n"),
       //            inherited::mod_->name ()));
 
-      framerate_i =
+      framerate_f =
         Stream_MediaFramework_DirectShow_Tools::toFramerate (media_type_s);
       result_2 = capCaptureGetSetup (window_h,
                                      &capture_parameters_s,
                                      sizeof (struct tagCaptureParms));
       ACE_ASSERT (result_2 == TRUE);
       capture_parameters_s.dwRequestMicroSecPerFrame =
-        (DWORD)(1.0e6 / (float)framerate_i);
+        (DWORD)(1.0e6 / framerate_f);
       capture_parameters_s.fMakeUserHitOKToCapture = FALSE;
       //capture_parameters_s.wPercentDropForError = 10;
       capture_parameters_s.fYield = TRUE;

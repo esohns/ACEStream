@@ -2502,7 +2502,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
       framerate_i =
-        Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format);
+        static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->streamConfiguration.configuration_->format)));
       filename_string =
         (*directshow_stream_iterator).second.second->targetFileName;
 

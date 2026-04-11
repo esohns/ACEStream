@@ -315,7 +315,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
 
   bool high_priority_b = false;
-  int result;
+  //int result;
 
   switch (message_inout->type ())
   {

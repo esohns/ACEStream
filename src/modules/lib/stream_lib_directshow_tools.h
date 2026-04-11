@@ -230,7 +230,7 @@ class Stream_MediaFramework_DirectShow_Tools
   static unsigned int toBitrate (const struct _AMMediaType&); // media type
   static unsigned int toFrameBits (const struct _AMMediaType&); // media type
   static unsigned int toChannels (const struct _AMMediaType&); // media type
-  static unsigned int toFramerate (const struct _AMMediaType&); // media type
+  static float toFramerate (const struct _AMMediaType&); // media type
   static unsigned int toFramesize (const struct _AMMediaType&); // media type
   static Common_Image_Resolution_t toResolution (const struct _AMMediaType&); // media type
   static unsigned int toRowStride (const struct _AMMediaType&); // media type

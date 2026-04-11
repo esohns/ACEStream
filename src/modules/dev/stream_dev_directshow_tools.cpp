@@ -1066,7 +1066,7 @@ Stream_Device_DirectShow_Tools::getVideoCaptureFormat (IGraphBuilder* builder_in
       continue;
     } // end IF
     framerate_i =
-      Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p);
+      static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p)));
     if (frameRate_in && (framerate_i != frameRate_in))
     {
       Stream_MediaFramework_DirectShow_Tools::delete_ (media_type_p, true);
