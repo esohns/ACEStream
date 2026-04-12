@@ -184,6 +184,10 @@ class Stream_Module_Decoder_Tools
 
   static std::string audioFormatToString (enum AVSampleFormat);
 
+  // *IMPORTANT NOTE*: if the result of convert() is invalid (i.e. 'striped'
+  //                   images), try adding the input format to this list
+  static bool formatRequiresStrideToConvert (enum AVPixelFormat); // pixel format
+
   static bool convert (struct SwsContext*, // context ? : use sws_getCachedContext()
                        unsigned int,       // source width
                        unsigned int,       // source height

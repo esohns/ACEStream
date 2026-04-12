@@ -762,6 +762,23 @@ Stream_Module_Decoder_Tools::audioFormatToString (enum AVSampleFormat format_in)
 }
 
 bool
+Stream_Module_Decoder_Tools::formatRequiresStrideToConvert (enum AVPixelFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::formatRequiresStrideToConvert"));
+
+  switch (format_in)
+  {
+    case AV_PIX_FMT_NV12:
+    case AV_PIX_FMT_YUV420P:
+      return true;
+    default:
+      break;
+  } // end SWITCH
+
+  return false;
+}
+
+bool
 Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
                                       unsigned int sourceWidth_in,
                                       unsigned int sourceHeight_in,
