@@ -189,16 +189,16 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   bool unlock_rect_b = false;
   IDirect3DSurface9* d3d_surface_p = NULL, *d3d_surface_2 = NULL;
   struct _D3DLOCKED_RECT d3d_locked_rectangle_s;
-  BYTE* scanline0_p = NULL;
+  BYTE* scanline0_p;
   std::string filename_string;
 
   // sanity check(s)
   ACE_ASSERT (direct3DConfiguration_);
-  if (!direct3DConfiguration_->handle)
-    return; // device not (yet) available
+  //if (!direct3DConfiguration_->handle)
+  //  return; // device not (yet) available
 
   // *TODO*: remove ASAP
-  //ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, direct3DConfiguration_->lock);
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, direct3DConfiguration_->lock);
 
   // *IMPORTANT NOTE*: "...For these reasons, Direct3D is designed so that the
   //                   methods IDirect3DDevice9::Reset,
@@ -224,9 +224,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 //    result = resetDevice (*direct3DConfiguration_,
 //                          *session_data_r.inputFormat,
 //                          presentationParameters_,
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 //                          fullscreenDisplayMode_,
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 //                          defaultStride_,
 //                          handle_,
 //                          //swapChain_,
@@ -236,7 +236,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", aborting\n"),
 //                  inherited::mod_->name (),
-//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -253,7 +253,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     // *in memory*, which is the top row of the image
     scanline0_p =
       (reinterpret_cast<BYTE*> (message_inout->rd_ptr ()) +
-        (::abs (defaultStride_) * (direct3DConfiguration_->presentationParameters.BackBufferHeight - 1)));
+       (std::abs (defaultStride_) * (direct3DConfiguration_->presentationParameters.BackBufferHeight - 1)));
   } // end IF
   else
   {
@@ -281,7 +281,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 //ACE_TEXT ("%s: failed to IDirect3DSwapChain9::GetBackBuffer(): \"%s\", returning\n"),
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (d3d_surface_p);
@@ -295,21 +295,23 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::LockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect_b = true;
 
   // sanity check(s)
   ACE_ASSERT (transformation_);
-  ACE_ASSERT (::abs (d3d_locked_rectangle_s.Pitch) >= ::abs (defaultStride_));
+  ACE_ASSERT (std::abs (d3d_locked_rectangle_s.Pitch) >= std::abs (defaultStride_));
   try {
     transformation_ ((BYTE*)d3d_locked_rectangle_s.pBits,
                      d3d_locked_rectangle_s.Pitch,
                      scanline0_p,
                      defaultStride_,
-                     direct3DConfiguration_->presentationParameters.BackBufferWidth,
-                     direct3DConfiguration_->presentationParameters.BackBufferHeight);
+                     inherited::resolution_.cx,
+                     inherited::resolution_.cy);
+                     //direct3DConfiguration_->presentationParameters.BackBufferWidth,
+                     //direct3DConfiguration_->presentationParameters.BackBufferHeight);
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: caught exception in transformation callback, continuing\n"),
@@ -323,7 +325,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect_b = false;
@@ -367,20 +369,20 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (d3d_surface_2);
   //// color-fill the back buffer ?
   //result = handle_->ColorFill (d3d_surface_2,
-  //                                         NULL,
-  //                                         D3DCOLOR_XRGB (0, 0, 0x80));
+  //                             NULL,
+  //                             D3DCOLOR_XRGB (0, 0, 0x80));
   //if (unlikely (FAILED (result)))
   //{
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::ColorFill(): \"%s\", returning\n"),
   //              inherited::mod_->name (),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -396,14 +398,14 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::StretchRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   d3d_surface_p->Release (); d3d_surface_p = NULL;
   d3d_surface_2->Release (); d3d_surface_2 = NULL;
 
   // present the frame
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result =
     direct3DConfiguration_->handle->PresentEx (NULL, // pSourceRect
                                                NULL, // pDestRect
@@ -416,20 +418,20 @@ continue_:
                                              NULL,  // pDestRect
                                              NULL,  // hDestWindowOverride
                                              NULL); // pDirtyRegion
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (unlikely (FAILED (result)))
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::PresentEx(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9::Present(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     goto error;
   } // end IF
 
@@ -443,12 +445,14 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   } // end IF
   if (d3d_surface_p)
     d3d_surface_p->Release ();
   if (d3d_surface_2)
     d3d_surface_2->Release ();
+
+  notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -484,11 +488,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-    {
       goto end; // --> shut down
-
-      break;
-    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -517,7 +517,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to SetRectEmpty(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
 
       HRESULT result = setTransformation (media_type_s.subtype);
       if (unlikely (FAILED (result)))
@@ -526,7 +526,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::setTransformation(%s): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
         goto error;
       } // end IF
       // *NOTE*: always set this to a 32bit format, otherwise Stream_MediaFramework_DirectDraw_Tools::getDevice() fails;
@@ -627,7 +627,7 @@ end:
                       ACE_TEXT ("%s: failed to PostMessage(%@,WM_QUIT): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       inherited::window_,
-                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
       } // end IF
 
       if (inherited::thr_count_)
@@ -680,52 +680,53 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     // *NOTE*: 0 --> use window format
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
       inherited::resolution_.cx;
-      //0;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
       inherited::resolution_.cy;
-      //0;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       D3DFMT_UNKNOWN;
     direct3DConfiguration_->presentationParameters.hDeviceWindow =
       inherited::window_;
-    //direct3DConfiguration_->presentationParameters.Windowed = TRUE;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
       0;
-    //direct3DConfiguration_->presentationParameters.PresentationInterval = ;
+
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
   } // end IF
   else
   { // --> switch to fullscreen mode
-    ACE_ASSERT (!direct3DConfiguration_->presentationParameters.hDeviceWindow);
     ACE_ASSERT (direct3DConfiguration_->focusWindow && (direct3DConfiguration_->focusWindow == inherited::window_));
+
+    // *TODO*: retrieve fullscreen resolution for the current adapter/monitor
+    Common_Image_Resolution_t display_mode_resolution_s = {1920, 1200};
+
     struct _D3DDISPLAYMODE display_mode_s =
       Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (direct3DConfiguration_->adapter,
                                                               STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
-                                                              inherited::resolution_);
+                                                              display_mode_resolution_s);
     if ((display_mode_s.Format != STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT) ||
-        ((display_mode_s.Width  != inherited::resolution_.cx) ||
-         (display_mode_s.Height != inherited::resolution_.cy)))
+        ((display_mode_s.Width != display_mode_resolution_s.cx) ||
+         (display_mode_s.Height != display_mode_resolution_s.cy)))
     {
       // *TODO*: select closest possible format
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: adapter (was: %d) does not support fullscreen mode (was: %ux%u), returning\n"),
                   inherited::mod_->name (),
                   direct3DConfiguration_->adapter,
-                  inherited::resolution_.cx, inherited::resolution_.cy));
+                  display_mode_resolution_s.cx, display_mode_resolution_s.cy));
       return;
     } // end IF
 
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-      inherited::resolution_.cx;
+      display_mode_resolution_s.cx;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-      inherited::resolution_.cy;
+      display_mode_resolution_s.cy;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT;
-    //inherited::window_ = direct3DConfiguration_->focusWindow;
     direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
-    //direct3DConfiguration_->presentationParameters.Windowed = FALSE;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
-      display_mode_s.RefreshRate;
+      D3DPRESENT_RATE_DEFAULT;//display_mode_s.RefreshRate;
     //direct3DConfiguration_->presentationParameters.PresentationInterval = ;
+
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
   } // end ELSE
 
   HRESULT result =
@@ -739,7 +740,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return;
   } // end IF
 }
@@ -777,7 +778,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to SetRectEmpty(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
     mediaFramework_ = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
     if (releaseDeviceHandle_)
     { ACE_ASSERT (direct3DConfiguration_);
@@ -963,11 +964,11 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                              SessionDataType,
                              SessionDataContainerType,
                              MediaType>::resetDevice (struct Stream_MediaFramework_Direct3D_Configuration& configuration_inout,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                                       IDirect3DDevice9Ex*& handle_inout,
 #else
                                                       IDirect3DDevice9*& handle_inout,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                                       struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
                                                       LONG& stride_out,
                                                       struct tagRECT& destinationRectangle_out)
@@ -983,7 +984,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     // sanity check(s)
     if (unlikely (!ACE_OS::thr_equal (ACE_OS::thr_self (), configuration_inout.threadId)))
     {
-      ACE_DEBUG ((LM_DEBUG,
+      ACE_DEBUG ((LM_WARNING,
                   ACE_TEXT ("%s: only the device owner thread (was: %d, current: %t) can reset it, continuing\n"),
                   inherited::mod_->name (),
                   configuration_inout.threadId));
@@ -1012,7 +1013,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::initialize_Direct3D(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       return E_FAIL;
     } // end IF
     release_device_b = true;
@@ -1123,7 +1124,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to GetClientRect(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
   } // end IF
   else
     if (unlikely (!::CopyRect (&destinationRectangle_out,
@@ -1131,7 +1132,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CopyRect(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
   destinationRectangle_out = letterbox_rectangle (sourceRectangle_in,
                                                   destinationRectangle_out);
 }
@@ -1170,15 +1171,13 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     //  case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     //  {
         if (InlineIsEqualGUID (subType_in, libacestream_vis_directshow_format_transformations[i].subType))
-          transformation_ =
-            libacestream_vis_directshow_format_transformations[i].transformationCB;
+          transformation_ = libacestream_vis_directshow_format_transformations[i].transformationCB;
     //    break;
     //  }
     //  case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     //  {
     //    if (InlineIsEqualGUID (subType_in, libacestream_vis_mediafoundation_format_transformations[i].subType))
-    //      transformation_ =
-    //        libacestream_vis_mediafoundation_format_transformations[i].transformationCB;
+    //      transformation_ = libacestream_vis_mediafoundation_format_transformations[i].transformationCB;
     //    break;
     //  }
     //  default:
@@ -1433,21 +1432,86 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   bool closed_window_b = false;
   while (bRet = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
-    if (bRet == -1)
+    if (unlikely (bRet == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to GetMessage(%@): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   inherited::window_,
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
       break;
     } // end IF
 
     switch (message_s.message)
     {
       case WM_CLOSE:
+      {
         closed_window_b = true;
         break;
+      }
+      case WM_KEYDOWN:
+      {
+        char char_c;
+        switch (message_s.wParam)
+        {
+          case VK_ESCAPE:
+          {
+            if (!direct3DConfiguration_->presentationParameters.Windowed)
+            {
+              direct3DConfiguration_->presentationParameters.Windowed = 1;
+              toggle ();
+            } // end IF
+
+            if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to PostMessage(%@,WM_QUIT): \"%s\", continuing\n"),
+                          inherited::mod_->name (),
+                          inherited::window_,
+                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+
+            char_c = VK_ESCAPE;
+
+            break;
+          }
+          default:
+          {
+            //HKL keyboad_layout_h = GetKeyboardLayout (0);
+            //ACE_ASSERT (keyboad_layout_h);
+
+            BYTE keyboard_state_a[256];
+            bool bResult = GetKeyboardState (keyboard_state_a);
+            ACE_ASSERT (bResult);
+            WORD wCharacter = 0;
+            int iResult = ToAscii ((UINT)message_s.wParam,
+                                   0,
+                                   keyboard_state_a,
+                                   &wCharacter,
+                                   0);
+            ACE_ASSERT (iResult >= 0 && iResult <= 2);
+            char_c = LOBYTE (wCharacter);
+
+            break;
+          }
+        } // end SWITCH
+
+        switch (char_c)
+        {
+          case 'F':
+          case 'f':
+          {
+            direct3DConfiguration_->presentationParameters.Windowed =
+              (direct3DConfiguration_->presentationParameters.Windowed ? 0 : 1);
+            if (!direct3DConfiguration_->presentationParameters.Windowed)
+              direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
+            toggle ();
+            break;
+          }
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
       default:
         break;
     } // end SWITCH
@@ -1546,7 +1610,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMediaSample::GetPointer(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       return;
     } // end IF
     ACE_ASSERT (data_p);
@@ -1567,9 +1631,9 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     result = inherited::resetDevice (*inherited::direct3DConfiguration_,
                                      inherited::window_,
                                      inherited::presentationParameters_,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                      inherited::fullscreenDisplayMode_,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                      inherited::width_,
                                      inherited::height_,
                                      inherited::defaultStride_,
@@ -1583,7 +1647,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       goto error;
     } // end IF
   } // end IF
@@ -1594,7 +1658,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     // Bottom-up orientation. Return a pointer to the start of the last row
     // *in memory*, which is the top row of the image
     scanline0_p =
-      data_p + ::abs (inherited::defaultStride_) * (inherited::height_ - 1);
+      data_p + std::abs (inherited::defaultStride_) * (inherited::height_ - 1);
   } // end IF
   else
   {
@@ -1611,7 +1675,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSwapChain9::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   result = d3d_surface_p->LockRect (&d3d_locked_rectangle_s,
@@ -1622,7 +1686,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::LockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect_b = true;
@@ -1648,7 +1712,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect = false;
@@ -1663,7 +1727,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   //// color-fill the back buffer ?
@@ -1675,7 +1739,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
   //  ACE_DEBUG ((LM_ERROR,
   //              ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::ColorFill(): \"%s\", returning\n"),
   //              inherited::mod_->name (),
-  //              ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+  //              ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   //  goto error;
   //} // end IF
 
@@ -1692,7 +1756,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::StretchRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   d3d_surface_p->Release (); d3d_surface_p = NULL;
@@ -1708,7 +1772,7 @@ Stream_Vis_DirectShow_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::Present(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
 
@@ -1722,12 +1786,14 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   } // end IF
   if (d3d_surface_p)
     d3d_surface_p->Release ();
   if (d3d_surface_2)
     d3d_surface_2->Release ();
+
+  notify (STREAM_SESSION_MESSAGE_ABORT);
 
   return;
 
@@ -1805,10 +1871,10 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
   // sanity check(s)
   //ACE_ASSERT (message_inout->length () == inherited::configuration_->format->lSampleSize);
   ACE_ASSERT (inherited::direct3DConfiguration_);
-  if (unlikely (!inherited::direct3DConfiguration_->presentationParameters.Windowed &&
-                !inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow &&
-                !inherited::direct3DConfiguration_->focusWindow))
-    return; // --> nothing to do
+  //if (unlikely (!inherited::direct3DConfiguration_->presentationParameters.Windowed &&
+  //              !inherited::direct3DConfiguration_->presentationParameters.hDeviceWindow &&
+  //              !inherited::direct3DConfiguration_->focusWindow))
+  //  return; // --> nothing to do
 
   // *TODO*: remove ASAP
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::direct3DConfiguration_->lock);
@@ -1825,7 +1891,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFSample::GetBufferByIndex(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       return;
     } // end IF
     ACE_ASSERT (media_buffer_p);
@@ -1840,7 +1906,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaBuffer::Lock(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       goto error;
     } // end IF
     unlock_media_buffer = true;
@@ -1874,7 +1940,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
 //      ACE_DEBUG ((LM_ERROR,
 //                  ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::resetDevice(): \"%s\", aborting\n"),
 //                  inherited::mod_->name (),
-//                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+//                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 //      goto error;
 //    } // end IF
 //  } // end IF
@@ -1890,8 +1956,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     // Bottom-up orientation. Return a pointer to the start of the last row
     // *in memory*, which is the top row of the image
     scanline0_p =
-      data_p +
-        (::abs (inherited::defaultStride_) * (inherited::direct3DConfiguration_->presentationParameters.BackBufferHeight - 1));
+      data_p + (std::abs (inherited::defaultStride_) * (inherited::direct3DConfiguration_->presentationParameters.BackBufferHeight - 1));
   } // end IF
   else
   {
@@ -1919,7 +1984,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                 //ACE_TEXT ("%s: failed to IDirect3DSwapChain9::GetBackBuffer(): \"%s\", returning\n"),
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (d3d_surface_p);
@@ -1933,14 +1998,14 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::LockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect_b = true;
 
   // sanity check(s)
   ACE_ASSERT (inherited::transformation_);
-  ACE_ASSERT (::abs (d3d_locked_rectangle_s.Pitch) >= ::abs (inherited::defaultStride_));
+  ACE_ASSERT (std::abs (d3d_locked_rectangle_s.Pitch) >= std::abs (inherited::defaultStride_));
   try {
     inherited::transformation_ ((BYTE*)d3d_locked_rectangle_s.pBits,
                                 d3d_locked_rectangle_s.Pitch,
@@ -1961,7 +2026,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   unlock_rect_b = false;
@@ -1974,7 +2039,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaBuffer::Unlock(): \"%s\", returning\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
       goto error;
     } // end IF
     unlock_media_buffer = false;
@@ -1990,13 +2055,11 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
   filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
   filename_string +=
     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_PREFIX_STRING);
-  enum _D3DXIMAGE_FILEFORMAT format_e =
-    STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_SCREENSHOT_DEFAULT_FORMAT;
   filename_string +=
-    Stream_MediaFramework_DirectDraw_Tools::toFilenameExtension (format_e);
+    Stream_MediaFramework_DirectDraw_Tools::toFilenameExtension (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_SCREENSHOT_DEFAULT_FORMAT);
 #if defined (DIRECTXSDK_SUPPORT)
   if (unlikely (!Common_Image_Tools::save (filename_string,
-                                           format_e,
+                                           STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_SCREENSHOT_DEFAULT_FORMAT,
                                            d3d_surface_p)))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Common_Image_Tools::save(), continuing\n"),
@@ -2021,7 +2084,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::GetBackBuffer(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   ACE_ASSERT (d3d_surface_2);
@@ -2050,14 +2113,14 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::StretchRect(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
   d3d_surface_p->Release (); d3d_surface_p = NULL;
   d3d_surface_2->Release (); d3d_surface_2 = NULL;
 
   // present the frame
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result =
     inherited::direct3DConfiguration_->handle->PresentEx (NULL, // pSourceRect
                                                           NULL, // pDestRect
@@ -2070,19 +2133,19 @@ continue_:
                                                         NULL,  // pDestRect
                                                         NULL,  // hDestWindowOverride
                                                         NULL); // pDirtyRegion
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   if (FAILED (result))
   {
 #if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9Ex::PresentEx(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IDirect3DDevice9::Present(): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
     goto error;
   } // end IF
@@ -2097,7 +2160,7 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IDirect3DSurface9::UnlockRect(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   } // end IF
   if (d3d_surface_p)
     d3d_surface_p->Release ();
@@ -2111,10 +2174,12 @@ error:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to IMFMediaBuffer::Unlock(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
   } // end IF
   if (media_buffer_p)
     media_buffer_p->Release ();
+
+  notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -2184,7 +2249,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to IMFMediaSession::GetFullTopology(): \"%s\", aborting\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, false, false).c_str ())));
         goto error;
       } // end IF
       ACE_ASSERT (topology_p);
@@ -2228,7 +2293,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to SetRectEmpty(): \"%s\", continuing\n"),
                     inherited::mod_->name (),
-                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
 
       result = inherited::setTransformation (media_type_2.subtype);
       if (unlikely (FAILED (result)))
@@ -2237,7 +2302,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: failed to Stream_Vis_Target_Direct3D_T::setTransformation(%s): \"%s\", aborting\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_2.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ()),
-                    ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                    ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
         goto error;
       } // end IF
       // *NOTE*: always set this to a 32bit format, otherwise Stream_MediaFramework_DirectDraw_Tools::getDevice() fails;
@@ -2318,7 +2383,7 @@ error:
                       ACE_TEXT ("%s: failed to PostMessage(%@): \"%s\", continuing\n"),
                       inherited::mod_->name (),
                       inherited::window_,
-                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                      ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
       } // end IF
 
       if (inherited::thr_count_)
@@ -2375,7 +2440,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaType::GetGUID(MF_MT_SUBTYPE): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return result;
   } // end IF
 
@@ -2389,7 +2454,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFGetAttributeSize(MF_MT_FRAME_SIZE): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return result;
   } // end IF
 
@@ -2401,7 +2466,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to MFGetStrideForBitmapInfoHeader(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return result;
   } // end IF
 
@@ -2412,7 +2477,7 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to IMFMediaType::SetUINT32(MF_MT_DEFAULT_STRIDE): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     return result;
   } // end IF
 
