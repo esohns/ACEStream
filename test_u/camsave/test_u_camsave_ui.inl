@@ -1307,7 +1307,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
   converter.clear ();
   std::string framerate_string;
   unsigned int framerate_i =
-    static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p)));
+    static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (*media_type_p)));
   converter << framerate_i;
   framerate_string = converter.str ();
   index_i = choice_framerate->FindString (framerate_string);
@@ -1581,7 +1581,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                                                           resolution_s);
   ACE_ASSERT (!framerates_a.empty ());
   unsigned int framerate_i =
-    static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (cb_data_r.configuration->streamConfiguration.configuration_->format)));
+    static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (cb_data_r.configuration->streamConfiguration.configuration_->format)));
 
   choice_framerate->Clear ();
   int index_i = wxNOT_FOUND;

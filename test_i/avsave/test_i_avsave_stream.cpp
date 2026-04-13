@@ -491,7 +491,7 @@ continue_:
   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                          (*iterator_3).second.second->outputFormat);
   unsigned int frame_rate_num =
-    static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (configuration_in.configuration_->format.video)));
+    static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (configuration_in.configuration_->format.video)));
   Stream_MediaFramework_DirectShow_Tools::setFramerate (frame_rate_num,
                                                         (*iterator_2).second.second->outputFormat);
   Stream_MediaFramework_DirectShow_Tools::setFramerate (frame_rate_num,

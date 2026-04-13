@@ -3133,7 +3133,7 @@ idle_initialize_UI_cb (gpointer userData_in)
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
       framerate_i =
-        static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)));
+        static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)));
       filename_string =
         (*directshow_stream_iterator).second.second->targetFileName;
       break;
@@ -6639,7 +6639,7 @@ combobox_video_resolution_changed_cb (GtkWidget* widget_in,
                            list_store_p);
 
       framerate_i =
-        static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)));
+        static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)));
 
       break;
     }

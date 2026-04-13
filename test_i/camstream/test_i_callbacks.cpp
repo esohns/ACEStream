@@ -7726,7 +7726,7 @@ combobox_resolution_changed_cb (GtkComboBox* comboBox_in,
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       {
         framerate_i =
-          static_cast<unsigned int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate ((*directshow_stream_iterator).second.configuration_->format)));
+          static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate ((*directshow_stream_iterator).second.configuration_->format)));
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

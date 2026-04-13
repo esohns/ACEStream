@@ -194,7 +194,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
     Stream_MediaFramework_DirectShow_Tools::mediaSubTypeToAVPixelFormat (mediaType_in.subtype);
   mediaType_out.frameRate.den = 1;
   mediaType_out.frameRate.num =
-    static_cast<int> (std::ceil (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in)));
+    static_cast<int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in)));
   mediaType_out.resolution =
     Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in);
 }
