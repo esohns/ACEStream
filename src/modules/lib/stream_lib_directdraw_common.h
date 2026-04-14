@@ -108,8 +108,8 @@ struct Stream_MediaFramework_Direct3D_Configuration
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     //presentationParameters.FullScreen_RefreshRateInHz = 0;
     // *NOTE*: to prevent tearing: D3DPRESENT_INTERVAL_DEFAULT (i.e. 'vSync')
-    presentationParameters.PresentationInterval =
-      static_cast<UINT> (D3DPRESENT_INTERVAL_IMMEDIATE);
+    presentationParameters.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
+      //static_cast<UINT> (D3DPRESENT_INTERVAL_IMMEDIATE);
 
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_OS::memset (&fullScreenDisplayMode, 0, sizeof (struct D3DDISPLAYMODEEX));

@@ -672,7 +672,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   // *IMPORTANT NOTE*: the configuration has to be updated at this stage !
 
   // update configuration
-  if (direct3DConfiguration_->presentationParameters.Windowed)
+  if (direct3DConfiguration_->presentationParameters.Windowed == TRUE)
   { // --> switch to windowed mode
     ACE_ASSERT (inherited::window_);
     ACE_ASSERT (direct3DConfiguration_->focusWindow == inherited::window_);
@@ -684,21 +684,54 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       inherited::resolution_.cy;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       D3DFMT_UNKNOWN;
-    direct3DConfiguration_->presentationParameters.hDeviceWindow =
-      inherited::window_;
+    //direct3DConfiguration_->presentationParameters.hDeviceWindow =
+    //  direct3DConfiguration_->focusWindow;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
       0;
 
-    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_OVERLAPPEDWINDOW | WS_VISIBLE);
+    direct3DConfiguration_->fullScreenDisplayMode.Width = 0;
+    direct3DConfiguration_->fullScreenDisplayMode.Height = 0;
+    direct3DConfiguration_->fullScreenDisplayMode.RefreshRate =
+      D3DPRESENT_RATE_DEFAULT;
+    direct3DConfiguration_->fullScreenDisplayMode.Format = D3DFMT_UNKNOWN;
+
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_EXSTYLE, WS_EX_CLIENTEDGE);
+
+    RECT rc = {0, 0, inherited::resolution_.cx, inherited::resolution_.cy};
+    AdjustWindowRectEx (&rc, WS_OVERLAPPEDWINDOW, FALSE, WS_EX_CLIENTEDGE);
+
+    SetWindowPos (direct3DConfiguration_->focusWindow,
+                  HWND_NOTOPMOST,
+                  0, 0,
+                  0,//rc.right - rc.left,
+                  0,//rc.bottom - rc.top,
+                  SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
   } // end IF
   else
   { // --> switch to fullscreen mode
     ACE_ASSERT (direct3DConfiguration_->focusWindow && (direct3DConfiguration_->focusWindow == inherited::window_));
 
-    // *TODO*: retrieve fullscreen resolution for the current adapter/monitor
-    Common_Image_Resolution_t display_mode_resolution_s = {1920, 1200};
+    HRESULT result_2;
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
+    result_2 = S_OK;
+    IDirect3D9Ex* interface_p = Stream_MediaFramework_DirectDraw_Tools::handle ();
+#else
+    IDirect3D9* interface_p = NULL;
+    result_2 = direct3DConfiguration_->handle->GetDirect3D (&interface_p);
+#endif // _WIN32_WINNT_VISTA
+    ACE_ASSERT (SUCCEEDED (result_2) && interface_p);
 
-    struct _D3DDISPLAYMODE display_mode_s =
+    struct _D3DDISPLAYMODE display_mode_s;
+    ACE_OS::memset (&display_mode_s, 0, sizeof (struct _D3DDISPLAYMODE));
+    result_2 = interface_p->GetAdapterDisplayMode (direct3DConfiguration_->adapter,
+                                                   &display_mode_s);
+    ACE_ASSERT (SUCCEEDED (result_2));
+    Common_Image_Resolution_t display_mode_resolution_s = {static_cast<LONG> (display_mode_s.Width),
+                                                           static_cast<LONG> (display_mode_s.Height)};
+    interface_p->Release (); interface_p = NULL;
+
+    display_mode_s =
       Stream_MediaFramework_DirectDraw_Tools::getDisplayMode (direct3DConfiguration_->adapter,
                                                               STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT,
                                                               display_mode_resolution_s);
@@ -716,24 +749,33 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     } // end IF
 
     direct3DConfiguration_->presentationParameters.BackBufferWidth =
-      display_mode_resolution_s.cx;
+      display_mode_s.Width;
     direct3DConfiguration_->presentationParameters.BackBufferHeight =
-      display_mode_resolution_s.cy;
+      display_mode_s.Height;
     direct3DConfiguration_->presentationParameters.BackBufferFormat =
       STREAM_LIB_DIRECTDRAW_3D_DEFAULT_FORMAT;
-    direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
+    //direct3DConfiguration_->presentationParameters.hDeviceWindow =
+    //  direct3DConfiguration_->focusWindow;
     direct3DConfiguration_->presentationParameters.FullScreen_RefreshRateInHz =
-      D3DPRESENT_RATE_DEFAULT;//display_mode_s.RefreshRate;
+      display_mode_s.RefreshRate;
     //direct3DConfiguration_->presentationParameters.PresentationInterval = ;
 
-    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+    direct3DConfiguration_->fullScreenDisplayMode.Width = display_mode_s.Width;
+    direct3DConfiguration_->fullScreenDisplayMode.Height =
+      display_mode_s.Height;
+    direct3DConfiguration_->fullScreenDisplayMode.RefreshRate =
+      display_mode_s.RefreshRate;
+    direct3DConfiguration_->fullScreenDisplayMode.Format =
+      display_mode_s.Format;
+
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_STYLE, WS_POPUP);
+    SetWindowLong (direct3DConfiguration_->focusWindow, GWL_EXSTYLE, WS_EX_TOPMOST);
   } // end ELSE
 
   HRESULT result =
     resetDevice (*direct3DConfiguration_,
                  direct3DConfiguration_->handle,
                  direct3DConfiguration_->presentationParameters,
-                 defaultStride_,
                  destinationRectangle_);
   if (unlikely (FAILED (result)))
   {
@@ -970,7 +1012,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                                                       IDirect3DDevice9*& handle_inout,
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                                       struct _D3DPRESENT_PARAMETERS_& presentationParameters_inout,
-                                                      LONG& stride_out,
                                                       struct tagRECT& destinationRectangle_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D_T::resetDevice"));
@@ -1456,9 +1497,9 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
         {
           case VK_ESCAPE:
           {
-            if (!direct3DConfiguration_->presentationParameters.Windowed)
+            if (direct3DConfiguration_->presentationParameters.Windowed == FALSE)
             {
-              direct3DConfiguration_->presentationParameters.Windowed = 1;
+              direct3DConfiguration_->presentationParameters.Windowed = TRUE;
               toggle ();
             } // end IF
 
@@ -1500,9 +1541,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
           case 'f':
           {
             direct3DConfiguration_->presentationParameters.Windowed =
-              (direct3DConfiguration_->presentationParameters.Windowed ? 0 : 1);
-            if (!direct3DConfiguration_->presentationParameters.Windowed)
-              direct3DConfiguration_->presentationParameters.hDeviceWindow = NULL;
+              (direct3DConfiguration_->presentationParameters.Windowed == TRUE ? FALSE : TRUE);
             toggle ();
             break;
           }

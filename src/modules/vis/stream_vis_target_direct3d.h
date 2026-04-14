@@ -118,11 +118,11 @@ class Stream_Vis_Target_Direct3D_T
    
   // helper methods
   bool initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                             IDirect3DDevice9Ex*&,                                 // in/out: device handle
 #else
                             IDirect3DDevice9*&,                                   // in/out: device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                             struct _D3DPRESENT_PARAMETERS_&);                     // in/out: Direct3D presentation parameters
 
   HRESULT setTransformation (REFGUID); // (inbound) sub-type
@@ -133,23 +133,20 @@ class Stream_Vis_Target_Direct3D_T
   //         destination rectangles
   struct tagRECT letterbox_rectangle (const struct tagRECT&,  // source rectangle
                                       const struct tagRECT&); // destination rectangle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   void checkCooperativeLevel (IDirect3DDevice9Ex*, // Direct3D device handle
 #else
   void checkCooperativeLevel (IDirect3DDevice9*,   // Direct3D device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                               bool&,               // return value: reset device ?
                               bool&);              // return value: destroy device ?
-  // *NOTE*: behaviour depends on whether a device handle is passed in:
-  //         yes: calls Reset(Ex) and 
   HRESULT resetDevice (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                        IDirect3DDevice9Ex*&,                                 // in/out: device handle
 #else
                        IDirect3DDevice9*&,                                   // in/out: device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                        struct _D3DPRESENT_PARAMETERS_&,                      // return value: presentation parameters
-                       LONG&,                                                // return value: stride
                        struct tagRECT&);                                     // return value: destination rectangle
 
   // *NOTE*: < 0 ? 'bottom-up' memory layout : 'top-down' memory layout
@@ -193,11 +190,11 @@ class Stream_Vis_Target_Direct3D_T
   HRESULT getFormat (DWORD,                // index
                      struct _GUID&) const; // return value: sub-type
 //  HRESULT createSwapChain (HWND,                                  // (target) window handle
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+//#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 //                           IDirect3DDevice9Ex*,                   // Direct3D device handle
 //#else
 //                           IDirect3DDevice9*,                     // Direct3D device handle
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 //                           const struct _D3DPRESENT_PARAMETERS_&, // presentation parameters
 //                           REFGUID,                               // (input) media subtype
 //                           IDirect3DSwapChain9*&);                // return value: Direct3D swap chain

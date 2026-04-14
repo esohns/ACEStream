@@ -51,11 +51,11 @@ class Stream_MediaFramework_DirectDraw_Tools
                                                 enum _D3DFORMAT,                   // format
                                                 const Common_Image_Resolution_t&); // resolution
   // *IMPORTANT NOTE*: callers must Release() the handle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   inline static IDirect3D9Ex* handle () { ACE_ASSERT (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle); Stream_MediaFramework_DirectDraw_Tools::direct3DHandle->AddRef (); return Stream_MediaFramework_DirectDraw_Tools::direct3DHandle; }
 #else
   inline static IDirect3D9* handle () { ACE_ASSERT (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle); Stream_MediaFramework_DirectDraw_Tools::direct3DHandle->AddRef (); return Stream_MediaFramework_DirectDraw_Tools::direct3DHandle; }
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   static bool can (UINT,                              // adapter
                    enum _D3DFORMAT,                   // format
                    const Common_Image_Resolution_t&); // resolution
@@ -65,18 +65,18 @@ class Stream_MediaFramework_DirectDraw_Tools
                          UINT&);                                               // return value: reset token
   // *NOTE*: may be used to switch between windowed (aka 'desktop')/fullscreen
   //         modes
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   static bool reset (IDirect3DDevice9Ex*,                                   // Direct3D device handle
 #else
   static bool reset (IDirect3DDevice9*,                                     // Direct3D device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                      struct Stream_MediaFramework_Direct3D_Configuration&); // in/out: Direct3D configuration
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   static bool initializeDeviceManager (const IDirect3DDevice9Ex*, // Direct3D device handle
 #else
   static bool initializeDeviceManager (const IDirect3DDevice9*,   // Direct3D device handle
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                        IDirect3DDeviceManager9*&, // return value: Direct3D device manager handle
                                        UINT&);                    // return value: reset token
 
@@ -91,11 +91,11 @@ class Stream_MediaFramework_DirectDraw_Tools
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectDraw_Tools (const Stream_MediaFramework_DirectDraw_Tools&))
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectDraw_Tools& operator= (const Stream_MediaFramework_DirectDraw_Tools&))
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   static IDirect3D9Ex* direct3DHandle;
 #else
   static IDirect3D9* direct3DHandle;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 };
 
 #endif
