@@ -418,7 +418,7 @@ Stream_MediaFramework_DirectDraw_Tools::reset (IDirect3DDevice9* deviceHandle_in
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result =
     deviceHandle_in->ResetEx (&configuration_inout.presentationParameters,
-                              &configuration_inout.fullScreenDisplayMode);
+                              configuration_inout.presentationParameters.Windowed ? NULL : &configuration_inout.fullScreenDisplayMode);
 #else
   result = deviceHandle_in->Reset (&configuration_inout.presentationParameters);
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)

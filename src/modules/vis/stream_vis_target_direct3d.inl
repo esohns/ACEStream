@@ -704,8 +704,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     SetWindowPos (direct3DConfiguration_->focusWindow,
                   HWND_NOTOPMOST,
                   0, 0,
-                  0,//rc.right - rc.left,
-                  0,//rc.bottom - rc.top,
+                  rc.right - rc.left,
+                  rc.bottom - rc.top,
                   SWP_SHOWWINDOW | SWP_NOMOVE | SWP_FRAMECHANGED);
   } // end IF
   else
