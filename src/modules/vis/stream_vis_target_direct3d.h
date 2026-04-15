@@ -119,11 +119,10 @@ class Stream_Vis_Target_Direct3D_T
   // helper methods
   bool initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
-                            IDirect3DDevice9Ex*&,                                 // in/out: device handle
+                            IDirect3DDevice9Ex*&);                                // in/out: device handle
 #else
-                            IDirect3DDevice9*&,                                   // in/out: device handle
+                            IDirect3DDevice9*&);                                  // in/out: device handle
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
-                            struct _D3DPRESENT_PARAMETERS_&);                     // in/out: Direct3D presentation parameters
 
   HRESULT setTransformation (REFGUID); // (inbound) sub-type
   // *NOTE*: takes a source rectangle and constructs the largest possible
@@ -154,10 +153,7 @@ class Stream_Vis_Target_Direct3D_T
   //                   https://docs.microsoft.com/en-us/windows/desktop/directshow/top-down-vs--bottom-up-dibs
   LONG                                                 defaultStride_;
   struct tagRECT                                       destinationRectangle_;
-  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration_;
-  enum Stream_MediaFramework_Type                      mediaFramework_;
   bool                                                 releaseDeviceHandle_; // configuration-
-  bool                                                 resetMode_; // to desktop mode ?
   bool                                                 snapShotNextFrame_;
   // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
   //         memory to a Direct3D surface in (video) memory and converts the
