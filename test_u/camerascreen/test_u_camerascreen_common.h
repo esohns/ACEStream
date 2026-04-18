@@ -42,8 +42,10 @@
 #include "linux/videodev2.h"
 
 #include "X11/X.h"
+#if defined (WAYLAND_SUPPORT)
 #undef CursorShape
 #include "wayland-client.h"
+#endif // WAYLAND_SUPPORT
 
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
@@ -56,7 +58,6 @@ extern "C"
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_isubscribe.h"
@@ -91,6 +92,7 @@ extern "C"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 
@@ -380,7 +382,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   , resize (NULL)
    , model ()
    , window ()
   {
@@ -399,7 +401,7 @@ struct Stream_CameraScreen_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                                    fullScreen;
+  Stream_Visualization_IResize*                           resize;
   std::string                                             model;
   struct Common_UI_Window                                 window;
 };
@@ -415,7 +417,6 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
 {
   Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration ()
    : Stream_CameraScreen_ModuleHandlerConfiguration ()
-   , area ()
    , builder (NULL)
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
@@ -433,7 +434,8 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
 
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration operator= (const struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration& rhs_in)
   {
-    area = rhs_in.area;
+    Stream_CameraScreen_ModuleHandlerConfiguration::operator= (rhs_in);
+
     if (builder)
     {
       builder->Release (); builder = NULL;
@@ -449,6 +451,7 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
 //    if (outputFormat)
 //      Stream_MediaFramework_DirectShow_Tools::delete_ (outputFormat);
     push = rhs_in.push;
+    resize = rhs_in.resize;
     shaderFile = rhs_in.shaderFile;
     subscriber = rhs_in.subscriber;
     subscribers = rhs_in.subscribers;
@@ -474,7 +477,6 @@ struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration
     return *this;
   }
 
-  struct tagRECT                                             area;
   IGraphBuilder*                                             builder;
   struct Stream_MediaFramework_Direct3D_Configuration*       direct3DConfiguration;
   struct Stream_CameraScreen_DirectShow_FilterConfiguration* filterConfiguration;

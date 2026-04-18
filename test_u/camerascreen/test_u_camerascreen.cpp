@@ -1257,8 +1257,8 @@ do_work (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // converter
-  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize
-  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2c; // resize_2 (video wall)
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize (ONNX | video wall)
+  struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2c; // resize_2 (renderer)
   struct Stream_CameraScreen_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // display
   struct Stream_CameraScreen_DirectShow_StreamConfiguration directshow_stream_configuration;
   Stream_CameraScreen_DirectShow_EventHandler_t directshow_ui_event_handler;
@@ -1574,6 +1574,9 @@ do_work (int argc_in,
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                               std::make_pair (&module_configuration,
                                                                                               &directshow_modulehandler_configuration_2b)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
+                                                                              std::make_pair (&module_configuration,
+                                                                                              &directshow_modulehandler_configuration_2c)));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1718,9 +1721,9 @@ do_work (int argc_in,
       {
         case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
         {
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
-                                                                 std::make_pair (&module_configuration,
-                                                                                 &directshow_modulehandler_configuration_2c)));
+          //directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
+          //                                                       std::make_pair (&module_configuration,
+          //                                                                       &directshow_modulehandler_configuration_2c)));
         
           curses_configuration_p =
             &directShowConfiguration_in.cursesConfiguration;

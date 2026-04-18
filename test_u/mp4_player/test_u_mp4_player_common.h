@@ -28,8 +28,8 @@
 #include "evr.h"
 #else
 #include "X11/X.h"
-#if defined (WAYLAND_SUPPORT)
 #undef CursorShape
+#if defined (WAYLAND_SUPPORT)
 #include "wayland-client.h"
 #endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -60,6 +60,7 @@
 #endif // FFMPEG_SUPPORT
 
 #include "stream_vis_common.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 
@@ -274,10 +275,10 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
    , delayConfiguration (NULL)
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
 #if defined (SOX_SUPPORT)
    , manageSoX (true)
 #endif // SOX_SUPPORT
+   , resize (NULL)
 #if defined (FFMPEG_SUPPORT)
    , streamIndex (-1)
 #endif // FFMPEG_SUPPORT
@@ -299,10 +300,10 @@ struct Test_U_MP4Player_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                                    fullScreen;
 #if defined (SOX_SUPPORT)
   bool                                                    manageSoX;
 #endif // SOX_SUPPORT
+  Stream_Visualization_IResize*                           resize;
 #if defined (FFMPEG_SUPPORT)
   int                                                     streamIndex;
 #endif // FFMPEG_SUPPORT

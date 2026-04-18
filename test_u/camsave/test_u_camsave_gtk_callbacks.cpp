@@ -2730,41 +2730,41 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_toggle_button_set_active (toggle_button_p,
                                 !filename_string.empty ());
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      is_fullscreen_b = (*directshow_stream_iterator_2).second.second->fullScreen;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      is_fullscreen_b = (*mediafoundation_stream_iterator_2).second.second->fullScreen;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
-#else
-  if (ui_cb_data_base_p->useLibCamera)
-  {
-#if defined (LIBCAMERA_SUPPORT)
-#else
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
-    return G_SOURCE_REMOVE;
-#endif // LIBCAMERA_SUPPORT
-  } // end IF
-  else
-  {
-  } // end ELSE
-#endif // ACE_WIN32 || ACE_WIN64
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  switch (ui_cb_data_base_p->mediaFramework)
+//  {
+//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//    {
+//      is_fullscreen_b = (*directshow_stream_iterator_2).second.second->fullScreen;
+//      break;
+//    }
+//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//    {
+//      is_fullscreen_b = (*mediafoundation_stream_iterator_2).second.second->fullScreen;
+//      break;
+//    }
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                  ui_cb_data_base_p->mediaFramework));
+//      return G_SOURCE_REMOVE;
+//    }
+//  } // end SWITCH
+//#else
+//  if (ui_cb_data_base_p->useLibCamera)
+//  {
+//#if defined (LIBCAMERA_SUPPORT)
+//#else
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("useLibCamera specified, but LIBCAMERA_SUPPORT not set, returning\n")));
+//    return G_SOURCE_REMOVE;
+//#endif // LIBCAMERA_SUPPORT
+//  } // end IF
+//  else
+//  {
+//  } // end ELSE
+//#endif // ACE_WIN32 || ACE_WIN64
 
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -4527,7 +4527,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      (*directshow_stream_iterator_2).second.second->fullScreen = is_active_b;
+      //(*directshow_stream_iterator_2).second.second->fullScreen = is_active_b;
       (*directshow_stream_iterator_2).second.second->window.gdk_window =
         (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                      : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
@@ -4544,7 +4544,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
+      //(*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:
@@ -4564,7 +4564,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO)));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-  (*iterator_2).second.second->fullScreen = is_active_b;
+  //(*iterator_2).second.second->fullScreen = is_active_b;
   (*iterator_2).second.second->window.gdk_window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                  : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));

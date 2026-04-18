@@ -96,9 +96,6 @@ do_print_usage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
             << ACE_TEXT_ALWAYS_CHAR (" [OPTIONS]")
@@ -212,9 +209,6 @@ do_process_arguments (int argc_in,
                       bool& printVersionAndExit_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
-
-  std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -766,12 +760,12 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
   int open_mode =
-      ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                              : O_RDONLY);
+    ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                            : O_RDONLY);
   int result = -1;
   deviceIdentifier_out.fileDescriptor =
-      v4l2_open (deviceIdentifier_in.c_str (),
-                 open_mode);
+    v4l2_open (deviceIdentifier_in.c_str (),
+               open_mode);
   if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1711,7 +1705,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -1867,7 +1861,6 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1a set defaults
-  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
   struct Stream_Device_Identifier device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -1939,7 +1932,7 @@ ACE_TMAIN (int argc_in,
                              trace_information,
                              print_version_and_exit_b))
   {
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1964,7 +1957,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1979,10 +1972,9 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
@@ -2006,7 +1998,7 @@ ACE_TMAIN (int argc_in,
   // step1f: handle specific program modes
   if (print_version_and_exit_b)
   {
-    do_print_version (ACE::basename (argv_in[0]));
+    do_print_version (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     Common_Log_Tools::finalize ();
     Common_Tools::finalize ();

@@ -148,11 +148,11 @@ class Stream_Vis_Target_Direct3D_T
                        struct _D3DPRESENT_PARAMETERS_&,                      // return value: presentation parameters
                        struct tagRECT&);                                     // return value: destination rectangle
 
+  struct tagRECT                                       destinationRectangle_;
   // *NOTE*: < 0 ? 'bottom-up' memory layout : 'top-down' memory layout
   //         see also: https://docs.microsoft.com/en-us/windows/desktop/medfound/image-stride
   //                   https://docs.microsoft.com/en-us/windows/desktop/directshow/top-down-vs--bottom-up-dibs
-  LONG                                                 defaultStride_;
-  struct tagRECT                                       destinationRectangle_;
+  LONG                                                 inputStride_;
   bool                                                 releaseDeviceHandle_; // configuration-
   bool                                                 snapShotNextFrame_;
   // *NOTE*: this copies (!) the inbound image frame data from sample (virtual)
@@ -160,6 +160,7 @@ class Stream_Vis_Target_Direct3D_T
   //         inbound (i.e. capture) format to RGB-32 for visualization
   // *TODO*: separate this two-step process (insert a MFT/DMO decoder filter)
   Stream_Vis_Target_Direct3D_TransformationCB          transformation_;
+  Common_Image_Resolution_t                            windowedResolution_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Direct3D_T ())

@@ -13,12 +13,12 @@ class Stream_Visualization_Base
  , public Stream_Visualization_IResize
 {
  public:
-  Stream_Visualization_Base (ACE_Thread_Mutex*);
+  Stream_Visualization_Base (ACE_Thread_Mutex* = NULL);
   inline virtual ~Stream_Visualization_Base () {}
 
   // implement Stream_Visualization_IResize
-  inline virtual bool lock (bool block_in) { ACE_ASSERT (block_in && lock_2_); lock_2_->acquire (); return true; }
-  inline virtual int unlock (bool unlockCompletely_in) { ACE_ASSERT (!unlockCompletely_in && lock_2_); return lock_2_->release (); }
+  inline virtual bool lock (bool block_in) { ACE_ASSERT (block_in); int result = -1; if (lock_2_) result = lock_2_->acquire (); return (result == 0); }
+  inline virtual int unlock (bool unlockCompletely_in) { ACE_ASSERT (!unlockCompletely_in); if (lock_2_) return lock_2_->release (); return -1; }
   inline virtual void resize (const Common_Image_Resolution_t&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   inline virtual void resizing () { lock (true); resizing_ = true; unlock (false); }
 

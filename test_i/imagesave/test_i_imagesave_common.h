@@ -40,16 +40,6 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-//#if defined (FFMPEG_SUPPORT)
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavutil/pixfmt.h"
-//}
-//#endif // __cplusplus
-//#endif // FFMPEG_SUPPORT
-
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
 #endif // GTK_SUPPORT
@@ -104,6 +94,7 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_iresize.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -234,11 +225,11 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 //   , window (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
-   , fullScreen (false)
    , outputFormat ()
    , program (1)
    , audioStreamType (0)
    , videoStreamType (27) // H264
+   , resize (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , targetFileName ()
@@ -254,13 +245,13 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_Display                           display;
-  bool                                               fullScreen;
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_MediaType      outputFormat;
 #endif // FFMPEG_SUPPORT
   unsigned int                                       program;                  // MPEG TS decoder module
   unsigned int                                       audioStreamType;          // MPEG TS decoder module
   unsigned int                                       videoStreamType;          // MPEG TS decoder module
+  Stream_Visualization_IResize*                      resize;
   Test_I_ISessionNotify_t*                           subscriber;
   Test_I_Subscribers_t*                              subscribers;
   std::string                                        targetFileName;

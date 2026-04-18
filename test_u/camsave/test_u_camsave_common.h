@@ -117,6 +117,7 @@ extern "C"
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 #include "test_u_configuration.h"
@@ -499,7 +500,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   , resize (NULL)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , shaderFile ()
 #endif // ACE_WIN32 || ACE_WIN64
@@ -514,7 +515,7 @@ struct Stream_CamSave_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
   struct Stream_Device_Identifier deviceIdentifier; // source/renderer module
   struct Common_UI_DisplayDevice  display;
-  bool                            fullScreen;
+  Stream_Visualization_IResize*   resize;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::string                     shaderFile;
 #endif // ACE_WIN32 || ACE_WIN64

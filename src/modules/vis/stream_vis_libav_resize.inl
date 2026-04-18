@@ -251,22 +251,23 @@ Stream_Visualization_LibAVResize_T<TaskType,
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: output size is input size, nothing to do, continuing\n"),
                     inherited::mod_->name ()));
-        break;
+        //break;
       } // end IF
+      else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
-                  sourceResolution_.cx, sourceResolution_.cy,
-                  media_type_3.resolution.cx, media_type_3.resolution.cy));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
+                    sourceResolution_.cx, sourceResolution_.cy,
+                    media_type_3.resolution.cx, media_type_3.resolution.cy));
 #else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
-                  sourceResolution_.width, sourceResolution_.height,
-                  media_type_3.resolution.width, media_type_3.resolution.height));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
+                    sourceResolution_.width, sourceResolution_.height,
+                    media_type_3.resolution.width, media_type_3.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize conversion context
@@ -424,23 +425,23 @@ error:
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: output size is input size, nothing to do\n"),
                     inherited::mod_->name ()));
-        break;
+        //break;
       } // end IF
-
+      else
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
-                  sourceResolution_.cx, sourceResolution_.cy,
-                  media_type_3.resolution.cx, media_type_3.resolution.cy));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
+                    sourceResolution_.cx, sourceResolution_.cy,
+                    media_type_3.resolution.cx, media_type_3.resolution.cy));
 #else
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
-                  sourceResolution_.width, sourceResolution_.height,
-                  media_type_3.resolution.width, media_type_3.resolution.height));
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: resizing %s %ux%u to %ux%u\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (inherited::inputFormat_).c_str ()),
+                    sourceResolution_.width, sourceResolution_.height,
+                    media_type_3.resolution.width, media_type_3.resolution.height));
 #endif // ACE_WIN32 || ACE_WIN64
 
       // initialize conversion context

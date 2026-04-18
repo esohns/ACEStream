@@ -158,6 +158,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
+      layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
@@ -248,6 +249,8 @@ Stream_CameraScreen_DirectShow_Stream::initialize (const inherited::CONFIGURATIO
                 ACE_TEXT (stream_name_string_)));
     return false;
   } // end IF
+
+  (*iterator_2).second.second->resize = this;
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -582,6 +585,23 @@ error:
   return false;
 }
 
+void
+Stream_CameraScreen_DirectShow_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_DirectShow_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in,
+                                                         (*iterator).second.second->outputFormat);
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false,
+                     false);
+}
+
 //////////////////////////////////////////
 
 Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_Stream ()
@@ -592,9 +612,9 @@ Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_
  //                    ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , display_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING))
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
  , referenceCount_ (1)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::Stream_CameraScreen_MediaFoundation_Stream"));
@@ -605,7 +625,7 @@ Stream_CameraScreen_MediaFoundation_Stream::~Stream_CameraScreen_MediaFoundation
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_MediaFoundation_Stream::~Stream_CameraScreen_MediaFoundation_Stream"));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
   if (mediaSession_)
   {
@@ -618,7 +638,7 @@ Stream_CameraScreen_MediaFoundation_Stream::~Stream_CameraScreen_MediaFoundation
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   // *NOTE*: this implements an ordered shutdown on destruction...
   inherited::shutdown ();

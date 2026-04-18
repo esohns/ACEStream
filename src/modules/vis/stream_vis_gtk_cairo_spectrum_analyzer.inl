@@ -203,6 +203,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     scaleFactorY_2 = 0.0;
     halfHeight_ = 0;
     height_ = width_ = 0;
+    sampleIterator_.buffer_ = NULL;
   } // end IF
 
   // initialize cairo context
@@ -359,7 +360,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   unsigned int number_of_samples;
   unsigned int samples_to_write;
-  unsigned int offset = 0;
+  size_t offset = 0;
   unsigned int tail_slot;
   ACE_Message_Block* message_block_p = message_inout;
   // *NOTE*: make sure there's no switch between computation of individual channels
@@ -551,7 +552,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
       data_sample_size = sound_sample_size * media_type_s.channels;
       sample_byte_order =
-        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? 0x0123
                                                                    : -1);
       is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
       is_floating_point_format =
@@ -590,9 +591,11 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
       scaleFactorX_ =
         width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+      // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
       scaleFactorX_2 =
-        width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
-      max_value_d = static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
+        width_ / static_cast<double> (inherited2::channels_ * (inherited2::halfSlots_ - 1));
+      max_value_d =
+        static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, is_signed_format));
       scaleFactorY_ =
         (is_floating_point_format ? static_cast<double> (halfHeight_)
                                   : is_signed_format ? static_cast<double> (halfHeight_) / max_value_d
@@ -710,7 +713,7 @@ error:
       //data_sample_size = waveformatex_p->nBlockAlign;
       data_sample_size = waveformatex_p->nChannels * sound_sample_size;
       // *NOTE*: apparently, all Win32 sound data is little endian only
-      sample_byte_order = ACE_LITTLE_ENDIAN;
+      sample_byte_order = 0x0123;
       // *NOTE*: "...If the audio contains 8 bits per sample, the audio samples
       //         are unsigned values. (Each audio sample has the range 0255.)
       //         If the audio contains 16 bits per sample or higher, the audio
@@ -731,7 +734,7 @@ error:
       sound_sample_size = (snd_pcm_format_width (media_type_s.format) / 8);
       data_sample_size = sound_sample_size * media_type_s.channels;
       sample_byte_order =
-        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? ACE_LITTLE_ENDIAN
+        ((snd_pcm_format_little_endian (media_type_s.format) == 1) ? 0x0123
                                                                    : -1);
       is_signed_format = (snd_pcm_format_signed (media_type_s.format) == 1);
       is_floating_point_format =
@@ -892,7 +895,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_, NULL);
 #else
   Common_Error_Tools::setThreadName (inherited::threadName_, 0);
@@ -1129,7 +1132,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return false;
   } // end IF
-#endif // GTK_CHECK_VERSION ()
+#endif // GTK_CHECK_VERSION (3,22,0)
 
   if (cairoContext_out)
   {
@@ -1141,72 +1144,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 
   return true;
 }
-
-//template <ACE_SYNCH_DECL,
-//          typename TimePolicyType,
-//          typename ConfigurationType,
-//          typename ControlMessageType,
-//          typename DataMessageType,
-//          typename SessionMessageType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename TimerManagerType,
-//          typename MediaType,
-//          typename ValueType>
-//void
-//Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
-//                                                  TimePolicyType,
-//                                                  ConfigurationType,
-//                                                  ControlMessageType,
-//                                                  DataMessageType,
-//                                                  SessionMessageType,
-//                                                  SessionDataType,
-//                                                  SessionDataContainerType,
-//                                                  TimerManagerType,
-//                                                  MediaType,
-//                                                  ValueType>::reset ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::reset"));
-//
-//  // trigger a render update
-//  // *NOTE*: (as long as it is single thread-based,) rendering a frame creates
-//  //         too much workload for the timer dispatch context and delays the
-//  //         dispatch of (relatively more important other) scheduled tasks
-//  //         --> avoid 'laggy' applications
-//  // *TODO*: depending on the platform (and the timer dispatch 'mode'), this may
-//  //         be unnecessary (i.e. if the timer mechanism is signal-handler
-//  //         based (, or the timer dispatch uses a thread pool itself))
-//  int result = -1;
-//  ACE_Message_Block* message_block_p = NULL;
-//  ACE_NEW_NORETURN (message_block_p,
-//                    ACE_Message_Block (0,                                  // size
-//                                       ACE_Message_Block::MB_EVENT,        // type
-//                                       NULL,                               // continuation
-//                                       NULL,                               // data
-//                                       NULL,                               // buffer allocator
-//                                       NULL,                               // locking strategy
-//                                       ACE_DEFAULT_MESSAGE_BLOCK_PRIORITY, // priority
-//                                       ACE_Time_Value::zero,               // execution time
-//                                       ACE_Time_Value::max_time,           // deadline time
-//                                       NULL,                               // data block allocator
-//                                       NULL));                             // message allocator
-//  if (unlikely (!message_block_p))
-//  {
-//    ACE_DEBUG ((LM_CRITICAL,
-//                ACE_TEXT ("%s: failed to allocate ACE_Message_Block: \"%m\", returning\n"),
-//                inherited::mod_->name ()));
-//    return;
-//  } // end IF
-//
-//  result = this->putq (message_block_p, NULL);
-//  if (unlikely (result == -1))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to ACE_Task_Base::putq(): \"%m\", continuing\n"),
-//                inherited::mod_->name ()));
-//    message_block_p->release (); message_block_p = NULL;
-//  } // end IF
-//}
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -1298,9 +1235,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   channelFactor_ = width_ / static_cast<double> (inherited2::channels_);
   scaleFactorX_ =
     width_ / static_cast<double> (inherited2::channels_ * inherited2::slots_);
+  // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
   scaleFactorX_2 =
-    width_ / static_cast<double> (inherited2::channels_ * ((inherited2::slots_ / 2) - 1));
-
+    width_ / static_cast<double> (inherited2::channels_ * (inherited2::halfSlots_ - 1));
   double max_value_d =
     static_cast<double> (Common_Tools::max<ACE_UINT64> (sound_sample_size, sampleIterator_.isSignedSampleFormat_));
   scaleFactorY_ =

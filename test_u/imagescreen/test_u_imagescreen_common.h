@@ -61,6 +61,7 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 #if defined (GTK_SUPPORT)
@@ -122,9 +123,9 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
    , fileIdentifier ()
-   , fullScreen (false)
    , individualFormat (true)
    , outputFormat ()
+   , resize (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , window ()
@@ -146,8 +147,6 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
 //  struct Common_UI_Display                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Identifier                        fileIdentifier; // source module
-  // *NOTE*: treat each image separately (different sizes)
-  bool                                          fullScreen;
   bool                                          individualFormat;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                           outputFormat;
@@ -156,6 +155,7 @@ struct Stream_ImageScreen_ModuleHandlerConfiguration
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+  Stream_Visualization_IResize*                 resize;
   Stream_ImageScreen_ISessionNotify_t*          subscriber;
   Stream_ImageScreen_Subscribers_t*             subscribers;
   struct Common_UI_Window                       window;

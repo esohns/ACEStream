@@ -29,6 +29,12 @@ class Stream_Visualization_IResize
  : public Common_ILock // *TODO*: should ideally be Common_ILock_T<ACE_MT_SYNCH>
 {
  public:
+  // *NOTE*: returns whether unlock() needs to be called
+  inline virtual bool lock (bool = true) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
+  // *NOTE*: returns the new nesting level (or -1, if the lock was not held by
+  //         the caller)
+  inline virtual int unlock (bool = false) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
+
   virtual void resize (const Common_Image_Resolution_t&) = 0; // new resolution
 
   // *NOTE*: modules implementing this MUST discard all frames until the next

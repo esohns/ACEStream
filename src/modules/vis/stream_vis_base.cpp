@@ -8,6 +8,4 @@ Stream_Visualization_Base::Stream_Visualization_Base (ACE_Thread_Mutex* lock_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Base::Stream_Visualization_Base"));
 
-  // sanity check(s)
-  ACE_ASSERT (lock_2_);
 }

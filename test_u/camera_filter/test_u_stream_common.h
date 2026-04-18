@@ -54,6 +54,7 @@
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_vis_common.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 #include "test_u_configuration.h"
@@ -285,7 +286,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   , resize (NULL)
    , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -303,7 +304,7 @@ struct Test_U_CameraFilter_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                                    fullScreen;
+  Stream_Visualization_IResize*                           resize;
   struct Common_UI_Window                                 window; // display module
 };
 //extern const char stream_name_string_[];
@@ -318,14 +319,12 @@ struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration
 {
   Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration ()
    : Test_U_CameraFilter_ModuleHandlerConfiguration ()
-   , area ()
    , builder (NULL)
    , direct3DConfiguration (NULL)
    , filterConfiguration (NULL)
    , filterCLSID (GUID_NULL)
    , outputFormat ()
    , push (STREAM_LIB_DIRECTSHOW_FILTER_SOURCE_DEFAULT_PUSH)
-   //, sourceFormat ()
    , subscriber (NULL)
    , subscribers (NULL)
    , windowController (NULL)
@@ -338,7 +337,6 @@ struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration
   {
     Test_U_CameraFilter_ModuleHandlerConfiguration::operator= (rhs_in);
 
-    area = rhs_in.area;
     if (builder)
     {
       builder->Release (); builder = NULL;
@@ -378,16 +376,14 @@ struct Test_U_CameraFilter_DirectShow_ModuleHandlerConfiguration
     return *this;
   }
 
-  struct tagRECT                                        area;
   IGraphBuilder*                                        builder;
   struct Stream_MediaFramework_Direct3D_Configuration*  direct3DConfiguration;
-  struct Test_U_DirectShow_FilterConfiguration* filterConfiguration;
+  struct Test_U_DirectShow_FilterConfiguration*         filterConfiguration;
   CLSID                                                 filterCLSID;
   struct _AMMediaType                                   outputFormat;
   bool                                                  push;
-  //struct _AMMediaType                                   sourceFormat;
-  Test_U_DirectShow_ISessionNotify_t*           subscriber;
-  Test_U_DirectShow_Subscribers_t*              subscribers;
+  Test_U_DirectShow_ISessionNotify_t*                   subscriber;
+  Test_U_DirectShow_Subscribers_t*                      subscribers;
   IVideoWindow*                                         windowController;
   IMFVideoDisplayControl*                               windowController2; // EVR
 };

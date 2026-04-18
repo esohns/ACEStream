@@ -372,7 +372,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
-                                (*stream_configuration_iterator).second.second->fullScreen);
+                                FALSE);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -757,12 +757,12 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end IF
 
   // update configuration
-  GtkToggleButton* toggle_button_p =
-    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
-  ACE_ASSERT (toggle_button_p);
-  (*stream_configuration_iterator).second.second->fullScreen =
-    gtk_toggle_button_get_active (toggle_button_p);
+  //GtkToggleButton* toggle_button_p =
+  //  GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+  //ACE_ASSERT (toggle_button_p);
+  //(*stream_configuration_iterator).second.second->fullScreen =
+  //  gtk_toggle_button_get_active (toggle_button_p);
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -802,7 +802,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //    Common_UI_Tools::getLogicalDisplay (g_value_get_string (&value));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  if ((*stream_configuration_iterator).second.second->fullScreen)
+  if (false)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Resolution_t resolution_s;
@@ -938,7 +938,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   stream_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-  (*stream_iterator).second.second->fullScreen = is_active_b;
+  //(*stream_iterator).second.second->fullScreen = is_active_b;
 
   GdkWindow* window_p =
     gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,

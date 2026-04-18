@@ -51,9 +51,9 @@ struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
   {}
 
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkSurface*                                       window;
+  GdkSurface* window;
 #else
-  GdkWindow*                                        window;
+  GdkWindow* window;
 #endif // GTK_CHECK_VERSION (4,0,0)
 };
 
@@ -196,10 +196,9 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   cairo_region_t*                                    cairoRegion_;
 #endif // GTK_CHECK_VERSION (3,22,0)
   double                                             scaleFactorX_;
-  // *NOTE*: there are only (N/2)-1 meaningful values for real-valued data
-  double                                             scaleFactorX_2; // /2 for spectrum
+  double                                             scaleFactorX_2;
   double                                             scaleFactorY_;
-  double                                             scaleFactorY_2; // *2 for spectrum
+  double                                             scaleFactorY_2;
   int                                                halfHeight_;
   int                                                height_;
   int                                                width_;

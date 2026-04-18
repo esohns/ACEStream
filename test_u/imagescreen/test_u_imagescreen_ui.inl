@@ -734,7 +734,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     togglebutton_display->Enable (!(*stream_iterator_2).second.second->display.device.empty ());
     togglebutton_display->SetValue (!(*stream_iterator_2).second.second->display.device.empty ());
     togglebutton_fullscreen->Enable (togglebutton_display->GetValue ());
-    togglebutton_fullscreen->SetValue ((*stream_iterator_2).second.second->fullScreen);
+    togglebutton_fullscreen->SetValue (false/*(*stream_iterator_2).second.second->fullScreen*/);
     panel_video->Show (togglebutton_display->GetValue () &&
                        !togglebutton_fullscreen->GetValue ());
   } // end IF
@@ -782,7 +782,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     this->AddPendingEvent (event_2);
     wxCommandEvent event_3 (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                             XRCID ("togglebutton_fullscreen"));
-    event_3.SetInt ((*stream_iterator_2).second.second->fullScreen ? 1 : 0);
+    event_3.SetInt (/*(*stream_iterator_2).second.second->fullScreen*/false ? 0 : 1);
     //togglebutton_fullscreen->GetEventHandler ()->ProcessEvent (event_3);
     this->AddPendingEvent (event_3);
   } // end IF
@@ -1825,7 +1825,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     struct Common_UI_DisplayDevice display_device_s =
       Common_UI_Tools::getDisplay ((*stream_iterator).second.second->display.device);
     //(*stream_iterator).second.second->area = display_device_s.clippingArea;
-    (*stream_iterator).second.second->fullScreen = true;
+    //(*stream_iterator).second.second->fullScreen = true;
   } // end IF
   else
   { // toggle to windowed
@@ -1836,7 +1836,7 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     //(*stream_iterator).second.second->area.top = rectangle_s.GetY ();
     //(*stream_iterator).second.second->area.bottom =
     //  (*stream_iterator).second.second->area.top + rectangle_s.GetHeight ();
-    (*stream_iterator).second.second->fullScreen = false;
+    //(*stream_iterator).second.second->fullScreen = false;
   } // end ELSE
 
   std::string module_name_string =

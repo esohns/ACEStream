@@ -24,6 +24,10 @@
 LRESULT CALLBACK
 libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+  //STREAM_TRACE (ACE_TEXT ("libacestream_vis_target_win32_base_window_proc_cb"));
+
+  BOOL bRet;
+
   switch (message) 
   {
     case WM_CLOSE:
@@ -31,7 +35,7 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
       static bool is_first_b = true;
       if (is_first_b)
       { is_first_b = false;
-        BOOL bRet = PostMessage (hWnd, message, wParam, lParam);
+        bRet = PostMessage (hWnd, message, wParam, lParam);
         ACE_ASSERT (bRet);
       } // end IF
       break;
@@ -39,24 +43,26 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
     case WM_DESTROY:
       PostQuitMessage (0);
       break;
-    //case WM_SIZE:
-    //{
-    //  //struct libacestream_gdi_window_proc_cb_data* data_p =
-    //  //  (struct libacestream_gdi_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-    //  //if (!data_p)
-    //  //  return DefWindowProc (hWnd, message, wParam, lParam);
-    //  //ACE_ASSERT (data_p->lock);
+    case WM_SIZE:
+    {
+      //struct libacestream_gdi_window_proc_cb_data* data_p =
+      //  (struct libacestream_gdi_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+      //if (!data_p)
+      //  return DefWindowProc (hWnd, message, wParam, lParam);
+      //ACE_ASSERT (data_p->lock);
 
-    //  //ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *data_p->lock, -1);
+      //ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *data_p->lock, -1);
 
-    //  //ACE_ASSERT (data_p->dc);
-    //  //ReleaseDC (hWnd, *data_p->dc); *data_p->dc = NULL;
-    //  //*data_p->dc = GetDC (hWnd);
-    //  //ACE_ASSERT (*data_p->dc);
-    //  //data_p->dc = &*data_p->dc;
+      //ACE_ASSERT (data_p->dc);
+      //ReleaseDC (hWnd, *data_p->dc); *data_p->dc = NULL;
+      //*data_p->dc = GetDC (hWnd);
+      //ACE_ASSERT (*data_p->dc);
+      //data_p->dc = &*data_p->dc;
+      bRet = PostMessage (hWnd, message, wParam, lParam);
+      ACE_ASSERT (bRet);
 
-    //  break;
-    //}
+      break;
+    }
     default:
       /* Call DefWindowProc() as default */
       return DefWindowProc (hWnd, message, wParam, lParam);

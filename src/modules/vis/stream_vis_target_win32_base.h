@@ -31,6 +31,8 @@
 
 #include "stream_lib_mediatype_converter.h"
 
+#include "stream_vis_base.h"
+
 //struct libacestream_vis_target_win32_base_window_proc_cb_data
 //{
 //  HDC*              dc;
@@ -63,8 +65,8 @@ class Stream_Vis_Target_Win32_Base_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Stream_Visualization_Base
  , public Common_UI_WindowTypeConverter_T<HWND>
- , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -76,7 +78,8 @@ class Stream_Vis_Target_Win32_Base_T
                                  enum Stream_SessionMessageType,
                                  struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<HWND> inherited3;
+  typedef Stream_Visualization_Base inherited3;
+  typedef Common_UI_WindowTypeConverter_T<HWND> inherited4;
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;

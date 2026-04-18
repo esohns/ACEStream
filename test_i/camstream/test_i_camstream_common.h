@@ -79,15 +79,14 @@ extern "C"
 #include "stream_lib_directshow_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include "stream_vis_iresize.h"
+
 #include "stream_net_common.h"
 
-//#include "net_configuration.h"
 #include "net_defines.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
-//#include "test_i_connection_common.h"
-//#include "test_i_connection_manager_common.h"
 #include "test_i_defines.h"
 #if defined (GTK_SUPPORT)
 #include "test_i_gtk_common.h"
@@ -205,7 +204,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
    , direct3DConfiguration (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
-   , fullScreen (false)
+   , resize (NULL)
    , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -226,7 +225,7 @@ struct Test_I_CamStream_ModuleHandlerConfiguration
   struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   struct Common_UI_DisplayDevice                       display;
-  bool                                                 fullScreen;
+  Stream_Visualization_IResize*                        resize;
   struct Common_UI_Window                              window;
 };
 

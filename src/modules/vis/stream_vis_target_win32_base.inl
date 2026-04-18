@@ -45,6 +45,9 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                MediaType>::Stream_Vis_Target_Win32_Base_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
+ , inherited3 (NULL)
+ , inherited4 ()
  , notify_ (false)
  , resolution_ ()
  , window_ (NULL)
@@ -164,7 +167,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   } // end IF
 
   if (configuration_in.window.type != Common_UI_Window::TYPE_INVALID)
-    window_ = inherited3::convert (configuration_in.window);
+    window_ = inherited4::convert (configuration_in.window);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -293,7 +296,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
   DWORD window_style_i = (WS_OVERLAPPED     |
                           WS_CAPTION        |
                           (WS_CLIPSIBLINGS  |
-                            WS_CLIPCHILDREN) |
+                           WS_CLIPCHILDREN) |
                           WS_SYSMENU        |
                           WS_VISIBLE        |
                           WS_MINIMIZEBOX    |
@@ -301,24 +304,33 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                           WS_THICKFRAME); // --> resizeable
   DWORD window_style_ex_i = (WS_EX_APPWINDOW |
                              WS_EX_WINDOWEDGE);
+
+  struct tagRECT rc_s = {0, 0, resolution_.cx, resolution_.cy};
+  // Adjust rectangle based on styles
+  BOOL result = AdjustWindowRectEx (&rc_s,
+                                    window_style_i,
+                                    FALSE,
+                                    window_style_ex_i);
+  ACE_ASSERT (result == TRUE);
+
   HWND handle_p =
-    CreateWindowEx (window_style_ex_i,                       // dwExStyle
+    CreateWindowEx (window_style_ex_i,                                // dwExStyle
 #if defined (UNICODE)
-                    ACE_TEXT_ALWAYS_WCHAR (szClassName),                   // lpClassName
+                    ACE_TEXT_ALWAYS_WCHAR (szClassName),              // lpClassName
                     ACE_TEXT_ALWAYS_WCHAR (inherited::mod_->name ()), // lpWindowName
 #else
                     ACE_TEXT_ALWAYS_CHAR (szClassName),               // lpClassName
                     ACE_TEXT_ALWAYS_CHAR (inherited::mod_->name ()),  // lpWindowName
 #endif // UNICODE
-                    window_style_i,                          // dwStyle
-                    CW_USEDEFAULT,                           // x
-                    CW_USEDEFAULT,                           // y
-                    resolution_.cx,                          // nWidth
-                    resolution_.cy,                          // nHeight
-                    NULL,                                    // hWndParent
-                    NULL,                                    // hMenu
-                    GetModuleHandle (NULL),                  // hInstance
-                    NULL);                                   // lpParam
+                    window_style_i,                                   // dwStyle
+                    CW_USEDEFAULT,                                    // x
+                    CW_USEDEFAULT,                                    // y
+                    rc_s.right - rc_s.left,                           // nWidth
+                    rc_s.bottom - rc_s.top,                           // nHeight
+                    NULL,                                             // hWndParent
+                    NULL,                                             // hMenu
+                    GetModuleHandle (NULL),                           // hInstance
+                    NULL);                                            // lpParam
   if (unlikely (!handle_p))
   { // ERROR_INVALID_PARAMETER: 87
     ACE_DEBUG ((LM_ERROR,

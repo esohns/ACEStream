@@ -396,10 +396,9 @@ do_work (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = imageFilePath_in;
   modulehandler_configuration.fileIdentifier.identifierDiscriminator =
-      Common_File_Identifier::DIRECTORY;
+    Common_File_Identifier::DIRECTORY;
   modulehandler_configuration.fileIdentifier.selector =
-      dirent_selector_cb;
-  modulehandler_configuration.fullScreen = fullscreen_in;
+    dirent_selector_cb;
   // X11 requires RGB32
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration.outputFormat.majortype = MEDIATYPE_Video;
