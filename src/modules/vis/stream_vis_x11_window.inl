@@ -273,11 +273,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                               STREAM_MEDIATYPE_VIDEO,
                               media_type_s);
     unsigned int width_i =
-      (configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))
-                                   : media_type_s.format.width);
+      /*(configuration_in.fullScreen ? WidthOfScreen (DefaultScreenOfDisplay (display_))
+                                     :*/media_type_s.format.width/*)*/;
     unsigned int height_i =
-      (configuration_in.fullScreen ? HeightOfScreen (DefaultScreenOfDisplay (display_))
-                                   : media_type_s.format.height);
+      /*(configuration_in.fullScreen ? HeightOfScreen (DefaultScreenOfDisplay (display_))
+                                     :*/media_type_s.format.height/*)*/;
     int x =
       (WidthOfScreen (DefaultScreenOfDisplay (display_)) - width_i) / 2;
     int y =
