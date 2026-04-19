@@ -423,7 +423,7 @@ error:
 #endif // ACE_WIN32 || ACE_WIN64
       {
         ACE_DEBUG ((LM_DEBUG,
-                    ACE_TEXT ("%s: output size is input size, nothing to do\n"),
+                    ACE_TEXT ("%s: output size is input size, nothing to do, continuing\n"),
                     inherited::mod_->name ()));
         //break;
       } // end IF

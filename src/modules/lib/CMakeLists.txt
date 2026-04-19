@@ -2,6 +2,7 @@ if (WIN32)
  include (directxsdk)
 endif (WIN32)
 include (ffmpeg)
+include (gstreamer)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dev/scripts")
 include (libcamera)
