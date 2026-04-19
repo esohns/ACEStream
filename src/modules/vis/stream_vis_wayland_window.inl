@@ -530,9 +530,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbData_.shm);
   ACE_ASSERT (cbData_.surface);
 
-  struct Common_UI_DisplayDevice display_device =
-    Common_UI_Tools::getDisplay (inherited::configuration_->display.device); // device identifier
-
+  //struct Common_UI_DisplayDevice display_device =
+  //  Common_UI_Tools::getDisplay (inherited::configuration_->display.device); // device identifier
 //  int x =
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.x
 //                                             : 0);
@@ -540,11 +539,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.y
 //                                             : 0);
   unsigned int width_i =
-    (inherited::configuration_->fullScreen ? display_device.clippingArea.width
-                                           : cbData_.resolution.width);
+    /*(inherited::configuration_->fullScreen ? display_device.clippingArea.width
+                                           : */cbData_.resolution.width/*)*/;
   unsigned int height_i =
-    (inherited::configuration_->fullScreen ? display_device.clippingArea.height
-                                           : cbData_.resolution.height);
+    /*(inherited::configuration_->fullScreen ? display_device.clippingArea.height
+                                           : */cbData_.resolution.height/*)*/;
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
     inherited::sessionData_->getR ();
@@ -556,8 +555,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                             media_type_2);
   unsigned int depth_i =
     Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
-  int stride = width_i * depth_i;
-  frameSize_ = stride * height_i;
+  int stride_i = width_i * depth_i;
+  frameSize_ = stride_i * height_i;
 
   static const char name_template[] =
     ACE_TEXT_ALWAYS_CHAR ("/libacestream_vis_wayland_shared_XXXXXX");
@@ -614,8 +613,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (pool_p);
   cbData_.buffer =
     wl_shm_pool_create_buffer (pool_p,
-                               0,                         // offset
-                               width_i, height_i, stride,
+                               0,                           // offset
+                               width_i, height_i, stride_i,
                                Stream_Visualization_Tools::depthToWaylandFormat (depth_i));
   if (unlikely (!cbData_.buffer))
   {
