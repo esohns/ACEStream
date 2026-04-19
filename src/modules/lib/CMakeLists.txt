@@ -24,6 +24,10 @@ endif ()
 
 add_library (${PROJECT_NAME}_MediaFramework STATIC "")
 
+if (GSTREAMER_SUPPORT)
+ add_library (${PROJECT_NAME}_GStreamerSrc SHARED "")
+endif (GSTREAMER_SUPPORT)
+
 if (WIN32)
  if (${CMAKE_SYSTEM_VERSION} LESS 5.1)      # < Windows XP (see: <sdkddkver.h>)
  elseif (${CMAKE_SYSTEM_VERSION} LESS 6.0)  # < Windows Vista
@@ -137,6 +141,13 @@ if (UNIX)
  set (CMAKE_INCLUDE_CURRENT_DIR ON)
 endif (UNIX)
 
+if (GSTREAMER_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_GStreamerSrc PUBLIC
+                             "$<BUILD_INTERFACE:${GSTREAMER_INCLUDE_DIRS}>")
+ target_include_directories (${PROJECT_NAME}_GStreamerSrc PUBLIC
+                             $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
+endif (GSTREAMER_SUPPORT)
+
 ############## next target ################
 set (source_files
      stream_lib_common.h
@@ -234,6 +245,11 @@ elseif (WIN32)
        stream_lib_directshow_source_filter.inl)
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
+if (GSTREAMER_SUPPORT)
+ set (source_files_gstreamer_src
+      gstacestreamsrc.c
+      gstacestreamsrc.h)
+endif (GSTREAMER_SUPPORT)
 
 # Include dir for installed targets
 #set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
@@ -244,16 +260,32 @@ foreach (source_file ${source_files})
  list (APPEND absolute_source_files
    PRIVATE ${abs_source_file}
    )
- #       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_MediaFramework
 #                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 PRIVATE ${absolute_source_files})
+if (GSTREAMER_SUPPORT)
+ unset (absolute_source_files)
+ foreach (source_file ${source_files_gstreamer_src})
+  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
+  list (APPEND absolute_source_files
+    PRIVATE ${abs_source_file}
+    )
+ endforeach ()
+ target_sources (${PROJECT_NAME}_GStreamerSrc
+#                PRIVATE stdafx.cpp
+#                PRIVATE stdafx.h
+                PRIVATE ${absolute_source_files})
+endif (GSTREAMER_SUPPORT)
+
 target_precompile_headers (${PROJECT_NAME}_MediaFramework
                            PUBLIC stdafx.h)
 
 set_property (TARGET ${PROJECT_NAME}_MediaFramework PROPERTY FOLDER "modules")
+if (GSTREAMER_SUPPORT)
+ set_property (TARGET ${PROJECT_NAME}_GStreamerSrc PROPERTY FOLDER "modules/gstreamer")
+endif (GSTREAMER_SUPPORT)
 
 add_dependencies (${PROJECT_NAME}_MediaFramework Common)
 add_dependencies (${PROJECT_NAME}_MediaFramework ${PROJECT_NAME})
@@ -286,10 +318,17 @@ elseif (WIN32)
   target_link_libraries (${PROJECT_NAME}_MediaFramework PUBLIC ${DS_BASECLASSES_LIBRARIES})
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
+if (GSTREAMER_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${GSTREAMER_LIBRARIES})
+endif (GSTREAMER_SUPPORT)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_MediaFramework
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+if (GSTREAMER_SUPPORT)
+ export (TARGETS ${PROJECT_NAME}_GStreamerSrc
+         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+endif (GSTREAMER_SUPPORT)
 
 ############### install files ################
 unset (source_files)
