@@ -1538,9 +1538,13 @@ continue_:
       configuration_->buffer->cont (NULL);
       configuration_->buffer->release (); configuration_->buffer = NULL;
       configuration_->buffer = message_block_p;
-      goto continue_;
+      if (available_buffer_size_i)
+        goto continue_;
     } // end IF
-    configuration_->buffer->release (); configuration_->buffer = NULL;
+    else
+    {
+      configuration_->buffer->release (); configuration_->buffer = NULL;
+    } // end ELSE
   } // end IF
   if (available_buffer_size_i)
     goto deqeue_next_buffer;

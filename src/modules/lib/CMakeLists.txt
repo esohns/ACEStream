@@ -144,6 +144,10 @@ endif (UNIX)
 if (GSTREAMER_SUPPORT)
  target_include_directories (${PROJECT_NAME}_GStreamerSrc PUBLIC
                              "$<BUILD_INTERFACE:${GSTREAMER_INCLUDE_DIRS}>")
+
+ target_include_directories (${PROJECT_NAME}_GStreamerSrc PUBLIC
+                             $<BUILD_INTERFACE:${ACE_INCLUDE_DIR}>)
+
  target_include_directories (${PROJECT_NAME}_GStreamerSrc PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>)
 endif (GSTREAMER_SUPPORT)
@@ -247,7 +251,7 @@ elseif (WIN32)
 endif ()
 if (GSTREAMER_SUPPORT)
  set (source_files_gstreamer_src
-      gstacestreamsrc.c
+      gstacestreamsrc.cpp
       gstacestreamsrc.h)
 endif (GSTREAMER_SUPPORT)
 
@@ -320,6 +324,8 @@ elseif (WIN32)
 endif ()
 if (GSTREAMER_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${GSTREAMER_LIBRARIES})
+
+ target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${ACE_LIBRARY})
 endif (GSTREAMER_SUPPORT)
 
 # add all targets to the build-tree export set

@@ -30,13 +30,18 @@
  * </refsect2>
  */
 
-#if defined (HAVE_CONFIG_H)
-#include "ACEStream_config.h"
-#endif // HAVE_CONFIG_H
+#include "gstacestreamsrc.h"
 
 #include <gst/gst.h>
 #include <gst/base/gstpushsrc.h>
-#include "gstacestreamsrc.h"
+
+#include "ace/Message_Block.h"
+#include "ace/Message_Queue.h"
+#include "ace/OS.h"
+
+#if defined (HAVE_CONFIG_H)
+#include "ACEStream_config.h"
+#endif // HAVE_CONFIG_H
 
 GST_DEBUG_CATEGORY_STATIC (gst_acestream_src_debug_category);
 #define GST_CAT_DEFAULT gst_acestream_src_debug_category
@@ -94,7 +99,7 @@ GST_STATIC_PAD_TEMPLATE ("src",
 
 /* class initialization */
 
-G_DEFINE_TYPE_WITH_CODE (GstAcestreamSrc, gst_acestream_src, GST_TYPE_BASE_SRC,
+G_DEFINE_TYPE_WITH_CODE (GstAcestreamSrc, gst_acestream_src, GST_TYPE_PUSH_SRC,
   GST_DEBUG_CATEGORY_INIT (gst_acestream_src_debug_category, "acestreamsrc", 0,
   "debug category for acestreamsrc element"));
 
@@ -117,7 +122,7 @@ gst_acestream_src_class_init (GstAcestreamSrcClass * klass)
   g_object_class_install_property (gobject_class, PROP_QUEUE,
       g_param_spec_pointer ("queue", "Queue",
           "Handle of the inbound queue",
-          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
+          (GParamFlags)(G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS)));
 
   gobject_class->set_property = gst_acestream_src_set_property;
   gobject_class->get_property = gst_acestream_src_get_property;
@@ -147,6 +152,7 @@ gst_acestream_src_class_init (GstAcestreamSrcClass * klass)
 static void
 gst_acestream_src_init (GstAcestreamSrc *acestreamsrc)
 {
+  acestreamsrc->buffer = NULL;
   acestreamsrc->queue = NULL;
 }
 
@@ -161,7 +167,8 @@ gst_acestream_src_set_property (GObject * object, guint property_id,
   switch (property_id)
   {
     case PROP_QUEUE:
-      acestreamsrc->queue = g_value_get_pointer (value);
+      acestreamsrc->queue =
+        static_cast<ACE_Message_Queue_Base*> (g_value_get_pointer (value));
       g_print ("Setting Queue to %p\n", (void*)acestreamsrc->queue);
       break;
     default:
@@ -422,9 +429,71 @@ gst_acestream_src_start (GstBaseSrc * src)
 static GstFlowReturn
 gst_acestream_src_fill (GstPushSrc * src, GstBuffer * buf)
 {
-  GstAcestreamSrc *acestreamsrc = GST_ACESTREAM_SRC (src);
+  GstAcestreamSrc* acestreamsrc = GST_ACESTREAM_SRC (src);
 
   GST_DEBUG_OBJECT (acestreamsrc, "fill");
+
+  // sanity check(s)
+  ACE_ASSERT (acestreamsrc->queue);
+
+  gsize available_buffer_size_i;
+  GstMapInfo map_info_s;
+  size_t bytes_to_write_i;
+  size_t offset_i = 0;
+  ACE_Message_Block* message_block_p;
+  int result;
+
+  gst_buffer_map (buf, &map_info_s, GST_MAP_WRITE);
+  available_buffer_size_i = gst_buffer_get_size (buf);
+
+  if (acestreamsrc->buffer)
+    goto continue_;
+
+deqeue_next_buffer:
+  ACE_ASSERT (!acestreamsrc->buffer);
+  result = acestreamsrc->queue->dequeue_head (acestreamsrc->buffer, NULL);
+  if (result == -1)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_Message_Queue_Base::dequeue_head(): \"%m\", aborting\n")));
+    gst_buffer_unmap (buf, &map_info_s);
+    return GST_FLOW_EOS; // --> stop
+  } // end IF
+continue_:
+  ACE_ASSERT (acestreamsrc->buffer);
+  if (acestreamsrc->buffer->msg_type () == ACE_Message_Block::MB_STOP)
+  {
+    acestreamsrc->buffer->release (); acestreamsrc->buffer = NULL;
+    gst_buffer_unmap (buf, &map_info_s);
+    return GST_FLOW_EOS; // --> stop
+  } // end IF
+
+  bytes_to_write_i =
+    std::min (acestreamsrc->buffer->length (), static_cast<size_t> (available_buffer_size_i));
+  ACE_OS::memcpy (map_info_s.data + offset_i, acestreamsrc->buffer->rd_ptr (), bytes_to_write_i);
+  offset_i += bytes_to_write_i;
+  available_buffer_size_i -= static_cast<gsize> (bytes_to_write_i);
+  acestreamsrc->buffer->rd_ptr (bytes_to_write_i);
+  if (!acestreamsrc->buffer->length ())
+  {
+    if (acestreamsrc->buffer->cont ())
+    {
+      message_block_p = acestreamsrc->buffer->cont ();
+      acestreamsrc->buffer->cont (NULL);
+      acestreamsrc->buffer->release (); acestreamsrc->buffer = NULL;
+      acestreamsrc->buffer = message_block_p;
+      if (available_buffer_size_i)
+        goto continue_;
+    } // end IF
+    else
+    {
+      acestreamsrc->buffer->release (); acestreamsrc->buffer = NULL;
+    } // end ELSE
+  } // end IF
+  if (available_buffer_size_i)
+    goto deqeue_next_buffer;
+
+  gst_buffer_unmap (buf, &map_info_s);
 
   return GST_FLOW_OK;
 }
@@ -444,21 +513,21 @@ plugin_init (GstPlugin * plugin)
    remove these, as they're always defined.  Otherwise, edit as
    appropriate for your external plugin package. */
 #ifndef VERSION
-#define VERSION "0.0.FIXME"
+#define VERSION "0.0.1"
 #endif
 #ifndef PACKAGE
-#define PACKAGE "FIXME_package"
+#define PACKAGE "acestreamsrc"
 #endif
 #ifndef PACKAGE_NAME
-#define PACKAGE_NAME "FIXME_package_name"
+#define PACKAGE_NAME "acestreamsrc"
 #endif
 #ifndef GST_PACKAGE_ORIGIN
-#define GST_PACKAGE_ORIGIN "http://FIXME.org/"
+#define GST_PACKAGE_ORIGIN "https://github.com/esohns/ACEStream"
 #endif
 
 GST_PLUGIN_DEFINE (GST_VERSION_MAJOR,
     GST_VERSION_MINOR,
     acestreamsrc,
-    "FIXME plugin description",
+    "ACEStream to GStreamer adapter",
     plugin_init, VERSION, "LGPL", PACKAGE_NAME, GST_PACKAGE_ORIGIN)
 

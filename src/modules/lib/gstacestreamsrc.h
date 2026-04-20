@@ -22,6 +22,10 @@
 
 #include <gst/base/gstpushsrc.h>
 
+// forward declarations
+class ACE_Message_Block;
+class ACE_Message_Queue_Base;
+
 G_BEGIN_DECLS
 
 #define GST_TYPE_ACESTREAM_SRC   (gst_acestream_src_get_type())
@@ -35,9 +39,10 @@ typedef struct _GstAcestreamSrcClass GstAcestreamSrcClass;
 
 struct _GstAcestreamSrc
 {
-  GstPushSrc push_acestreamsrc;
+  GstPushSrc              push_acestreamsrc;
 
-  gpointer   queue;
+  ACE_Message_Block*      buffer;
+  ACE_Message_Queue_Base* queue;
 };
 
 struct _GstAcestreamSrcClass
