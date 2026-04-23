@@ -59,8 +59,8 @@
 
 //////////////////////////////////////////
 
-#define ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS 500
-#define ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY      15
+#define ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS 10000
+#define ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY      1
 
 //////////////////////////////////////////
 
@@ -153,11 +153,17 @@ class Test_U_CameraFilter_WeightedVoronoiStipple_Filter
 
   bool processNextMessage (); // return value: stop PGE ?
 
-  int pointToSite (jcv_diagram&, olc::vf2d&);
+  int pointToSite (const jcv_diagram&, const olc::vf2d&, int);
+  void relaxPoints (const jcv_diagram&, jcv_point*);
 
+  float                     avgWeights_[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
   uint8_t                   bytesPerPixel_;
+  olc::vf2d                 centroids_[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  int                       counts_[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  jcv_diagram               diagram_;
   jcv_point*                points_;
   Common_Image_Resolution_t resolution_;
+  float                     weights_[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
 };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

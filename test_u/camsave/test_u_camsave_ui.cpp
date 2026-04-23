@@ -867,7 +867,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     togglebutton_display->Enable (!(*stream_iterator_2).second.second->deviceIdentifier.identifier.empty ());
     togglebutton_display->SetValue (!(*stream_iterator_2).second.second->deviceIdentifier.identifier.empty ());
     togglebutton_fullscreen->Enable (togglebutton_display->GetValue ());
-    togglebutton_fullscreen->SetValue ((*stream_iterator_2).second.second->fullScreen);
+    togglebutton_fullscreen->SetValue (false/*(*stream_iterator_2).second.second->fullScreen*/);
     panel_video->Show (togglebutton_display->GetValue () &&
                        !togglebutton_fullscreen->GetValue ());
   } // end IF
@@ -923,7 +923,8 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
                       wxCommandEvent (wxEVT_COMMAND_TOGGLEBUTTON_CLICKED,
                                       XRCID ("togglebutton_fullscreen")));
     ACE_ASSERT (event_p);
-    event_p->SetInt ((*stream_iterator_2).second.second->fullScreen ? 1 : 0);
+    // event_p->SetInt ((*stream_iterator_2).second.second->fullScreen ? 1 : 0);
+    event_p->SetInt (0);
     this->QueueEvent (event_p);
     event_p = NULL;
   } // end IF
@@ -1849,7 +1850,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
         display_device_s.clippingArea.width;
     (*stream_iterator).second.second->area.height =
         display_device_s.clippingArea.height;
-    (*stream_iterator).second.second->fullScreen = true;
+    // (*stream_iterator).second.second->fullScreen = true;
   } // end IF
   else
   { // toggle to windowed
@@ -1858,7 +1859,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     (*stream_iterator).second.second->area.top = area_s.GetTop ();
     (*stream_iterator).second.second->area.width = area_s.GetWidth ();
     (*stream_iterator).second.second->area.height = area_s.GetHeight ();
-    (*stream_iterator).second.second->fullScreen = false;
+    // (*stream_iterator).second.second->fullScreen = false;
   } // end ELSE
 
   std::string module_name_string =

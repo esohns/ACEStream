@@ -479,16 +479,16 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   switch (mode_in)
   {
-    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
-    {
-      // *NOTE*: the default size is too slow for this filter...
-      Common_Image_Resolution_t resolution_s;
-      resolution_s.cx = 320;
-      resolution_s.cy = 240;
-      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-                                                             outputFormat_inout);
-      break;
-    }
+    // case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+    // {
+    //   // *NOTE*: the default size is too slow for this filter...
+    //   Common_Image_Resolution_t resolution_s;
+    //   resolution_s.cx = 800;
+    //   resolution_s.cy = 600;
+    //   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+    //                                                          outputFormat_inout);
+    //   break;
+    // }
     case TEST_U_MODE_GLUT_18:
     {
       // *NOTE*: the default size is too slow for this filter...
@@ -786,13 +786,13 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   switch (mode_in)
   {
-    case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
-    {
-      // *NOTE*: the default size is too slow for this filter...
-      captureFormat_out.format.width = 320;
-      captureFormat_out.format.height = 240;
-      break;
-    }
+    // case TEST_U_MODE_WEIGHTED_VORONOI_STIPPLE:
+    // {
+    //   // *NOTE*: the default size is too slow for this filter...
+    //   captureFormat_out.format.width = 640;
+    //   captureFormat_out.format.height = 480;
+    //   break;
+    // }
     case TEST_U_MODE_GLUT_18:
     {
       // *NOTE*: the default size is too slow for this filter...
@@ -800,9 +800,16 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
       captureFormat_out.format.height = 240;
       break;
     }
+    case TEST_U_MODE_GLUT_24:
+    {
+      // *NOTE*: the default size is too slow for this filter...
+      captureFormat_out.format.width = 320;
+      captureFormat_out.format.height = 240;
+      break;
+    }
     default:
-      captureFormat_out.format.width = 1280;
-      captureFormat_out.format.height = 720;
+      // captureFormat_out.format.width = 1280;
+      // captureFormat_out.format.height = 720;
       break;
   } // end SWITCH
 

@@ -467,6 +467,9 @@ Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
             if (unlikely (!inherited::thr_count_ ||
                           queue_.isShuttingDown ()))
             {
+              ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T> reverse_lock (queue_.lock ());
+              ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_SYNCH_MUTEX_T>, aGuard_2, reverse_lock, -1);
+
               // *IMPORTANT NOTE*: it is either too early or too late to process
               //                   this message by this (and (!) subsequent
               //                   synchronous downstream-) task(s)

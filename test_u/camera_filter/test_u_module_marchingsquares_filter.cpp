@@ -418,7 +418,6 @@ Test_U_CameraFilter_MarchingSquares_Filter::OnUserUpdate (float fElapsedTime_in)
 {
   //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::OnUserUpdate"));
 
-  // inherited3::Clear (olc::BLACK);
   int pixels =
     inherited3::GetDrawTargetWidth () * inherited3::GetDrawTargetHeight ();
   olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();

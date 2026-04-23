@@ -204,6 +204,10 @@ gst_acestream_src_dispose (GObject * object)
   GST_DEBUG_OBJECT (acestreamsrc, "dispose");
 
   /* clean up as possible.  may be called multiple times */
+  if (acestreamsrc->buffer)
+  {
+    acestreamsrc->buffer->release (); acestreamsrc->buffer = NULL;
+  } // end IF
 
   G_OBJECT_CLASS (gst_acestream_src_parent_class)->dispose (object);
 }
@@ -219,7 +223,7 @@ gst_acestream_src_dispose (GObject * object)
 //
 //  G_OBJECT_CLASS (gst_acestream_src_parent_class)->finalize (object);
 //}
-//
+
 ///* get caps from subclass */
 //static GstCaps *
 //gst_acestream_src_get_caps (GstPushSrc * src, GstCaps * filter)
@@ -230,7 +234,7 @@ gst_acestream_src_dispose (GObject * object)
 //
 //  return NULL;
 //}
-//
+
 ///* decide on caps */
 //static gboolean
 //gst_acestream_src_negotiate (GstPushSrc * src)
@@ -241,7 +245,7 @@ gst_acestream_src_dispose (GObject * object)
 //
 //  return TRUE;
 //}
-//
+
 ///* called if, in negotiation, caps need fixating */
 //static GstCaps *
 //gst_acestream_src_fixate (GstPushSrc * src, GstCaps * caps)
@@ -252,7 +256,7 @@ gst_acestream_src_dispose (GObject * object)
 //
 //  return NULL;
 //}
-//
+
 ///* notify the subclass of new caps */
 //static gboolean
 //gst_acestream_src_set_caps (GstPushSrc * src, GstCaps * caps)
@@ -263,7 +267,7 @@ gst_acestream_src_dispose (GObject * object)
 //
 //  return TRUE;
 //}
-//
+
 ///* setup allocation query */
 //static gboolean
 //gst_acestream_src_decide_allocation (GstPushSrc * src, GstQuery * query)
@@ -295,7 +299,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* given a buffer, return start and stop time when it should be pushed
 // * out. The base class will sync on the clock using these times. */
 //static void
@@ -307,7 +311,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //  GST_DEBUG_OBJECT (acestreamsrc, "get_times");
 //
 //}
-//
+
 ///* get the total size of the resource in bytes */
 //static gboolean
 //gst_acestream_src_get_size (GstPushSrc * src, guint64 * size)
@@ -318,7 +322,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* check if the resource is seekable */
 //static gboolean
 //gst_acestream_src_is_seekable (GstPushSrc * src)
@@ -329,7 +333,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* Prepare the segment on which to perform do_seek(), converting to the
 // * current basesrc format. */
 //static gboolean
@@ -342,7 +346,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* notify subclasses of a seek */
 //static gboolean
 //gst_acestream_src_do_seek (GstPushSrc * src, GstSegment * segment)
@@ -353,7 +357,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* unlock any pending access to the resource. subclasses should unlock
 // * any function ASAP. */
 //static gboolean
@@ -365,7 +369,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* Clear any pending unlock request, as we succeeded in unlocking */
 //static gboolean
 //gst_acestream_src_unlock_stop (GstPushSrc * src)
@@ -376,7 +380,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* notify subclasses of a query */
 //static gboolean
 //gst_acestream_src_query (GstPushSrc * src, GstQuery * query)
@@ -387,7 +391,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* notify subclasses of an event */
 //static gboolean
 //gst_acestream_src_event (GstPushSrc * src, GstEvent * event)
@@ -398,7 +402,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return TRUE;
 //}
-//
+
 ///* ask the subclass to create a buffer with offset and size, the default
 // * implementation will call alloc and fill. */
 //static GstFlowReturn
@@ -411,7 +415,7 @@ gst_acestream_src_start (GstBaseSrc * src)
 //
 //  return GST_FLOW_OK;
 //}
-//
+
 ///* ask the subclass to allocate an output buffer. The default implementation
 // * will use the negotiated allocator. */
 //static GstFlowReturn

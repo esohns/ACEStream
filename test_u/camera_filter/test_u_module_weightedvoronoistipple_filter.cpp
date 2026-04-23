@@ -20,6 +20,10 @@
 #include "stdafx.h"
 
 #define JC_VORONOI_IMPLEMENTATION
+// If you wish to use doubles
+//#define JCV_REAL_TYPE double
+//#define JCV_ATAN2 atan2
+//#define JCV_FLT_MAX 1.7976931348623157E+308
 #undef OK
 #include "test_u_module_weightedvoronoistipple_filter.h"
 
@@ -44,9 +48,14 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedV
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
+ , avgWeights_ ()
  , bytesPerPixel_ (4)
+ , centroids_ ()
+ , counts_ ()
+ , diagram_ ()
  , points_ (NULL)
  , resolution_ ()
+ , weights_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedVoronoiStipple_Filter"));
 
@@ -65,7 +74,13 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_Mes
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
-  
+
+  uint8_t r, g, b;
+  int x, y, index, delaunayIndex = 0;
+  float brightness_f/*, weight, maxWeight = 0.0f, sw*/;
+  olc::vf2d point_s;
+  olc::Pixel color;
+
   static bool is_first_b = true;
   if (unlikely (is_first_b))
   {
@@ -74,23 +89,23 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_Mes
     for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      int x =
+      x =
         Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cx - 1));
-      int y =
+      y =
         Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.cy - 1));
-      uint8_t r = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 0];
-      uint8_t g = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 1];
-      uint8_t b = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 2];
+      r = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 0];
+      g = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 1];
+      b = data_p[(y * resolution_.cx + x) * bytesPerPixel_ + 2];
 #else
-      int x =
+      x =
         Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.width - 1));
-      int y =
+      y =
         Common_Tools::getRandomNumber (0, static_cast<int> (resolution_.height - 1));
-      uint8_t r = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 0];
-      uint8_t g = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 1];
-      uint8_t b = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 2];
+      r = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 0];
+      g = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 1];
+      b = data_p[(y * resolution_.width + x) * bytesPerPixel_ + 2];
 #endif // ACE_WIN32 || ACE_WIN64
-      float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
+      brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
       if (Common_Tools::getRandomNumber (0.0f, 100.0f) > brightness_f)
       {
         points_[i].x = static_cast<float> (x);
@@ -101,93 +116,84 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_Mes
     } // end FOR
   } // end IF
 
-  jcv_diagram diagram;
-  ACE_OS::memset (&diagram, 0, sizeof (jcv_diagram));
-  jcv_diagram_generate (ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS, (const jcv_point*)points_, NULL, NULL, &diagram);
+  ACE_OS::memset (&diagram_, 0, sizeof (jcv_diagram));
+  jcv_diagram_generate (ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS,
+                        (const jcv_point*)points_,
+                        NULL,
+                        NULL,
+                        &diagram_);
 
-  olc::vf2d centroids[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  float weights[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  int counts[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
-  float avgWeights[ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS];
+  ACE_OS::memset (avgWeights_, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
   for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
-    centroids[i] = olc::vf2d (0.0f, 0.0f);
-  ACE_OS::memset (weights, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
-  ACE_OS::memset (counts, 0, sizeof (int) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
-  ACE_OS::memset (avgWeights, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
+    centroids_[i] = {0.0f, 0.0f};
+  ACE_OS::memset (counts_, 0, sizeof (int) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
+  ACE_OS::memset (weights_, 0, sizeof (float) * ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS);
 
-  int delaunayIndex = 0;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  for (int i = 0; i < resolution_.cx; i++)
-    for (int j = 0; j < resolution_.cy; j++)
-#else
-  for (int i = 0; i < static_cast<int> (resolution_.width); i++)
-    for (int j = 0; j < static_cast<int> (resolution_.height); j++)
-#endif // ACE_WIN32 || ACE_WIN64
-    {
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      uint8_t r = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 0];
-      uint8_t g = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 1];
-      uint8_t b = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 2];
-#else
-      uint8_t r = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 0];
-      uint8_t g = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 1];
-      uint8_t b = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 2];
-#endif // ACE_WIN32 || ACE_WIN64
-      float brightness_f = (0.2126f * r + 0.7152f * g + 0.0722f * b);
-      float weight = 1.0f - brightness_f / 255.0f;
+// #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//   for (int i = 0; i < resolution_.cx; i++)
+//     for (int j = 0; j < resolution_.cy; j++)
+// #else
+//   for (int i = 0; i < static_cast<int> (resolution_.width); i++)
+//     for (int j = 0; j < static_cast<int> (resolution_.height); j++)
+// #endif // ACE_WIN32 || ACE_WIN64
+//     {
+// #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//       r = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 0];
+//       g = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 1];
+//       b = data_p[(j * resolution_.cx + i) * bytesPerPixel_ + 2];
+// #else
+//       r = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 0];
+//       g = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 1];
+//       b = data_p[(j * resolution_.width + i) * bytesPerPixel_ + 2];
+// #endif // ACE_WIN32 || ACE_WIN64
+//       brightness_f = ((int)r + (int)g + (int)b) / 3.0f;
+//       weight = 1.0f - brightness_f / 255.0f;
 
-      olc::vf2d point_s (static_cast<float> (i), static_cast<float> (j));
-      delaunayIndex = pointToSite (diagram, point_s);
-      centroids[delaunayIndex].x += i * weight;
-      centroids[delaunayIndex].y += j * weight;
-      weights[delaunayIndex] += weight;
-      counts[delaunayIndex]++;
-    } // end FOR
+//       point_s = {static_cast<float> (i), static_cast<float> (j)};
+//       delaunayIndex = pointToSite (diagram_, point_s, delaunayIndex);
+//       centroids_[delaunayIndex].x += i * weight;
+//       centroids_[delaunayIndex].y += j * weight;
+//       weights_[delaunayIndex] += weight;
+//       counts_[delaunayIndex]++;
+//     } // end FOR
 
-  float maxWeight = 0.0f;
-  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
-  {
-    if (weights[i] > 0.0f)
-    {
-      centroids[i] /= weights[i];
-      avgWeights[i] = weights[i] / (counts[i] ? counts[i] : 1);
-      if (avgWeights[i] > maxWeight)
-        maxWeight = avgWeights[i];
-    } // end IF
-    else
-      centroids[i] = {points_[i].x, points_[i].y};
-  } // end FOR
+  relaxPoints (diagram_, points_);
 
   for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
   {
-    points_[i].x = Common_Math_Tools::lerp (points_[i].x, centroids[i].x, 1.0f);
-    points_[i].y = Common_Math_Tools::lerp (points_[i].y, centroids[i].y, 1.0f);
-  } // end FOR
+    // if (weights_[i] > 0.0f)
+    // {
+    //   centroids_[i] /= weights_[i];
+    //   avgWeights_[i] = weights_[i] / (counts_[i] ? counts_[i] : 1);
+    //   if (avgWeights_[i] > maxWeight)
+    //     maxWeight = avgWeights_[i];
+    // } // end IF
+    // else
+    //   centroids_[i] = {points_[i].x, points_[i].y};
 
-  for (int i = 0; i < ACESTREAM_WVS_FILTER_DEFAULT_NUMBER_OF_POINTS; i++)
-  {
-    int index =
+    // points_[i].x =
+    //   Common_Math_Tools::lerp (points_[i].x, centroids_[i].x, 0.1f);
+    // points_[i].y =
+    //   Common_Math_Tools::lerp (points_[i].y, centroids_[i].y, 0.1f);
+
+    index =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      static_cast<int> (std::floor (points_[i].x) + std::floor (points_[i].y) * resolution_.cx) * bytesPerPixel_;
+      static_cast<int> (std::floor (points_[i].x) + (std::floor (points_[i].y) * resolution_.cx)) * bytesPerPixel_;
 #else
-      static_cast<int> (std::floor (points_[i].x) + std::floor (points_[i].y) * resolution_.width) * bytesPerPixel_;
+      static_cast<int> (std::floor (points_[i].x) + (std::floor (points_[i].y) * resolution_.width)) * bytesPerPixel_;
 #endif // ACE_WIN32 || ACE_WIN64
-    uint8_t r = data_p[index + 0];
-    uint8_t g = data_p[index + 1];
-    uint8_t b = data_p[index + 2];
-    olc::Pixel color (r, g, b, 255);
-    // let col = video.get(v.x, v.y);
-    // stroke(col);
-    // stroke(0);
-    float sw = Common_GL_Tools::map (avgWeights[i], 0.0f, maxWeight, 0.0f, 12.0f);
-    //strokeWeight (sw);
+    r = data_p[index + 0];
+    g = data_p[index + 1];
+    b = data_p[index + 2];
+    color = {r, g, b, 255};
+    // sw = Common_GL_Tools::map (avgWeights_[i], 0.0f, maxWeight, 0.0f, 6.0f);
     inherited3::FillCircle (static_cast<int32_t> (points_[i].x), static_cast<int32_t> (points_[i].y),
-                            static_cast<int32_t> (sw / 2.0f), color);
-    //inherited3::Draw (static_cast<int32_t> (points_[i].x), static_cast<int32_t> (points_[i].y),
-    //                  olc::BLACK);
+                            1/*static_cast<int32_t> (sw / 2.0f)*/, color);
+    // inherited3::Draw (static_cast<int32_t> (points_[i].x), static_cast<int32_t> (points_[i].y),
+    //                   color/*olc::BLACK*/);
   } // end FOR
 
-  jcv_diagram_free (&diagram);
+  jcv_diagram_free (&diagram_);
 }
 
 void
@@ -205,11 +211,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleSessionMessage (Test_U_
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
-    {
-      free (points_); points_ = NULL;
-
-      break;
-    }
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -272,6 +274,7 @@ error:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       free (points_); points_ = NULL;
 
       break;
@@ -286,6 +289,8 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserCreate ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserCreate"));
 
+  // inherited3::Clear (olc::WHITE);
+
   return true;
 }
 
@@ -294,12 +299,12 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate (float fElapsedT
 {
   //STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate"));
 
-  inherited3::Clear (olc::WHITE);
-  //int pixels =
-  //  inherited3::GetDrawTargetWidth () * inherited3::GetDrawTargetHeight ();
-  //olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
-  //for (int i = 0; i < pixels; i++)
-  //  p[i].a = (p[i].a > ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_MC_FILTER_DEFAULT_ALPHA_DECAY : 0);
+  // inherited3::Clear (olc::WHITE);
+  static int pixels =
+   inherited3::GetDrawTargetWidth () * inherited3::GetDrawTargetHeight ();
+  static olc::Pixel* p = inherited3::GetDrawTarget ()->GetData ();
+  for (int i = 0; i < pixels; i++)
+    p[i].a = (p[i].a > ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY ? p[i].a - ACESTREAM_WVS_FILTER_DEFAULT_ALPHA_DECAY : 0);
 
   // process next message
   if (!processNextMessage ())
@@ -454,10 +459,12 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc (void)
 bool
 Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage"));
+  // STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
-  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
+  bool stop_processing = false;
+
+  static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
   int result = inherited::getq (message_block_p, &no_wait);
   if (unlikely (result == -1))
   {
@@ -486,7 +493,6 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
   } // end IF
 
   // process manually
-  bool stop_processing = false;
   inherited::handleMessage (message_block_p,
                             stop_processing);
   if (unlikely (stop_processing))
@@ -500,18 +506,22 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::processNextMessage ()
 }
 
 int
-Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite (jcv_diagram& diagram, olc::vf2d& point)
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite (const jcv_diagram& diagram_in,
+                                                                const olc::vf2d& point_in,
+                                                                int index_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite"));
+  // STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite"));
 
   int result = 0;
   float min_distance_f = std::numeric_limits<float>::max ();
 
-  const jcv_site* sites_p = jcv_diagram_get_sites (&diagram);
-  for (int i = 0; i < diagram.numsites; i++)
+  const jcv_site* sites_p = jcv_diagram_get_sites (&diagram_in);
+  olc::vf2d point_s;
+  float distance_f;
+  for (int i = index_in; i < diagram_in.numsites; i++)
   {
-    olc::vf2d point_s (sites_p[i].p.x, sites_p[i].p.y);
-    float distance_f = point.dist (point_s);
+    point_s = {sites_p[i].p.x, sites_p[i].p.y};
+    distance_f = point_in.dist (point_s);
     if (distance_f < min_distance_f)
     {
       min_distance_f = distance_f;
@@ -520,4 +530,45 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::pointToSite (jcv_diagram& dia
   } // end FOR
 
   return sites_p[result].index;
+}
+
+void
+Test_U_CameraFilter_WeightedVoronoiStipple_Filter::relaxPoints (const jcv_diagram& diagram_in,
+                                                                jcv_point* points_in)
+{
+  // STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::relaxPoints"));
+
+  jcv_point sum;
+  int count;
+  const jcv_site* sites_p = jcv_diagram_get_sites (&diagram_in);
+  for (int i = 0; i < diagram_in.numsites; ++i)
+  {
+    const jcv_site* site_p = &sites_p[i];
+    sum = site_p->p;
+    count = 1;
+
+    const jcv_graphedge* edge_p = site_p->edges;
+    while (edge_p)
+    {
+      sum.x += edge_p->pos[0].x;
+      sum.y += edge_p->pos[0].y;
+      ++count;
+      edge_p = edge_p->next;
+    } // end WHILE
+
+    points_in[site_p->index].x = sum.x / count;
+    points_in[site_p->index].y = sum.y / count;
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    points_in[site_p->index].x =
+      std::min (std::max (0.0f, points_in[site_p->index].x), static_cast<float> (resolution_.cx - 1));
+    points_in[site_p->index].y =
+      std::min (std::max (0.0f, points_in[site_p->index].y), static_cast<float> (resolution_.cy - 1));
+#else
+    points_in[site_p->index].x =
+      std::min (std::max (0.0f, points_in[site_p->index].x), static_cast<float> (resolution_.width - 1));
+    points_in[site_p->index].y =
+      std::min (std::max (0.0f, points_in[site_p->index].y), static_cast<float> (resolution_.height - 1));
+#endif // ACE_WIN32 || ACE_WIN64
+  } // end FOR
 }
