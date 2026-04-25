@@ -114,7 +114,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : display console VU meter [")
-            << false
+            << STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")

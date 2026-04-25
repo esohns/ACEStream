@@ -47,7 +47,7 @@ if (WIN32)
                               -DD3D_DEBUG_INFO)
   # *NOTE*: DirectShow uses 'DEBUG'
   target_compile_definitions (${PROJECT_NAME}_MediaFramework PUBLIC
-                              -DDEBUG>)
+                              -DDEBUG)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WIN32)
 

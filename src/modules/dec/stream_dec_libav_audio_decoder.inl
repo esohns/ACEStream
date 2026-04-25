@@ -222,6 +222,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->codecConfiguration);
   ACE_ASSERT (context_);
+  ACE_ASSERT (message_inout);
 
   // initialize return value(s)
   passMessageDownstream_out = false;

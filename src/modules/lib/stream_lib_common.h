@@ -32,10 +32,6 @@
 
 #include <set>
 
-//#if defined (LIBNOISE_SUPPORT)
-//#include "noise/noise.h"
-//#endif // LIBNOISE_SUPPORT
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_lib_alsa_common.h"
@@ -70,10 +66,10 @@ enum Stream_MediaFramework_Type
 #else
   STREAM_MEDIAFRAMEWORK_ALSA = 0,
   STREAM_MEDIAFRAMEWORK_V4L,
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (LIBCAMERA_SUPPORT)
   STREAM_MEDIAFRAMEWORK_LIBCAMERA,
 #endif // LIBCAMERA_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_MEDIAFRAMEWORK_MAX,
   STREAM_MEDIAFRAMEWORK_INVALID
@@ -99,25 +95,29 @@ enum Stream_MediaFramework_SoundGeneratorType
 struct Stream_MediaFramework_SoundGeneratorConfiguration
 {
   Stream_MediaFramework_SoundGeneratorConfiguration ()
-  {
-    amplitude = 1.0;
-
-    alpha = STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD;
-    poles = STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES;
-
+   : samplesPerSecond (48000)
+   , bytesPerSample (2) // 16-bit PCM
+   , numberOfChannels (2) // stereo
+   , isFloatFormat (false) // i.e. PCM
+   , isLittleEndianFormat (true)
+   , isSignedFormat (true)
+   , amplitude (1.0)
+   , waveform_frequency (440.0) // A4
+   , alpha (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_ALPHA_LD)
+   , poles (STREAM_LIB_NOISE_GENERATOR_PINK_DEFAULT_POLES)
 #if defined (LIBNOISE_SUPPORT)
-    perlin_frequency = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_FREQUENCY_D;
-    octaves = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_OCTAVES;
-    persistence = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_PERSISTENCE_D;
-    lacunarity = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_LACUNARITY_D;
-    quality = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_QUALITY;
-
-    step = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP_D;
-    x = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X_D;
-    y = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y_D;
-    z = STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z_D;
+   , perlin_frequency (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_FREQUENCY_D)
+   , octaves (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_OCTAVES)
+   , persistence (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_PERSISTENCE_D)
+   , lacunarity (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_LACUNARITY_D)
+   , quality (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_QUALITY)
+   , step (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_STEP_D)
+   , x (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_X_D)
+   , y (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Y_D)
+   , z (STREAM_LIB_NOISE_GENERATOR_PERLIN_DEFAULT_Z_D)
 #endif // LIBNOISE_SUPPORT
-  }
+   , type (STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE)
+  {}
 
   // media type
   unsigned int                                  samplesPerSecond;
