@@ -121,7 +121,9 @@ do_printUsage (const std::string& programName_in)
   std::cout.setf (std::ios::boolalpha);
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -268,7 +270,9 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2073,6 +2077,7 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   // initialize framework(s)
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2096,7 +2101,10 @@ ACE_TMAIN (int argc_in,
 #endif // WXWIDGETS_USE
 
   // step1a set defaults
-  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
   struct Stream_Device_Identifier device_identifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;

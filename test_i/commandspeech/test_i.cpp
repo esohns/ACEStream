@@ -122,7 +122,10 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -139,8 +142,6 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT || SAPI_SUPPORT
   std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 #if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_directory = path;
   // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
@@ -157,8 +158,8 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #else
   std::string device_identifier_string =
-      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                       SND_PCM_STREAM_PLAYBACK);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_PLAYBACK);
   if (device_identifier_string.empty ())
     device_identifier_string = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [STRING] : device [\"")
@@ -270,10 +271,9 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
@@ -2154,12 +2154,13 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
   std::string path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
 
   // step1a set defaults
 #if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
