@@ -59,6 +59,7 @@
 #endif // FFMPEG_SUPPORT
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo.h"
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
 
 #include "test_i_message.h"
@@ -188,6 +189,19 @@ typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Test_I_ExtractStream_SessionData> Test_I_Distributor_Writer_t;
 
 #if defined (GTK_SUPPORT)
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_I_ExtractStream_ModuleHandlerConfiguration,
+                                                          Stream_ControlMessage_t,
+                                                          Test_I_Message_t,
+                                                          Test_I_SessionMessage_t,
+                                                          Test_I_ExtractStream_SessionData,
+                                                          Test_I_ExtractStream_SessionData_t,
+                                                          Common_Timer_Manager_t,
+                                                          struct Stream_MediaFramework_FFMPEG_MediaType,
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Test_I_Vis_GTK_Cairo_SpectrumAnalyzer;
+
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ExtractStream_ModuleHandlerConfiguration,
@@ -320,6 +334,13 @@ DATASTREAM_MODULE_DUPLEX (Test_I_ExtractStream_SessionData,                     
                           Test_I_Distributor);                                      // module name prefix
 
 #if defined (GTK_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                              // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_I_ExtractStream_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_vis_spectrum_analyzer_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_I_Vis_GTK_Cairo_SpectrumAnalyzer);                        // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ExtractStream_SessionData,                        // session data type
                               enum Stream_SessionMessageType,                          // session event type
                               struct Test_I_ExtractStream_ModuleHandlerConfiguration,  // module handler configuration type

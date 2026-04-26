@@ -26,7 +26,7 @@
 const char libacestream_default_vis_spectrum_analyzer_module_name_string[] =
   ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 gboolean
 acestream_visualization_gtk_cairo_draw_cb (GtkWidget* widget_in,
                                            cairo_t* context_in,
@@ -114,7 +114,7 @@ acestream_visualization_gtk_cairo_expose_event_cb (GtkWidget* widget_in,
 
 //  return FALSE; // propagate event
 //} // acestream_visualization_gtk_cairo_configure_event_cb
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 void
 acestream_visualization_gtk_cairo_size_allocate_cb (GtkWidget* widget_in,
                                                     GdkRectangle* allocation_in,

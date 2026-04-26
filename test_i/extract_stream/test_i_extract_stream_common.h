@@ -71,6 +71,8 @@
 #include "stream_lib_ffmpeg_common.h"
 #endif // FFMPEG_SUPPORT
 
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
+
 #include "test_i_common.h"
 #include "test_i_configuration.h"
 #if defined (GTK_SUPPORT)
@@ -156,26 +158,29 @@ struct Test_I_ExtractStream_ModuleHandlerConfiguration
    , outputFormat ()
    , streamIndex (-1)
 #endif // FFMPEG_SUPPORT
+   , spectrumAnalyzerConfiguration (NULL)
    , subscriber (NULL)
    , targetFileName ()
    , window ()
   {}
 
 #if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
-  enum AVHWDeviceType                                     deviceType;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration*               codecConfiguration;
+  enum AVHWDeviceType                                                   deviceType;
 #endif // FFMPEG_SUPPORT
-  struct Common_UI_DisplayDevice                          display;
+  struct Common_UI_DisplayDevice                                        display;
   std::string effect;
-  std::vector<std::string>                                effectOptions;
-  bool                                                    manageSoX;
+  std::vector<std::string>                                              effectOptions;
+  bool                                                                  manageSoX;
 #if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_MediaType           outputFormat;
-  int                                                     streamIndex;
+  struct Stream_MediaFramework_FFMPEG_MediaType                         outputFormat;
+  int                                                                   streamIndex;
 #endif // FFMPEG_SUPPORT
-  Test_I_ISessionNotify_t*                                subscriber;
-  std::string                                             targetFileName;
-  struct Common_UI_Window                                 window;
+
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
+  Test_I_ISessionNotify_t*                                              subscriber;
+  std::string                                                           targetFileName;
+  struct Common_UI_Window                                               window;
 };
 
 //extern const char stream_name_string_[];
@@ -229,13 +234,15 @@ struct Test_I_ExtractStream_Configuration
 #else
    : Test_I_Configuration ()
 #endif // GTK_USE
+   , spectrumAnalyzerConfiguration ()
    , streamConfiguration ()
   {
     allocatorConfiguration.defaultBufferSize = 1048576; // 1 mB
   }
 
   // **************************** stream data **********************************
-  Test_I_ExtractStream_StreamConfiguration_t streamConfiguration;
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumAnalyzerConfiguration;
+  Test_I_ExtractStream_StreamConfiguration_t                           streamConfiguration;
 };
 
 typedef Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -319,17 +326,23 @@ struct Test_I_ExtractStream_UI_CBData
   Test_I_ExtractStream_UI_CBData ()
    : Test_I_UI_CBData ()
    , configuration (NULL)
+   , dispatch (NULL)
+   , dispatch_2 (NULL)
    , progressData ()
+   , spectrumAnalyzerCBData ()
    , stream (NULL)
    , UIState (NULL)
   {
     progressData.state = UIState;
   }
 
-  struct Test_I_ExtractStream_Configuration* configuration;
-  struct Test_I_ExtractStream_ProgressData   progressData;
-  Test_I_Stream*                             stream;
-  struct Test_I_GTK_State*                   UIState;
+  struct Test_I_ExtractStream_Configuration*      configuration;
+  Common_IDispatch*                               dispatch;   // video
+  Common_IDispatch*                               dispatch_2; // audio
+  struct Test_I_ExtractStream_ProgressData        progressData;
+  struct acestream_visualization_gtk_cairo_cbdata spectrumAnalyzerCBData;
+  Test_I_Stream*                                  stream;
+  struct Test_I_GTK_State*                        UIState;
 };
 
 

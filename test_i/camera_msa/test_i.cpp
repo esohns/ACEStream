@@ -539,7 +539,9 @@ error:
 }
 
 void
-do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
+do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout,
+                        struct _AMMediaType& captureFormat_inout,
+                        struct _AMMediaType& outputFormat_inout)
 {
   STREAM_TRACE (ACE_TEXT ("::do_finalize_directshow"));
 
@@ -547,14 +549,17 @@ do_finalize_directshow (IAMStreamConfig*& streamConfiguration_inout)
   {
     streamConfiguration_inout->Release (); streamConfiguration_inout = NULL;
   } // end IF
+
+  Stream_MediaFramework_DirectShow_Tools::free (captureFormat_inout);
+  Stream_MediaFramework_DirectShow_Tools::free (outputFormat_inout);
 }
 
 bool
 do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                HWND windowHandle_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                IMFMediaSession*& IMFMediaSession_out,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
                                bool loadDevice_in,
                                IMFMediaType*& captureFormat_out,
                                IMFMediaType*& outputFormat_out)
@@ -632,9 +637,9 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   } // end IF
   ACE_ASSERT (topology_p);
   media_source_p->Release (); media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFAttributes* attributes_p = NULL;
   result = MFCreateAttributes (&attributes_p, 4);
   if (FAILED (result))
@@ -650,10 +655,10 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   ACE_ASSERT (SUCCEEDED (result));
   //result = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
   //ACE_ASSERT (SUCCEEDED (result));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   result = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
   ACE_ASSERT (SUCCEEDED (result));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   result = MFCreateMediaSession (attributes_p,
                                  &IMFMediaSession_out);
   if (FAILED (result))
@@ -679,7 +684,7 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     goto error;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   topology_p->Release (); topology_p = NULL;
 
 continue_2:
@@ -1356,17 +1361,19 @@ clean:
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      //do_finalize_directshow (directShowCBData_in.streamConfiguration);
-      IAMStreamConfig* dummy_p = NULL;
-      do_finalize_directshow (dummy_p);
+      do_finalize_directshow (stream_config_p,
+                              directshow_stream_configuration.format,
+                              directshow_modulehandler_configuration.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::free (directshow_modulehandler_configuration_2.outputFormat);
+      
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      Test_I_MediaFoundation_StreamConfiguration_t::ITERATOR_T iterator =
-      mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
-      do_finalize_mediafoundation ((*iterator).second.second->session);
+      do_finalize_mediafoundation (mediafoundation_modulehandler_configuration.session);
+      mediafoundation_stream_configuration.format->Release ();
+      mediafoundation_modulehandler_configuration.outputFormat->Release ();
+
       break;
     }
     default:
@@ -1391,7 +1398,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -1524,8 +1531,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
   if (
-      (!UI_definition_filename.empty () &&
-       !Common_File_Tools::isReadable (UI_definition_filename)) ||
+      (!UI_definition_filename.empty () && !Common_File_Tools::isReadable (UI_definition_filename)) ||
       device_identifier.empty ()
      )
   {
@@ -1555,10 +1561,9 @@ ACE_TMAIN (int argc_in,
 #endif // GTK_SUPPORT
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),                   // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
                                      false,                                        // trace messages ?
@@ -1584,7 +1589,7 @@ ACE_TMAIN (int argc_in,
   {
     case TEST_I_PROGRAMMODE_PRINT_VERSION:
     {
-      do_print_version (ACE::basename (argv_in[0]));
+      do_print_version (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
       Common_Log_Tools::finalize ();
       Common_Tools::finalize ();
@@ -1748,7 +1753,7 @@ ACE_TMAIN (int argc_in,
 #else
 #if defined (GTK_USE)
     result_2 =
-        gtk_manager_p->initialize (configuration.GTKConfiguration);
+      gtk_manager_p->initialize (configuration.GTKConfiguration);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
@@ -1781,11 +1786,11 @@ ACE_TMAIN (int argc_in,
            display_device_s,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_configuration,
-           mediafoundation_configuration
+           mediafoundation_configuration,
 #else
-           configuration
+           configuration,
 #endif // ACE_WIN32 || ACE_WIN64
-           , UI_definition_filename
+           UI_definition_filename
 #if defined (GTK_USE)
            , ui_cb_data
 #endif // GTK_USE

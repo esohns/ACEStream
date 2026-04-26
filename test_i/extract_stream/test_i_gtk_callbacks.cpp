@@ -185,9 +185,6 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
-  //ACE_DEBUG ((LM_DEBUG,
-  //            ACE_TEXT ("processing thread (id: %t) starting\n")));
-
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result = std::numeric_limits<unsigned long>::max ();
@@ -195,10 +192,9 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  struct Test_I_ExtractStream_UI_ThreadData* thread_data_p =
-      static_cast<struct Test_I_ExtractStream_UI_ThreadData*> (arg_in);
-
   // sanity check(s)
+  struct Test_I_ExtractStream_UI_ThreadData* thread_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_ThreadData*> (arg_in);
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
   Test_I_SessionManager_t* session_manager_p =
@@ -207,6 +203,7 @@ stream_processing_function (void* arg_in)
   struct Test_I_ExtractStream_UI_CBData* cb_data_p =
     static_cast<struct Test_I_ExtractStream_UI_CBData*> (thread_data_p->CBData);
   ACE_ASSERT (cb_data_p->configuration);
+  ACE_ASSERT (!cb_data_p->dispatch && !cb_data_p->dispatch_2);
   ACE_ASSERT (cb_data_p->stream);
 
   Common_UI_GTK_BuildersIterator_t iterator;
@@ -215,10 +212,11 @@ stream_processing_function (void* arg_in)
   std::ostringstream converter;
   Stream_IStreamControlBase* stream_p = NULL;
   const Test_I_ExtractStream_SessionData* session_data_p = NULL;
+  Stream_Module_t* module_p = NULL;
 
+  // sanity check(s)
   iterator =
     thread_data_p->CBData->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != thread_data_p->CBData->UIState->builders.end ());
 
   progress_bar_p =
@@ -240,7 +238,17 @@ stream_processing_function (void* arg_in)
   } // end IF
 
   stream_p = cb_data_p->stream;
-  
+
+  module_p =
+    const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
+  if (module_p)
+    cb_data_p->dispatch = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  module_p =
+    const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)));
+  if (module_p)
+    cb_data_p->dispatch_2 = dynamic_cast<Common_IDispatch*> (module_p->writer ());
+  ACE_ASSERT (cb_data_p->dispatch || cb_data_p->dispatch_2);
+
   session_data_p = &session_manager_p->getR (cb_data_p->stream->id ());
   // *TODO*: this is too early; the session id is generated/incremented in Stream_Base::start() !
   cb_data_p->progressData.sessionId = session_data_p->sessionId;
@@ -261,22 +269,11 @@ stream_processing_function (void* arg_in)
 
   ACE_ASSERT (stream_p);
   stream_p->start ();
+  stream_p->wait (true,
+                  false,
+                  false);
 
-  //module_p =
-  //  const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING)));
-  //ACE_ASSERT (module_p);
-  //cb_data_p->dispatch = dynamic_cast<Common_IDispatch*> (module_p->writer ());
-  //ACE_ASSERT (cb_data_p->dispatch);
-
-  stream_p->wait (true, false, false);
-
-  //module_p =
-  //  const_cast<Stream_Module_t*> (cb_data_p->stream->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING)));
-  //ACE_ASSERT (module_p);
-  //result_2 = cb_data_p->stream->remove (module_p,
-  //                                      true,
-  //                                      true);
-  //ACE_ASSERT (result_2);
+  cb_data_p->dispatch = cb_data_p->dispatch_2 = NULL;
 
   result = NULL;
 
@@ -288,8 +285,6 @@ error:
 #endif // ACE_WIN32 || ACE_WIN64
     thread_data_p->CBData->progressData.completedActions.insert (thread_data_p->eventSourceId);
   } // end lock scope
-
-  //thread_data_p->CBData->dispatch = NULL;
 
   // clean up
   delete thread_data_p; thread_data_p = NULL;
@@ -629,6 +624,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_widget_show_all (dialog_p);
 
   GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_AUDIO_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  cb_data_p->spectrumAnalyzerCBData.window =
+    gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+
+  drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
   ACE_ASSERT (drawing_area_p);
@@ -1851,146 +1853,146 @@ combobox_display_changed_cb (GtkWidget* widget_in,
                                     1);
 } // combobox_display_changed_cb
 
-//#if GTK_CHECK_VERSION (3,0,0)
-//gboolean
-//drawingarea_audio_draw_cb (GtkWidget* widget_in,
-//                           cairo_t* context_in,
-//                           gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_draw_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//
-//     // sanity check(s)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  if (!cb_data_p->dispatch_2)
-//    return FALSE; // propagate event
-//  ACE_ASSERT (!cb_data_p->spectrumAnalyzerCBData.context);
-//  ACE_ASSERT (cb_data_p->spectrumAnalyzerCBData.window);
-//
-//  cb_data_p->spectrumAnalyzerCBData.context = context_in;
-//  try {
-//    cb_data_p->dispatch_2->dispatch (&cb_data_p->spectrumAnalyzerCBData);
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-//    cb_data_p->spectrumAnalyzerCBData.context = NULL;
-//    return FALSE; // propagate event
-//  }
-//  cb_data_p->spectrumAnalyzerCBData.context = NULL;
-//
-//  return TRUE; // do not propagate
-//} // drawingarea_audio_draw_cb
-//
-//gboolean
-//drawingarea_video_draw_cb (GtkWidget* widget_in,
-//                           cairo_t* context_in,
-//                           gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_draw_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//
-//  // sanity check(s)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  if (!cb_data_p->dispatch)
-//    return FALSE; // propagate event
-//
-//  try {
-//    cb_data_p->dispatch->dispatch (context_in);
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-//    return FALSE; // propagate event
-//  }
-//
-//  return TRUE; // do not propagate
-//} // drawingarea_video_draw_cb
-//#else
-//gboolean
-//drawingarea_audio_expose_event_cb (GtkWidget* widget_in,
-//                                   GdkEvent* event_in,
-//                                   gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_expose_event_cb"));
-//
-//  ACE_UNUSED_ARG (event_in);
-//
-//  // sanity check(s)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  if (!cb_data_p->dispatch_2)
-//    return FALSE; // propagate event
-//  ACE_ASSERT (!cb_data_p->spectrumAnalyzerCBData.context);
-//  ACE_ASSERT (cb_data_p->spectrumAnalyzerCBData.window);
-//
-//  cb_data_p->spectrumAnalyzerCBData.context =
-//    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
-//  if (unlikely (!cb_data_p->spectrumAnalyzerCBData.context))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-//    return FALSE; // propagate event
-//  } // end IF
-//
-//  try {
-//    cb_data_p->dispatch_2->dispatch (&cb_data_p->spectrumAnalyzerCBData);
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-//    cairo_destroy (cb_data_p->spectrumAnalyzerCBData.context);
-//    cb_data_p->spectrumAnalyzerCBData.context = NULL;
-//    return FALSE; // propagate event
-//  }
-//  cairo_destroy (cb_data_p->spectrumAnalyzerCBData.context);
-//  cb_data_p->spectrumAnalyzerCBData.context = NULL;
-//
-//  return TRUE; // do not propagate
-//} // drawingarea_audio_expose_event_cb
-//
-//gboolean
-//drawingarea_video_expose_event_cb (GtkWidget* widget_in,
-//                                   GdkEvent* event_in,
-//                                   gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_expose_event_cb"));
-//
-//  ACE_UNUSED_ARG (event_in);
-//
-//  // sanity check(s)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  if (!cb_data_p->dispatch)
-//    return FALSE; // propagate event
-//
-//  cairo_t* context_p =
-//    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
-//  if (unlikely (!context_p))
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
-//    return FALSE; // propagate event
-//  } // end IF
-//
-//  try {
-//    cb_data_p->dispatch->dispatch (context_p);
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
-//    cairo_destroy (context_p);
-//    return FALSE; // propagate event
-//  }
-//  cairo_destroy (context_p);
-//
-//  return TRUE; // do not propagate
-//} // drawingarea_video_expose_event_cb
-//#endif // GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
+gboolean
+drawingarea_audio_draw_cb (GtkWidget* widget_in,
+                           cairo_t* context_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_draw_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch_2)
+    return FALSE; // propagate event
+  ACE_ASSERT (!cb_data_p->spectrumAnalyzerCBData.context);
+  ACE_ASSERT (cb_data_p->spectrumAnalyzerCBData.window);
+
+  cb_data_p->spectrumAnalyzerCBData.context = context_in;
+  try {
+    cb_data_p->dispatch_2->dispatch (&cb_data_p->spectrumAnalyzerCBData);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    cb_data_p->spectrumAnalyzerCBData.context = NULL;
+    return FALSE; // propagate event
+  }
+  cb_data_p->spectrumAnalyzerCBData.context = NULL;
+
+  return TRUE; // do not propagate
+} // drawingarea_audio_draw_cb
+
+gboolean
+drawingarea_video_draw_cb (GtkWidget* widget_in,
+                           cairo_t* context_in,
+                           gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_draw_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch)
+    return FALSE; // propagate event
+
+  try {
+    cb_data_p->dispatch->dispatch (context_in);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    return FALSE; // propagate event
+  }
+
+  return TRUE; // do not propagate
+} // drawingarea_video_draw_cb
+#else
+gboolean
+drawingarea_audio_expose_event_cb (GtkWidget* widget_in,
+                                   GdkEvent* event_in,
+                                   gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_expose_event_cb"));
+
+  ACE_UNUSED_ARG (event_in);
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch_2)
+    return FALSE; // propagate event
+  ACE_ASSERT (!cb_data_p->spectrumAnalyzerCBData.context);
+  ACE_ASSERT (cb_data_p->spectrumAnalyzerCBData.window);
+
+  cb_data_p->spectrumAnalyzerCBData.context =
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  if (unlikely (!cb_data_p->spectrumAnalyzerCBData.context))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE; // propagate event
+  } // end IF
+
+  try {
+    cb_data_p->dispatch_2->dispatch (&cb_data_p->spectrumAnalyzerCBData);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    cairo_destroy (cb_data_p->spectrumAnalyzerCBData.context);
+    cb_data_p->spectrumAnalyzerCBData.context = NULL;
+    return FALSE; // propagate event
+  }
+  cairo_destroy (cb_data_p->spectrumAnalyzerCBData.context);
+  cb_data_p->spectrumAnalyzerCBData.context = NULL;
+
+  return TRUE; // do not propagate
+} // drawingarea_audio_expose_event_cb
+
+gboolean
+drawingarea_video_expose_event_cb (GtkWidget* widget_in,
+                                   GdkEvent* event_in,
+                                   gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_expose_event_cb"));
+
+  ACE_UNUSED_ARG (event_in);
+
+  // sanity check(s)
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  if (!cb_data_p->dispatch)
+    return FALSE; // propagate event
+
+  cairo_t* context_p =
+    gdk_cairo_create (GDK_DRAWABLE (gtk_widget_get_window (widget_in)));
+  if (unlikely (!context_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gdk_cairo_create(), aborting\n")));
+    return FALSE; // propagate event
+  } // end IF
+
+  try {
+    cb_data_p->dispatch->dispatch (context_p);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_IDispatch::dispatch(), continuing\n")));
+    cairo_destroy (context_p);
+    return FALSE; // propagate event
+  }
+  cairo_destroy (context_p);
+
+  return TRUE; // do not propagate
+} // drawingarea_video_expose_event_cb
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 //void
 //drawingarea_configure_event_cb (GtkWindow* window_in,
@@ -1998,14 +2000,14 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //                                gpointer userData_in)
 //{
 //  STREAM_TRACE (ACE_TEXT ("::drawingarea_configure_event_cb"));
-
+//
 //  Test_I_ExtractStream_UI_CBData* data_p =
 //    static_cast<Test_I_ExtractStream_UI_CBData*> (userData_in);
-
+//
 //  // sanity check(s)
 //  ACE_ASSERT (data_p);
 //  ACE_ASSERT (data_p->configuration);
-
+//
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  if (!data_p->configuration->moduleHandlerConfiguration.window          ||
 //      !data_p->configuration->moduleHandlerConfiguration.windowController) // <-- window not realized yet ?
@@ -2014,12 +2016,12 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //  if (!data_p->configuration->moduleHandlerConfiguration.window) // <-- window not realized yet ?
 //    return;
 //#endif
-
+//
 //  Common_UI_GTK_BuildersIterator_t iterator =
 //    data_p->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
 //  // sanity check(s)
 //  ACE_ASSERT (iterator != data_p->builders.end ());
-
+//
 //  GtkDrawingArea* drawing_area_p =
 //    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
 //                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_NAME)));
@@ -2031,7 +2033,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  // sanity check(s)
 //  ACE_ASSERT (data_p->configuration->moduleHandlerConfiguration.windowController);
-
+//
 //  data_p->configuration->moduleHandlerConfiguration.area.bottom =
 //    allocation.height;
 //  data_p->configuration->moduleHandlerConfiguration.area.left =
@@ -2040,7 +2042,7 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //    allocation.width;
 //  data_p->configuration->moduleHandlerConfiguration.area.top =
 //    allocation.y;
-
+//
 //  //HRESULT result =
 //  //  data_p->configuration->moduleHandlerConfiguration.windowController->SetWindowPosition (data_p->configuration->moduleHandlerConfiguration.area.left,
 //  //                                                                                                               data_p->configuration->moduleHandlerConfiguration.area.top,
@@ -2058,370 +2060,164 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //#endif
 //} // drawingarea_configure_event_cb
 
-//gboolean
-//drawingarea_audio_resize_end (gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_resize_end"));
-//
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  Common_UI_GTK_BuildersIterator_t iterator =
-//    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-//  GtkDrawingArea* drawing_area_p =
-//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_AUDIO_NAME)));
-//  ACE_ASSERT (drawing_area_p);
-//
-//  GtkAllocation allocation_s;
-//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-//                             &allocation_s);
-//
-//  Stream_IStream_t* stream_p = NULL;
-//  const Stream_Module_t* module_p = NULL;
-//  std::string module_name;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p = NULL;
-//  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
-//  struct Test_I_ExtractStream_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-//    NULL;
-//  Test_I_ExtractStream_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-//  switch (cb_data_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      cb_data_p =
-//        static_cast<struct Test_I_ExtractStream_UI_CBData*> (cb_data_p);
-//      stream_p = cb_data_p->audioStream;
-//      ACE_ASSERT (cb_data_p->configuration);
-//      stream_iterator =
-//        cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-//      ACE_ASSERT (stream_iterator != cb_data_p->configuration->audioStreamConfiguration.end ());
-//
-//      Common_Image_Resolution_t resolution_s;
-//      resolution_s.cx = allocation_s.width;
-//      resolution_s.cy = allocation_s.height;
-//      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-//                                                             (*stream_iterator).second.second->outputFormat);
-//
-//      if (!cb_data_p->audioStream->isRunning ())
-//        return G_SOURCE_REMOVE;
-//
-//      module_name =
-//        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      mediafoundation_cb_data_p =
-//        static_cast<struct Test_I_ExtractStream_MediaFoundation_UI_CBData*> (cb_data_p);
-//      stream_p = mediafoundation_cb_data_p->audioStream;
-//      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-//      mediafoundation_stream_iterator =
-//        mediafoundation_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-//      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->audioStreamConfiguration.end ());
-//
-//      HRESULT result_2 =
-//        MFSetAttributeSize (const_cast<IMFMediaType*> ((*mediafoundation_stream_iterator).second.second->outputFormat),
-//                            MF_MT_FRAME_SIZE,
-//                            static_cast<UINT32> (allocation_s.width), static_cast<UINT32> (allocation_s.height));
-//      ACE_ASSERT (SUCCEEDED (result_2));
-//
-//      if (!mediafoundation_cb_data_p->audioStream->isRunning ())
-//        return G_SOURCE_REMOVE;
-//
-//      module_name =
-//        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
-//
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  cb_data_p->mediaFramework));
-//      return G_SOURCE_REMOVE;
-//    }
-//  } // end SWITCH
-//#else
-//  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
-//  ACE_ASSERT (cb_data_p->configuration);
-//  stream_p = cb_data_p->audioStream;
-//  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-//    cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (iterator_2 != cb_data_p->configuration->audioStreamConfiguration.end ());
-//  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-//#if defined (GTK_USE)
-//    cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-//#else
-//    cb_data_p->configuration->audioStreamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//#endif // GTK_USE
-//  ACE_ASSERT (iterator_3 != cb_data_p->configuration->audioStreamConfiguration.end ());
-//
-//  //  (*iterator_2).second.second->outputFormat.resolution.height =
-//  //      allocation_in->height;
-//  //  (*iterator_2).second.second->outputFormat.resolution.width =
-//  //      allocation_in->width;
-//  (*iterator_3).second.second->outputFormat.video.format.height =
-//    allocation_s.height;
-//  (*iterator_3).second.second->outputFormat.video.format.width =
-//    allocation_s.width;
-//
-//  if (!cb_data_p->audioStream->isRunning ())
-//    return G_SOURCE_REMOVE;
-//
-//  module_name =
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
-//#endif // ACE_WIN32 || ACE_WIN64
-//  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-//  ACE_ASSERT (stream_p);
-//
-//  // *NOTE*: update the analyzer
-//
-//  // step1:
-//  module_p = stream_p->find (module_name);
-//  if (!module_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ()),
-//                ACE_TEXT (module_name.c_str ())));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  Common_ISetP_T<GdkWindow>* iset_p =
-//    dynamic_cast<Common_ISetP_T<GdkWindow>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//  if (!iset_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s:%s: failed to dynamic_cast<Common_ISetP_T<GdkWindow>*>(%@), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ()),
-//                ACE_TEXT (module_name.c_str ()),
-//                const_cast<Stream_Module_t*> (module_p)->writer ()));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  try {
-//    iset_p->setP (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Common_ISetP_T::setP(), returning\n")));
-//    return G_SOURCE_REMOVE;
-//  }
-//
-////#if defined (ACE_WIN32) || defined (ACE_WIN64)
-////  switch (cb_data_p->mediaFramework)
-////  {
-////    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-////      cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-////      break;
-////    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-////      mediafoundation_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-////      break;
-////    default:
-////    {
-////      ACE_DEBUG ((LM_ERROR,
-////                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
-////                  ACE_TEXT (stream_p->name ().c_str ()),
-////                  cb_data_p->mediaFramework));
-////      return G_SOURCE_REMOVE;
-////    }
-////  } // end SWITCH
-////#else
-////  cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
-////#endif // ACE_WIN32 || ACE_WIN64
-//
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("window resized to %dx%d\n"),
-//              allocation_s.width, allocation_s.height));
-//
-//  return G_SOURCE_REMOVE;
-//} // drawingarea_audio_resize_end
-//
-//void
-//drawingarea_audio_size_allocate_cb (GtkWidget* widget_in,
-//                                    GdkRectangle* allocation_in,
-//                                    gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_size_allocate_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//  ACE_UNUSED_ARG (allocation_in);
-//
-//  static gint timer_id = 0;
-//  if (timer_id == 0)
-//  {
-//    timer_id = g_timeout_add (300, drawingarea_audio_resize_end, userData_in);
-//    return;
-//  } // end IF
-//  g_source_remove (timer_id);
-//  timer_id = g_timeout_add (300, drawingarea_audio_resize_end, userData_in);
-//} // drawingarea_audio_size_allocate_cb
-//
-//gboolean
-//drawingarea_video_resize_end (gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_resize_end"));
-//
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
-//  ACE_ASSERT (cb_data_p);
-//  Common_UI_GTK_BuildersIterator_t iterator =
-//    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-//  // sanity check(s)
-//  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-//  GtkDrawingArea* drawing_area_p =
-//    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-//                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
-//  ACE_ASSERT (drawing_area_p);
-//
-//  GtkAllocation allocation_s;
-//  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
-//                             &allocation_s);
-//
-//  Stream_IStream_t* stream_p = NULL;
-//  const Stream_Module_t* module_p = NULL;
-//  std::string module_name;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  struct Test_I_ExtractStream_UI_CBData* cb_data_p = NULL;
-//  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
-//  struct Test_I_ExtractStream_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
-//    NULL;
-//  Test_I_ExtractStream_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
-//  switch (cb_data_p->mediaFramework)
-//  {
-//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//    {
-//      cb_data_p =
-//        static_cast<struct Test_I_ExtractStream_UI_CBData*> (cb_data_p);
-//      stream_p = cb_data_p->videoStream;
-//      ACE_ASSERT (cb_data_p->configuration);
-//      stream_iterator =
-//        cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
-//      ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
-//
-//      Common_Image_Resolution_t resolution_s;
-//      resolution_s.cx = allocation_s.width;
-//      resolution_s.cy = allocation_s.height;
-//      Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
-//                                                             (*stream_iterator).second.second->outputFormat);
-//
-//      if (!cb_data_p->videoStream->isRunning ())
-//        return G_SOURCE_REMOVE;
-//
-//      module_name =
-//        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
-//      break;
-//    }
-//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//    {
-//      mediafoundation_cb_data_p =
-//        static_cast<struct Test_I_ExtractStream_MediaFoundation_UI_CBData*> (cb_data_p);
-//      stream_p = mediafoundation_cb_data_p->videoStream;
-//      ACE_ASSERT (mediafoundation_cb_data_p->configuration);
-//      mediafoundation_stream_iterator =
-//        mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-//      ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-//
-//      HRESULT result_2 =
-//        MFSetAttributeSize (const_cast<IMFMediaType*> ((*mediafoundation_stream_iterator).second.second->outputFormat),
-//                            MF_MT_FRAME_SIZE,
-//                            static_cast<UINT32> (allocation_s.width), static_cast<UINT32> (allocation_s.height));
-//      ACE_ASSERT (SUCCEEDED (result_2));
-//
-//      if (!mediafoundation_cb_data_p->videoStream->isRunning ())
-//        return G_SOURCE_REMOVE;
-//
-//      module_name =
-//        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
-//      break;
-//    }
-//    default:
-//    {
-//      ACE_DEBUG ((LM_ERROR,
-//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-//                  cb_data_p->mediaFramework));
-//      return G_SOURCE_REMOVE;
-//    }
-//  } // end SWITCH
-//#else
-//  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
-//    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
-//  stream_p = cb_data_p->videoStream;
-//  ACE_ASSERT (cb_data_p->configuration);
-//  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-//    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-//  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-//  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-//#if defined (GTK_USE)
-//    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
-//#else
-//    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-//#endif // GTK_USE
-//  ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
-//
-////  (*iterator_2).second.second->outputFormat.resolution.height =
-////      allocation_in->height;
-////  (*iterator_2).second.second->outputFormat.resolution.width =
-////      allocation_in->width;
-//  (*iterator_3).second.second->outputFormat.video.format.height =
-//      allocation_s.height;
-//  (*iterator_3).second.second->outputFormat.video.format.width =
-//      allocation_s.width;
-//
-//  if (!cb_data_p->videoStream->isRunning ())
-//    return G_SOURCE_REMOVE;
-//
-//  module_name =
-//    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING);
-//#endif // ACE_WIN32 || ACE_WIN64
-//  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
-//  ACE_ASSERT (stream_p);
-//
-//  // *NOTE*: two things need doing:
-//  //         - drop inbound frames until the 'resize' session message is through
-//  //         - enqueue a 'resize' session message
-//
-//  // step1:
-//  module_p = stream_p->find (module_name);
-//  if (!module_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ()),
-//                ACE_TEXT (module_name.c_str ())));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  Stream_Visualization_IResize* iresize_p =
-//    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-//  if (!iresize_p)
-//  {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
-//                ACE_TEXT (stream_p->name ().c_str ()),
-//                ACE_TEXT (module_name.c_str ()),
-//                const_cast<Stream_Module_t*> (module_p)->writer ()));
-//    return G_SOURCE_REMOVE;
-//  } // end IF
-//  try {
-//    iresize_p->resizing ();
-//  } catch (...) {
-//    ACE_DEBUG ((LM_ERROR,
-//                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
-//    return G_SOURCE_REMOVE;
-//  }
-//
-//  // step2
+gboolean
+drawingarea_audio_resize_end (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_resize_end"));
+
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_AUDIO_NAME)));
+  ACE_ASSERT (drawing_area_p);
+
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation_s);
+
+  Stream_IStream_t* stream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  std::string module_name;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
+  switch (cb_data_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      stream_p = cb_data_p->stream;
+      ACE_ASSERT (cb_data_p->configuration);
+      //stream_iterator =
+      //  cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+      //Common_Image_Resolution_t resolution_s;
+      //resolution_s.cx = allocation_s.width;
+      //resolution_s.cy = allocation_s.height;
+      //(*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
+
+      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+      //                                                       (*stream_iterator).second.second->outputFormat);
+
+      if (!cb_data_p->stream->isRunning ())
+        return G_SOURCE_REMOVE;
+
+      module_name =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      stream_p = cb_data_p->stream;
+      ACE_ASSERT (cb_data_p->configuration);
+      //stream_iterator =
+      //  cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+      //ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+      //Common_Image_Resolution_t resolution_s;
+      //resolution_s.cx = allocation_s.width;
+      //resolution_s.cy = allocation_s.height;
+      //(*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
+      //HRESULT result_2 =
+      //  MFSetAttributeSize (const_cast<IMFMediaType*> ((*stream_iterator).second.second->outputFormat),
+      //                      MF_MT_FRAME_SIZE,
+      //                      static_cast<UINT32> (allocation_s.width), static_cast<UINT32> (allocation_s.height));
+      //ACE_ASSERT (SUCCEEDED (result_2));
+
+      if (!cb_data_p->stream->isRunning ())
+        return G_SOURCE_REMOVE;
+
+      module_name =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  cb_data_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
+  ACE_ASSERT (cb_data_p->configuration);
+  stream_p = cb_data_p->stream;
+  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+#if defined (GTK_USE)
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+#else
+    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+#endif // GTK_USE
+  ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
+
+  //  (*iterator_2).second.second->outputFormat.resolution.height =
+  //      allocation_in->height;
+  //  (*iterator_2).second.second->outputFormat.resolution.width =
+  //      allocation_in->width;
+  (*iterator_3).second.second->outputFormat.video.format.height =
+    allocation_s.height;
+  (*iterator_3).second.second->outputFormat.video.format.width =
+    allocation_s.width;
+
+  if (!cb_data_p->stream->isRunning ())
+    return G_SOURCE_REMOVE;
+
+  module_name =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  ACE_ASSERT (stream_p);
+
+  // *NOTE*: update the analyzer
+
+  // step1:
+  module_p = stream_p->find (module_name);
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  Common_ISetP_T<GdkWindow>* iset_p =
+    dynamic_cast<Common_ISetP_T<GdkWindow>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!iset_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s:%s: failed to dynamic_cast<Common_ISetP_T<GdkWindow>*>(%@), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ()),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  try {
+    iset_p->setP (gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Common_ISetP_T::setP(), returning\n")));
+    return G_SOURCE_REMOVE;
+  }
+
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //  switch (cb_data_p->mediaFramework)
 //  {
 //    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-//      cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+//      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
 //      break;
 //    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-//      mediafoundation_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE,
-//                                                       false);
+//      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
 //      break;
 //    default:
 //    {
@@ -2433,35 +2229,235 @@ combobox_display_changed_cb (GtkWidget* widget_in,
 //    }
 //  } // end SWITCH
 //#else
-//  cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+//  cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
 //#endif // ACE_WIN32 || ACE_WIN64
-//
-//  ACE_DEBUG ((LM_DEBUG,
-//              ACE_TEXT ("window resized to %dx%d\n"),
-//              allocation_s.width, allocation_s.height));
-//
-//  return G_SOURCE_REMOVE;
-//} // drawingarea_video_resize_end
-//
-//void
-//drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
-//                                    GdkRectangle* allocation_in,
-//                                    gpointer userData_in)
-//{
-//  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_size_allocate_cb"));
-//
-//  ACE_UNUSED_ARG (widget_in);
-//  ACE_UNUSED_ARG (allocation_in);
-//
-//  static gint timer_id_2 = 0;
-//  if (timer_id_2 == 0)
-//  {
-//    timer_id_2 = g_timeout_add (300, drawingarea_video_resize_end, userData_in);
-//    return;
-//  } // end IF
-//  g_source_remove (timer_id_2);
-//  timer_id_2 = g_timeout_add (300, drawingarea_video_resize_end, userData_in);
-//} // drawingarea_video_size_allocate_cb
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window resized to %dx%d\n"),
+              allocation_s.width, allocation_s.height));
+
+  return G_SOURCE_REMOVE;
+} // drawingarea_audio_resize_end
+
+void
+drawingarea_audio_size_allocate_cb (GtkWidget* widget_in,
+                                    GdkRectangle* allocation_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_size_allocate_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (allocation_in);
+
+  static gint timer_id = 0;
+  if (timer_id == 0)
+  {
+    timer_id = g_timeout_add (300, drawingarea_audio_resize_end, userData_in);
+    return;
+  } // end IF
+  g_source_remove (timer_id);
+  timer_id = g_timeout_add (300, drawingarea_audio_resize_end, userData_in);
+} // drawingarea_audio_size_allocate_cb
+
+gboolean
+drawingarea_video_resize_end (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_resize_end"));
+
+  struct Test_I_ExtractStream_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_UI_CBData*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  Common_UI_GTK_BuildersIterator_t iterator =
+    cb_data_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  // sanity check(s)
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
+  ACE_ASSERT (drawing_area_p);
+
+  GtkAllocation allocation_s;
+  gtk_widget_get_allocation (GTK_WIDGET (drawing_area_p),
+                             &allocation_s);
+
+  Stream_IStream_t* stream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  std::string module_name;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator;
+  switch (cb_data_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      stream_p = cb_data_p->stream;
+      ACE_ASSERT (cb_data_p->configuration);
+      stream_iterator =
+        cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+      ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = allocation_s.width;
+      resolution_s.cy = allocation_s.height;
+      (*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
+      //Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
+      //                                                       (*stream_iterator).second.second->outputFormat);
+
+      if (!cb_data_p->stream->isRunning ())
+        return G_SOURCE_REMOVE;
+
+      module_name =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      stream_p = cb_data_p->stream;
+      ACE_ASSERT (cb_data_p->configuration);
+      stream_iterator =
+        cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
+      ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+
+      Common_Image_Resolution_t resolution_s;
+      resolution_s.cx = allocation_s.width;
+      resolution_s.cy = allocation_s.height;
+      (*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
+      //HRESULT result_2 =
+      //  MFSetAttributeSize (const_cast<IMFMediaType*> ((*mediafoundation_stream_iterator).second.second->outputFormat),
+      //                      MF_MT_FRAME_SIZE,
+      //                      static_cast<UINT32> (allocation_s.width), static_cast<UINT32> (allocation_s.height));
+      //ACE_ASSERT (SUCCEEDED (result_2));
+
+      if (!cb_data_p->stream->isRunning ())
+        return G_SOURCE_REMOVE;
+
+      module_name =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  cb_data_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
+    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
+  stream_p = cb_data_p->videoStream;
+  ACE_ASSERT (cb_data_p->configuration);
+  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+#if defined (GTK_USE)
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+#else
+    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+#endif // GTK_USE
+  ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
+
+//  (*iterator_2).second.second->outputFormat.resolution.height =
+//      allocation_in->height;
+//  (*iterator_2).second.second->outputFormat.resolution.width =
+//      allocation_in->width;
+  (*iterator_3).second.second->outputFormat.video.format.height =
+      allocation_s.height;
+  (*iterator_3).second.second->outputFormat.video.format.width =
+      allocation_s.width;
+
+  if (!cb_data_p->videoStream->isRunning ())
+    return G_SOURCE_REMOVE;
+
+  module_name =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
+  ACE_ASSERT (stream_p);
+
+  // *NOTE*: two things need doing:
+  //         - drop inbound frames until the 'resize' session message is through
+  //         - enqueue a 'resize' session message
+
+  // step1:
+  module_p = stream_p->find (module_name);
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  Stream_Visualization_IResize* iresize_p =
+    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!iresize_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ()),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return G_SOURCE_REMOVE;
+  } // end IF
+  try {
+    iresize_p->resizing ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
+    return G_SOURCE_REMOVE;
+  }
+
+  // step2
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  switch (cb_data_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
+                  ACE_TEXT (stream_p->name ().c_str ()),
+                  cb_data_p->mediaFramework));
+      return G_SOURCE_REMOVE;
+    }
+  } // end SWITCH
+#else
+  cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+#endif // ACE_WIN32 || ACE_WIN64
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("window resized to %dx%d\n"),
+              allocation_s.width, allocation_s.height));
+
+  return G_SOURCE_REMOVE;
+} // drawingarea_video_resize_end
+
+void
+drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
+                                    GdkRectangle* allocation_in,
+                                    gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_size_allocate_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (allocation_in);
+
+  static gint timer_id_2 = 0;
+  if (timer_id_2 == 0)
+  {
+    timer_id_2 = g_timeout_add (300, drawingarea_video_resize_end, userData_in);
+    return;
+  } // end IF
+  g_source_remove (timer_id_2);
+  timer_id_2 = g_timeout_add (300, drawingarea_video_resize_end, userData_in);
+} // drawingarea_video_size_allocate_cb
 
 void
 filechooserbutton_source_file_set_cb (GtkFileChooserButton* fileChooserButton_in,
@@ -2583,6 +2579,25 @@ dialog_main_key_press_event_cb (GtkWidget* widget_in,
   return key_cb (widget_in, eventKey_in, userData_in);
 } // dialog_main_key_press_event_cb
 
+gboolean
+drawingarea_audio_key_press_event_cb (GtkWidget* widget_in,
+                                      GdkEventKey* eventKey_in,
+                                      gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_audio_key_press_event_cb"));
+
+  return key_cb (widget_in, eventKey_in, userData_in);
+} // drawingarea_audio_key_press_event_cb
+
+gboolean
+drawingarea_video_key_press_event_cb (GtkWidget* widget_in,
+                                      GdkEventKey* eventKey_in,
+                                      gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::drawingarea_video_key_press_event_cb"));
+
+  return key_cb (widget_in, eventKey_in, userData_in);
+} // drawingarea_video_key_press_event_cb
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */

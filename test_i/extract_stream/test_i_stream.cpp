@@ -138,7 +138,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (module_p, NULL, 0);
       module_p = NULL;
 
-      //configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+      branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
 
       break;
@@ -192,14 +192,14 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   {
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_AUDIO_ONLY:
     {
-      //++index_i;
+      ACE_NEW_RETURN (module_p,
+                      Test_I_Vis_GTK_Cairo_SpectrumAnalyzer_Module (this,
+                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
+                      false);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
 
-      //ACE_NEW_RETURN (module_p,
-      //                Test_I_AudioTagger_Module (this,
-      //                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_TAGGER_DEFAULT_NAME_STRING)),
-      //                false);
-      //layout_in->append (module_p, branch_p, index_i);
-      //module_p = NULL;
+      ++index_i;
 
       ACE_NEW_RETURN (module_p,
                       Test_I_WAVEncoder_Module (this,

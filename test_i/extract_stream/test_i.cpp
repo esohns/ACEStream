@@ -354,6 +354,7 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_2; // wav encoder
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_3; // libav converter
+  struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_3b; // libav resize
   struct Test_I_ExtractStream_ModuleHandlerConfiguration modulehandler_configuration_4; // libav converter 2
   struct Test_I_ExtractStream_StreamConfiguration stream_configuration;
 
@@ -384,6 +385,8 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   modulehandler_configuration.outputFormat.video.frameRate.num = 30;
   modulehandler_configuration.outputFormat.video.resolution = {640, 480};
 #endif // FFMPEG_SUPPORT
+  modulehandler_configuration.spectrumAnalyzerConfiguration =
+    &configuration_in.spectrumAnalyzerConfiguration;
   modulehandler_configuration.targetFileName = targetFilename_in;
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.manageSoX = false;
@@ -392,8 +395,10 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
     av_get_bytes_per_sample (modulehandler_configuration.outputFormat.audio.format);
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration_3 = modulehandler_configuration;
+  modulehandler_configuration_3b = modulehandler_configuration;
 #if defined (FFMPEG_SUPPORT)
   modulehandler_configuration_3.outputFormat.video.format = AV_PIX_FMT_RGB24;
+  modulehandler_configuration_3b.outputFormat.video.format = AV_PIX_FMT_RGB24;
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration_4 = modulehandler_configuration;
   modulehandler_configuration_4.flipImage = true;
@@ -422,6 +427,9 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_3b)));
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_4)));
