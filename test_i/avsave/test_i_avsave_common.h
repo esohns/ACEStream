@@ -416,7 +416,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   //, fullScreen (false)
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
    , spectrumAnalyzerConfiguration (NULL)
@@ -435,7 +435,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 #else
   // struct Common_UI_Display                          display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                              fullScreen;
+  //bool                                              fullScreen;
   bool                                              sinus; // N/A
   double                                            sinusFrequency; // N/A
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;

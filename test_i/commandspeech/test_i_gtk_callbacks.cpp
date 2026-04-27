@@ -3194,8 +3194,10 @@ combobox_target_changed_cb (GtkWidget* widget_in,
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
+    { ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+
       IAMBufferNegotiation* buffer_negotiation_p = NULL;
+      directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->filterGraphConfiguration.clear ();
       if (!Stream_Device_DirectShow_Tools::loadDeviceGraph (device_identifier,
                                                             CLSID_AudioInputDeviceCategory,
                                                             (*directshow_modulehandler_configuration_iterator).second.second->builder,

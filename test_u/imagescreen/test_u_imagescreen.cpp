@@ -356,10 +356,6 @@ do_work (int argc_in,
   configuration.delayConfiguration.interval = ACE_Time_Value (5, 0);
   configuration.delayConfiguration.mode =
     STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  //configuration.direct3DConfiguration.presentationParameters.BackBufferFormat =
-  //  D3DFMT_X8R8G8B8;
-#endif // ACE_WIN32 || ACE_WIN64
   struct Stream_ImageScreen_UI_CBData ui_cb_data;
 
   // initialize stream
@@ -463,7 +459,7 @@ do_work (int argc_in,
                                                       &ui_cb_data
 #if defined (WXWIDGETS_USE)
                                                       ,iapplication_in
-#endif
+#endif // WXWIDGETS_USE
                                                      );
   modulehandler_configuration.subscriber = &ui_event_handler;
 
@@ -581,7 +577,7 @@ do_work (int argc_in,
   stream.remove (&message_handler, true, true);
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,

@@ -757,10 +757,10 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   } // end IF
 
   // update configuration
-  //GtkToggleButton* toggle_button_p =
-  //  GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                             ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
-  //ACE_ASSERT (toggle_button_p);
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+  ACE_ASSERT (toggle_button_p);
   //(*stream_configuration_iterator).second.second->fullScreen =
   //  gtk_toggle_button_get_active (toggle_button_p);
 
@@ -802,7 +802,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //    Common_UI_Tools::getLogicalDisplay (g_value_get_string (&value));
 #endif // ACE_WIN32 || ACE_WIN64
 
-  if (false)
+  if (gtk_toggle_button_get_active (toggle_button_p))
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     Common_Image_Resolution_t resolution_s;
@@ -1252,7 +1252,6 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
     {
       module_name =
         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
-
       break;
     }
     default:

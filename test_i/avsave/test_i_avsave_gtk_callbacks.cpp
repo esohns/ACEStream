@@ -3339,13 +3339,13 @@ idle_initialize_UI_cb (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
-      is_fullscreen_b = (*directshow_stream_iterator).second.second->fullScreen;
+      //is_fullscreen_b = (*directshow_stream_iterator).second.second->fullScreen;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
-      is_fullscreen_b =
-        (*mediafoundation_stream_iterator).second.second->fullScreen;
+      //is_fullscreen_b =
+      //  (*mediafoundation_stream_iterator).second.second->fullScreen;
       break;
     }
     default:
@@ -3357,7 +3357,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  is_fullscreen_b = (*iterator_2).second.second->fullScreen;
+  //is_fullscreen_b = (*iterator_2).second.second->fullScreen;
 #endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -5149,7 +5149,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
-      (*directshow_stream_iterator).second.second->fullScreen = is_active_b;
+      //(*directshow_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5162,7 +5162,7 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->videoStreamConfiguration.end ());
-      (*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
+      //(*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:

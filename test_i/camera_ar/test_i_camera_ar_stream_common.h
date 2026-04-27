@@ -306,7 +306,7 @@ struct Stream_CameraAR_ModuleHandlerConfiguration
    : Test_I_ModuleHandlerConfiguration ()
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   //, fullScreen (false)
    , window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -322,7 +322,7 @@ struct Stream_CameraAR_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display        display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                            fullScreen;
+  //bool                            fullScreen;
   struct Common_UI_Window         window;
 };
 //extern const char stream_name_string_[];

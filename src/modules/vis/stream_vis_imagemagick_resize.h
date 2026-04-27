@@ -139,7 +139,7 @@ class Stream_Visualization_ImageMagickResize1_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T (const Stream_Visualization_ImageMagickResize1_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Visualization_ImageMagickResize1_T& operator= (const Stream_Visualization_ImageMagickResize1_T&))
 
-  Common_Image_Resolution_t targetResolution_;
+  //Common_Image_Resolution_t targetResolution_;
 };
 
 //////////////////////////////////////////

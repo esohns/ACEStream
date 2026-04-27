@@ -279,7 +279,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   , fullScreen (false)
+   //, fullScreen (false)
    , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -294,7 +294,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  bool                                                    fullScreen;
+  //bool                                                    fullScreen;
   struct Common_UI_Window                                 window;
 };
 //extern const char stream_name_string_[];
