@@ -728,6 +728,8 @@ video:
           videoCodecContext_->profile = FF_PROFILE_H264_CONSTRAINED_BASELINE;
           videoCodecContext_->bit_rate /= 3;
           videoCodecContext_->rc_max_rate = videoCodecContext_->bit_rate * 2;
+
+          //av_dict_set (&pDicOut, "tune", "zerolatency", 0);
           break;
         }
         default:
@@ -765,11 +767,6 @@ video:
       goto continue_2;
 
 error:
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//      if (codec_parameters_p)
-//        avcodec_parameters_free (&codec_parameters_p);
-//#endif // ACE_WIN32 || ACE_WIN64
-
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
@@ -1160,15 +1157,13 @@ Stream_Decoder_LibAVEncoder_2<ACE_SYNCH_USE,
 
       /* rescale output packet timestamp values from codec to stream timebase */
       packet_s.pts =
-        av_rescale_q_rnd (packet_s.pts,
-                          codec_context_p->time_base,
-                          stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+        av_rescale_q (packet_s.pts,
+                      codec_context_p->time_base,
+                      stream_p->time_base);
       packet_s.dts =
-        av_rescale_q_rnd (packet_s.dts,
-                          codec_context_p->time_base,
-                          stream_p->time_base,
-                          static_cast<enum AVRounding> (AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
+        av_rescale_q (packet_s.dts,
+                      codec_context_p->time_base,
+                      stream_p->time_base);
 
       packet_s.time_base = stream_p->time_base;
       switch (message_inout->getMediaType ())

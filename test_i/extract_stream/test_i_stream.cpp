@@ -222,12 +222,14 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
     }
     case TEST_I_EXTRACTSTREAM_PROGRAMMODE_EXTRACT_VIDEO_ONLY:
     {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_NEW_RETURN (module_p,
                       Test_I_LibAVConverter_Module (this,
                                                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)),
                       false);
       layout_in->append (module_p, branch_p, index_i);
       module_p = NULL;
+#endif // ACE_WIN32 || ACE_WIN64
 
       ACE_NEW_RETURN (module_p,
                       Test_I_LibAVResize_Module (this,
@@ -305,7 +307,7 @@ Test_I_Stream::initialize (const inherited::CONFIGURATION_T& configuration_in)
   bool reset_setup_pipeline = false;
   Test_I_ExtractStream_SessionData* session_data_p = NULL;
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
-        const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   // bool remove_module_2 = false;
   Test_I_SessionManager_t* session_manager_p =
     Test_I_SessionManager_t::SINGLETON_T::instance ();

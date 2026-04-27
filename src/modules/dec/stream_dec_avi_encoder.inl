@@ -829,15 +829,13 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //  packet_s.time_base =
 //    formatContext_->streams[packet_s.stream_index]->time_base;
   packet_s.pts =
-    av_rescale_q_rnd (packet_s.pts,
-                      codec_context_p->time_base,
-                      formatContext_->streams[packet_s.stream_index]->time_base,
-                      static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+    av_rescale_q (packet_s.pts,
+                  codec_context_p->time_base,
+                  formatContext_->streams[packet_s.stream_index]->time_base);
   packet_s.dts =
-    av_rescale_q_rnd (packet_s.dts,
-                      codec_context_p->time_base,
-                      formatContext_->streams[packet_s.stream_index]->time_base,
-                      static_cast<enum AVRounding> (AV_ROUND_NEAR_INF|AV_ROUND_PASS_MINMAX));
+    av_rescale_q (packet_s.dts,
+                  codec_context_p->time_base,
+                  formatContext_->streams[packet_s.stream_index]->time_base);
   packet_s.duration =
     av_rescale_q (packet_s.duration,
                   codec_context_p->time_base,
@@ -846,7 +844,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
 //                        codec_context_p->time_base,
 //                        formatContext_->streams[packet_s.stream_index]->time_base);
 
-  result = av_interleaved_write_frame (formatContext_, &packet_s);
+  result = av_interleaved_write_frame (formatContext_,
+                                       &packet_s);
 //  result = av_write_frame (formatContext_, &packet_s);
 //  av_packet_unref (&packet_s);
   if (unlikely (result < 0))
@@ -1058,6 +1057,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       enum AVCodecID codec_id = AV_CODEC_ID_RAWVIDEO; // RGB
       const struct AVCodec* codec_p = NULL;
       struct AVStream* stream_p = NULL;
+      enum AVSampleFormat sample_format_packed_e = AV_SAMPLE_FMT_NONE;
       int result = -1;
       int sample_rate_i = 0;
       int num_channels_i = 0;
@@ -1303,8 +1303,16 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
                                        videoCodecContext_);
 
       // audio
+      if (av_sample_fmt_is_planar (media_type_2.format))
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: inbound planar audio format (is: %s) needs converting to packed upstream, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_Module_Decoder_Tools::audioFormatToString (media_type_2.format).c_str ())));
+      sample_format_packed_e =
+        av_sample_fmt_is_planar (media_type_2.format) ? Stream_Module_Decoder_Tools::planarToPacked (media_type_2.format)
+                                                      : media_type_2.format;
       codec_id =
-        av_get_pcm_codec (media_type_2.format,
+        av_get_pcm_codec (sample_format_packed_e,
                           ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? 0 : 1));
       if (codec_id == AV_CODEC_ID_NONE)
         codec_id = (ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? AV_CODEC_ID_PCM_S16LE : AV_CODEC_ID_PCM_S16BE;
@@ -1434,7 +1442,7 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
       //      codec_context_p->chroma_intra_matrix = NULL;
       //      codec_context_p->dump_separator = NULL;
       audioCodecContext_->sample_fmt =
-        media_type_2.format == AV_SAMPLE_FMT_NONE ? AV_SAMPLE_FMT_S16 : media_type_2.format;
+        media_type_2.format == AV_SAMPLE_FMT_NONE ? AV_SAMPLE_FMT_S16 : sample_format_packed_e;
       audioCodecContext_->sample_rate = sample_rate_i;
       num_channels_i =
         (media_type_2.channels ? media_type_2.channels : 2);
@@ -1518,7 +1526,6 @@ continue_:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
-//      ACE_ASSERT (false); // *TODO*
       break;
     }
     case STREAM_SESSION_MESSAGE_END:

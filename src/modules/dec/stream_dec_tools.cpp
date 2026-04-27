@@ -262,6 +262,34 @@ Stream_Module_Decoder_Tools::isPackedRealPCM (enum AVSampleFormat format_in)
   return false;
 }
 
+enum AVSampleFormat
+Stream_Module_Decoder_Tools::planarToPacked (enum AVSampleFormat format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::planarToPacked"));
+
+  enum AVSampleFormat result = AV_SAMPLE_FMT_NONE;
+
+  switch (format_in)
+  {
+    case AV_SAMPLE_FMT_U8P:
+      return AV_SAMPLE_FMT_U8;
+    case AV_SAMPLE_FMT_S16P:
+      return AV_SAMPLE_FMT_S16;
+    case AV_SAMPLE_FMT_S32P:
+      return AV_SAMPLE_FMT_S32;
+    case AV_SAMPLE_FMT_FLTP:
+      return AV_SAMPLE_FMT_FLT;
+    case AV_SAMPLE_FMT_DBLP:
+      return AV_SAMPLE_FMT_DBL;
+    case AV_SAMPLE_FMT_S64P:
+      return AV_SAMPLE_FMT_S64;
+    default:
+      break;
+  } // end SWITCH
+
+  return result;
+}
+
 uint64_t
 Stream_Module_Decoder_Tools::channelsToMask (unsigned int channels_in)
 {

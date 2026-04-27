@@ -397,8 +397,10 @@ do_work (enum Test_I_ExtractStream_ProgramMode mode_in,
   modulehandler_configuration_3 = modulehandler_configuration;
   modulehandler_configuration_3b = modulehandler_configuration;
 #if defined (FFMPEG_SUPPORT)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   modulehandler_configuration_3.outputFormat.video.format = AV_PIX_FMT_RGB24;
   modulehandler_configuration_3b.outputFormat.video.format = AV_PIX_FMT_RGB24;
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration_4 = modulehandler_configuration;
   modulehandler_configuration_4.flipImage = true;

@@ -353,6 +353,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T stream_iterator_2 =
+    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (stream_iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*stream_iterator).second.second->fileIdentifier.identifierDiscriminator == Common_File_Identifier::FILE);
   filename_string = (*stream_iterator).second.second->fileIdentifier.identifier;
   GtkFileChooserButton* file_chooser_button_p =
@@ -653,7 +656,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   resolution_s.width = allocation.width;
   resolution_s.height = allocation.height;
 #endif // ACE_WIN32 || ACE_WIN64
-  (*stream_iterator).second.second->outputFormat.video.resolution = resolution_s;
+  (*stream_iterator).second.second->outputFormat.video.resolution =
+    resolution_s;
+  (*stream_iterator_2).second.second->outputFormat.video.resolution =
+    resolution_s;
 
   combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -2146,29 +2152,27 @@ drawingarea_audio_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
   ACE_ASSERT (cb_data_p->configuration);
   stream_p = cb_data_p->stream;
-  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-#if defined (GTK_USE)
-    cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
-#else
-    cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
-#endif // GTK_USE
-  ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
+//   Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T iterator_2 =
+//     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+//   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
+//   Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T iterator_3 =
+// #if defined (GTK_USE)
+//     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
+// #else
+//     cb_data_p->configuration->streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+// #endif // GTK_USE
+//   ACE_ASSERT (iterator_3 != cb_data_p->configuration->streamConfiguration.end ());
 
   //  (*iterator_2).second.second->outputFormat.resolution.height =
   //      allocation_in->height;
   //  (*iterator_2).second.second->outputFormat.resolution.width =
   //      allocation_in->width;
-  (*iterator_3).second.second->outputFormat.video.format.height =
-    allocation_s.height;
-  (*iterator_3).second.second->outputFormat.video.format.width =
-    allocation_s.width;
+  // (*iterator_3).second.second->outputFormat.video.format.height =
+  //   allocation_s.height;
+  // (*iterator_3).second.second->outputFormat.video.format.width =
+  //   allocation_s.width;
 
   if (!cb_data_p->stream->isRunning ())
     return G_SOURCE_REMOVE;
@@ -2343,14 +2347,12 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  struct Test_I_ExtractStream_V4L_UI_CBData* cb_data_p =
-    static_cast<struct Test_I_ExtractStream_V4L_UI_CBData*> (cb_data_p);
-  stream_p = cb_data_p->videoStream;
+  stream_p = cb_data_p->stream;
   ACE_ASSERT (cb_data_p->configuration);
-  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->streamConfiguration.end ());
-  Test_I_ExtractStream_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+  Test_I_ExtractStream_StreamConfiguration_t::ITERATOR_T iterator_3 =
 #if defined (GTK_USE)
     cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
 #else
@@ -2362,16 +2364,16 @@ drawingarea_video_resize_end (gpointer userData_in)
 //      allocation_in->height;
 //  (*iterator_2).second.second->outputFormat.resolution.width =
 //      allocation_in->width;
-  (*iterator_3).second.second->outputFormat.video.format.height =
-      allocation_s.height;
-  (*iterator_3).second.second->outputFormat.video.format.width =
-      allocation_s.width;
+  (*iterator_3).second.second->outputFormat.video.resolution.height =
+    allocation_s.height;
+  (*iterator_3).second.second->outputFormat.video.resolution.width =
+    allocation_s.width;
 
-  if (!cb_data_p->videoStream->isRunning ())
+  if (!cb_data_p->stream->isRunning ())
     return G_SOURCE_REMOVE;
 
   module_name =
-    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING);
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (iterator != cb_data_p->UIState->builders.end ());
   ACE_ASSERT (stream_p);
