@@ -180,7 +180,7 @@ test_u_glut_draw (void)
   static int frame_count_i = 1;
   float x, y, z, x1, y1, z1;
   int i = 0;
-  float r, g, b;
+  float r, g, b, a_increment_f;
   std::vector<float> spectrum_0, spectrum_1;
 
   struct Test_U_GLUT_CBData* cb_data_p =
@@ -189,11 +189,14 @@ test_u_glut_draw (void)
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, cb_data_p->lock);
     if (likely (cb_data_p->fft))
     {
-      spectrum_0 = cb_data_p->fft->Spectrum (0, false); // do not normalize
-      spectrum_1 = cb_data_p->fft->Spectrum (1, false); // do not normalize
+      spectrum_0 = cb_data_p->fft->Spectrum (0, false); // normalize ?
+      spectrum_1 = cb_data_p->fft->Spectrum (1, false); // normalize ?
     } // end IF
     else
-      return;
+    {
+      spectrum_0.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+      spectrum_1.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+    } // end ELSE
   } // end lock scope
 
   glPolygonMode (GL_FRONT_AND_BACK,
@@ -234,11 +237,13 @@ test_u_glut_draw (void)
     glColor3f (r, g, b);
 
     glBegin (GL_LINE_STRIP);
-    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / (0.8f * static_cast<float> (k)))
+    a_increment_f =
+      1.0f / (TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR * static_cast<float> (k + 1));
+    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += a_increment_f)
     {
       x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
       y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = -(spectrum_0[i++ % spectrum_0.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
+      z = -(spectrum_0[i++ % spectrum_0.size ()] * TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR);
 
       if (unlikely (a == 0.0f))
       {
@@ -271,11 +276,13 @@ test_u_glut_draw (void)
     glColor3f (r, g, b);
 
     glBegin (GL_LINE_STRIP);
-    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += 1.0f / (0.8f * static_cast<float> (k)))
+    a_increment_f =
+      1.0f / (TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR * static_cast<float> (k + 1));
+    for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += a_increment_f)
     {
       x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
       y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = -(spectrum_1[i++ % spectrum_1.size ()] * TEST_U_GLUT_DEFAULT_AMP_FACTOR);
+      z = -(spectrum_1[i++ % spectrum_1.size ()] * TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR);
 
       if (unlikely (a == 0.0f))
       {

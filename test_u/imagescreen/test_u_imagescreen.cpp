@@ -143,12 +143,12 @@ do_print_usage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::string image_file_path = data_path;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [PATH]   : image path [")
-            << image_file_path
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [SECONDS]: delay [")
+            << TEST_U_DEFAULT_DELAY_S
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f          : fullscreen [")
-            << false
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [PATH]   : images directory [")
+            << image_file_path
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::string ui_definition_file_path = configuration_path;
@@ -171,8 +171,8 @@ do_print_usage (const std::string& programName_in)
 bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
+                      unsigned int& delay_out,
                       std::string& imageFilePath_out,
-                      bool& fullscreen_out,
                       bool& logToFile_out,
                       bool& traceInformation_out,
                       std::string& UIDefinitionFilePath_out)
@@ -189,8 +189,8 @@ do_process_arguments (int argc_in,
                                                       false); // data-
 
   // initialize results
+  delay_out = TEST_U_DEFAULT_DELAY_S;
   imageFilePath_out = data_path;
-  fullscreen_out = false;
   logToFile_out = false;
   traceInformation_out = false;
   UIDefinitionFilePath_out = configuration_path;
@@ -199,7 +199,7 @@ do_process_arguments (int argc_in,
 
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
-                               ACE_TEXT ("d:fg::lt"),
+                               ACE_TEXT ("d:f:g::lt"),
                                1,                         // skip command name
                                1,                         // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -213,13 +213,16 @@ do_process_arguments (int argc_in,
     {
       case 'd':
       {
-        imageFilePath_out =
-          ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter.clear ();
+        converter << ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        converter >> delay_out;
         break;
       }
       case 'f':
       {
-        fullscreen_out = true;
+        imageFilePath_out =
+          ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
         break;
       }
       case 'g':
@@ -340,8 +343,8 @@ do_initialize_signals (ACE_Sig_Set& signals_out,
 void
 do_work (int argc_in,
          ACE_TCHAR* argv_in[],
+         unsigned int delay_in,
          const std::string& imageFilePath_in,
-         bool fullscreen_in,
          const std::string& UIDefinitionFilePath_in,
          /////////////////////////////////
          const ACE_Sig_Set& signalSet_in,
@@ -353,7 +356,7 @@ do_work (int argc_in,
 
   struct Stream_ImageScreen_Configuration configuration;
   configuration.delayConfiguration.averageTokensPerInterval = 1;
-  configuration.delayConfiguration.interval = ACE_Time_Value (5, 0);
+  configuration.delayConfiguration.interval = ACE_Time_Value (delay_in, 0);
   configuration.delayConfiguration.mode =
     STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES;
   struct Stream_ImageScreen_UI_CBData ui_cb_data;
@@ -574,7 +577,9 @@ do_work (int argc_in,
 
   timer_manager_p->stop ();
 
-  stream.remove (&message_handler, true, true);
+  stream.remove (&message_handler,
+                 true,
+                 true);
 }
 
 COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
@@ -585,9 +590,14 @@ ACE_TMAIN (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::main"));
 
-  int result = EXIT_FAILURE, result_2 = -1;
+  int result = EXIT_FAILURE, result_2;
 
   // step0: initialize
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+#else
+  MagickWandGenesis ();
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
+
   // *PORTABILITY*: on Windows, initialize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   result_2 = ACE::init ();
@@ -601,10 +611,6 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer process_profile;
   process_profile.start ();
 
-#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
-#else
-  MagickWandGenesis ();
-#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
@@ -637,23 +643,23 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
                                                       false); // data-
-  bool fullscreen_b = false;
-  bool log_to_file = false;
-  std::string log_file_name;
-  bool trace_information = false;
+  unsigned int delay_i = TEST_U_DEFAULT_DELAY_S;
   std::string ui_definition_file_path = configuration_path;
   ui_definition_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   ui_definition_file_path += ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_DEFINITION_FILE);
   std::string image_file_path = data_path;
+  bool log_to_file = false;
+  std::string log_file_name;
+  bool trace_information = false;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
+                             delay_i,
                              image_file_path,
-                             fullscreen_b,
                              log_to_file,
-                             trace_information
-                             , ui_definition_file_path))
+                             trace_information,
+                             ui_definition_file_path))
   {
     do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     goto clean;
@@ -671,9 +677,8 @@ ACE_TMAIN (int argc_in,
 
   // step1c: initialize logging and/or tracing
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
   if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,              // log file name
                                      false,                      // log to syslog ?
@@ -705,8 +710,8 @@ ACE_TMAIN (int argc_in,
   // step2: do actual work
   do_work (argc_in,
            argv_in,
+           delay_i,
            image_file_path,
-           fullscreen_b,
            ui_definition_file_path,
            ///////////////////////////////
            signal_set,
@@ -777,10 +782,6 @@ clean:
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
-#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
-#else
-  MagickWandTerminus ();
-#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 
   // *PORTABILITY*: on Windows, finalize ACE
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -789,6 +790,11 @@ clean:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
+#else
+  MagickWandTerminus ();
+#endif // IMAGEMAGICK_IS_GRAPHICSMAGICK
 
   return result;
 } // end main

@@ -149,12 +149,14 @@
 //----------------------------------------
 
 #if defined (GLUT_SUPPORT)
-#define TEST_U_GLUT_DEFAULT_HEIGHT         834
-#define TEST_U_GLUT_DEFAULT_WIDTH          1112
-#define TEST_U_GLUT_DEFAULT_LAYERS         20
-#define TEST_U_GLUT_DEFAULT_D              12
-#define TEST_U_GLUT_DEFAULT_AMP_FACTOR     0.002f
-#define TEST_U_GLUT_DEFAULT_FPS            60
+#define TEST_U_GLUT_DEFAULT_HEIGHT        834
+#define TEST_U_GLUT_DEFAULT_WIDTH         1112
+#define TEST_U_GLUT_DEFAULT_LAYERS        20
+#define TEST_U_GLUT_DEFAULT_D             12 // distance between layers
+#define TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR 0.75f
+//#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR  0.00005f // best for sine
+#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR 0.002f
+#define TEST_U_GLUT_DEFAULT_FPS           60
 #endif // GLUT_SUPPORT
 
 #endif

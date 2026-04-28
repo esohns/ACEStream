@@ -804,18 +804,31 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (arg_in);
 
-  unsigned int slot_number_i;
+  unsigned int mid_slot_number_i, min_slot_number_i, max_slot_number_i;
   ACE_UINT32 level_i;
-  std::vector<ValueType> spectrum_a;
+  ValueType value;
+  std::vector<std::vector<ValueType> > spectrum_aa;
+
+  for (unsigned int c = 0; c < channels_; ++c)
+    spectrum_aa.push_back (inherited4::Spectrum (static_cast<int> (c), false)); // normalize ?
+
   for (unsigned int c = 0; c < channels_; ++c)
   {
-    spectrum_a = inherited4::Spectrum (c, true);
+    std::vector<ValueType>& spectrum_a = spectrum_aa[c];
+
     for (ACE_UINT32 i = 0;
          i < STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL;
          ++i)
     {
-      slot_number_i = (i * scale_x_) + (scale_x_ / 2); // *NOTE*: display the middle bin of each 'scale_x_' bin block
-      level_i = static_cast<ACE_UINT32> (spectrum_a[slot_number_i] * 39.0f); // *NOTE*: magnitude is normalized
+      value = 0.0;
+      mid_slot_number_i = (i * scale_x_) + (scale_x_ / 2);
+      min_slot_number_i = mid_slot_number_i - (scale_x_ / 2);
+      max_slot_number_i = mid_slot_number_i + (scale_x_ / 2);
+      for (ACE_UINT32 j = min_slot_number_i; j <= max_slot_number_i; ++j)
+        value += spectrum_a[j];
+      value /= static_cast<ValueType> (scale_x_);
+      // *NOTE*: magnitude is normalized
+      level_i = static_cast<ACE_UINT32> (value * 0.2 * 39.0); // *TODO*: get rid of this 'fudge' factor
 
       //ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
       //                level_i + 1, '*',

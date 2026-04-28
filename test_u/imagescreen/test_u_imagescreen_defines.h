@@ -21,6 +21,8 @@
 #ifndef TEST_U_IMAGESCREEN_DEFINES_H
 #define TEST_U_IMAGESCREEN_DEFINES_H
 
+#define TEST_U_DEFAULT_DELAY_S                 5 // second(s)
+
 #if defined (GTK_USE)
 #if defined (GTK3_USE)
 #define TEST_U_UI_DEFINITION_FILE              "imagescreen.gtk3"
