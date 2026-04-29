@@ -810,7 +810,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   std::vector<std::vector<ValueType> > spectrum_aa;
 
   for (unsigned int c = 0; c < channels_; ++c)
-    spectrum_aa.push_back (inherited4::Spectrum (static_cast<int> (c), false)); // normalize ?
+    spectrum_aa.push_back (inherited4::Spectrum (static_cast<int> (c),
+                                                 false)); // normalize ?
 
   for (unsigned int c = 0; c < channels_; ++c)
   {
@@ -825,10 +826,11 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       min_slot_number_i = mid_slot_number_i - (scale_x_ / 2);
       max_slot_number_i = mid_slot_number_i + (scale_x_ / 2);
       for (ACE_UINT32 j = min_slot_number_i; j <= max_slot_number_i; ++j)
-        value += spectrum_a[j];
-      value /= static_cast<ValueType> (scale_x_);
-      // *NOTE*: magnitude is normalized
-      level_i = static_cast<ACE_UINT32> (value * 0.2 * 39.0); // *TODO*: get rid of this 'fudge' factor
+        value = std::max (value, spectrum_a[j]);
+        //value += spectrum_a[j];
+      //ACE_ASSERT (max_slot_number_i - min_slot_number_i == scale_x_ - 1);
+      //value /= static_cast<ValueType> (scale_x_);
+      level_i = static_cast<ACE_UINT32> (value * 0.005 * 39.0); // *TODO*: get rid of the 'fudge' factor
 
       //ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("|%*c%*c|\n"),
       //                level_i + 1, '*',
