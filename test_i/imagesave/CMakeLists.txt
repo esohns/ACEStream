@@ -158,6 +158,8 @@ if (IMAGEMAGICK_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_V4L2_LIBRARIES})
 elseif (WIN32)

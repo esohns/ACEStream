@@ -152,8 +152,14 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
 #endif // GTK_USE || WXWIDGETS_USE
+
+      if (!save_to_file_b)
+        inherited::configuration_->configuration_->moduleBranch.clear ();
+
       ++index_i;
     } // end IF
+    else if (!save_to_file_b)
+      inherited::configuration_->configuration_->moduleBranch.clear ();
 
     if (save_to_file_b)
     {
@@ -162,6 +168,11 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i);
       ++index_i;
+
+      if (display_b)
+        inherited::configuration_->configuration_->moduleBranch = ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME);
+      else
+        inherited::configuration_->configuration_->moduleBranch.clear ();
     } // end IF
   } // end IF
   else

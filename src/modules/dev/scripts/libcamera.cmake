@@ -6,16 +6,21 @@ if (UNIX)
   set (LIBCAMERA_INCLUDE_DIRS "${PKG_LIBCAMERA_INCLUDE_DIRS}")
   set (LIBCAMERA_LIBRARIES "${PKG_LIBCAMERA_LIBRARIES}")
  else ()
+  find_library (LIBCAMERA_BASE_LIBRARY libcamera-base.so
+                PATHS /usr/local
+                PATH_SUFFIXES lib64
+                DOC "searching for libcamera-base.so"
+                NO_DEFAULT_PATH)
   find_library (LIBCAMERA_LIBRARY libcamera.so
                 PATHS /usr/local
                 PATH_SUFFIXES lib64
                 DOC "searching for libcamera.so"
                 NO_DEFAULT_PATH)
-  if (LIBCAMERA_LIBRARY)
+  if (LIBCAMERA_BASE_LIBRARY AND LIBCAMERA_LIBRARY)
    set (LIBCAMERA_FOUND TRUE)
    set (LIBCAMERA_INCLUDE_DIRS "/usr/local/include/libcamera")
-   set (LIBCAMERA_LIBRARIES "${LIBCAMERA_LIBRARY}")
-  endif (LIBCAMERA_LIBRARY)
+   set (LIBCAMERA_LIBRARIES "${LIBCAMERA_BASE_LIBRARY};${LIBCAMERA_LIBRARY}")
+  endif (LIBCAMERA_BASE_LIBRARY AND LIBCAMERA_LIBRARY)
  endif (PKG_LIBCAMERA_FOUND)
 elseif (WIN32)
  if (VCPKG_USE)

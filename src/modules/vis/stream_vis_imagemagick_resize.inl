@@ -509,14 +509,22 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  inherited::getMediaType (inherited::configuration_->outputFormat,
+                           STREAM_MEDIATYPE_VIDEO,
+                           media_type_s);
   resolution_2 =
-    Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
+    Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
 #endif // FFMPEG_SUPPORT
-  resolution_2 = inherited::configuration_->outputFormat.resolution;
+  inherited::getMediaType (inherited::configuration_->outputFormat,
+                           STREAM_MEDIATYPE_VIDEO,
+                           media_type_s);
+  resolution_2.width = media_type_s.format.width;
+  resolution_2.height = media_type_s.format.height;
 #endif // ACE_WIN32 || ACE_WIN64
   inherited::getMediaType (message_data_r.format,
                            STREAM_MEDIATYPE_VIDEO,
@@ -552,6 +560,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
               //targetResolution_.cx, targetResolution_.cy));
   input_format_string = ACE_TEXT_ALWAYS_CHAR ("RGBA"); // *TODO*
   ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
   resolution_s.width = media_type_s.format.width;
   resolution_s.height = media_type_s.format.height;
@@ -726,6 +735,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   return;
 
 error:
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#endif // ACE_WIN32 || ACE_WIN64
   if (message_inout)
   {
     message_inout->release (); message_inout = NULL;

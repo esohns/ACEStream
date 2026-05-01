@@ -658,9 +658,9 @@ continue_3:
       } // end IF
       ACE_ASSERT (media_type_s.frameRate.num);
       context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};
-      context_->ticks_per_frame =
-        (((inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_H264) ||
-          (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
+      // context_->ticks_per_frame =
+      //   (((inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_H264) ||
+      //     (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);
       context_->width = formatWidth_;
       context_->height = formatHeight_;
       //context_->coded_width = width;

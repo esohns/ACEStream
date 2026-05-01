@@ -3096,11 +3096,10 @@ idle_initialize_UI_cb (gpointer userData_in)
   Common_Image_Resolution_t resolution_s;
   unsigned int framerate_i = 0;
   std::string filename_string;
-  bool is_display_b = false, is_fullscreen_b = false;
+  bool is_display_b = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _GUID format_s = GUID_NULL;
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
-  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2; // analyzer
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_3; // window
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_4; // video resize
@@ -3115,9 +3114,6 @@ idle_initialize_UI_cb (gpointer userData_in)
       directshow_cb_data_p =
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       ACE_ASSERT (directshow_cb_data_p->configuration);
-      directshow_stream_iterator =
-        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
       directshow_stream_iterator_2 =
         directshow_cb_data_p->configuration->audioStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->audioStreamConfiguration.end ());
@@ -3134,8 +3130,11 @@ idle_initialize_UI_cb (gpointer userData_in)
         Stream_MediaFramework_DirectShow_Tools::toResolution (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video);
       framerate_i =
         static_cast<unsigned int> (std::round (Stream_MediaFramework_DirectShow_Tools::toFramerate (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video)));
+      
+      is_display_b =
+        !(*directshow_modulehandler_configuration_iterator_2).second.second->display.device.empty ();
       filename_string =
-        (*directshow_stream_iterator).second.second->targetFileName;
+        (*directshow_modulehandler_configuration_iterator_2).second.second->targetFileName;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3189,6 +3188,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   framerate_i =
     ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator;
   ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.denominator == 1);
+  is_display_b = !(*iterator_2).second.second->display.device.empty ();
   filename_string = (*iterator_2).second.second->targetFileName;
 #endif // ACE_WIN32 || ACE_WIN64
   gtk_entry_set_text (entry_p,
@@ -3334,31 +3334,6 @@ idle_initialize_UI_cb (gpointer userData_in)
                                   ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      //is_fullscreen_b = (*directshow_stream_iterator).second.second->fullScreen;
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      //is_fullscreen_b =
-      //  (*mediafoundation_stream_iterator).second.second->fullScreen;
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return G_SOURCE_REMOVE;
-    }
-  } // end SWITCH
-#else
-  //is_fullscreen_b = (*iterator_2).second.second->fullScreen;
-#endif // ACE_WIN32 || ACE_WIN64
   toggle_button_p =
     GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_DISPLAY_NAME)));
@@ -3437,7 +3412,7 @@ idle_initialize_UI_cb (gpointer userData_in)
                                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
   ACE_ASSERT (toggle_button_p);
   gtk_toggle_button_set_active (toggle_button_p,
-                                is_fullscreen_b);
+                                false);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
@@ -3723,9 +3698,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     switch (ui_cb_data_base_p->mediaFramework)
     {
       case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
+      { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
         g_value_set_string (&value,
-                            (*directshow_stream_iterator).second.second->deviceIdentifier.identifier._string);
+                            (*directshow_modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier._string);
         break;
       }
       case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -3857,7 +3832,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       g_value_set_string (&value,
-                          (*directshow_stream_iterator).second.second->display.device.c_str ());
+                          (*directshow_modulehandler_configuration_iterator_2).second.second->display.device.c_str ());
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4976,12 +4951,10 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::togglebutton_display_toggled_cb"));
 
+  // sanity check(s)
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
@@ -5056,7 +5029,8 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     } // end SWITCH
 #else
     (*iterator_2).second.second->display.device.clear ();
-#endif
+#endif // ACE_WIN32 || ACE_WIN64
+
     return;
   } // end IF
 
@@ -5072,7 +5046,7 @@ togglebutton_display_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
                                             ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_LISTSTORE_DISPLAY_NAME)));
   ACE_ASSERT (list_store_p);
-#if GTK_CHECK_VERSION(2,30,0)
+#if GTK_CHECK_VERSION (2,30,0)
   GValue value = G_VALUE_INIT;
 #else
   GValue value;

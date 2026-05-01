@@ -85,7 +85,7 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
    , format ()
    , padInputBuffers (true)
    , parserFlags (0)
-   , profile (FF_PROFILE_UNKNOWN)
+   , profile (AV_PROFILE_UNKNOWN)
    , useParser (true)
   {
     format.audioFormat = AV_SAMPLE_FMT_NONE;

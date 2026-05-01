@@ -725,7 +725,7 @@ video:
       {
         case AV_CODEC_ID_H264:
         {
-          videoCodecContext_->profile = FF_PROFILE_H264_CONSTRAINED_BASELINE;
+          videoCodecContext_->profile = AV_PROFILE_H264_CONSTRAINED_BASELINE;
           videoCodecContext_->bit_rate /= 3;
           videoCodecContext_->rc_max_rate = videoCodecContext_->bit_rate * 2;
 
@@ -1514,7 +1514,7 @@ video:
       {
         case AV_CODEC_ID_H264:
         {
-          videoCodecContext_->profile = FF_PROFILE_H264_CONSTRAINED_BASELINE;
+          videoCodecContext_->profile = AV_PROFILE_H264_CONSTRAINED_BASELINE;
           videoCodecContext_->bit_rate /= 3;
           videoCodecContext_->rc_max_rate = videoCodecContext_->bit_rate * 2;
           break;

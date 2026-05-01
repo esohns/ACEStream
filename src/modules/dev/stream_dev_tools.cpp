@@ -281,10 +281,9 @@ Stream_Device_Tools::getVideoCaptureDevices (libcamera::CameraManager* manager_i
                 ACE_TEXT ("found video capture device \"%s\"\n"),
                 ACE_TEXT ((*iterator)->id ().c_str ())));
     const libcamera::ControlList& properties_r = (*iterator)->properties ();
-    ACE_ASSERT (properties_r.contains (libcamera::properties::Model.id()));
-
+    ACE_ASSERT (properties_r.contains (libcamera::properties::Model.id ()));
     device_identifier_s.description =
-        properties_r.get (libcamera::properties::Model.id ()).toString ();
+      properties_r.get (libcamera::properties::Model.id ()).toString ();
     device_identifier_s.identifier = (*iterator)->id ();
     return_value.push_back (device_identifier_s);
   } // end FOR

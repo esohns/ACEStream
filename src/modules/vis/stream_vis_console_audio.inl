@@ -133,20 +133,22 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   iterator_.buffer_ = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   ACE_UINT64 frames_i = static_cast<ACE_UINT64> (message_inout->length ()) / frameSize_;
 
-  float max_f;
+  ValueType max;
   uint32_t level_i;
   for (ACE_UINT32 c = 0; c < channels_; ++c)
   {
-    max_f = 0.0f;
+    max = 0.0;
     for (ACE_UINT64 n = 0; n < frames_i; ++n)
-      max_f = fmaxf (max_f, fabsf (static_cast<float> (iterator_.get (n, c) * normalizationFactor_)));
+      max = std::max (max, std::abs (iterator_.get (n, c) * normalizationFactor_));
 
-    level_i = static_cast<uint32_t> (fminf (fmaxf (max_f * 30.0f, 0.0f), 39.0f));
+    level_i =
+      static_cast<uint32_t> (std::min (std::max (max * 30.0, 0.0), 39.0));
 
     ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("channel %d: |%*s%*s| peak:%.2f\n"),
                     c + 1,
-                    level_i + 1, ACE_TEXT_ALWAYS_CHAR ("*"), 40 - level_i, ACE_TEXT_ALWAYS_CHAR (""),
-                    max_f);
+                    level_i + 1, ACE_TEXT_ALWAYS_CHAR ("*"),
+                    40 - level_i, ACE_TEXT_ALWAYS_CHAR (""),
+                    static_cast<float> (max));
   } // end FOR
 
   /* move cursor back up */
@@ -273,7 +275,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
           }
         } // end SWITCH
       else
-        normalizationFactor_ = 1;
+        normalizationFactor_ = 1.0;
 
       break;
 
