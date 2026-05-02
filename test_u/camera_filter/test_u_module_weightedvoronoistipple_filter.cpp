@@ -59,6 +59,8 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedV
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::Test_U_CameraFilter_WeightedVoronoiStipple_Filter"));
 
+  inherited3::sAppName =
+    ACE_TEXT_ALWAYS_CHAR ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter");
 }
 
 void
@@ -316,7 +318,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserUpdate (float fElapsedT
 bool
 Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserDestroy ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::OnUserDestroy"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::OnUserDestroy"));
 
   return true;
 }
@@ -327,7 +329,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc (void)
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_WeightedVoronoiStipple_Filter::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
   Common_Error_Tools::setThreadName (inherited::threadName_,
                                      NULL);
 #else

@@ -49,6 +49,7 @@ Test_I_CameraAR_Module_PGE_T<TaskType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::Test_I_CameraAR_Module_PGE_T"));
 
+  inherited3::sAppName = ACE_TEXT_ALWAYS_CHAR ("Test_I_CameraAR_Module_PGE_T");
 }
 
 template <typename TaskType,

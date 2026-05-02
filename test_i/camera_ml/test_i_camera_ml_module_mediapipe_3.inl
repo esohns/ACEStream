@@ -66,6 +66,7 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
+ , inherited3 ()
  , resolution_ ()
  , graph_ (NULL)
  , world_ (NULL)
@@ -79,6 +80,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::Test_I_CameraML_Module_MediaPipe_3"));
 
+  inherited3::sAppName =
+    ACE_TEXT_ALWAYS_CHAR ("Test_I_CameraML_Module_MediaPipe_3");
+
   uint32 flags = 0;
   flags += b2Draw::e_shapeBit;
   //flags += b2Draw::e_aabbBit;
@@ -89,7 +93,9 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
   b2Draw::SetFlags (flags);
 
   b2Vec2 gravity (0.0f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY);
-  world_ = new b2World (gravity);
+  ACE_NEW_NORETURN (world_,
+                    b2World (gravity));
+  ACE_ASSERT (world_);
   world_->SetAllowSleeping (false);
   world_->SetDebugDraw (this);
 }

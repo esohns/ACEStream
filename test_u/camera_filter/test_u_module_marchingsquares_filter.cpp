@@ -60,6 +60,8 @@ Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::Test_U_CameraFilter_MarchingSquares_Filter"));
 
+  inherited3::sAppName =
+    ACE_TEXT_ALWAYS_CHAR ("Test_U_CameraFilter_MarchingSquares_Filter");
 }
 
 void
@@ -434,7 +436,7 @@ Test_U_CameraFilter_MarchingSquares_Filter::OnUserUpdate (float fElapsedTime_in)
 bool
 Test_U_CameraFilter_MarchingSquares_Filter::OnUserDestroy ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_PGE_T::OnUserDestroy"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_CameraFilter_MarchingSquares_Filter::OnUserDestroy"));
 
   if (notify_)
   { // --> user closed the window --> notify upstream
