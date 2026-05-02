@@ -837,13 +837,13 @@ Stream_Module_Decoder_Tools::convert (struct SwsContext* context_in,
   int flags = ( // SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
     SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND | SWS_BITEXACT);
   struct SwsContext* context_p =
-      (context_in ? context_in
-                  : sws_getCachedContext (NULL,
-                                          sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
-                                          targetWidth_in, targetHeight_in, targetPixelFormat_in,
-                                          flags,                             // flags
-                                          NULL, NULL,
-                                          0));                               // parameters
+    (context_in ? context_in
+                : sws_getCachedContext (NULL,
+                                        sourceWidth_in, sourceHeight_in, sourcePixelFormat_in,
+                                        targetWidth_in, targetHeight_in, targetPixelFormat_in,
+                                        flags,                             // flags
+                                        NULL, NULL,
+                                        0));                               // parameters
   if (unlikely (!context_p))
   {
     ACE_DEBUG ((LM_ERROR,

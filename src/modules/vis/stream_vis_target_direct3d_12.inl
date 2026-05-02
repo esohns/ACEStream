@@ -159,8 +159,9 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   // *TODO*: make this an 'active' module and remove this
-  if (!device_ || !texture_ || !swapChain_)
+  if (unlikely (!device_ || !texture_ || !swapChain_))
     return; // --> not ready yet
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock);
 
   // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
   // the command list that references it has finished executing on the GPU.
@@ -204,21 +205,33 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   ID3D12DescriptorHeap* ppHeaps[] = { srvHeap_ };
   commandList_->SetDescriptorHeaps (_countof (ppHeaps), ppHeaps);
 
-  commandList_->SetGraphicsRootDescriptorTable (0, srvHeap_->GetGPUDescriptorHandleForHeapStart ());
+  commandList_->SetGraphicsRootDescriptorTable (0,
+                                                srvHeap_->GetGPUDescriptorHandleForHeapStart ());
   commandList_->RSSetViewports (1, &viewport_);
   commandList_->RSSetScissorRects (1, &scissorRect_);
 
   // Indicate that the back buffer will be used as a render target.
-  commandList_->ResourceBarrier (1,
-                                 &CD3DX12_RESOURCE_BARRIER::Transition (renderTargets_[frameIndex_],
-                                                                        D3D12_RESOURCE_STATE_PRESENT,
-                                                                        D3D12_RESOURCE_STATE_RENDER_TARGET));
+  D3D12_RESOURCE_BARRIER barriers_a[] = {
+    CD3DX12_RESOURCE_BARRIER::Transition (renderTargets_[frameIndex_], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET)
+  };
+  commandList_->ResourceBarrier (_countof (barriers_a), barriers_a);
 
-  CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle_h (rtvHeap_->GetCPUDescriptorHandleForHeapStart (), frameIndex_, rtvDescriptorSize_);
-  commandList_->OMSetRenderTargets (1, &rtvHandle_h, FALSE, NULL);
+  CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle_h (rtvHeap_->GetCPUDescriptorHandleForHeapStart (),
+                                             frameIndex_,
+                                             rtvDescriptorSize_);
+  commandList_->OMSetRenderTargets (1,
+                                    &rtvHandle_h,
+                                    FALSE,
+                                    NULL);
 
   // Record commands.
-  UpdateSubresources (commandList_, texture_, textureUploadHeap, 0, 0, 1, &textureData);
+  UpdateSubresources (commandList_,
+                      texture_,
+                      textureUploadHeap,
+                      0,
+                      0,
+                      1,
+                      &textureData);
 
   const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
   commandList_->ClearRenderTargetView (rtvHandle_h, clearColor, 0, NULL);
@@ -228,10 +241,10 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   commandList_->DrawInstanced (6, 1, 0, 0);
 
   // Indicate that the back buffer will now be used to present.
-  commandList_->ResourceBarrier (1,
-                                 &CD3DX12_RESOURCE_BARRIER::Transition (renderTargets_[frameIndex_],
-                                                                        D3D12_RESOURCE_STATE_RENDER_TARGET,
-                                                                        D3D12_RESOURCE_STATE_PRESENT));
+  barriers_a[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+  barriers_a[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+
+  commandList_->ResourceBarrier (_countof (barriers_a), barriers_a);
 
   // Close the command list and execute it to begin the initial GPU setup.
   result_2 = commandList_->Close ();
@@ -248,7 +261,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   commandQueue_->ExecuteCommandLists (_countof (ppCommandLists), ppCommandLists);
 
   result_2 = swapChain_->Present (1, 0);
-  ACE_ASSERT (SUCCEEDED (result_2));
+  //ACE_ASSERT (SUCCEEDED (result_2));
 
   // Wait for the command list to execute; we are reusing the same command 
   // list in our main loop but for now, we just want to wait for setup to 
@@ -384,9 +397,25 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Direct3D12_T::toggle"));
 
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  // sanity check(s)
+  ACE_ASSERT (swapChain_);
+
+  HRESULT result;
+  BOOL fullscreenState;
+
+  result = swapChain_->GetFullscreenState (&fullscreenState, NULL);
+  ACE_ASSERT (SUCCEEDED (result));
+
+  result = swapChain_->SetFullscreenState (!fullscreenState, NULL);
+  if (FAILED (result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to IDXGISwapChain3::SetFullscreenState(%d): \"%s\", returning\n"),
+                inherited::mod_->name (),
+                !fullscreenState,
+                ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
+    return;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -542,9 +571,11 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
   struct tagMSG message_s;
   BOOL bRet;
+  bool closed_window_b = false;
+  bool dispatch_message_b = true;
   while (bRet = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
-    if (bRet == -1)
+    if (unlikely (bRet == -1))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to GetMessage(%@): \"%s\", aborting\n"),
@@ -554,11 +585,169 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
       break;
     } // end IF
 
+    switch (message_s.message)
+    {
+      case WM_CLOSE:
+      {
+        closed_window_b = true;
+        break;
+      }
+      case WM_KEYDOWN:
+      {
+        char char_c;
+        switch (message_s.wParam)
+        {
+          case VK_ESCAPE:
+          {
+            if (inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed == FALSE)
+            {
+              // *TODO*: remove ASAP
+              ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+
+              inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
+                TRUE;
+              toggle ();
+            } // end IF
+
+            if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to PostMessage(%@,WM_QUIT): \"%s\", continuing\n"),
+                          inherited::mod_->name (),
+                          inherited::window_,
+                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+
+            char_c = VK_ESCAPE;
+
+            break;
+          }
+          default:
+          {
+            //HKL keyboad_layout_h = GetKeyboardLayout (0);
+            //ACE_ASSERT (keyboad_layout_h);
+
+            BYTE keyboard_state_a[256];
+            bool bResult = GetKeyboardState (keyboard_state_a);
+            ACE_ASSERT (bResult);
+            WORD wCharacter = 0;
+            int iResult = ToAscii ((UINT)message_s.wParam,
+                                   0,
+                                   keyboard_state_a,
+                                   &wCharacter,
+                                   0);
+            ACE_ASSERT (iResult >= 0 && iResult <= 2);
+            char_c = LOBYTE (wCharacter);
+
+            break;
+          }
+        } // end SWITCH
+
+        switch (char_c)
+        {
+          case 'F':
+          case 'f':
+          {
+            // *TODO*: remove ASAP
+            //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+
+            //inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
+            //  (inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed == TRUE ? FALSE : TRUE);
+            toggle ();
+
+            break;
+          }
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      case WM_SIZE:
+      {
+        LONG width = LOWORD (message_s.lParam);
+        LONG height = HIWORD (message_s.lParam);
+
+        //BOOL fullscreenState;
+        HRESULT result;// =
+        //  swapChain_->GetFullscreenState (&fullscreenState, NULL);
+        //inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
+        //  !fullscreenState;
+
+        ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+
+        {
+          viewport_.Width = static_cast<float> (width);
+          viewport_.Height = static_cast<float> (height);
+
+          scissorRect_.right = width;
+          scissorRect_.bottom = height;
+        }
+
+        // Release the resources holding references to the swap chain (requirement of
+        // IDXGISwapChain::ResizeBuffers) and reset the frame fence values to the
+        // current fence value.
+        for (UINT n = 0;
+             n < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
+             n++)
+        {
+          renderTargets_[n]->Release (); renderTargets_[n] = NULL;
+        } // end FOR
+
+        // Resize the swap chain to the desired dimensions.
+        DXGI_SWAP_CHAIN_DESC desc = {};
+        swapChain_->GetDesc (&desc);
+        result =
+          swapChain_->ResizeBuffers (STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT,
+                                     width, height,
+                                     desc.BufferDesc.Format, desc.Flags);
+        ACE_ASSERT (SUCCEEDED (result));
+
+        // Reset the frame index to the current back buffer index.
+        frameIndex_ = swapChain_->GetCurrentBackBufferIndex ();
+
+        {
+          CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle (rtvHeap_->GetCPUDescriptorHandleForHeapStart ());
+
+          // Create a RTV for each frame.
+          for (UINT n = 0; n < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT; n++)
+          {
+            result = swapChain_->GetBuffer (n, IID_PPV_ARGS (&renderTargets_[n]));
+            ACE_ASSERT (SUCCEEDED (result) && renderTargets_[n]);
+
+            device_->CreateRenderTargetView (renderTargets_[n], NULL, rtvHandle);
+            rtvHandle.Offset (1, rtvDescriptorSize_);
+          } // end FOR
+        }
+
+        if (inherited::configuration_->resize)
+        {
+          inherited::resizing ();
+
+          Common_Image_Resolution_t resolution_s = {width, height};
+          try {
+            inherited::configuration_->resize->resize (resolution_s);
+          } catch (...) {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to resize, continuing\n"),
+                        inherited::mod_->name ()));
+          }
+        } // end IF
+
+        dispatch_message_b = false;
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    if (unlikely (closed_window_b))
+      break;
+    if (unlikely (!dispatch_message_b))
+    {
+      dispatch_message_b = true;
+      continue;
+    } // end IF
+
     TranslateMessage (&message_s);
     DispatchMessage (&message_s);
-
-    if (message_s.message == WM_CLOSE)
-      break;
   } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
@@ -667,7 +856,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     // actual device yet.
     if (!useSoftwareRenderer_in &&
         SUCCEEDED (D3D12CreateDevice (adapter_p,
-                                      D3D_FEATURE_LEVEL_11_0,
+                                      D3D_FEATURE_LEVEL_12_0,
                                       _uuidof (ID3D12Device),
                                       NULL)))
       break;
@@ -685,7 +874,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   } // end IF
 
   result_2 = D3D12CreateDevice (adapter_p,
-                                D3D_FEATURE_LEVEL_11_0,
+                                D3D_FEATURE_LEVEL_12_0,
                                 IID_PPV_ARGS (&device_));
   if (FAILED (result_2) || !device_)
   {
@@ -702,7 +891,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   D3D12_COMMAND_QUEUE_DESC queueDesc = {};
   queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
   queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-  result_2 = device_->CreateCommandQueue (&queueDesc, IID_PPV_ARGS (&commandQueue_));
+  result_2 = device_->CreateCommandQueue (&queueDesc,
+                                          IID_PPV_ARGS (&commandQueue_));
   if (FAILED (result_2) || !commandQueue_)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -718,7 +908,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   //ACE_ASSERT (result);
 
   DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-  swapChainDesc.BufferCount = STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
+  swapChainDesc.BufferCount =
+    STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
   //swapChainDesc.Width = client_rect_s.right - client_rect_s.left;
   //swapChainDesc.Height = client_rect_s.bottom - client_rect_s.top;
   swapChainDesc.Width = inherited::resolution_.cx;
@@ -745,8 +936,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     return false;
   } // end IF
   // do not support fullscreen transitions
-  result_2 = factory_p->MakeWindowAssociation (window_in, DXGI_MWA_NO_ALT_ENTER);
-  ACE_ASSERT (SUCCEEDED (result_2));
+  //result_2 = factory_p->MakeWindowAssociation (window_in, DXGI_MWA_NO_ALT_ENTER);
+  //ACE_ASSERT (SUCCEEDED (result_2));
   factory_p->Release (); factory_p = NULL;
 
   result_2 = swap_chain_p->QueryInterface (IID_PPV_ARGS (&swapChain_));

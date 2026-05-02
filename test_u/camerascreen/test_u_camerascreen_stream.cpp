@@ -158,17 +158,20 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D:
     {
+      layout_in->append (&convert_, NULL, 0); // flip image
       layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
       layout_in->append (&Direct3DDisplay_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_11:
     {
+      layout_in->append (&convert_, NULL, 0); // flip image
       layout_in->append (&Direct3D11Display_, NULL, 0);
       break;
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D_12:
     {
+      layout_in->append (&convert_, NULL, 0); // flip image
       layout_in->append (&Direct3D12Display_, NULL, 0);
       break;
     }

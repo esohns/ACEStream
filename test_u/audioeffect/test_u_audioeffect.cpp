@@ -1345,12 +1345,6 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
         allocator_configuration_p;
       directshow_modulehandler_configuration.delayConfiguration =
         &directShowConfiguration_in.delayConfiguration;
-      //directShowConfiguration_in.delayConfiguration.averageTokensPerInterval =
-      //  static_cast<ACE_UINT64> ((static_cast<float> (4 * 44100) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US)) / 1000000.0F);
-      //directShowConfiguration_in.delayConfiguration.mode =
-      //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-      //directShowConfiguration_in.delayConfiguration.interval =
-      //  ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       directShowConfiguration_in.delayConfiguration.isMultimediaTask = true;
       //directShowConfiguration_in.delayConfiguration.tokenFactor = 1.35f;
 
@@ -1494,12 +1488,6 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
 
       mediafoundation_modulehandler_configuration.allocatorConfiguration =
         allocator_configuration_p;
-      //mediaFoundationConfiguration_in.delayConfiguration.averageTokensPerInterval =
-      //  8;
-      //mediaFoundationConfiguration_in.delayConfiguration.mode =
-      //  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-      //mediaFoundationConfiguration_in.delayConfiguration.interval =
-      //  ACE_Time_Value (0, (1000000.0F / (float)44100));
       mediafoundation_modulehandler_configuration.delayConfiguration =
         &mediaFoundationConfiguration_in.delayConfiguration;
       switch (mediafoundation_stream_configuration.capturer)
@@ -1646,15 +1634,8 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     allocator_configuration_p;
   modulehandler_configuration.ALSAConfiguration = &ALSA_configuration;
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
-//  modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.delayConfiguration =
     &configuration_in.delayConfiguration;
-  //configuration_in.delayConfiguration.averageTokensPerInterval =
-  //  8;
-//  configuration_in.delayConfiguration.mode =
-//    STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES;
-  //configuration_in.delayConfiguration.interval =
-  //  ACE_Time_Value (0, (1.0F / (float)44100) * 1000000.0F);
   modulehandler_configuration.deviceIdentifier.identifier =
     captureDeviceIdentifier_in;
   modulehandler_configuration.effect = effectName_in;
@@ -1844,11 +1825,15 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
+      directShowConfiguration_in.signalHandlerConfiguration.stream =
+        &directshow_stream;
       signalHandler_in.initialize (directShowConfiguration_in.signalHandlerConfiguration);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
+      mediaFoundationConfiguration_in.signalHandlerConfiguration.stream =
+        &mediafoundation_stream;
       signalHandler_in.initialize (mediaFoundationConfiguration_in.signalHandlerConfiguration);
       break;
     }
@@ -1861,10 +1846,10 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     }
   } // end SWITCH
 #else
+  configuration_in.signalHandlerConfiguration.stream = &stream;
   signalHandler_in.initialize (configuration_in.signalHandlerConfiguration);
 #endif // ACE_WIN32 || ACE_WIN64
-  if (!Common_Signal_Tools::initialize (((COMMON_EVENT_DEFAULT_DISPATCH == COMMON_EVENT_DISPATCH_REACTOR) ? COMMON_SIGNAL_DISPATCH_REACTOR
-                                                                                                          : COMMON_SIGNAL_DISPATCH_PROACTOR),
+  if (!Common_Signal_Tools::initialize (COMMON_SIGNAL_DEFAULT_DISPATCH_MODE,
                                         signalSet_in,
                                         ignoredSignalSet_in,
                                         &signalHandler_in,

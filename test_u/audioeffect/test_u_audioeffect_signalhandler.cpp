@@ -126,9 +126,9 @@ Test_U_AudioEffect_SignalHandler::handle (const struct Common_Signal& signal_in)
     // - activation timers (connection attempts, ...)
     // [- UI dispatch]
 
-    if (inherited::configuration_->stream)
-      inherited::configuration_->stream->stop (false,  // wait for completion ?
-                                               false,  // recurse upstream ?
-                                               false); // high priority ?
+    ACE_ASSERT (inherited::configuration_->stream);
+    inherited::configuration_->stream->stop (false,  // wait for completion ?
+                                              false,  // recurse upstream ?
+                                              false); // high priority ?
   } // end IF
 }

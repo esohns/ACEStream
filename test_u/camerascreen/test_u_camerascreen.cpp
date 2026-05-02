@@ -1564,8 +1564,8 @@ do_work (int argc_in,
 
       directShowConfiguration_in.direct3DConfiguration.presentationParameters.hDeviceWindow =
         directshow_modulehandler_configuration_3.window.win32_hwnd;
-      directShowConfiguration_in.direct3DConfiguration.useSoftwareRenderer =
-        true; // *TODO*: why doesn't the Direct3D 12 HW device work ?
+      //directShowConfiguration_in.direct3DConfiguration.useSoftwareRenderer =
+      //  true;
       stream_p = &directshow_stream;
 
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
