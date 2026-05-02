@@ -76,20 +76,20 @@
 #define STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME       "message pump"
 #endif // ACE_WIN32 || ACE_WIN64
 
-// *NOTE*: "...each pixel is a 32-bit quantity, with the upper 8 bits unused.
-//         Red, Green, and Blue are stored in the remaining 24 bits in that
-//         order. ..."
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define STREAM_VIS_RENDERER_VIDEO_GTK_CAIRO_DEFAULT_FORMAT                CAIRO_FORMAT_RGB24
-//// *NOTE*: "...each pixel is a 32-bit quantity, with alpha in the upper 8 bits,
-////          then red, then green, then blue. The 32-bit quantities are stored
-////          native-endian. Pre-multiplied alpha is used. (That is, 50%
-////          transparent red is 0x80800000, not 0x80ff0000.) ..."
-//#define STREAM_VIS_DEFAULT_CAIRO_FORMAT      CAIRO_FORMAT_ARGB32
+#else
+// *NOTE*: "...each pixel is a 32-bit quantity, with alpha in the upper 8 bits,
+//          then red, then green, then blue. The 32-bit quantities are stored
+//          native-endian. Pre-multiplied alpha is used. (That is, 50%
+//          transparent red is 0x80800000, not 0x80ff0000.) ..."
+#define STREAM_VIS_RENDERER_VIDEO_GTK_CAIRO_DEFAULT_FORMAT                CAIRO_FORMAT_ARGB32
+#endif // ACE_WIN32 || ACE_WIN64
 
 #define STREAM_VIS_DEFAULT_SCREENSHOT_FILENAME_PREFIX_STRING              "screenshot"
 
-#define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  240
-#define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   320
+#define STREAM_VIS_DEFAULT_WINDOW_HEIGHT                                  STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_HEIGHT
+#define STREAM_VIS_DEFAULT_WINDOW_WIDTH                                   STREAM_DEV_CAM_DEFAULT_CAPTURE_SIZE_WIDTH
 #define STREAM_VIS_DEFAULT_WINDOW_TITLE                                   "ACEStream Gtk window"
 
 // spectrum analyzer
@@ -109,5 +109,6 @@
 
 // console VU meter
 #define STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_BINS_TO_DISPLAY_PER_CHANNEL    12
+#define STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_SAMPLES_TO_AVERAGE             128
 
 #endif

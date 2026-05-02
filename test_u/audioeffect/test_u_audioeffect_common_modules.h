@@ -656,13 +656,29 @@ typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
                                           Test_U_AudioEffect_DirectShow_SessionMessage,
                                           struct _AMMediaType,
                                           float,
-                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_U_AudioEffect_DirectShow_Vis_Console;
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE> Test_U_AudioEffect_DirectShow_Vis_Console_1;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_vis_console_audio_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
-                              Test_U_AudioEffect_DirectShow_Vis_Console);                      // writer type
+                              Test_U_AudioEffect_DirectShow_Vis_Console_1);                    // writer type
+typedef Stream_Module_Vis_Console_Audio_T<ACE_MT_SYNCH,
+                                          Common_TimePolicy_t,
+                                          struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                          Stream_ControlMessage_t,
+                                          Test_U_AudioEffect_DirectShow_Message,
+                                          Test_U_AudioEffect_DirectShow_SessionMessage,
+                                          struct _AMMediaType,
+                                          float,
+                                          STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM> Test_U_AudioEffect_DirectShow_Vis_Console_2;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_console_audio_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_AudioEffect_DirectShow_Vis_Console_2);                    // writer type
+
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,

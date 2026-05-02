@@ -276,25 +276,15 @@ Test_U_AudioEffect_MediaFoundation_EventHandler::notify (Stream_SessionId_t sess
   ACE_UNUSED_ARG (sessionId_in);
 
 #if defined (GTK_USE)
-  guint event_source_id = 0;
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
 #endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-      //event_source_id = g_idle_add (idle_update_display_cb,
-      //                              CBData_);
-      //if (event_source_id == 0)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-      //  return;
-      //} // end IF
-  //  CBData_->eventSourceIds.insert (event_source_id);
     } // end lock scope
 #endif // GTK_USE
   } // end IF
@@ -444,25 +434,15 @@ Test_U_AudioEffect_EventHandler::notify (Stream_SessionId_t sessionId_in,
   ACE_UNUSED_ARG (sessionId_in);
 
 #if defined (GTK_USE)
-//  guint event_source_id = 0;
+  Common_UI_GTK_State_t& state_r =
+    const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
 #endif // GTK_USE
   if (CBData_)
   {
 #if defined (GTK_USE)
-    Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->getR ());
     { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
-      //event_source_id = g_idle_add (idle_update_display_cb,
-      //                              CBData_);
-      //if (event_source_id == 0)
-      //{
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("failed to g_idle_add(idle_update_display_cb): \"%m\", returning\n")));
-      //  return;
-      //} // end IF
-  //  CBData_->UIState.eventSourceIds.insert (event_source_id);
     } // end lock scope
 #endif // GTK_USE
   } // end IF

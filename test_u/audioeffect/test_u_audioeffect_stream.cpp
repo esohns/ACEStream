@@ -383,22 +383,48 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     //  module_p = NULL;
     //} // end IF
 
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
-                                                                            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
+    if (inherited::configuration_->configuration_->UIFramework != COMMON_UI_FRAMEWORK_CONSOLE)
+    {
+      ACE_NEW_RETURN (module_p,
+                      Test_U_AudioEffect_DirectShow_StatisticAnalysis_Module (this,
+                                                                              ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_ANALYSIS_DEFAULT_NAME_STRING)),
+                      false);
+      ACE_ASSERT (module_p);
+      layout_in->append (module_p, branch_p, index_i);
+      module_p = NULL;
+    } // end IF
 
     switch (inherited::configuration_->configuration_->UIFramework)
     {
       case COMMON_UI_FRAMEWORK_CONSOLE:
       {
-        ACE_NEW_RETURN (module_p,
-                        Test_U_AudioEffect_DirectShow_Vis_Console_Module (this,
-                                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
-                        false);
+        switch ((*iterator).second.second->spectrumAnalyzerConfiguration->mode)
+        {
+          case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE: // --> VU meter
+          {
+            ACE_NEW_RETURN (module_p,
+                            Test_U_AudioEffect_DirectShow_Vis_Console_1_Module (this,
+                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
+                            false);
+            break;
+          }
+          case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM: // --> spectrum analyzer
+          {
+            ACE_NEW_RETURN (module_p,
+                            Test_U_AudioEffect_DirectShow_Vis_Console_2_Module (this,
+                                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
+                            false);
+            break;
+          }
+          default:
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: invalid/unknown 2d spectrum analyzer mode (was: %d), aborting\n"),
+                        ACE_TEXT (stream_name_string_),
+                        (*iterator).second.second->spectrumAnalyzerConfiguration->mode));
+            return false;
+          }
+        } // end SWITCH
         layout_in->append (module_p, branch_p, index_i);
         module_p = NULL;
         break;

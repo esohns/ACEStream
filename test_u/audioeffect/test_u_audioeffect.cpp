@@ -127,6 +127,10 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-a [VALUE]  : display console VU meter [")
+            << STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-c          : show console [")
             << false
@@ -234,6 +238,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& consoleVUMeter_out,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      bool& showConsole_out,
 #else
@@ -278,6 +283,7 @@ do_processArguments (int argc_in,
                                                       true);
 
   // initialize results
+  consoleVUMeter_out = STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   showConsole_out = false;
 #else
@@ -327,7 +333,7 @@ do_processArguments (int argc_in,
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("flo::s:tuv");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("a:flo::s:tuv");
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   options_string += ACE_TEXT_ALWAYS_CHAR ("g::");
 #endif // GTK_USE || WXWIDGETS_USE
@@ -362,6 +368,17 @@ do_processArguments (int argc_in,
   {
     switch (option)
     {
+      case 'a':
+      {
+        int value_i;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argument_parser.opt_arg ();
+        converter >> value_i;
+        consoleVUMeter_out =
+          static_cast<enum Stream_Visualization_SpectrumAnalyzer_2DMode> (value_i);
+        break;
+      }
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'c':
       {
@@ -1088,7 +1105,7 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (
+do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMode_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool showConsole_in,
 #else
@@ -1132,6 +1149,7 @@ do_work (
   STREAM_TRACE (ACE_TEXT ("::do_work"));
 
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration spectrumanalyzer_configuration;
+  spectrumanalyzer_configuration.mode = spectrumAnalyzer2DMode_in;
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
   Common_TimerConfiguration timer_configuration;
@@ -1381,7 +1399,7 @@ do_work (
 #endif // SOX_SUPPORT
       directshow_modulehandler_configuration.mute = mute_in;
       directshow_modulehandler_configuration.printProgressDot =
-        UIDefinitionFile_in.empty ();
+        (UIDefinitionFile_in.empty () && (spectrumAnalyzer2DMode_in == STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID));
       directshow_modulehandler_configuration.statisticReportingInterval =
         ACE_Time_Value (statisticReportingInterval_in, 0);
       directshow_modulehandler_configuration.subscriber =
@@ -2155,7 +2173,8 @@ ACE_TMAIN (int argc_in,
                                                       true);
 
   // step1a set defaults
-  //unsigned int buffer_size = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_BUFFER_SIZE;
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer_2DMode_e =
+    STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool show_console = false;
 #else
@@ -2212,6 +2231,7 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
+                            spectrumAnalyzer_2DMode_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             show_console,
 #else
@@ -2440,9 +2460,8 @@ ACE_TMAIN (int argc_in,
 //                    &state_r.logQueueLock);
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        Common_File_Tools::executable);
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      Common_File_Tools::executable);
   if (!Common_Log_Tools::initialize (Common_File_Tools::executable,            // program name
                                      log_file_name,                            // log file name
                                      false,                                    // log to syslog ?
@@ -2553,7 +2572,7 @@ ACE_TMAIN (int argc_in,
   ACE_High_Res_Timer timer;
   timer.start ();
   // step2: do actual work
-  do_work (
+  do_work (spectrumAnalyzer_2DMode_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            show_console,
 #else

@@ -22,6 +22,8 @@
 #include "strmif.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <numeric>
+
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"
@@ -133,22 +135,36 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
   iterator_.buffer_ = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
   ACE_UINT64 frames_i = static_cast<ACE_UINT64> (message_inout->length ()) / frameSize_;
 
-  ValueType max;
-  uint32_t level_i;
+  ValueType max, abs_max;
+  std::vector<ValueType> max_a;
+  ACE_UINT32 level_i;
+  ACE_UINT64 i, n;
   for (ACE_UINT32 c = 0; c < channels_; ++c)
   {
     max = 0.0;
-    for (ACE_UINT64 n = 0; n < frames_i; ++n)
-      max = std::max (max, std::abs (iterator_.get (n, c) * normalizationFactor_));
+    abs_max = 0.0;
+    max_a.clear ();
+    n = 0;
+    while (n < frames_i)
+    {
+      max = 0.0;
+      for (i = 0; i < STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_SAMPLES_TO_AVERAGE && n < frames_i; ++i, ++n)
+        max = std::max (max, std::abs (iterator_.get (n, c)));
+      abs_max = std::max (max, abs_max);
+      max_a.push_back (max);
+    } // end WHILE
+    max = std::accumulate (max_a.begin (), max_a.end (), static_cast<ValueType> (0.0));
+    max /= static_cast<ValueType> (max_a.size ());
+    max *= normalizationFactor_;
+    abs_max *= normalizationFactor_;
 
-    level_i =
-      static_cast<uint32_t> (std::min (std::max (max * 30.0, 0.0), 39.0));
+    level_i = static_cast<ACE_UINT32> (max * static_cast<ValueType> (39.0));
 
-    ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("channel %d: |%*s%*s| peak:%.2f\n"),
+    ACE_OS::printf (ACE_TEXT_ALWAYS_CHAR ("channel %u: |%*s%*s| peak:%.2f\n"),
                     c + 1,
                     level_i + 1, ACE_TEXT_ALWAYS_CHAR ("*"),
                     40 - level_i, ACE_TEXT_ALWAYS_CHAR (""),
-                    static_cast<float> (max));
+                    static_cast<float> (abs_max));
   } // end FOR
 
   /* move cursor back up */
@@ -218,8 +234,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
       iterator_.initialize (frameSize_,
                             bytes_per_sample_i,
-                            !is_integral_sample_format_b,
                             is_signed_sample_format_b,
+                            !is_integral_sample_format_b,
                             0x0123); // all Win32 sound data is little endian
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
@@ -232,8 +248,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       frameSize_ = bytes_per_sample_i * media_type_s.channels;
       iterator_.initialize (frameSize_,
                             bytes_per_sample_i,
-                            !is_integral_sample_format_b,
                             is_signed_sample_format_b,
+                            !is_integral_sample_format_b,
                             snd_pcm_format_little_endian (media_type_s.format) ? 0x0123 : 0x3210);
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -638,8 +654,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
       iterator_.initialize (frameSize_,
                             bytes_per_sample_i,
-                            !is_integral_sample_format_b,
                             is_signed_sample_format_b,
+                            !is_integral_sample_format_b,
                             0x0123); // all Win32 sound data is little endian
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
@@ -653,8 +669,8 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
       frameSize_ = bytes_per_sample_i * media_type_s.channels;
       iterator_.initialize (frameSize_,
                             bytes_per_sample_i,
-                            !is_integral_sample_format_b,
                             is_signed_sample_format_b,
+                            !is_integral_sample_format_b,
                             snd_pcm_format_little_endian (media_type_s.format) ? 0x0123 : 0x3210);
 #endif // ACE_WIN32 || ACE_WIN64
       inherited4::Initialize (channels_,

@@ -473,7 +473,7 @@ continue_2:
 
       // sanity check(s)
       if (unlikely (sessionData_)) // --> e.g. head modules initialize this in start()
-      { 
+      {
         if (unlikely (!isHead ())) // *NOTE*: e.g. module enqueued on several streams at once ?
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: already had session data on begin, continuing\n"),

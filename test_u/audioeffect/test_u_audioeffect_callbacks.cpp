@@ -6538,6 +6538,7 @@ idle_update_progress_cb (gpointer userData_in)
   std::ostringstream converter;
   ACE_Time_Value elapsed, now = COMMON_TIME_NOW;
   ACE_UINT32 bytes_per_second_i = 0;
+  float factor_f = 0.0f;
   GtkProgressBar* progress_bar_p =
     GTK_PROGRESS_BAR (gtk_builder_get_object ((*iterator).second.second,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_UI_GTK_PROGRESSBAR_NAME)));
@@ -6611,13 +6612,16 @@ idle_update_progress_cb (gpointer userData_in)
 
   // calculate fps
   elapsed = now - previous_timestamp;
-  bytes_per_second_i =
-    static_cast<ACE_UINT32> (static_cast<float> (data_p->statistic.bytes - previous_bytes_i) * (1000 / (float)elapsed.msec ()));
   previous_timestamp = now;
+  factor_f = 1000.0f / static_cast<float> (elapsed.msec ());
+  bytes_per_second_i =
+    static_cast<ACE_UINT32> (static_cast<float> (data_p->statistic.bytes - previous_bytes_i) * factor_f);
   previous_bytes_i = data_p->statistic.bytes;
   converter <<
     static_cast<ACE_UINT32> (bytes_per_second_i / static_cast<float> (data_p->bytesPerFrame));
-  converter << ACE_TEXT_ALWAYS_CHAR (" sps");
+  // *NOTE*: on average, the number of frames per second should equal the sample
+  //         rate * #channels
+  converter << ACE_TEXT_ALWAYS_CHAR (" fps");
   gtk_progress_bar_set_text (progress_bar_p,
                              (done_b ? ACE_TEXT_ALWAYS_CHAR ("")
                                      : converter.str ().c_str ()));

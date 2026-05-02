@@ -311,8 +311,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
       result_2 = iterator_.initialize (frame_size,
                                        sample_size,
-                                       is_floating_point_b,
                                        sampleIsSigned_,
+                                       is_floating_point_b,
                                        sample_byte_order);
       if (unlikely (!result_2))
       {
