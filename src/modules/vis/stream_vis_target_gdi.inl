@@ -127,7 +127,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   ACE_ASSERT (context_);
 
   // *NOTE*: support dynamic resizing of output window
-  GetWindowRect (inherited::window_, &resolution_2);
+  GetClientRect (inherited::window_, &resolution_2);
 
   if (unlikely (StretchDIBits (context_,
                                0, 0, resolution_2.right - resolution_2.left, resolution_2.bottom - resolution_2.top,
@@ -175,6 +175,8 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -251,6 +253,7 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (context_ && inherited::window_)
       {
         if (!ReleaseDC (inherited::window_, context_))
@@ -373,16 +376,18 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
   ACE_ASSERT (!context_);
   context_ = GetDC (inherited::window_);
   ACE_ASSERT (context_);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: window handle: 0x%@; drawing context: 0x%@\n"),
-              inherited::mod_->name (),
-              inherited::window_,
-              context_));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: window handle: 0x%@; drawing context: 0x%@\n"),
+  //            inherited::mod_->name (),
+  //            inherited::window_,
+  //            context_));
 
   inherited::notify_ = true;
 
-  BOOL result_b = 0;
-  struct tagMSG message_s;
+  struct tagMSG message_s = {0};
+  BOOL result_b;
+  bool closed_window_b = false;
+  bool dispatch_message_b = true;
   while ((result_b = GetMessage (&message_s, inherited::window_, 0, 0)) != 0)
   {
     if (unlikely (result_b == -1))
@@ -390,15 +395,109 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to GetMessage(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                  ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
       break;
     } // end IF
-    else
+
+    switch (message_s.message)
     {
-      TranslateMessage (&message_s);
-      DispatchMessage (&message_s);
-    } // end ELSE
+      case WM_CLOSE:
+      {
+        closed_window_b = true;
+        break;
+      }
+      case WM_KEYDOWN:
+      {
+        char char_c;
+        switch (message_s.wParam)
+        {
+          case VK_ESCAPE:
+          {
+            if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
+              ACE_DEBUG ((LM_ERROR,
+                          ACE_TEXT ("%s: failed to PostMessage(%@,WM_QUIT): \"%s\", continuing\n"),
+                          inherited::mod_->name (),
+                          inherited::window_,
+                          ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
+
+            char_c = VK_ESCAPE;
+
+            break;
+          }
+          default:
+          {
+            //HKL keyboad_layout_h = GetKeyboardLayout (0);
+            //ACE_ASSERT (keyboad_layout_h);
+
+            BYTE keyboard_state_a[256];
+            bool bResult = GetKeyboardState (keyboard_state_a);
+            ACE_ASSERT (bResult);
+            WORD wCharacter = 0;
+            int iResult = ToAscii ((UINT)message_s.wParam,
+                                   0,
+                                   keyboard_state_a,
+                                   &wCharacter,
+                                   0);
+            ACE_ASSERT (iResult >= 0 && iResult <= 2);
+            char_c = LOBYTE (wCharacter);
+
+            break;
+          }
+        } // end SWITCH
+
+        switch (char_c)
+        {
+          case 'F':
+          case 'f':
+          {
+            toggle ();
+
+            break;
+          }
+          default:
+            break;
+        } // end SWITCH
+
+        break;
+      }
+      case WM_SIZE:
+      {
+        LONG width = LOWORD (message_s.lParam);
+        LONG height = HIWORD (message_s.lParam);
+
+        //if (inherited::configuration_->resize &&
+        //    (width != inherited::resolution_.cx || height != inherited::resolution_.cy))
+        //{
+        //  inherited::resizing ();
+
+        //  Common_Image_Resolution_t resolution_s = {width, height};
+        //  try {
+        //    inherited::configuration_->resize->resize (resolution_s);
+        //  } catch (...) {
+        //    ACE_DEBUG ((LM_ERROR,
+        //                ACE_TEXT ("%s: failed to resize, continuing\n"),
+        //                inherited::mod_->name ()));
+        //  }
+        //} // end IF
+
+        dispatch_message_b = false;
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+    if (unlikely (closed_window_b))
+      break;
+    if (unlikely (!dispatch_message_b))
+    {
+      dispatch_message_b = true;
+      continue;
+    } // end IF
+
+    TranslateMessage (&message_s);
+    DispatchMessage (&message_s);
   } // end WHILE
+  DestroyWindow (inherited::window_); inherited::window_ = NULL;
 
   if (unlikely (inherited::notify_))
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);

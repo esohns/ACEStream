@@ -1482,7 +1482,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   handle_p->Release (); handle_p = NULL;
   releaseDeviceHandle_ = true;
 
-  struct tagMSG message_s;
+  struct tagMSG message_s = {0};
   BOOL bRet;
   bool closed_window_b = false;
   bool dispatch_message_b = true;

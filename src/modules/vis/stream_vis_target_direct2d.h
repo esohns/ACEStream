@@ -81,7 +81,7 @@ class Stream_Vis_Target_Direct2D_T
                                      bool&);               // return value: pass message downstream ?
 
   // implement Common_UI_IFullscreen
-  virtual void toggle ();
+  //virtual void toggle ();
 
  protected:
   // helper methods
