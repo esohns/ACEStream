@@ -158,26 +158,24 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
   // sanity check(s)
-  // *TODO*: make this an 'active' module and remove this
-  if (unlikely (!device_ || !texture_ || !swapChain_))
-    return; // --> not ready yet
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->direct3DConfiguration);
+  if (unlikely (inherited::resizing_))
+    return; // done
+
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock);
 
-  // Note: ComPtr's are CPU objects but this resource needs to stay in scope until
-  // the command list that references it has finished executing on the GPU.
-  // We will flush the GPU at the end of this method to ensure the resource is not
-  // prematurely destroyed.
-  ID3D12Resource* textureUploadHeap = NULL;
-
-  const UINT64 uploadBufferSize = GetRequiredIntermediateSize (texture_, 0, 1);
+  ACE_ASSERT (device_ && texture_);
 
   // Create the GPU upload buffer.
-  HRESULT result_2 = device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_UPLOAD),
-                                                       D3D12_HEAP_FLAG_NONE,
-                                                       &CD3DX12_RESOURCE_DESC::Buffer (uploadBufferSize),
-                                                       D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                       NULL,
-                                                       IID_PPV_ARGS (&textureUploadHeap));
+  ID3D12Resource* textureUploadHeap = NULL;
+  HRESULT result_2 =
+    device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_UPLOAD),
+                                      D3D12_HEAP_FLAG_NONE,
+                                      &CD3DX12_RESOURCE_DESC::Buffer (GetRequiredIntermediateSize (texture_, 0, 1)),
+                                      D3D12_RESOURCE_STATE_GENERIC_READ,
+                                      NULL,
+                                      IID_PPV_ARGS (&textureUploadHeap));
   ACE_ASSERT (SUCCEEDED (result_2) && textureUploadHeap);
 
   // Copy data to the intermediate upload heap and then schedule a copy 
@@ -233,17 +231,15 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
                       1,
                       &textureData);
 
-  const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+  static const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
   commandList_->ClearRenderTargetView (rtvHandle_h, clearColor, 0, NULL);
   commandList_->IASetPrimitiveTopology (D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   commandList_->IASetVertexBuffers (0, 1, &vertexBufferView_);
-  //commandList_->DrawInstanced (3, 1, 0, 0);
   commandList_->DrawInstanced (6, 1, 0, 0);
 
   // Indicate that the back buffer will now be used to present.
   barriers_a[0].Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
   barriers_a[0].Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-
   commandList_->ResourceBarrier (_countof (barriers_a), barriers_a);
 
   // Close the command list and execute it to begin the initial GPU setup.
@@ -304,13 +300,15 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
-  HRESULT result_2 = E_FAIL;
+  HRESULT result_2;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end; // --> shut down
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -352,8 +350,39 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 
       break;
     }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      SessionDataType& session_data_r =
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      struct _AMMediaType media_type_s;
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      inherited::getMediaType (session_data_r.formats.back (),
+                               STREAM_MEDIATYPE_VIDEO,
+                               media_type_s);
+      inherited::resolution_ =
+        Stream_MediaFramework_DirectShow_Tools::toResolution (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+
+      inherited::resizing_ = false;
+
+      break;
+    }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
+      if (swapChain_)
+      {
+        BOOL fullscreenState;
+        result_2 = swapChain_->GetFullscreenState (&fullscreenState, NULL);
+        ACE_ASSERT (SUCCEEDED (result_2));
+        if (fullscreenState)
+          toggle ();
+      } // end IF
+
       if (inherited::window_)
       {
         inherited::notify_ = false;
@@ -540,7 +569,10 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  inherited::window_ = inherited::createWindow ();
+  //inherited::CBData_.postWMSIZE = false;
+
+  inherited::window_ =
+    inherited::createWindow (libacestream_vis_target_win32_base_window_proc_cb);
   if (unlikely (!inherited::window_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -549,30 +581,30 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
     return -1;
   } // end IF
-  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: window handle: 0x%@\n"),
+  //            inherited::mod_->name (),
+  //            inherited::window_));
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: window handle: 0x%@\n"),
-              inherited::mod_->name (),
-              inherited::window_));
-
-  if (unlikely (!initialize_Direct3D (inherited::window_,
-                                      inherited::configuration_->direct3DConfiguration->useSoftwareRenderer))) // use software renderer ?
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
-                inherited::mod_->name ()));
-    CloseWindow (inherited::window_); inherited::window_ = NULL;
-    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
-    return -1;
-  } // end IF
-
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+    if (unlikely (!initialize_Direct3D (inherited::window_,
+                                        inherited::configuration_->direct3DConfiguration->useSoftwareRenderer))) // use software renderer ?
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to initialize_Direct3D(), aborting\n"),
+                  inherited::mod_->name ()));
+      CloseWindow (inherited::window_); inherited::window_ = NULL;
+      inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+      return -1;
+    } // end IF
+  } // end lock scope
   inherited::notify_ = true;
 
   struct tagMSG message_s;
   BOOL bRet;
   bool closed_window_b = false;
   bool dispatch_message_b = true;
+  HRESULT result;
   while (bRet = GetMessage (&message_s, inherited::window_, 0, 0) != 0)
   {
     if (unlikely (bRet == -1))
@@ -599,15 +631,12 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
         {
           case VK_ESCAPE:
           {
-            if (inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed == FALSE)
-            {
-              // *TODO*: remove ASAP
-              ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+            BOOL fullscreenState;
+            result = swapChain_->GetFullscreenState (&fullscreenState, NULL);
+            ACE_ASSERT (SUCCEEDED (result));
 
-              inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
-                TRUE;
+            if (fullscreenState)
               toggle ();
-            } // end IF
 
             if (unlikely (!PostMessage (inherited::window_, WM_QUIT, 0, 0)))
               ACE_DEBUG ((LM_ERROR,
@@ -646,11 +675,6 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
           case 'F':
           case 'f':
           {
-            // *TODO*: remove ASAP
-            //ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
-
-            //inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
-            //  (inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed == TRUE ? FALSE : TRUE);
             toggle ();
 
             break;
@@ -663,16 +687,18 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
       }
       case WM_SIZE:
       {
+        dispatch_message_b = false;
+
         LONG width = LOWORD (message_s.lParam);
         LONG height = HIWORD (message_s.lParam);
 
-        //BOOL fullscreenState;
-        HRESULT result;// =
-        //  swapChain_->GetFullscreenState (&fullscreenState, NULL);
-        //inherited::configuration_->direct3DConfiguration->presentationParameters.Windowed =
-        //  !fullscreenState;
-
         ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock, -1);
+
+        //BOOL fullscreenState;
+        //result = swapChain_->GetFullscreenState (&fullscreenState, NULL);
+        //ACE_ASSERT (SUCCEEDED (result));
+        //if (!fullscreenState)
+        //  goto continue_;
 
         {
           viewport_.Width = static_cast<float> (width);
@@ -687,7 +713,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
         // current fence value.
         for (UINT n = 0;
              n < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
-             n++)
+             ++n)
         {
           renderTargets_[n]->Release (); renderTargets_[n] = NULL;
         } // end FOR
@@ -708,16 +734,22 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
           CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle (rtvHeap_->GetCPUDescriptorHandleForHeapStart ());
 
           // Create a RTV for each frame.
-          for (UINT n = 0; n < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT; n++)
+          for (UINT n = 0;
+               n < STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
+               ++n)
           {
-            result = swapChain_->GetBuffer (n, IID_PPV_ARGS (&renderTargets_[n]));
+            result =
+              swapChain_->GetBuffer (n, IID_PPV_ARGS (&renderTargets_[n]));
             ACE_ASSERT (SUCCEEDED (result) && renderTargets_[n]);
 
-            device_->CreateRenderTargetView (renderTargets_[n], NULL, rtvHandle);
+            device_->CreateRenderTargetView (renderTargets_[n],
+                                             NULL,
+                                             rtvHandle);
             rtvHandle.Offset (1, rtvDescriptorSize_);
           } // end FOR
         }
 
+//continue_:
         if (inherited::configuration_->resize)
         {
           inherited::resizing ();
@@ -732,7 +764,6 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
           }
         } // end IF
 
-        dispatch_message_b = false;
         break;
       }
       default:
@@ -809,7 +840,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
 #endif // _DEBUG
 
   IDXGIFactory4* factory_p = NULL;
-  result_2 = CreateDXGIFactory2 (dxgiFactoryFlags, IID_PPV_ARGS (&factory_p));
+  result_2 = CreateDXGIFactory2 (dxgiFactoryFlags,
+                                 IID_PPV_ARGS (&factory_p));
   if (FAILED (result_2) || !factory_p)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -920,7 +952,7 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   swapChainDesc.SampleDesc.Count = 1;
 
   IDXGISwapChain1* swap_chain_p = NULL;
-  result_2 = factory_p->CreateSwapChainForHwnd (commandQueue_, // Swap chain needs the queue so that it can force a flush on it.
+  result_2 = factory_p->CreateSwapChainForHwnd (commandQueue_,
                                                 window_in,
                                                 &swapChainDesc,
                                                 NULL,
@@ -956,10 +988,12 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   // Create descriptor heaps
   { // Describe and create a render target view (RTV) descriptor heap.
     D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-    rtvHeapDesc.NumDescriptors = STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
+    rtvHeapDesc.NumDescriptors =
+      STREAM_VIS_RENDERER_VIDEO_DIRECTDRAW_3D_12_DEFAULT_FRAME_COUNT;
     rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
     rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-    result_2 = device_->CreateDescriptorHeap (&rtvHeapDesc, IID_PPV_ARGS (&rtvHeap_));
+    result_2 = device_->CreateDescriptorHeap (&rtvHeapDesc,
+                                              IID_PPV_ARGS (&rtvHeap_));
     if (FAILED (result_2) || !rtvHeap_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -974,7 +1008,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     srvHeapDesc.NumDescriptors = 1;
     srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
     srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-    result_2 = device_->CreateDescriptorHeap (&srvHeapDesc, IID_PPV_ARGS (&srvHeap_));
+    result_2 = device_->CreateDescriptorHeap (&srvHeapDesc,
+                                              IID_PPV_ARGS (&srvHeap_));
     if (FAILED (result_2) || !srvHeap_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1001,7 +1036,9 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
       rtvHandle_h.Offset (1, rtvDescriptorSize_);
     } // end FOR
   }
-  result_2 = device_->CreateCommandAllocator (D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&commandAllocator_));
+  result_2 =
+    device_->CreateCommandAllocator (D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                     IID_PPV_ARGS (&commandAllocator_));
   if (FAILED (result_2) || !commandAllocator_)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1024,10 +1061,14 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
       featureData.HighestVersion = D3D_ROOT_SIGNATURE_VERSION_1_0;
 
     CD3DX12_DESCRIPTOR_RANGE1 ranges[1];
-    ranges[0].Init (D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 0, D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
+    ranges[0].Init (D3D12_DESCRIPTOR_RANGE_TYPE_SRV,
+                    1, 0, 0,
+                    D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC);
 
     CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-    rootParameters[0].InitAsDescriptorTable (1, &ranges[0], D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[0].InitAsDescriptorTable (1,
+                                             &ranges[0],
+                                             D3D12_SHADER_VISIBILITY_PIXEL);
 
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
@@ -1045,13 +1086,23 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
     CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-    rootSignatureDesc.Init_1_1 (_countof (rootParameters), rootParameters, 1, &sampler, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+    rootSignatureDesc.Init_1_1 (_countof (rootParameters), rootParameters,
+                                1,
+                                &sampler,
+                                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
     ID3DBlob* signature_p = NULL;
     ID3DBlob* error_p = NULL;
-    result_2 = D3DX12SerializeVersionedRootSignature (&rootSignatureDesc, featureData.HighestVersion, &signature_p, &error_p);
+    result_2 =
+      D3DX12SerializeVersionedRootSignature (&rootSignatureDesc,
+                                             featureData.HighestVersion,
+                                             &signature_p,
+                                             &error_p);
     ACE_ASSERT (SUCCEEDED (result_2) && signature_p && !error_p);
-    result_2 = device_->CreateRootSignature (0, signature_p->GetBufferPointer (), signature_p->GetBufferSize (), IID_PPV_ARGS (&rootSignature_));
+    result_2 = device_->CreateRootSignature (0,
+                                             signature_p->GetBufferPointer (),
+                                             signature_p->GetBufferSize (),
+                                             IID_PPV_ARGS (&rootSignature_));
     ACE_ASSERT (SUCCEEDED (result_2) && rootSignature_);
 
     signature_p->Release (); signature_p = NULL;
@@ -1125,8 +1176,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     // Define the vertex input layout.
     D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
+      { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+      { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
     };
 
     // Describe and create the graphics pipeline state object (PSO).
@@ -1144,7 +1195,9 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     psoDesc.NumRenderTargets = 1;
     psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
     psoDesc.SampleDesc.Count = 1;
-    result_2 = device_->CreateGraphicsPipelineState (&psoDesc, IID_PPV_ARGS (&pipelineState_));
+    result_2 =
+      device_->CreateGraphicsPipelineState (&psoDesc,
+                                            IID_PPV_ARGS (&pipelineState_));
     if (FAILED (result_2) || !pipelineState_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1161,7 +1214,11 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   }
 
   // Create the command list.
-  result_2 = device_->CreateCommandList (0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator_, pipelineState_, IID_PPV_ARGS (&commandList_));
+  result_2 = device_->CreateCommandList (0,
+                                         D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                         commandAllocator_,
+                                         pipelineState_,
+                                         IID_PPV_ARGS (&commandList_));
   if (FAILED (result_2) || !commandList_)
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1174,7 +1231,8 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
   // Create the vertex buffer.
   {
     // Define the geometry for a triangle.
-    float aspectRatio = static_cast<float> (inherited::resolution_.cx) / static_cast<float> (inherited::resolution_.cy);
+    //float aspectRatio =
+    //  static_cast<float> (inherited::resolution_.cx) / static_cast<float> (inherited::resolution_.cy);
 
     Vertex triangleVertices[] =
     {
@@ -1197,12 +1255,13 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     // recommended. Every time the GPU needs it, the upload heap will be marshalled 
     // over. Please read up on Default Heap usage. An upload heap is used here for 
     // code simplicity and because there are very few verts to actually transfer.
-    result_2 = device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_UPLOAD),
-                                                 D3D12_HEAP_FLAG_NONE,
-                                                 &CD3DX12_RESOURCE_DESC::Buffer (vertexBufferSize),
-                                                 D3D12_RESOURCE_STATE_GENERIC_READ,
-                                                 NULL,
-                                                 IID_PPV_ARGS (&vertexBuffer_));
+    result_2 =
+      device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_UPLOAD),
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &CD3DX12_RESOURCE_DESC::Buffer (vertexBufferSize),
+                                        D3D12_RESOURCE_STATE_GENERIC_READ,
+                                        NULL,
+                                        IID_PPV_ARGS (&vertexBuffer_));
     if (FAILED (result_2) || !vertexBuffer_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1215,7 +1274,10 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     // Copy the triangle data to the vertex buffer.
     UINT8* pVertexDataBegin = NULL;
     CD3DX12_RANGE readRange (0, 0);        // We do not intend to read from this resource on the CPU.
-    result_2 = vertexBuffer_->Map (0, &readRange, reinterpret_cast<void**> (&pVertexDataBegin));
+    result_2 =
+      vertexBuffer_->Map (0,
+                          &readRange,
+                          reinterpret_cast<void**> (&pVertexDataBegin));
     ACE_ASSERT (SUCCEEDED (result_2) && pVertexDataBegin);
     ACE_OS::memcpy (pVertexDataBegin, triangleVertices, sizeof (triangleVertices));
     vertexBuffer_->Unmap (0, NULL);
@@ -1240,12 +1302,13 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     textureDesc.SampleDesc.Quality = 0;
     textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
 
-    result_2 = device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_DEFAULT),
-                                                 D3D12_HEAP_FLAG_NONE,
-                                                 &textureDesc,
-                                                 D3D12_RESOURCE_STATE_COPY_DEST,
-                                                 NULL,
-                                                 IID_PPV_ARGS (&texture_));
+    result_2 =
+      device_->CreateCommittedResource (&CD3DX12_HEAP_PROPERTIES (D3D12_HEAP_TYPE_DEFAULT),
+                                        D3D12_HEAP_FLAG_NONE,
+                                        &textureDesc,
+                                        D3D12_RESOURCE_STATE_COPY_DEST,
+                                        NULL,
+                                        IID_PPV_ARGS (&texture_));
     if (FAILED (result_2) || !texture_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1261,11 +1324,15 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     srvDesc.Format = textureDesc.Format;
     srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MipLevels = 1;
-    device_->CreateShaderResourceView (texture_, &srvDesc, srvHeap_->GetCPUDescriptorHandleForHeapStart ());
+    device_->CreateShaderResourceView (texture_,
+                                       &srvDesc,
+                                       srvHeap_->GetCPUDescriptorHandleForHeapStart ());
   }
 
   // Create synchronization objects and wait until assets have been uploaded to the GPU.
-  { result_2 = device_->CreateFence (0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS (&fence_));
+  { result_2 = device_->CreateFence (0,
+                                     D3D12_FENCE_FLAG_NONE,
+                                     IID_PPV_ARGS (&fence_));
     if (FAILED (result_2) || !fence_)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1278,7 +1345,10 @@ Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
     fenceValue_ = 1;
 
     // Create an event handle to use for frame synchronization.
-    fenceEvent_ = CreateEvent (NULL, FALSE, FALSE, NULL);
+    fenceEvent_ = CreateEvent (NULL,
+                               FALSE,
+                               FALSE,
+                               NULL);
     if (fenceEvent_ == NULL)
     {
       ACE_DEBUG ((LM_ERROR,

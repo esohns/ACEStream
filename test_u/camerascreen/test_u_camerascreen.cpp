@@ -1515,6 +1515,8 @@ do_work (int argc_in,
       //ACE_ASSERT (stream_config_p);
       //ACE_ASSERT (directshow_modulehandler_configuration_3.window);
       //directShowCBData_in.streamConfiguration = stream_config_p;
+
+      directshow_modulehandler_configuration_2.handleResize = false;
       media_type_p =
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);

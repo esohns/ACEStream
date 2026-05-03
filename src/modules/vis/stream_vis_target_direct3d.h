@@ -78,7 +78,8 @@ class Stream_Vis_Target_Direct3D_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType>
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data>
 {
   typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                          TimePolicyType,
@@ -86,7 +87,8 @@ class Stream_Vis_Target_Direct3D_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType> inherited;
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data> inherited;
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;
@@ -114,7 +116,8 @@ class Stream_Vis_Target_Direct3D_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType> WIN32_BASE_T;
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data> WIN32_BASE_T;
    
   // helper methods
   bool initialize_Direct3D (struct Stream_MediaFramework_Direct3D_Configuration&, // in/out: configuration

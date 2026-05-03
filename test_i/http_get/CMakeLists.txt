@@ -141,7 +141,7 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 #endif (SSL_SUPPORT)
 if (UNIX)
 elseif (WIN32)
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
 
  target_link_libraries (${EXECUTABLE} PUBLIC mf.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)

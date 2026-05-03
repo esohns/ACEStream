@@ -49,7 +49,8 @@ class Stream_Vis_Target_GDI_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType>
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data>
 {
   typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                          TimePolicyType,
@@ -57,7 +58,8 @@ class Stream_Vis_Target_GDI_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType> inherited;
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data> inherited;
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;
@@ -96,7 +98,6 @@ class Stream_Vis_Target_GDI_T
   // override (part of) ACE_Task_Base
   virtual int svc ();
 
-  //struct libacestream_gdi_window_proc_cb_data CBData_;
   struct tagRECT resolution_2;
 };
 

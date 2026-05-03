@@ -61,17 +61,12 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , context_ (NULL)
  , header_ ()
- //, CBData_ ()
  , resolution_2 ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_GDI_T::Stream_Vis_Target_GDI_T"));
 
   ACE_OS::memset (&header_, 0, sizeof (struct tagBITMAPINFO));
-  //ACE_OS::memset (&CBData_, 0, sizeof (struct libacestream_gdi_window_proc_cb_data));
   ACE_OS::memset (&resolution_2, 0, sizeof (struct tagRECT));
-
-  //CBData_.dc = &context_;
-  //CBData_.lock = &(inherited::lock_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -365,7 +360,8 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  inherited::window_ = inherited::createWindow ();
+  inherited::window_ =
+    inherited::createWindow (libacestream_vis_target_win32_base_window_proc_cb);
   if (unlikely (!inherited::window_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -373,7 +369,6 @@ Stream_Vis_Target_GDI_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return -1;
   } // end IF
-  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_ASSERT (!context_);
   context_ = GetDC (inherited::window_);

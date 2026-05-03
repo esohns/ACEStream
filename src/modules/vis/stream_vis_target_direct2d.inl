@@ -518,7 +518,8 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  inherited::window_ = inherited::createWindow ();
+  inherited::window_ =
+    inherited::createWindow (libacestream_vis_target_win32_base_window_proc_cb);
   if (unlikely (!inherited::window_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -526,7 +527,6 @@ Stream_Vis_Target_Direct2D_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return -1;
   } // end IF
-  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: window handle: 0x%@\n"),

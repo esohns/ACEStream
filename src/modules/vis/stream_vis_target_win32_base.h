@@ -33,11 +33,12 @@
 
 #include "stream_vis_base.h"
 
-//struct libacestream_vis_target_win32_base_window_proc_cb_data
-//{
-//  HDC*              dc;
-//  ACE_Thread_Mutex* lock;
-//};
+struct libacestream_vis_target_win32_base_window_proc_cb_data
+{
+  libacestream_vis_target_win32_base_window_proc_cb_data ()
+  {}
+};
+
 LRESULT CALLBACK
 libacestream_vis_target_win32_base_window_proc_cb (HWND,
                                                    UINT,
@@ -53,7 +54,9 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename MediaType>
+          typename MediaType,
+          ////////////////////////////////
+          typename CallbackDataType>
 class Stream_Vis_Target_Win32_Base_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -93,6 +96,7 @@ class Stream_Vis_Target_Win32_Base_T
   virtual void toggle ();
 
  protected:
+  CallbackDataType          CBData_;
   bool                      notify_;
   Common_Image_Resolution_t resolution_;
   HWND                      window_;
@@ -100,21 +104,12 @@ class Stream_Vis_Target_Win32_Base_T
   // override (part of) ACE_Task_Base
   virtual int svc ();
 
-  HWND createWindow ();
+  HWND createWindow (WNDPROC); // window procedure
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Win32_Base_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Win32_Base_T (const Stream_Vis_Target_Win32_Base_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Vis_Target_Win32_Base_T& operator= (const Stream_Vis_Target_Win32_Base_T&))
-
-  // helper types
-  typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
-                                         TimePolicyType,
-                                         ConfigurationType,
-                                         ControlMessageType,
-                                         DataMessageType,
-                                         SessionMessageType,
-                                         MediaType> OWN_TYPE_T;
 };
 
 // include template definition

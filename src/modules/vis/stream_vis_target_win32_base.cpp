@@ -26,10 +26,23 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
 {
   //STREAM_TRACE (ACE_TEXT ("libacestream_vis_target_win32_base_window_proc_cb"));
 
+  // sanity check(s)
+  struct libacestream_vis_target_win32_base_window_proc_cb_data* cb_data_p =
+    (struct libacestream_vis_target_win32_base_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
+  //ACE_ASSERT (cb_data_p); // available only after WM_CREATE (see below)
+
   BOOL bRet;
 
   switch (message) 
   {
+    case WM_CREATE:
+    {
+      CREATESTRUCT* create_p = (CREATESTRUCT*)lParam;
+      ACE_ASSERT (create_p);
+      SetWindowLongPtr (hWnd, GWLP_USERDATA, (LONG_PTR)create_p->lpCreateParams);
+
+      break;
+    }
     case WM_CLOSE:
     { // *NOTE*: WM_CLOSE is normally NOT seen by GetMessage()...
       static bool is_first_b = true;
@@ -41,30 +54,49 @@ libacestream_vis_target_win32_base_window_proc_cb (HWND hWnd, UINT message, WPAR
       break;
     }
     case WM_DESTROY:
+    {
       PostQuitMessage (0);
       break;
+    }
     case WM_SIZE:
     {
-      //struct libacestream_gdi_window_proc_cb_data* data_p =
-      //  (struct libacestream_gdi_window_proc_cb_data*)GetWindowLongPtr (hWnd, GWLP_USERDATA);
-      //if (!data_p)
-      //  return DefWindowProc (hWnd, message, wParam, lParam);
-      //ACE_ASSERT (data_p->lock);
+      LONG width = LOWORD (lParam);
+      LONG height = HIWORD (lParam);
 
-      //ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *data_p->lock, -1);
+      static struct tagSIZE previous_size_s = {0, 0};
+      if (previous_size_s.cx == width &&
+          previous_size_s.cy == height)
+        return DefWindowProc (hWnd, message, wParam, lParam);
+      previous_size_s = {width, height};
 
-      //ACE_ASSERT (data_p->dc);
-      //ReleaseDC (hWnd, *data_p->dc); *data_p->dc = NULL;
-      //*data_p->dc = GetDC (hWnd);
-      //ACE_ASSERT (*data_p->dc);
-      //data_p->dc = &*data_p->dc;
       bRet = PostMessage (hWnd, message, wParam, lParam);
       ACE_ASSERT (bRet);
 
-      break;
+      return DefWindowProc (hWnd, message, wParam, lParam);
+    }
+    case WM_SIZING:
+    {
+      struct tagRECT* rect_p = reinterpret_cast<struct tagRECT*> (lParam);
+      ACE_ASSERT (rect_p);
+      //if ((rect_p->right - rect_p->left) < 300)
+      //{
+      //  if (wParam == WMSZ_LEFT || wParam == WMSZ_TOPLEFT || wParam == WMSZ_BOTTOMLEFT)
+      //    rect_p->left = rect_p->right - 300;
+      //  else
+      //    rect_p->right = rect_p->left + 300;
+      //} // end IF
+      //if ((rect_p->bottom - rect_p->top) < 200)
+      //{
+      //  if (wParam == WMSZ_TOP || wParam == WMSZ_TOPLEFT || wParam == WMSZ_TOPRIGHT)
+      //    rect_p->top = rect_p->bottom - 200;
+      //  else
+      //    rect_p->bottom = rect_p->top + 200;
+      //} // end IF
+
+      //return TRUE;
+      return DefWindowProc (hWnd, message, wParam, lParam);
     }
     default:
-      /* Call DefWindowProc() as default */
       return DefWindowProc (hWnd, message, wParam, lParam);
   }
 

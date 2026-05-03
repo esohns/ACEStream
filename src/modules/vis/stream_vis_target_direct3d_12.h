@@ -55,7 +55,8 @@ class Stream_Vis_Target_Direct3D12_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType>
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data>
 {
   typedef Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                          TimePolicyType,
@@ -63,7 +64,8 @@ class Stream_Vis_Target_Direct3D12_T
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType> inherited;
+                                         MediaType,
+                                         struct libacestream_vis_target_win32_base_window_proc_cb_data> inherited;
 
  public:
   typedef typename inherited::ISTREAM_T ISTREAM_T;
@@ -93,16 +95,6 @@ class Stream_Vis_Target_Direct3D12_T
     DirectX::XMFLOAT3 position;
     DirectX::XMFLOAT2 uv;
   };
-
-  typedef Stream_Vis_Target_Direct3D12_T<ACE_SYNCH_USE,
-                                         TimePolicyType,
-                                         ConfigurationType,
-                                         ControlMessageType,
-                                         DataMessageType,
-                                         SessionMessageType,
-                                         SessionDataType,
-                                         SessionDataContainerType,
-                                         MediaType> OWN_TYPE_T;
 
   // override (part of) ACE_Task_Base
   virtual int svc ();

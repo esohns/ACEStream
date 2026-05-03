@@ -181,20 +181,20 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   ACE_UNUSED_ARG (passMessageDownstream_out);
 
+  // sanity check(s)
+  if (unlikely (inherited::resizing_))
+    return; // done
+
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock);
+
   HRESULT result = E_FAIL;
   bool reset_device_b = false;
   bool destroy_device_b = false;
   bool unlock_rect_b = false;
-  IDirect3DSurface9* d3d_surface_p = NULL, *d3d_surface_2 = NULL;
+  IDirect3DSurface9 *d3d_surface_p = NULL, *d3d_surface_2 = NULL;
   struct _D3DLOCKED_RECT d3d_locked_rectangle_s;
   BYTE* scanline0_p;
   std::string filename_string;
-
-  // *TODO*: remove ASAP
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::configuration_->direct3DConfiguration->lock);
-
-  if (unlikely (inherited::resizing_))
-    return; // done
 
   if (inputStride_ < 0)
   {
@@ -254,7 +254,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (transformation_);
-  ACE_ASSERT (std::abs (d3d_locked_rectangle_s.Pitch) >= std::abs (inputStride_));
+  //ACE_ASSERT (std::abs (d3d_locked_rectangle_s.Pitch) >= std::abs (inputStride_));
   try {
     transformation_ ((BYTE*)d3d_locked_rectangle_s.pBits,
                      d3d_locked_rectangle_s.Pitch,
@@ -1428,7 +1428,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  inherited::window_ = inherited::createWindow ();
+  inherited::window_ =
+    inherited::createWindow (libacestream_vis_target_win32_base_window_proc_cb);
   if (unlikely (!inherited::window_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -1436,7 +1437,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return -1;
   } // end IF
-  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
 
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: window handle: 0x%@\n"),

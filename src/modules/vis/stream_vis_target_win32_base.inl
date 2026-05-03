@@ -36,18 +36,21 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::Stream_Vis_Target_Win32_Base_T (ISTREAM_T* stream_in)
+                               MediaType,
+                               CallbackDataType>::Stream_Vis_Target_Win32_Base_T (ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 (NULL)
  , inherited4 ()
+ , CBData_ ()
  , notify_ (false)
  , resolution_ ()
  , window_ (NULL)
@@ -63,14 +66,16 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::~Stream_Vis_Target_Win32_Base_T ()
+                               MediaType,
+                               CallbackDataType>::~Stream_Vis_Target_Win32_Base_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::~Stream_Vis_Target_Win32_Base_T"));
 
@@ -92,7 +97,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 void
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -100,7 +106,8 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::toggle ()
+                               MediaType,
+                               CallbackDataType>::toggle ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::toggle"));
 
@@ -136,7 +143,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 bool
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -144,8 +152,9 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                       Stream_IAllocator* allocator_in)
+                               MediaType,
+                               CallbackDataType>::initialize (const ConfigurationType& configuration_in,
+                                                              Stream_IAllocator* allocator_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::initialize"));
 
@@ -179,7 +188,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 int
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -187,7 +197,8 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::svc ()
+                               MediaType,
+                               CallbackDataType>::svc ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::svc"));
 
@@ -205,7 +216,7 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
               ACE_TEXT (STREAM_VIS_RENDERER_WINDOW_DEFAULT_MESSAGE_PUMP_THREAD_NAME),
               STREAM_MODULE_TASK_GROUP_ID));
 
-  window_ = createWindow ();
+  window_ = createWindow (libacestream_vis_target_win32_base_window_proc_cb);
   if (unlikely (!window_))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -214,16 +225,14 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                 ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
     return -1;
   } // end IF
-  //SetWindowLongPtr (window_, GWLP_USERDATA, (LONG_PTR)&CBData_);
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: window handle: 0x%@\n"),
-              inherited::mod_->name (),
-              window_));
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: window handle: 0x%@\n"),
+  //            inherited::mod_->name (),
+  //            window_));
 
   notify_ = true;
 
-  struct tagMSG message_s;
+  struct tagMSG message_s = {0};
   while (GetMessage (&message_s, window_, 0, 0) != -1)
   {
     TranslateMessage (&message_s);
@@ -247,7 +256,8 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename MediaType>
+          typename MediaType,
+          typename CallbackDataType>
 HWND
 Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                TimePolicyType,
@@ -255,31 +265,31 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                                ControlMessageType,
                                DataMessageType,
                                SessionMessageType,
-                               MediaType>::createWindow ()
+                               MediaType,
+                               CallbackDataType>::createWindow (WNDPROC proc_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Vis_Target_Win32_Base_T::createWindow"));
 
   WNDCLASSEX window_class_ex_s;
+  ACE_OS::memset (&window_class_ex_s, 0, sizeof (WNDCLASSEX));
   window_class_ex_s.cbSize = sizeof (WNDCLASSEX);
-  window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
-  //window_class_ex_s.lpfnWndProc = DefWindowProc;
-  window_class_ex_s.lpfnWndProc =
-    libacestream_vis_target_win32_base_window_proc_cb;
+  //window_class_ex_s.style = CS_HREDRAW | CS_VREDRAW;
+  window_class_ex_s.lpfnWndProc = proc_in;
   window_class_ex_s.cbClsExtra = 0;
   window_class_ex_s.cbWndExtra = 0;
   window_class_ex_s.hInstance = (HINSTANCE)GetModuleHandle (NULL);
-  window_class_ex_s.hIcon = NULL;
+  //window_class_ex_s.hIcon = NULL;
   //window_class_ex_s.hCursor = LoadCursor (NULL, IDC_ARROW);
-  window_class_ex_s.hCursor = NULL;
+  //window_class_ex_s.hCursor = NULL;
   window_class_ex_s.hbrBackground = (HBRUSH)COLOR_WINDOW;
-  window_class_ex_s.lpszMenuName = NULL;
-  ACE_TCHAR szClassName[256] = ACE_TEXT ("ACEStream Visualization WindowClass");
+  //window_class_ex_s.lpszMenuName = NULL;
+  ACE_TCHAR szClassName[256] = ACE_TEXT ("ACEStream Visualization Win32 Base WindowClass");
 #if defined (UNICODE)
   window_class_ex_s.lpszClassName = ACE_TEXT_ALWAYS_WCHAR (szClassName);
 #else
   window_class_ex_s.lpszClassName = ACE_TEXT_ALWAYS_CHAR (szClassName);
 #endif // UNICODE
-  window_class_ex_s.hIconSm = NULL;
+  //window_class_ex_s.hIconSm = NULL;
   ATOM atom = RegisterClassEx (&window_class_ex_s);
   if (unlikely (atom == 0)) // most likely reason: already registered this window class
   { DWORD error_i = ::GetLastError ();
@@ -293,15 +303,9 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
     } // end IF
   } // end IF
 
-  DWORD window_style_i = (WS_OVERLAPPED     |
-                          WS_CAPTION        |
-                          (WS_CLIPSIBLINGS  |
-                           WS_CLIPCHILDREN) |
-                          WS_SYSMENU        |
-                          WS_VISIBLE        |
-                          WS_MINIMIZEBOX    |
-                          WS_MAXIMIZEBOX    |
-                          WS_THICKFRAME); // --> resizeable
+  DWORD window_style_i = (WS_OVERLAPPEDWINDOW |
+                          WS_THICKFRAME       |
+                          WS_VISIBLE);
   DWORD window_style_ex_i = (WS_EX_APPWINDOW |
                              WS_EX_WINDOWEDGE);
 
@@ -330,13 +334,13 @@ Stream_Vis_Target_Win32_Base_T<ACE_SYNCH_USE,
                     NULL,                                             // hWndParent
                     NULL,                                             // hMenu
                     GetModuleHandle (NULL),                           // hInstance
-                    NULL);                                            // lpParam
+                    (LPVOID)&CBData_);                                // lpParam
   if (unlikely (!handle_p))
   { // ERROR_INVALID_PARAMETER: 87
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to CreateWindowEx(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError ()).c_str ())));
+                ACE_TEXT (Common_Error_Tools::errorToString (::GetLastError (), false, false).c_str ())));
     return NULL;
   } // end IF
 

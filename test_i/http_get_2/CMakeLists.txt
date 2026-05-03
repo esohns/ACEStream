@@ -150,7 +150,7 @@ if (UNIX)
 elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 
- set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
+# set (CMAKE_EXE_LINKER_FLAGS /NODEFAULTLIB:\"libcmt.lib\")
  target_link_libraries (${EXECUTABLE} PUBLIC mf.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
 endif ()
