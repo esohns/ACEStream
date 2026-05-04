@@ -24,6 +24,7 @@
 #define KeyRelease 3
 #include "X11/Xlib.h"
 #include "X11/Xutil.h"
+#include "X11/Xatom.h"
 
 #include "ace/Log_Msg.h"
 
@@ -60,6 +61,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
  , context_ (NULL)
  , depth_ (0)
  , display_ (NULL)
+ , isFullscreen_ (false)
  , pixmap_ (0)
  , resolution_ ()
  , visual_ (NULL)
@@ -175,6 +177,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     closeDisplay_ = false;
     depth_ = 0;
     display_ = NULL;
+    isFullscreen_ = false;
     window_ = 0;
     WMDeleteMessage_ = 0;
   } // end IF
@@ -344,15 +347,69 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                 width_i, height_i, depth_));
     closeWindow_ = true;
 
+    XSizeHints* size_hints_p = XAllocSizeHints ();
+    ACE_ASSERT (size_hints_p);
+    // size_hints_p->flags = 0;
+    size_hints_p->flags |= (PMaxSize | PMinSize);
+    size_hints_p->min_width = size_hints_p->max_width = width_i;
+    size_hints_p->min_height = size_hints_p->max_height = height_i;
+
+    size_hints_p->x = x;
+    size_hints_p->y = y;
+    size_hints_p->flags |= USPosition;
+
+    /* Setup the input hints so we get keyboard input */
+    XWMHints* wm_hints_p = XAllocWMHints ();
+    ACE_ASSERT (wm_hints_p);
+    wm_hints_p->input = True;
+    wm_hints_p->window_group = (XID) ACE_OS::getpid ();
+    wm_hints_p->flags = InputHint | WindowGroupHint;
+
+    /* Setup the class hints so we can get an icon (AfterStep) */
+    XClassHint* class_hints_p = XAllocClassHint ();
+    ACE_ASSERT (class_hints_p);
+    class_hints_p->res_name = ACE_TEXT_ALWAYS_CHAR ("SDL_App");
+    class_hints_p->res_class = ACE_TEXT_ALWAYS_CHAR ("SDL_App");
+
+    /* Set the size, input and class hints, and define WM_CLIENT_MACHINE and WM_LOCALE_NAME */
+    XSetWMProperties (display_, window_,
+                      NULL, NULL,
+                      NULL, 0,
+                      size_hints_p,
+                      wm_hints_p,
+                      class_hints_p);
+
+    XFree (size_hints_p); size_hints_p = NULL;
+    XFree (wm_hints_p); wm_hints_p = NULL;
+    XFree (class_hints_p); class_hints_p = NULL;
+
+    long pid = (long)ACE_OS::getpid ();
+    Atom _NET_WM_PID =
+      XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("_NET_WM_PID"), False);
+    int result = XChangeProperty (display_, window_,
+                                  _NET_WM_PID,
+                                  XA_CARDINAL, 32, PropModeReplace,
+                                  (unsigned char*)&pid, 1);
+    ACE_ASSERT (result == True);
+
+    Atom _NET_WM_WINDOW_TYPE =
+      XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("_NET_WM_WINDOW_TYPE"), False);
+    Atom _NET_WM_WINDOW_TYPE_NORMAL =
+      XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("_NET_WM_WINDOW_TYPE_NORMAL"), False);
+    result =
+      XChangeProperty (display_, window_,
+                       _NET_WM_WINDOW_TYPE,
+                       XA_ATOM, 32, PropModeReplace,
+                       (unsigned char*)&_NET_WM_WINDOW_TYPE_NORMAL, 1);
+    ACE_ASSERT (result == True);
+
     // register interest in the delete window message
-    WMDeleteMessage_ = XInternAtom (display_,
-                                    ACE_TEXT_ALWAYS_CHAR ("WM_DELETE_WINDOW"),
-                                    False);
+    WMDeleteMessage_ =
+      XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("WM_DELETE_WINDOW"), False);
     ACE_ASSERT (WMDeleteMessage_);
-    int result = XSetWMProtocols (display_,
-                                  window_,
-                                  &WMDeleteMessage_,
-                                  1);
+    result = XSetWMProtocols (display_,
+                              window_,
+                              &WMDeleteMessage_, 1);
     if (unlikely (!result))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -535,6 +592,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //    goto unlock;
 //  } // end IF
 
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+
   result_2 = XCopyArea (display_,
                         pixmap_, window_,
                         context_,
@@ -577,9 +636,9 @@ unlock:
   if (unlikely (result_2 != True))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to XFlush(0x%@,%u): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to XFlush(0x%@): \"%m\", returning\n"),
                 inherited::mod_->name (),
-                display_, window_));
+                display_));
     return;
   } // end IF
 }
@@ -635,15 +694,15 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
       // sanity check(s)
       unsigned int depth_i =
-          Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat);
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat);
       XWindowAttributes attributes_s = Common_UI_X11_Tools::get (*display_,
                                                                   window_);
       // *NOTE*: otherwise there will be 'BadMatch' errors
       ACE_ASSERT (depth_i == static_cast<unsigned int> (attributes_s.depth));
       // *NOTE*: make sure the data fits inside the window
       Common_UI_Resolution_t resolution_s =
-          Common_UI_X11_Tools::toResolution (*display_,
-                                             window_);
+        Common_UI_X11_Tools::toResolution (*display_,
+                                           window_);
       ACE_ASSERT (resolution_s.width >= resolution_.width && resolution_s.height >= resolution_.height);
       ACE_ASSERT (!pixmap_);
 
@@ -757,9 +816,86 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::toggle"));
 
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+
+  XSizeHints* size_hints_p = XAllocSizeHints ();
+  ACE_ASSERT (size_hints_p);
+
+  long flags_i = 0;
+  Status result = XGetWMNormalHints (display_,
+                                     window_,
+                                     size_hints_p,
+                                     &flags_i);
+  if (unlikely (!result))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to XGetWMNormalHints(%@,%d): \"%m\", returning\n"),
+                inherited::mod_->name (),
+                display_, window_));
+    XFree (size_hints_p);
+    return;
+  } // end IF
+  if (isFullscreen_)
+  {
+    size_hints_p->flags |= PMinSize | PMaxSize;
+    size_hints_p->min_width = size_hints_p->max_width = resolution_.width;
+    size_hints_p->min_height = size_hints_p->max_height = resolution_.height;
+  } // end IF
+  else
+    size_hints_p->flags &= ~(PMinSize | PMaxSize);
+  XSetWMNormalHints (display_, window_, size_hints_p);
+  XFree (size_hints_p); size_hints_p = NULL;
+
+  // result = XLowerWindow (display_, window_);
+  // ACE_ASSERT (result == True);
+  // result = XUnmapWindow (display_, window_);
+  // ACE_ASSERT (result == True);
+  // result = XSync (display_, False);
+  // ACE_ASSERT (result == True);
+
+  Atom atom_i =
+    XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("_NET_WM_STATE_FULLSCREEN"), False);
+  Atom atoms_a[2] = { atom_i, None };
+  atom_i =
+    XInternAtom (display_, ACE_TEXT_ALWAYS_CHAR ("_NET_WM_STATE"), False);
+
+  // if (isFullscreen_)
+  // {
+    XEvent xevent;
+    ACE_OS::memset (&xevent, 0, sizeof (XEvent));
+    xevent.xany.type = ClientMessage;
+    xevent.xclient.message_type = atom_i;
+    xevent.xclient.format = 32;
+    xevent.xclient.window = window_;
+#define _NET_WM_STATE_REMOVE 0l
+#define _NET_WM_STATE_ADD    1l
+    xevent.xclient.data.l[0] =
+      isFullscreen_ ? _NET_WM_STATE_REMOVE : _NET_WM_STATE_ADD;
+    xevent.xclient.data.l[1] = atoms_a[0];
+    xevent.xclient.data.l[2] = 0l;
+    result =
+      XSendEvent (display_,
+                  RootWindow (display_, DefaultScreen (display_)),
+                  0,
+                  SubstructureNotifyMask | SubstructureRedirectMask,
+                  &xevent);
+  // } // end IF
+  // else
+  //   result = XChangeProperty (display_,
+  //                             window_,
+  //                             atom_i,
+  //                             XA_ATOM, 32, PropModeReplace,
+  //                             (unsigned char*)atoms_a, 1);
+  // ACE_ASSERT (result == True);
+  isFullscreen_ = !isFullscreen_;
+
+  // result = XMapWindow (display_, window_);
+  // ACE_ASSERT (result == True);
+  // result = XRaiseWindow (display_, window_);
+  // ACE_ASSERT (result == True);
+
+  result = XFlush (display_);
+  ACE_ASSERT (result == True);
 }
 
 template <ACE_SYNCH_DECL,
@@ -782,7 +918,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::svc"));
 
-  int result = -1;
+  int result;
   int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
@@ -837,10 +973,43 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
       {
         // fprintf (stderr, "KeyPress: %x\n", event.xkey.keycode);
 
-        /* exit on ESC key press */
-        if (XLookupKeysym (&event.xkey, 0) == XK_Escape)
-        // if (event.xkey.keycode == 0x09)
-          this->notify (STREAM_SESSION_MESSAGE_ABORT);
+        KeySym key_sym_i = XLookupKeysym (&event.xkey, 0);
+        switch (key_sym_i)
+        {
+          case XK_Escape:
+          {
+            /* exit on ESC key press */
+            // if (event.xkey.keycode == 0x09)
+            this->notify (STREAM_SESSION_MESSAGE_ABORT);
+            break;
+          }
+          default:
+          {
+            // KeyCode key_code_c = XKeysymToKeycode (display_,
+            //                                        key_sym_i);
+            // switch (key_code_c)
+            char buffer_a[16];
+            ACE_OS::memset (buffer_a, 0, sizeof (char[16]));
+            result = XLookupString (&event.xkey,
+                                    buffer_a, sizeof (char[16]),
+                                    NULL,
+                                    NULL);
+            ACE_ASSERT (result >= 1);
+            switch (buffer_a[0])
+            {
+              case 'F':
+              case 'f':
+              {
+                toggle ();
+                break;
+              }
+              default:
+                break;
+            } // end SWITCH
+
+            break;
+          }
+        } // end SWITCH
       } // end IF
       else if (event.type == KeyRelease)
       {

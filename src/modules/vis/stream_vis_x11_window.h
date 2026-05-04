@@ -106,6 +106,7 @@ class Stream_Module_Vis_X11_Window_T
   GC                        context_;
   int                       depth_; // window-
   struct _XDisplay*         display_;
+  bool                      isFullscreen_;
   Pixmap                    pixmap_;
   Common_Image_Resolution_t resolution_; // window-
   Visual*                   visual_;
