@@ -123,11 +123,11 @@ if (LIBTORCH_SUPPORT)
       test_i_camera_ml_module_libtorch.h
       test_i_camera_ml_module_libtorch.inl)
 endif (LIBTORCH_SUPPORT)
-if (OLC_PGE_SUPPORT)
- set (${EXECUTABLE}_EXE_SRCS
-      ${${EXECUTABLE}_EXE_SRCS}
-      test_i_olc_pge.cpp)
-endif (OLC_PGE_SUPPORT)
+#if (OLC_PGE_SUPPORT)
+# set (${EXECUTABLE}_EXE_SRCS
+#      ${${EXECUTABLE}_EXE_SRCS}
+#      test_i_olc_pge.cpp)
+#endif (OLC_PGE_SUPPORT)
 
 if (MEDIAPIPE_SUPPORT)
  if (UNIX)

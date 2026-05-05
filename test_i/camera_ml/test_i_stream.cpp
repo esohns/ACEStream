@@ -1267,10 +1267,10 @@ Stream_CameraML_Stream::Stream_CameraML_Stream ()
  , tensorflow_cc_ (this,
                    ACE_TEXT_ALWAYS_CHAR (MODULE_ML_TENSORFLOW_DEFAULT_NAME_STRING))
 #endif // TENSORFLOW_CC_SUPPORT
-#if defined (TENSORFLOW_CC_SUPPORT)
+#if defined (LIBTORCH_SUPPORT)
  , libtorch_ (this,
               ACE_TEXT_ALWAYS_CHAR (MODULE_ML_LIBTORCH_DEFAULT_NAME_STRING))
-#endif // TENSORFLOW_CC_SUPPORT
+#endif // LIBTORCH_SUPPORT
 #if defined (GTK_SUPPORT)
  , GTKDisplay_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))

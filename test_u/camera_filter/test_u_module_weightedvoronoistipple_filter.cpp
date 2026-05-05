@@ -78,7 +78,7 @@ Test_U_CameraFilter_WeightedVoronoiStipple_Filter::handleDataMessage (Test_U_Mes
   uint8_t* data_p = reinterpret_cast<uint8_t*> (message_inout->rd_ptr ());
 
   uint8_t r, g, b;
-  int x, y, index, delaunayIndex = 0;
+  int x, y, index/*, delaunayIndex = 0*/;
   float brightness_f/*, weight, maxWeight = 0.0f, sw*/;
   olc::vf2d point_s;
   olc::Pixel color;

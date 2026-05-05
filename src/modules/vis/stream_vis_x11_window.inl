@@ -368,8 +368,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     /* Setup the class hints so we can get an icon (AfterStep) */
     XClassHint* class_hints_p = XAllocClassHint ();
     ACE_ASSERT (class_hints_p);
-    class_hints_p->res_name = ACE_TEXT_ALWAYS_CHAR ("SDL_App");
-    class_hints_p->res_class = ACE_TEXT_ALWAYS_CHAR ("SDL_App");
+    class_hints_p->res_name = const_cast<char*> (ACE_TEXT_ALWAYS_CHAR ("ACEStream_App"));
+    class_hints_p->res_class = const_cast<char*> (ACE_TEXT_ALWAYS_CHAR ("ACEStream_App"));
 
     /* Set the size, input and class hints, and define WM_CLIENT_MACHINE and WM_LOCALE_NAME */
     XSetWMProperties (display_, window_,

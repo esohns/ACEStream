@@ -7090,8 +7090,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_NEW_NORETURN (thread_data_p,
                     struct Test_U_MicVisualize_ThreadData);
   if (thread_data_p)
-    static_cast<struct Test_U_MicVisualize_ThreadData*> (thread_data_p)->CBData =
-      ui_cb_data_p;
+    static_cast<struct Test_U_MicVisualize_ThreadData*> (thread_data_p)->CBData = ui_cb_data_p;
 #endif // ACE_WIN32 || ACE_WIN64
   if (!thread_data_p)
   {
@@ -7124,7 +7123,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #else
   ACE_ASSERT (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH <= BUFSIZ);
   ACE_OS::strncpy (thread_name,
-                   ACE_TEXT (TEST_U_STREAM_THREAD_NAME),
+                   ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME),
                    std::min (static_cast<size_t> (COMMON_THREAD_PTHREAD_NAME_MAX_LENGTH - 1), static_cast<size_t> (ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR (TEST_U_STREAM_THREAD_NAME)))));
 #endif // ACE_WIN32 || ACE_WIN64
   thread_name_2 = thread_name;
@@ -10899,13 +10898,22 @@ continue_:
              SND_PCM_NO_SOFTVOL;
 //   if ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration->asynch)
 //     mode |= SND_PCM_ASYNC;
-  result =
-    snd_pcm_open (&ui_cb_data_p->handle,
-                  (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str (),
-                  SND_PCM_STREAM_CAPTURE,
-                  mode);
+  device_identifier_string =
+    (*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier;
+  bool retried_b = false;
+retry:
+  result = snd_pcm_open (&ui_cb_data_p->handle,
+                         device_identifier_string.c_str (),
+                         SND_PCM_STREAM_CAPTURE,
+                         mode);
   if ((result < 0) || !ui_cb_data_p->handle)
   {
+    if (!retried_b)
+    { retried_b = true;
+      device_identifier_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+      goto retry;
+    } // end IF
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to snd_pcm_open(\"%s\",%d) for capture: \"%s\", aborting\n"),
                 ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
