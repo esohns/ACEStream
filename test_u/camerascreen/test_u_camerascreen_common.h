@@ -590,7 +590,7 @@ struct Stream_CameraScreen_StreamConfiguration
 {
   Stream_CameraScreen_StreamConfiguration ()
    : Stream_Configuration ()
-   , fullscreen (false)
+   // , fullscreen (false)
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
    , useONNX (false)
    , useVideoWall (false)
@@ -598,7 +598,7 @@ struct Stream_CameraScreen_StreamConfiguration
     printFinalReport = true;
   }
 
-  bool                                    fullscreen;
+  // bool                                    fullscreen;
   enum Stream_Visualization_VideoRenderer renderer;
   bool                                    useONNX;
   bool                                    useVideoWall;

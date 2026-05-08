@@ -1332,7 +1332,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
   else
     layout_in->append (&convert_, NULL, 0);
   if (inherited::configuration_->configuration_->renderer == STREAM_VISUALIZATION_VIDEORENDERER_CURSES ||
-      inherited::configuration_->configuration_->fullscreen                                            ||
+      // inherited::configuration_->configuration_->fullscreen                                            ||
       inherited::configuration_->configuration_->useONNX                                               ||
       inherited::configuration_->configuration_->useVideoWall)
     layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
@@ -1366,6 +1366,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
     {
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #if defined (WAYLAND_SUPPORT)
       layout_in->append (&WaylandDisplay_, NULL, 0);
 #endif // WAYLAND_SUPPORT
@@ -1373,6 +1374,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
+      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #if defined (X11_SUPPORT)
       layout_in->append (&X11Display_, NULL, 0);
 #endif // X11_SUPPORT
@@ -1412,11 +1414,14 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   Stream_CameraScreen_V4L_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   Test_U_V4L_SessionManager_t* session_manager_p =
     Test_U_V4L_SessionManager_t::SINGLETON_T::instance ();
 
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
+  ACE_ASSERT (iterator_2 != configuration_in.end ());
   ACE_ASSERT (session_manager_p);
 
   // allocate a new session state, reset stream
@@ -1439,6 +1444,8 @@ Stream_CameraScreen_Stream::initialize (const typename inherited::CONFIGURATION_
   // *TODO*: remove type inferences
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
+
+  (*iterator_2).second.second->resize = this;
 
   // ---------------------------------------------------------------------------
 
@@ -1463,5 +1470,22 @@ error:
       setup_pipeline;
 
   return false;
+}
+
+void
+Stream_CameraScreen_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  (*iterator).second.second->outputFormat.format.width = resolution_in.width;
+  (*iterator).second.second->outputFormat.format.height = resolution_in.height;
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false,
+                     false);
 }
 #endif // ACE_WIN32 || ACE_WIN64

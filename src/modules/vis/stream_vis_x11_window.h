@@ -29,11 +29,12 @@
 #include "common_image_common.h"
 
 #include "common_ui_windowtype_converter.h"
-#include "common_ui_ifullscreen.h"
 
 #include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
+
+#include "stream_vis_base.h"
 
 int libacestream_vis_x11_error_handler_cb (struct _XDisplay*, XErrorEvent*);
 int libacestream_vis_x11_io_error_handler_cb (struct _XDisplay*);
@@ -63,8 +64,8 @@ class Stream_Module_Vis_X11_Window_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+ , public Stream_Visualization_Base
  , public Common_UI_WindowTypeConverter_T<Window>
- , public Common_UI_IFullscreen
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -76,7 +77,8 @@ class Stream_Module_Vis_X11_Window_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
-  typedef Common_UI_WindowTypeConverter_T<Window> inherited3;
+  typedef Stream_Visualization_Base inherited3;
+  typedef Common_UI_WindowTypeConverter_T<Window> inherited4;
 
  public:
   Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T*); // stream handle
@@ -99,6 +101,10 @@ class Stream_Module_Vis_X11_Window_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T (const Stream_Module_Vis_X11_Window_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_X11_Window_T& operator= (const Stream_Module_Vis_X11_Window_T&))
 
+  // helper methods
+  bool makePixmap (const Common_Image_Resolution_t&, // resolution
+                   unsigned int);                    // depth (in bits)
+
   virtual int svc (void);
 
   bool                      closeDisplay_;
@@ -108,9 +114,10 @@ class Stream_Module_Vis_X11_Window_T
   struct _XDisplay*         display_;
   bool                      isFullscreen_;
   Pixmap                    pixmap_;
-  Common_Image_Resolution_t resolution_; // window-
+  Common_Image_Resolution_t resolution_; // current window-
   Visual*                   visual_;
   Window                    window_;
+  Common_Image_Resolution_t windowedResolution_;
   Atom                      WMDeleteMessage_;
 };
 

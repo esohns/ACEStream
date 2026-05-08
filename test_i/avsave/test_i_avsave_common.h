@@ -43,15 +43,6 @@
 
 #include "X11/X.h"
 #undef CursorShape
-//#if defined (FFMPEG_SUPPORT)
-//#ifdef __cplusplus
-//extern "C"
-//{
-//#include "libavcodec/avcodec.h"
-//#include "libavutil/pixfmt.h"
-//}
-//#endif // __cplusplus
-//#endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_SUPPORT)
@@ -113,6 +104,7 @@
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
+#include "stream_vis_iresize.h"
 
 #include "test_i_common.h"
 #include "test_i_configuration.h"
@@ -416,7 +408,7 @@ struct Stream_AVSave_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   //, fullScreen (false)
+   , resize (NULL)
    , sinus (false) // N/A
    , sinusFrequency (0.0) // N/A
    , spectrumAnalyzerConfiguration (NULL)
@@ -427,20 +419,16 @@ struct Stream_AVSave_ModuleHandlerConfiguration
   }
 
 #if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration*               codecConfiguration;
 #endif // FFMPEG_SUPPORT
-  struct Stream_Device_Identifier                   deviceIdentifier; // source module
-  struct Common_UI_DisplayDevice                    display; // display module
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-  // struct Common_UI_Display                          display; // display module
-#endif // ACE_WIN32 || ACE_WIN64
-  //bool                                              fullScreen;
-  bool                                              sinus; // N/A
-  double                                            sinusFrequency; // N/A
+  struct Stream_Device_Identifier                                       deviceIdentifier; // source module
+  struct Common_UI_DisplayDevice                                        display; // display module
+  Stream_Visualization_IResize*                                         resize;
+  bool                                                                  sinus; // N/A
+  double                                                                sinusFrequency; // N/A
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-  std::string                                       targetFileName;
-  struct Common_UI_Window                           window;
+  std::string                                                           targetFileName;
+  struct Common_UI_Window                                               window;
 };
 //extern const char stream_name_string_[];
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

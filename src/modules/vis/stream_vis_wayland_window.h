@@ -28,31 +28,36 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_ui_ifullscreen.h"
+#include "common_ui_windowtype_converter.h"
 
 #include "stream_task_base_asynch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
+#include "stream_vis_base.h"
+
 extern const char libacestream_default_vis_wayland_window_module_name_string[];
 
 struct libacestream_vis_wayland_cb_data
 {
-  struct wl_buffer*         buffer;
-  struct wl_compositor*     compositor;
-  struct wl_display*        display;
-  struct wl_keyboard*       keyboard;
-  Common_Image_Resolution_t resolution;
-  struct wl_seat*           seat;
-  struct wl_shm*            shm;
-  void*                     shm_data;
-  struct wl_surface*        surface;
-  struct xdg_wm_base*       wm_base;
-  struct xkb_context*       xkb_context;
-  struct xkb_keymap*        xkb_keymap;
-  struct xkb_state*         xkb_state;
+  struct wl_buffer*             buffer;
+  struct wl_compositor*         compositor;
+  struct wl_display*            display;
+  struct wl_keyboard*           keyboard;
+  struct wl_seat*               seat;
+  struct wl_shm*                shm;
+  void*                         shm_data;
+  struct wl_surface*            surface;
+  struct xdg_wm_base*           wm_base;
+  struct xkb_context*           xkb_context;
+  struct xkb_keymap*            xkb_keymap;
+  struct xkb_state*             xkb_state;
 
-  bool                      escapeKeyWasPressed;
+  bool                          escapeKeyWasPressed;
+  Common_UI_IFullscreen*        fullscreen;
+  bool                          fullscreenTransition;
+  Stream_Visualization_IResize* resize;
+  Common_Image_Resolution_t     resolution;
 };
 
 void
@@ -74,15 +79,28 @@ extern struct wl_registry_listener libacestream_vis_wayland_registry_listener;
 //////////////////////////////////////////
 
 void
+libacestream_vis_wayland_xdg_toplevel_configure (void*,
+                                                struct xdg_toplevel*,
+                                                int32_t, int32_t,
+                                                struct wl_array*);
+extern struct xdg_toplevel_listener libacestream_vis_wayland_xdg_toplevel_listener;
+
+//////////////////////////////////////////
+
+void
 libacestream_vis_wayland_buffer_release (void*,
                                          struct wl_buffer*);
 extern struct wl_buffer_listener libacestream_vis_wayland_buffer_listener;
+
+//////////////////////////////////////////
 
 void
 libacestream_vis_wayland_xdg_surface_configure (void*,
                                                 struct xdg_surface*,
                                                 uint32_t);
 extern struct xdg_surface_listener libacestream_vis_wayland_xdg_surface_listener;
+
+//////////////////////////////////////////
 
 void
 libacestream_vis_wayland_wl_surface_frame_done (void*,
@@ -113,7 +131,8 @@ class Stream_Module_Vis_Wayland_Window_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
- , public Common_UI_IFullscreen
+ , public Stream_Visualization_Base
+ , public Common_UI_WindowTypeConverter_T<struct wl_surface*>
 {
   typedef Stream_TaskBaseAsynch_T<ACE_SYNCH_USE,
                                   TimePolicyType,
@@ -125,6 +144,8 @@ class Stream_Module_Vis_Wayland_Window_T
                                   enum Stream_SessionMessageType,
                                   struct Stream_UserData> inherited;
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+  typedef Stream_Visualization_Base inherited3;
+  typedef Common_UI_WindowTypeConverter_T<struct wl_surface*> inherited4;
 
  public:
   Stream_Module_Vis_Wayland_Window_T (typename inherited::ISTREAM_T*); // stream handle
@@ -142,6 +163,9 @@ class Stream_Module_Vis_Wayland_Window_T
   // implement Common_UI_IFullscreen
   virtual void toggle ();
 
+  // override (part of) Stream_Visualization_IResize
+  virtual void resize (const Common_Image_Resolution_t&); // resolution
+
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_Wayland_Window_T (const Stream_Module_Vis_Wayland_Window_T&))
@@ -150,11 +174,12 @@ class Stream_Module_Vis_Wayland_Window_T
   virtual int svc (void);
 
   // helper methods
-  bool initialize_2 ();
+  bool initialize_2 (const Common_Image_Resolution_t&); // resolution
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
   unsigned int                            frameSize_;
+  bool                                    isFullscreen_;
   struct xdg_surface*                     shellSurface_;
   struct xdg_toplevel*                    topLevel_;
 };

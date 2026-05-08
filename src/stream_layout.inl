@@ -526,7 +526,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
 //  kptree::print_tree_bracketed (*this, std::cout);
 
-  size_t depth_i = 0, count_i = 0, num_nodes_i = inherited::size ();
+  size_t depth_i = 0, /*count_i = 0,*/ num_nodes_i = inherited::size ();
   ACE_UNUSED_ARG (num_nodes_i);
   std::string indentation_string, tree_layout_string;
   bool is_last_b = false;
@@ -541,28 +541,28 @@ Stream_Layout_T<ACE_SYNCH_USE,
     for (typename inherited::fixed_depth_iterator iterator = inherited::begin_fixed (inherited::begin (), i, false);
          inherited::is_valid (iterator);
 //         iterator != inherited::end_fixed (inherited::begin (), i);
-         ++iterator, ++count_i)
+         ++iterator/*, ++count_i*/)
     {
       tree_layout_string +=
-          ((depth_i < static_cast<size_t> (inherited::depth (iterator))) ? ACE_TEXT_ALWAYS_CHAR ("\n")
-                                                                         : ACE_TEXT_ALWAYS_CHAR (""));
+        ((depth_i < static_cast<size_t> (inherited::depth (iterator))) ? ACE_TEXT_ALWAYS_CHAR ("\n")
+                                                                       : ACE_TEXT_ALWAYS_CHAR (""));
       indentation_string.insert (0, inherited::depth (iterator), '\t');
       tree_layout_string +=
-          ((inherited::depth (iterator) ? ((*iterator == iterator.node->parent->first_child->data) ? indentation_string.c_str ()
-                                                                                                   : ACE_TEXT_ALWAYS_CHAR (""))
-                                        : ACE_TEXT_ALWAYS_CHAR ("")));
+        ((inherited::depth (iterator) ? ((*iterator == iterator.node->parent->first_child->data) ? indentation_string.c_str ()
+                                                                                                 : ACE_TEXT_ALWAYS_CHAR (""))
+                                      : ACE_TEXT_ALWAYS_CHAR ("")));
       indentation_string.clear ();
       tree_layout_string += ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ());
       iterator_s = iterator; ++iterator_s;
       is_last_b =
-          (inherited::depth (iterator) ? (*iterator == iterator.node->parent->last_child->data)
-                                       : !inherited::is_valid (iterator_s));
+        (inherited::depth (iterator) ? (*iterator == iterator.node->parent->last_child->data)
+                                     : !inherited::is_valid (iterator_s));
       tree_layout_string +=
-          (is_last_b ? ((i == 0) ? ACE_TEXT_ALWAYS_CHAR ("")
-                                 : ((i % 2) ? ACE_TEXT_ALWAYS_CHAR ("")
-                                            : ACE_TEXT_ALWAYS_CHAR ("\n")))
-                     : ((i % 2) ? ACE_TEXT_ALWAYS_CHAR (" | ")
-                                : ACE_TEXT_ALWAYS_CHAR (" --> ")));
+        (is_last_b ? ((i == 0) ? ACE_TEXT_ALWAYS_CHAR ("")
+                               : ((i % 2) ? ACE_TEXT_ALWAYS_CHAR ("")
+                                          : ACE_TEXT_ALWAYS_CHAR ("\n")))
+                   : ((i % 2) ? ACE_TEXT_ALWAYS_CHAR (" | ")
+                              : ACE_TEXT_ALWAYS_CHAR (" --> ")));
 
       depth_i = static_cast<size_t> (inherited::depth (iterator));
     } // end FOR

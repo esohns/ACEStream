@@ -53,6 +53,7 @@
 
 #include "stream_vis_common.h"
 #include "stream_vis_defines.h"
+#include "stream_vis_iresize.h"
 
 #include "test_u_common.h"
 
@@ -435,10 +436,10 @@ struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration
   Test_U_CaptureWindow_2_ModuleHandlerConfiguration ()
    : Test_U_CaptureWindow_ModuleHandlerConfiguration ()
    , display ()
-   , fullScreen (false)
 #if defined (FFMPEG_SUPPORT)
    , outputFormat ()
 #endif // FFMPEG_SUPPORT
+   , resize (NULL)
    , subscriber (NULL)
    , subscribers (NULL)
    , surface (NULL)
@@ -446,10 +447,10 @@ struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration
   {}
 
   struct Common_UI_Display                           display;
-  bool                                               fullScreen;
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_VideoMediaType outputFormat;
 #endif // FFMPEG_SUPPORT
+  Stream_Visualization_IResize*                      resize;
   Test_U_ISessionNotify_t*                           subscriber;
   Test_U_Subscribers_t*                              subscribers;
   struct wl_shell_surface*                           surface;

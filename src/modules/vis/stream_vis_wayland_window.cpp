@@ -133,21 +133,38 @@ libacestream_default_vis_wl_keyboard_key (void* data_in,
     static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
   ACE_ASSERT (data_p);
 
-  char buf[128];
+  // char buf[128];
   uint32_t keycode = key_in + 8;
   xkb_keysym_t sym = xkb_state_key_get_one_sym (data_p->xkb_state,
                                                 keycode);
-  if (sym == XKB_KEY_Escape &&
-      state_in == WL_KEYBOARD_KEY_STATE_PRESSED)
-    data_p->escapeKeyWasPressed = true;
-  xkb_keysym_get_name (sym, buf, sizeof (char[128]));
-  const char* action_p =
-    state_in == WL_KEYBOARD_KEY_STATE_PRESSED ? ACE_TEXT_ALWAYS_CHAR ("press")
-                                              : ACE_TEXT_ALWAYS_CHAR ("release");
+  if (state_in == WL_KEYBOARD_KEY_STATE_PRESSED)
+  {
+    switch (sym)
+    {
+      case XKB_KEY_Escape:
+      {
+        data_p->escapeKeyWasPressed = true;
+        break;
+      }
+      case XKB_KEY_F:
+      case XKB_KEY_f:
+      { ACE_ASSERT (data_p->fullscreen);
+        data_p->fullscreen->toggle ();
+        break;
+      }
+      default:
+        break;
+    } // end SWITCH
+  } // end IF
+
+  // xkb_keysym_get_name (sym, buf, sizeof (char[128]));
+  // const char* action_p =
+  //   state_in == WL_KEYBOARD_KEY_STATE_PRESSED ? ACE_TEXT_ALWAYS_CHAR ("press")
+  //                                             : ACE_TEXT_ALWAYS_CHAR ("release");
   // fprintf (stderr, "key %s: sym: %-12s (%d), ", action_p, buf, sym);
-  xkb_state_key_get_utf8 (data_p->xkb_state,
-                          keycode,
-                          buf, sizeof (char[128]));
+  // xkb_state_key_get_utf8 (data_p->xkb_state,
+  //                         keycode,
+  //                         buf, sizeof (char[128]));
   // fprintf (stderr, "utf8: '%s'\n", buf);
 }
 
@@ -315,17 +332,42 @@ void
 libacestream_vis_wayland_buffer_release (void *data_in,
                                          struct wl_buffer* buffer_in)
 {
-  ACE_UNUSED_ARG (buffer_in);
-
   struct libacestream_vis_wayland_cb_data* data_p =
     static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
   ACE_ASSERT (data_p); ACE_UNUSED_ARG (data_p);
+  ACE_UNUSED_ARG (buffer_in);
 
 //  data_p->buffer_busy = false;
 }
 
 struct wl_buffer_listener libacestream_vis_wayland_buffer_listener = {
   .release = libacestream_vis_wayland_buffer_release
+};
+
+void
+libacestream_vis_wayland_xdg_toplevel_configure (void* data_in,
+                                                 struct xdg_toplevel* toplevel_in,
+                                                 int32_t width_in, int32_t height_in,
+                                                 struct wl_array* states_in)
+{
+  struct libacestream_vis_wayland_cb_data* data_p =
+    static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
+  ACE_ASSERT (data_p);
+  ACE_UNUSED_ARG (toplevel_in);
+  ACE_UNUSED_ARG (states_in);
+
+  // If width/height are 0, the compositor is letting the client decide the size
+  if (width_in > 0 && height_in > 0)
+  {
+    data_p->resolution.width = width_in;
+    data_p->resolution.height = height_in;
+
+    data_p->fullscreenTransition = true;
+  } // end IF
+}
+
+struct xdg_toplevel_listener libacestream_vis_wayland_xdg_toplevel_listener = {
+  .configure = libacestream_vis_wayland_xdg_toplevel_configure
 };
 
 void
@@ -339,13 +381,22 @@ libacestream_vis_wayland_xdg_surface_configure (void* data_in,
 //  ACE_ASSERT (data_p->display);
 //  ACE_ASSERT (data_p->surface);
 
-  xdg_surface_ack_configure (surface_in, serial_in);
+  xdg_surface_ack_configure (surface_in,
+                             serial_in);
 
 //  wl_surface_attach (data_p->surface, data_p->buffer, 0, 0);
 //  wl_surface_damage_buffer (data_p->surface,
 //                            0, 0,
 //                            data_p->resolution.width, data_p->resolution.height);
 //  wl_surface_commit (data_p->surface);
+
+  if (unlikely (data_p->fullscreenTransition))
+  {
+    data_p->fullscreenTransition = false;
+
+    ACE_ASSERT (data_p->resize);
+    data_p->resize->resize (data_p->resolution);
+  } // end IF
 }
 
 struct xdg_surface_listener libacestream_vis_wayland_xdg_surface_listener = {

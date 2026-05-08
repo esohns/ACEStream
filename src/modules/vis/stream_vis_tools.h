@@ -30,7 +30,6 @@
 #endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-#include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 
 #include "stream_vis_common.h"

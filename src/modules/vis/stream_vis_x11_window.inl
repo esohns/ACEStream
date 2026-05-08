@@ -55,7 +55,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                MediaType>::Stream_Module_Vis_X11_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
- , inherited3 ()
+ , inherited3 (NULL)
+ , inherited4 ()
  , closeDisplay_ (false)
  , closeWindow_ (false)
  , context_ (NULL)
@@ -66,6 +67,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
  , resolution_ ()
  , visual_ (NULL)
  , window_ (0)
+ , windowedResolution_ ()
  , WMDeleteMessage_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::Stream_Module_Vis_X11_Window_T"));
@@ -228,10 +230,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
     closeDisplay_ = true;
   } // end ELSE
   ACE_ASSERT (display_);
-#if defined (_DEBUG)
-  if (configuration_in.debug)
-    XSync (display_, True);
-#endif // _DEBUG
 
   int count_i = 0;
   int* depths_p = XListDepths (display_, DefaultScreen (display_),
@@ -247,7 +245,7 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   } // end IF
 
   XVisualInfo visual_info_s;
-  window_ = inherited3::convert (configuration_in.window);
+  window_ = inherited4::convert (configuration_in.window);
   if (window_)
   {
     ACE_DEBUG ((LM_DEBUG,
@@ -537,6 +535,10 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (visual_);
   ACE_ASSERT (window_);
 
+  // ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+  if (unlikely (inherited3::resizing_))
+    return; // done
+
   //  bool release_lock = false;
   bool refresh_b = true;
   int result_2 = -1;
@@ -591,8 +593,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 //    refresh_b = false;
 //    goto unlock;
 //  } // end IF
-
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
 
   result_2 = XCopyArea (display_,
                         pixmap_, window_,
@@ -691,45 +691,57 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
                                 media_type_2);
       resolution_.width = media_type_2.format.width;
       resolution_.height = media_type_2.format.height;
+      windowedResolution_ = resolution_;
 
       // sanity check(s)
+      ACE_ASSERT (!pixmap_);
       unsigned int depth_i =
         Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat);
-      XWindowAttributes attributes_s = Common_UI_X11_Tools::get (*display_,
-                                                                  window_);
-      // *NOTE*: otherwise there will be 'BadMatch' errors
-      ACE_ASSERT (depth_i == static_cast<unsigned int> (attributes_s.depth));
-      // *NOTE*: make sure the data fits inside the window
-      Common_UI_Resolution_t resolution_s =
-        Common_UI_X11_Tools::toResolution (*display_,
-                                           window_);
-      ACE_ASSERT (resolution_s.width >= resolution_.width && resolution_s.height >= resolution_.height);
-      ACE_ASSERT (!pixmap_);
-
-      pixmap_ = XCreatePixmap (display_,
-                               window_,
-                               resolution_.width, resolution_.height,
-                               attributes_s.depth);
-      if (unlikely (!pixmap_))
+      if (unlikely (!makePixmap (resolution_,
+                                 depth_i)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to XCreatePixmap(0x%@,%u,%ux%u,%d): \"%m\", aborting\n"),
-                    inherited::mod_->name (),
-                    display_, window_,
-                    resolution_.width, resolution_.height,
-                    attributes_s.depth));
+                    ACE_TEXT ("%s: failed to make pixmap, aborting\n"),
+                    inherited::mod_->name ()));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
-                  inherited::mod_->name (),
-                  resolution_.width, resolution_.height,
-                  attributes_s.depth));
 
       break;
 
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const typename SessionDataContainerType::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      resolution_.width = media_type_s.format.width;
+      resolution_.height = media_type_s.format.height;
+
+      // sanity check(s)
+      unsigned int depth_i =
+        Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat);
+      if (unlikely (!makePixmap (resolution_,
+                                 depth_i)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                   ACE_TEXT ("%s: failed to make pixmap, aborting\n"),
+                   inherited::mod_->name ()));
+        this->notify (STREAM_SESSION_MESSAGE_ABORT);
+        break;
+      } // end IF
+
+      inherited3::resizing_ = false;
 
       break;
     }
@@ -760,7 +772,7 @@ end:
                               pixmap_);
         if (unlikely (!result))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", aborting\n"),
+                      ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", continuing\n"),
                       inherited::mod_->name (),
                       display_, pixmap_));
         pixmap_ = 0;
@@ -816,8 +828,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::toggle"));
 
-  ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-
   XSizeHints* size_hints_p = XAllocSizeHints ();
   ACE_ASSERT (size_hints_p);
 
@@ -838,8 +848,8 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   if (isFullscreen_)
   {
     size_hints_p->flags |= PMinSize | PMaxSize;
-    size_hints_p->min_width = size_hints_p->max_width = resolution_.width;
-    size_hints_p->min_height = size_hints_p->max_height = resolution_.height;
+    size_hints_p->min_width = size_hints_p->max_width = windowedResolution_.width;
+    size_hints_p->min_height = size_hints_p->max_height = windowedResolution_.height;
   } // end IF
   else
     size_hints_p->flags &= ~(PMinSize | PMaxSize);
@@ -887,7 +897,6 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
   //                             XA_ATOM, 32, PropModeReplace,
   //                             (unsigned char*)atoms_a, 1);
   // ACE_ASSERT (result == True);
-  isFullscreen_ = !isFullscreen_;
 
   // result = XMapWindow (display_, window_);
   // ACE_ASSERT (result == True);
@@ -896,6 +905,11 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
   result = XFlush (display_);
   ACE_ASSERT (result == True);
+
+  // result = XSync (display_, False);
+  // ACE_ASSERT (result == True);
+
+  isFullscreen_ = !isFullscreen_;
 }
 
 template <ACE_SYNCH_DECL,
@@ -1000,7 +1014,30 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
               case 'F':
               case 'f':
               {
+                // ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, inherited::lock_, -1);
+
                 toggle ();
+
+                if (inherited::configuration_->resize)
+                {
+                  inherited3::resizing ();
+
+                  ACE_OS::sleep (ACE_Time_Value (1, 0));
+                  Common_UI_Resolution_t resolution_s =
+                    Common_UI_X11_Tools::toResolution (*display_,
+                                                       window_);
+
+                  Common_Image_Resolution_t resolution_2 =
+                    { resolution_s.width, resolution_s.height };
+                  try {
+                    inherited::configuration_->resize->resize (resolution_2);
+                  } catch (...) {
+                    ACE_DEBUG ((LM_ERROR,
+                               ACE_TEXT ("%s: failed to resize, continuing\n"),
+                               inherited::mod_->name ()));
+                  }
+                } // end IF
+
                 break;
               }
               default:
@@ -1025,4 +1062,72 @@ Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
 
 //done:
   return result_2;
+}
+
+template <ACE_SYNCH_DECL,
+         typename TimePolicyType,
+         typename ConfigurationType,
+         typename ControlMessageType,
+         typename DataMessageType,
+         typename SessionMessageType,
+         typename SessionDataContainerType,
+         typename MediaType>
+bool
+Stream_Module_Vis_X11_Window_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               SessionDataContainerType,
+                               MediaType>::makePixmap (const Common_Image_Resolution_t& resolution_in,
+                                                       unsigned int depth_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_X11_Window_T::makePixmap"));
+
+  // sanity check(s)
+  ACE_ASSERT (display_);
+  ACE_ASSERT (window_);
+  if (pixmap_)
+  {
+    Status result = XFreePixmap (display_,
+                                 pixmap_);
+    if (unlikely (result == False))
+      ACE_DEBUG ((LM_ERROR,
+                 ACE_TEXT ("%s: failed to XFreePixmap(%@,%u): \"%m\", contining\n"),
+                 inherited::mod_->name (),
+                 display_, pixmap_));
+    pixmap_ = 0;
+  } // end IF
+
+  XWindowAttributes attributes_s = Common_UI_X11_Tools::get (*display_,
+                                                             window_);
+  // *NOTE*: otherwise there will be 'BadMatch' errors
+  ACE_ASSERT (depth_in == static_cast<unsigned int> (attributes_s.depth));
+  // *NOTE*: make sure the data fits inside the window
+  // Common_UI_Resolution_t resolution_s = Common_UI_X11_Tools::toResolution (*display_,
+  //                                                                          window_);
+  // ACE_ASSERT (resolution_s.width >= resolution_in.width && resolution_s.height >= resolution_in.height);
+
+  pixmap_ = XCreatePixmap (display_,
+                           window_,
+                           resolution_in.width, resolution_in.height,
+                           attributes_s.depth);
+  if (unlikely (!pixmap_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+               ACE_TEXT ("%s: failed to XCreatePixmap(0x%@,%u,%ux%u,%d): \"%m\", aborting\n"),
+               inherited::mod_->name (),
+               display_, window_,
+               resolution_in.width, resolution_in.height,
+               attributes_s.depth));
+    return false;
+  } // end IF
+  ACE_DEBUG ((LM_DEBUG,
+             ACE_TEXT ("%s: allocated %ux%u pixmap (depth: %d bits)\n"),
+             inherited::mod_->name (),
+             resolution_in.width, resolution_in.height,
+             attributes_s.depth));
+
+  return true;
 }

@@ -130,7 +130,15 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::string path = configuration_path;
+  std::string path;
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
   std::string scorer_file = path;
   scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
@@ -166,7 +174,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
-  std::string UI_file = path;
+  std::string UI_file = configuration_path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
@@ -175,7 +183,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif // GTK_SUPPORT || WXWIDGETS_SUPPORT
 #if defined (GTK_SUPPORT)
-  std::string UI_style_file = path;
+  std::string UI_style_file = configuration_path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_CSS_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i[[STRING]]: UI CSS file [\"")
@@ -281,7 +289,15 @@ do_processArguments (int argc_in,
                                                       true); // configuration-
 
   // initialize results
-  scorerFile_out = configuration_path;
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
+  scorerFile_out = path;
   scorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   scorerFile_out +=
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
@@ -295,7 +311,7 @@ do_processArguments (int argc_in,
     deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   gain_out = 0.0;
-  modelFile_out = configuration_path;
+  modelFile_out = path;
   modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
   UIFile_out = configuration_path;
@@ -308,7 +324,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
+  path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
@@ -2447,7 +2463,14 @@ ACE_TMAIN (int argc_in,
     Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
                                                       true); // configuration-
-  std::string path = configuration_path;
+  const char* lib_root_p =
+      ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
 
   // step1a set defaults
   std::string scorer_file = path;
@@ -2466,7 +2489,7 @@ ACE_TMAIN (int argc_in,
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
-  std::string UI_definition_file = path;
+  std::string UI_definition_file = configuration_path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)

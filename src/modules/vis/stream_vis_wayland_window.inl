@@ -46,9 +46,13 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                    SessionDataContainerType,
                                    MediaType>::Stream_Module_Vis_Wayland_Window_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , inherited2 ()
+ , inherited3 (NULL)
+ , inherited4 ()
  , cbData_ ()
  , closeDisplay_ (false)
  , frameSize_ (0)
+ , isFullscreen_ (false)
  , shellSurface_ (NULL)
  , topLevel_ (NULL)
 {
@@ -132,6 +136,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (cbData_.shm_data);
   ACE_ASSERT (cbData_.surface);
 
+  if (unlikely (inherited3::resizing_))
+    return; // done
+
   ACE_OS::memcpy (cbData_.shm_data,
                   message_inout->rd_ptr (),
                   message_inout->length ());
@@ -140,17 +147,6 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                      0, 0,
                      cbData_.resolution.width, cbData_.resolution.height);
   wl_display_flush (cbData_.display);
-
-  if (unlikely (cbData_.escapeKeyWasPressed))
-  {
-    cbData_.escapeKeyWasPressed = false;
-    goto done;
-  } // end IF
-
-  return;
-
-done:
-  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -195,7 +191,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       const MediaType& media_type_r = session_data_r.formats.back ();
       cbData_.resolution = inherited2::getResolution (media_type_r);
 
-      if (unlikely (!initialize_2 ()))
+      if (unlikely (!initialize_2 (cbData_.resolution)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize frame buffer, aborting\n"),
@@ -207,6 +203,29 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
 error:
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_RESIZE:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
+      const typename SessionDataContainerType::DATA_T& session_data_r =
+        inherited::sessionData_->getR ();
+      ACE_ASSERT (!session_data_r.formats.empty ());
+      const MediaType& media_type_r = session_data_r.formats.back ();
+      cbData_.resolution = inherited2::getResolution (media_type_r);
+
+      if (unlikely (!initialize_2 (cbData_.resolution)))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                   ACE_TEXT ("%s: failed to initialize frame buffer, aborting\n"),
+                   inherited::mod_->name ()));
+        this->notify (STREAM_SESSION_MESSAGE_ABORT);
+        break;
+      } // end IF
+
+      inherited3::resizing_ = false;
 
       break;
     }
@@ -298,9 +317,57 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::toggle"));
 
-  ACE_ASSERT (false); // *TODO*
-  ACE_NOTSUP;
-  ACE_NOTREACHED (return;)
+  // sanity check(s)
+  ACE_ASSERT (topLevel_);
+
+  if (isFullscreen_)
+  {
+    xdg_toplevel_unset_fullscreen (topLevel_);
+  } // end IF
+  else
+  {
+    xdg_toplevel_set_fullscreen (topLevel_,
+                                 NULL);
+  } // end ELSE
+
+  isFullscreen_ = !isFullscreen_;
+}
+
+template <ACE_SYNCH_DECL,
+         typename TimePolicyType,
+         typename ConfigurationType,
+         typename ControlMessageType,
+         typename DataMessageType,
+         typename SessionMessageType,
+         typename SessionDataContainerType,
+         typename MediaType>
+void
+Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
+                                   TimePolicyType,
+                                   ConfigurationType,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   SessionDataContainerType,
+                                   MediaType>::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::resize"));
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
+  if (inherited::configuration_->resize)
+  {
+    inherited3::resizing ();
+
+    try {
+      inherited::configuration_->resize->resize (resolution_in);
+    } catch (...) {
+      ACE_DEBUG ((LM_ERROR,
+                 ACE_TEXT ("%s: failed to resize, continuing\n"),
+                 inherited::mod_->name ()));
+    }
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -488,6 +555,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //  wl_shell_surface_set_toplevel (shellSurface_);
   topLevel_ = xdg_surface_get_toplevel (shellSurface_);
   ACE_ASSERT (topLevel_);
+  xdg_toplevel_add_listener (topLevel_,
+                             &libacestream_vis_wayland_xdg_toplevel_listener,
+                             &cbData_);
+
   xdg_toplevel_set_title (topLevel_,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING));
   ACE_ASSERT (topLevel_);
@@ -499,6 +570,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   cbData_.xkb_context = xkb_context_new (XKB_CONTEXT_NO_FLAGS);
   ACE_ASSERT (cbData_.xkb_context);
+
+  cbData_.fullscreen = this;
+  cbData_.resize = this;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -520,7 +594,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataContainerType,
-                                   MediaType>::initialize_2 ()
+                                   MediaType>::initialize_2 (const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::initialize_2"));
 
@@ -529,32 +603,23 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::sessionData_);
   ACE_ASSERT (cbData_.shm);
   ACE_ASSERT (cbData_.surface);
+  if (cbData_.shm_data)
+  {
+    ACE_OS::munmap (cbData_.shm_data, static_cast<size_t> (frameSize_)); cbData_.shm_data = NULL;
+  } // end IF
 
-  //struct Common_UI_DisplayDevice display_device =
-  //  Common_UI_Tools::getDisplay (inherited::configuration_->display.device); // device identifier
-//  int x =
-//      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.x
-//                                             : 0);
-//  int y =
-//      (inherited::configuration_->fullScreen ? inherited::configuration_->display.clippingArea.y
-//                                             : 0);
-  unsigned int width_i =
-    /*(inherited::configuration_->fullScreen ? display_device.clippingArea.width
-                                           : */cbData_.resolution.width/*)*/;
-  unsigned int height_i =
-    /*(inherited::configuration_->fullScreen ? display_device.clippingArea.height
-                                           : */cbData_.resolution.height/*)*/;
+  unsigned int width_i = resolution_in.width;
+  unsigned int height_i = resolution_in.height;
 
   const typename SessionDataContainerType::DATA_T& session_data_r =
     inherited::sessionData_->getR ();
   ACE_ASSERT (!session_data_r.formats.empty ());
-  const MediaType& media_type_r = session_data_r.formats.back ();
-  struct Stream_MediaFramework_V4L_MediaType media_type_2;
-  inherited2::getMediaType (media_type_r,
+  struct Stream_MediaFramework_V4L_MediaType media_type_s;
+  inherited2::getMediaType (session_data_r.formats.back (),
                             STREAM_MEDIATYPE_VIDEO,
-                            media_type_2);
+                            media_type_s);
   unsigned int depth_i =
-    Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_2.format.pixelformat) / 8;
+    Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) / 8;
   int stride_i = width_i * depth_i;
   frameSize_ = stride_i * height_i;
 
@@ -607,9 +672,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     ACE_OS::close (fd);
     return false;
   } // end IF
-  ACE_OS::memset (cbData_.shm_data, 0, frameSize_);
 
-  struct wl_shm_pool* pool_p = wl_shm_create_pool (cbData_.shm, fd, frameSize_);
+  struct wl_shm_pool* pool_p = wl_shm_create_pool (cbData_.shm,
+                                                   fd,
+                                                   frameSize_);
   ACE_ASSERT (pool_p);
   cbData_.buffer =
     wl_shm_pool_create_buffer (pool_p,
@@ -631,7 +697,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 //                          &libacestream_vis_wayland_buffer_listener,
 //                          &cbData_);
 
-  wl_surface_attach (cbData_.surface, cbData_.buffer, 0, 0);
+  wl_surface_attach (cbData_.surface,
+                     cbData_.buffer,
+                     0,
+                     0);
   wl_surface_commit (cbData_.surface);
 
   return true;
@@ -699,6 +768,13 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
         break;
       } // end IF
     } // end ELSE IF
+
+    // session end ?
+    if (unlikely (cbData_.escapeKeyWasPressed))
+    {
+      cbData_.escapeKeyWasPressed = false;
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+    } // end IF
 
     // session end complete ?
     if (unlikely (!cbData_.display))

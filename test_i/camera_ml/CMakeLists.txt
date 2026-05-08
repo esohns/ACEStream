@@ -635,27 +635,23 @@ if (MEDIAPIPE_SUPPORT)
                           ENVIRONMENT ${ENVIRONMENT})
 
   # Mediapipe Modules
-#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-#                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
-#                      COMMENT "Copying mediapipe/modules"
-#  )
+  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
+                      COMMENT "Copying mediapipe/modules")
   # additional file(s)
-#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-#                      COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
-#                      COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt"
-#  )
+  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
+                      COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
   # Mediapipe Models
-#  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-#                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
-#                      COMMENT "Copying mediapipe/models"
-#  )
+  add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
+                      COMMENT "Copying mediapipe/models")
 
-#  if (WIN32)
-#   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-#                       COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>"
-#                       COMMENT "Copying OpenCV DLL (Release)"
-#   )
-#  endif (WIN32)
+  if (WIN32)
+   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>"
+                       COMMENT "Copying OpenCV DLL (Release)")
+  endif (WIN32)
  endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
