@@ -64,6 +64,9 @@
 #include "stream_misc_distributor.h"
 
 #include "stream_vis_console_audio.h"
+#if defined (GTK_SUPPORT)
+#include "stream_vis_gtk_cairo_spectrum_analyzer.h"
+#endif // GTK_SUPPORT
 
 #include "test_i_common.h"
 
@@ -370,6 +373,27 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,              
                               libacestream_default_vis_console_audio_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_ConsoleVUMeter_2);                                  // writer type
+
+#if defined (GTK_SUPPORT)
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                                          Stream_ControlMessage_t,
+                                                          Test_I_Stream_Message,
+                                                          Test_I_Stream_SessionMessage,
+                                                          struct Test_I_MP3Player_SessionData,
+                                                          Test_I_MP3Player_SessionData_t,
+                                                          Common_Timer_Manager_t,
+                                                          struct _AMMediaType,
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Test_I_GtkCairoSpectrumAnalyzer;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                          // session data type
+                             enum Stream_SessionMessageType,                                // session event type
+                             struct Test_I_MP3Player_ModuleHandlerConfiguration,            // module handler configuration type
+                             libacestream_default_vis_spectrum_analyzer_module_name_string,
+                             Stream_INotify_t,                                              // stream notification interface type
+                             Test_I_GtkCairoSpectrumAnalyzer);                              // writer type
+#endif // GTK_SUPPORT
 #else
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,
@@ -416,6 +440,27 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,              
                               libacestream_default_vis_console_audio_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_I_ConsoleVUMeter_2);                                  // writer type
+
+#if defined (GTK_SUPPORT)
+typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
+                                                          Common_TimePolicy_t,
+                                                          struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                                          Stream_ControlMessage_t,
+                                                          Test_I_Stream_Message,
+                                                          Test_I_Stream_SessionMessage,
+                                                          struct Test_I_MP3Player_SessionData,
+                                                          Test_I_MP3Player_SessionData_t,
+                                                          Common_Timer_Manager_t,
+                                                          struct Stream_MediaFramework_ALSA_MediaType,
+                                                          float,
+                                                          FFT_ALGORITHM_UNKNOWN> Test_I_GtkCairoSpectrumAnalyzer;
+DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,                          // session data type
+                             enum Stream_SessionMessageType,                                // session event type
+                             struct Test_I_MP3Player_ModuleHandlerConfiguration,            // module handler configuration type
+                             libacestream_default_vis_spectrum_analyzer_module_name_string,
+                             Stream_INotify_t,                                              // stream notification interface type
+                             Test_I_GtkCairoSpectrumAnalyzer);                              // writer type
+#endif // GTK_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 //typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,

@@ -35,17 +35,27 @@ acestream_visualization_gtk_cairo_draw_cb (GtkWidget* widget_in,
   STREAM_TRACE (ACE_TEXT ("::acestream_visualization_gtk_cairo_draw_cb"));
 
   ACE_UNUSED_ARG (widget_in);
-  ACE_ASSERT (context_in);
 
   // sanity check(s)
+  ACE_ASSERT (context_in);
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
     static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
   ACE_ASSERT (cbdata_p);
-  if (cbdata_p->context != context_in)
+#if GTK_CHECK_VERSION (4,0,0)
+#elif GTK_CHECK_VERSION (3,22,0)
+#elif GTK_CHECK_VERSION (3,10,0)
+  if (unlikely (cbdata_p->context != context_in))
   {
     //cairo_destroy (cbdata_p->context);
     cbdata_p->context = context_in;
   } // end IF
+#else
+  if (unlikely (cbdata_p->context != context_in))
+  {
+    //cairo_destroy (cbdata_p->context);
+    cbdata_p->context = context_in;
+  } // end IF
+#endif // GTK_CHECK_VERSION ()
   ACE_ASSERT (cbdata_p->dispatch);
 
   try {

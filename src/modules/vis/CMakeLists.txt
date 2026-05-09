@@ -268,10 +268,35 @@ if (UNIX)
  if (WAYLAND_SUPPORT)
   set (source_files
        ${source_files}
-       include/xdg-shell.cpp
        stream_vis_wayland_window.cpp
        stream_vis_wayland_window.h
        stream_vis_wayland_window.inl)
+
+  find_package (ECM REQUIRED NO_MODULE)
+  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${ECM_MODULE_PATH}")
+
+  execute_process (COMMAND pkg-config wayland-protocols --variable=pkgdatadir
+                   OUTPUT_VARIABLE WAYLAND_PROTOCOLS_DIR
+                   OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  find_package (WaylandScanner REQUIRED)
+  ecm_add_wayland_client_protocol (source_files_xdg
+                                   PROTOCOL ${WAYLAND_PROTOCOLS_DIR}/stable/xdg-shell/xdg-shell.xml
+                                   BASENAME xdg-shell)
+  ecm_add_wayland_client_protocol (source_files_xdg_2
+                                   PROTOCOL ${WAYLAND_PROTOCOLS_DIR}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml
+                                   BASENAME xdg-decoration)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+#  set (source_files_xdg
+#       include/wayland-xdg-decoration-protocol.c
+#       include/wayland-xdg-decoration-client-protocol.h
+#       include/wayland-xdg-shell-protocol.c
+#       include/wayland-xdg-shell-client-protocol.h)
+#  set_source_files_properties (include/wayland-xdg-decoration-protocol.c PROPERTIES LANGUAGE C)
+#  set_source_files_properties (include/wayland-xdg-shell-protocol.c PROPERTIES LANGUAGE C)
+  add_library (${PROJECT_NAME}_Visualization_Wayland OBJECT ${source_files_xdg} ${source_files_xdg_2})
+  set_property (TARGET ${PROJECT_NAME}_Visualization_Wayland PROPERTY FOLDER "modules")
  endif (WAYLAND_SUPPORT)
  if (X11_SUPPORT)
   set (source_files
@@ -326,7 +351,7 @@ target_sources (${PROJECT_NAME}_Visualization
                 PRIVATE ${absolute_source_files})
 
 target_precompile_headers (${PROJECT_NAME}_Visualization
-                           PUBLIC stdafx.h)
+                           PRIVATE stdafx.h)
 
 set_property (TARGET ${PROJECT_NAME}_Visualization PROPERTY FOLDER "modules")
 
@@ -341,6 +366,9 @@ add_dependencies (${PROJECT_NAME}_Visualization ${PROJECT_NAME})
 if (OPENGL_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENGL_LIBRARIES})
 endif (OPENGL_SUPPORT)
+if (GLUT_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${GLUT_LIBRARIES})
+endif (GLUT_SUPPORT)
 if (FFTW_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${FFTW_LIBRARIES})
 endif (FFTW_SUPPORT)
@@ -362,6 +390,7 @@ endif (OPENCV_SUPPORT)
 if (UNIX)
  if (WAYLAND_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${WAYLAND_LIBRARIES})
+  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME}_Visualization_Wayland)
  endif (WAYLAND_SUPPORT)
  if (X11_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${X11_LIBRARIES})
@@ -389,6 +418,10 @@ endif (OPENGL_SUPPORT)
 target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECT_NAME})
 
 # add all targets to the build-tree export set
+if (WAYLAND_SUPPORT)
+ export (TARGETS ${PROJECT_NAME}_Visualization_Wayland
+         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
+endif (WAYLAND_SUPPORT)
 export (TARGETS ${PROJECT_NAME}_Visualization
         APPEND FILE "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Targets.cmake")
 
@@ -490,6 +523,13 @@ install (FILES
          ${header_files}
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
+if (WAYLAND_SUPPORT)
+ install (TARGETS ${PROJECT_NAME}_Visualization_Wayland
+          EXPORT ${PROJECT_NAME}Targets
+          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+          LIBRARY DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib
+          RUNTIME DESTINATION "${INSTALL_BIN_DIR}" COMPONENT mod_lib)
+endif (WAYLAND_SUPPORT)
 install (TARGETS ${PROJECT_NAME}_Visualization
          EXPORT ${PROJECT_NAME}Targets
          ARCHIVE DESTINATION "${INSTALL_LIB_DIR}" COMPONENT mod_lib

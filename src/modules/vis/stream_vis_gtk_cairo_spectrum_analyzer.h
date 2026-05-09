@@ -179,6 +179,9 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   // override ACE_Task_Base members
   virtual int svc (void);
 
+  // override Common_INotify
+  inline virtual void notify () { /*inherited::notify (STREAM_SESSION_MESSAGE_ABORT);*/ }
+
 #if GTK_CHECK_VERSION (4,0,0)
   bool initialize_Cairo (GdkSurface*, // target window
 #else
@@ -195,6 +198,8 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #if GTK_CHECK_VERSION (3,22,0)
   cairo_region_t*                                    cairoRegion_;
 #endif // GTK_CHECK_VERSION (3,22,0)
+  guint                                              idleUpdate_;
+
   double                                             scaleFactorX_;
   double                                             scaleFactorX_2;
   double                                             scaleFactorY_;

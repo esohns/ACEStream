@@ -66,6 +66,7 @@ class Test_U_DirectShow_Stream
                         Test_U_DirectShow_Message_t,
                         Test_U_DirectShow_SessionMessage_t,
                         struct Stream_UserData>
+ , public Stream_Visualization_IResize
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -93,6 +94,10 @@ class Test_U_DirectShow_Stream
 
   // implement Common_IInitialize_T
   virtual bool initialize (const inherited::CONFIGURATION_T&); // configuration
+
+  // implement Stream_Visualization_IResize
+  virtual void resize (const Common_Image_Resolution_t&); // new resolution
+  inline virtual void resizing () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_DirectShow_Stream (const Test_U_DirectShow_Stream&))
@@ -228,6 +233,7 @@ class Test_U_Stream
                         Test_U_Message_t,
                         Test_U_SessionMessage_t,
                         struct Stream_UserData>
+ , public Stream_Visualization_IResize
 {
   typedef Stream_Base_T<ACE_MT_SYNCH,
                         Common_TimePolicy_t,
@@ -255,6 +261,10 @@ class Test_U_Stream
 
   // implement Common_IInitialize_T
   virtual bool initialize (const typename inherited::CONFIGURATION_T&); // configuration
+
+  // implement Stream_Visualization_IResize
+  virtual void resize (const Common_Image_Resolution_t&); // new resolution
+  inline virtual void resizing () { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_U_Stream (const Test_U_Stream&))

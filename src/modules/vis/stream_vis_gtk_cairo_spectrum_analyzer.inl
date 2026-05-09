@@ -82,6 +82,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 #if GTK_CHECK_VERSION (3,22,0)
  , cairoRegion_ (NULL)
 #endif // GTK_CHECK_VERSION (3,22,0)
+ , idleUpdate_ (0)
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
  , scaleFactorY_ (0.0)
@@ -195,8 +196,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     if (unlikely (CBData_.context))
       cairo_destroy (CBData_.context);
     ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
-
     channelFactor_ = 0.0;
+    idleUpdate_ = 0;
     scaleFactorX_ = 0.0;
     scaleFactorX_2 = 0.0;
     scaleFactorY_ = 0.0;
@@ -791,27 +792,11 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      //if (likely (renderHandlerTimerId_ != -1))
-      //{
-      //  typename TimerManagerType::INTERFACE_T* itimer_manager_p =
-      //      (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-      //                                               : TIMER_MANAGER_SINGLETON_T::instance ());
-      //  ACE_ASSERT (itimer_manager_p);
-      //  const void* act_p = NULL;
-      //  result = itimer_manager_p->cancel_timer (renderHandlerTimerId_,
-      //                                           &act_p);
-      //  if (unlikely (result <= 0))
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: failed to Common_ITimer::cancel_timer(%d): \"%m\", continuing\n"),
-      //                inherited::mod_->name (),
-      //                renderHandlerTimerId_));
-      //  else
-      //    ACE_DEBUG ((LM_DEBUG,
-      //                ACE_TEXT ("%s: cancelled renderer dispatch (timer id: %d)\n"),
-      //                inherited::mod_->name (),
-      //                renderHandlerTimerId_));
-      //  renderHandlerTimerId_ = -1;
-      //} // end IF
+      if (idleUpdate_)
+      {
+        g_source_remove (idleUpdate_);
+        idleUpdate_ = 0;
+      } // end IF
 
       if (inherited::window_)
       {
@@ -994,9 +979,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
                         &CBData_);
     ACE_ASSERT (result_3);
 
-    g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
-                   acestream_visualization_gtk_cairo_idle_update_cb,
-                   &CBData_);
+    idleUpdate_ = g_timeout_add (COMMON_UI_REFRESH_DEFAULT_VIDEO_MS,
+                                 acestream_visualization_gtk_cairo_idle_update_cb,
+                                 &CBData_);
 #if GTK_CHECK_VERSION (3,6,0)
 #else
     gdk_threads_leave ();
@@ -1283,7 +1268,6 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   struct acestream_visualization_gtk_cairo_cbdata* cbdata_p =
     static_cast<struct acestream_visualization_gtk_cairo_cbdata*> (userData_in);
   ACE_ASSERT (cbdata_p);
-  ACE_ASSERT (cbdata_p->context);
   ACE_ASSERT (cbdata_p->window);
 
   cairo_t* context_p = NULL;
@@ -1301,6 +1285,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (drawing_context_p);
   context_p = gdk_drawing_context_get_cairo_context (drawing_context_p);
 #elif GTK_CHECK_VERSION (3,10,0)
+  ACE_ASSERT (cbdata_p->context);
   cairo_surface_t* surface_p = NULL;
   context_p = cbdata_p->context;
 #else
@@ -1311,7 +1296,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
    ACE_ASSERT (cbdata_p->context);                              \
    cairo_set_line_width (cbdata_p->context, 1.0);               \
  } // end IF*/
-
+  ACE_ASSERT (cbdata_p->context);
   context_p = cbdata_p->context;
 #endif // GTK_CHECK_VERSION ()
   ACE_ASSERT (context_p);

@@ -101,32 +101,35 @@ class Test_I_Stream
   void ping ();
 
   // modules
-  Test_I_FileSource_Module        FileSource_;
+  Test_I_FileSource_Module               FileSource_;
 #if defined (MPG123_SUPPORT)
-  Test_I_MP3Decoder_Module        Mp3Source_;
+  Test_I_MP3Decoder_Module               Mp3Source_;
 #endif // MPG123_SUPPORT
 #if defined (FFMPEG_SUPPORT)
-  Test_I_LibAVAudioDecoder_Module FfmpegDecoder_;
+  Test_I_LibAVAudioDecoder_Module        FfmpegDecoder_;
 #endif // FFMPEG_SUPPORT
 #if defined (FAAD_SUPPORT)
-  Test_I_AACDecoder_Module        FaadDecoder_;
+  Test_I_AACDecoder_Module               FaadDecoder_;
 #endif // FAAD_SUPPORT
-  Test_I_StatisticReport_Module   statisticReport_;
-  Test_I_Distributor_Module       distributor_;
-  Test_I_Delay_Module             delay_;
-  Test_I_ConsoleVUMeter_Module    consoleVUMeter_;
-  Test_I_ConsoleVUMeter_2_Module  consoleVUMeter_2_;
+  Test_I_StatisticReport_Module          statisticReport_;
+  Test_I_Distributor_Module              distributor_;
+  Test_I_Delay_Module                    delay_;
+  Test_I_ConsoleVUMeter_Module           consoleVUMeter_;
+  Test_I_ConsoleVUMeter_2_Module         consoleVUMeter_2_;
+#if defined (GTK_SUPPORT)
+  Test_I_GtkCairoSpectrumAnalyzer_Module spectrumAnalyzer_;
+#endif // GTK_SUPPORT
 #if defined (SOX_SUPPORT)
-  Test_I_SoXResampler_Module      SoXResampler_;
+  Test_I_SoXResampler_Module             SoXResampler_;
 #endif // SOX_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_WavOutPlayer_Module      waveOutPlayer_;
-  Test_I_WASAPIPlayer_Module      WASAPIPlayer_;
-  Test_I_XAudio2Player_Module     xaudio2Player_;
+  Test_I_WavOutPlayer_Module             waveOutPlayer_;
+  Test_I_WASAPIPlayer_Module             WASAPIPlayer_;
+  Test_I_XAudio2Player_Module            xaudio2Player_;
 #else
-  Test_I_ALSAPlayer_Module        ALSAPlayer_;
+  Test_I_ALSAPlayer_Module               ALSAPlayer_;
 #if defined (LIBPIPEWIRE_SUPPORT)
-  Test_I_PipewirePlayer_Module    PipewirePlayer_;
+  Test_I_PipewirePlayer_Module           PipewirePlayer_;
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   // Test_I_WAVEncoder_Module      WAVEncoder_;

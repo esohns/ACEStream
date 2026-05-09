@@ -259,10 +259,9 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
     static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
   ACE_ASSERT (data_p);
 
-//  printf ("Got a registry event for %s id %d\n", interface_in, id_in);
+  fprintf (stderr, "Got a registry event for %s id %d\n", interface_in, id_in);
 
-  if (!ACE_OS::strcmp (interface_in,
-                       ACE_TEXT_ALWAYS_CHAR (wl_compositor_interface.name)))
+  if (!ACE_OS::strcmp (interface_in, wl_compositor_interface.name))
     data_p->compositor =
       static_cast<struct wl_compositor*> (wl_registry_bind (registry_in,
                                                             id_in,
@@ -274,8 +273,7 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
 //                                                       id_in,
 //                                                       &wl_shell_interface,
 //                                                       1));
-  else if (!ACE_OS::strcmp (interface_in,
-                            ACE_TEXT_ALWAYS_CHAR (wl_seat_interface.name)))
+  else if (!ACE_OS::strcmp (interface_in, wl_seat_interface.name))
   {
     data_p->seat =
       static_cast<struct wl_seat*> (wl_registry_bind (registry_in,
@@ -286,15 +284,13 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                           &libacestream_default_vis_wl_seat_listener,
                           data_in);
   } // end ELSE IF
-  else if (!ACE_OS::strcmp (interface_in,
-                            ACE_TEXT_ALWAYS_CHAR (wl_shm_interface.name)))
+  else if (!ACE_OS::strcmp (interface_in, wl_shm_interface.name))
     data_p->shm =
       static_cast<struct wl_shm*> (wl_registry_bind (registry_in,
                                                      id_in,
                                                      &wl_shm_interface,
                                                      1));
-  else if (!ACE_OS::strcmp (interface_in,
-                            ACE_TEXT_ALWAYS_CHAR (xdg_wm_base_interface.name)))
+  else if (!ACE_OS::strcmp (interface_in, xdg_wm_base_interface.name))
   {
     data_p->wm_base =
       static_cast<struct xdg_wm_base*> (wl_registry_bind (registry_in,
@@ -304,6 +300,14 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
     xdg_wm_base_add_listener (data_p->wm_base,
                               &libacestream_default_vis_xdg_wm_base_listener,
                               data_in);
+  } // end ELSE IF
+  else if (!ACE_OS::strcmp (interface_in, zxdg_decoration_manager_v1_interface.name))
+  {
+    data_p->decoration_manager =
+      static_cast<struct zxdg_decoration_manager_v1*> (wl_registry_bind (registry_in,
+                                                                         id_in,
+                                                                         &zxdg_decoration_manager_v1_interface,
+                                                                         1));
   } // end ELSE IF
 }
 
@@ -344,6 +348,26 @@ struct wl_buffer_listener libacestream_vis_wayland_buffer_listener = {
   .release = libacestream_vis_wayland_buffer_release
 };
 
+//////////////////////////////////////////
+
+void
+libacestream_vis_wayland_xdg_decoration_configure (void* data_in,
+                                                   struct zxdg_toplevel_decoration_v1* decoration_in,
+                                                   uint32_t mode_in)
+{
+  struct libacestream_vis_wayland_cb_data* data_p =
+      static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
+  ACE_ASSERT (data_p);
+  ACE_UNUSED_ARG (decoration_in);
+  ACE_UNUSED_ARG (mode_in);
+}
+
+struct zxdg_toplevel_decoration_v1_listener libacestream_vis_wayland_decoration_listener = {
+  .configure = libacestream_vis_wayland_xdg_decoration_configure
+};
+
+//////////////////////////////////////////
+
 void
 libacestream_vis_wayland_xdg_toplevel_configure (void* data_in,
                                                  struct xdg_toplevel* toplevel_in,
@@ -361,14 +385,14 @@ libacestream_vis_wayland_xdg_toplevel_configure (void* data_in,
   {
     data_p->resolution.width = width_in;
     data_p->resolution.height = height_in;
-
-    data_p->fullscreenTransition = true;
   } // end IF
 }
 
 struct xdg_toplevel_listener libacestream_vis_wayland_xdg_toplevel_listener = {
   .configure = libacestream_vis_wayland_xdg_toplevel_configure
 };
+
+//////////////////////////////////////////
 
 void
 libacestream_vis_wayland_xdg_surface_configure (void* data_in,

@@ -252,7 +252,6 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   bool setup_pipeline = configuration_in.configuration_->setupPipeline;
   bool reset_setup_pipeline = false;
   Test_U_MP4Player_DirectShow_SessionData* session_data_p = NULL;
-  inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
   Test_U_DirectShow_LibAVSource* source_impl_p = NULL;
   bool COM_initialized = false;
   HRESULT result_2 = E_FAIL;
@@ -260,15 +259,13 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   std::string log_file_name;
   Test_U_DirectShow_SessionManager_t* session_manager_p =
     Test_U_DirectShow_SessionManager_t::SINGLETON_T::instance ();
-
-  iterator =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  iterator_2 =
-    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
-  // sanity check(s)
-  ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
-  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (session_manager_p);
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
+  inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
+    const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
+  ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
 
   // ---------------------------------------------------------------------------
   // step1: set up directshow filter graph
@@ -577,6 +574,8 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
   //session_data_p->formats.push_back (media_type_s);
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
 
+  (*iterator_2).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
   // step6: initialize head module
   //source_impl_p->setP (&(inherited::state_));
@@ -628,6 +627,23 @@ error:
     CoUninitialize ();
 
   return false;
+}
+
+void
+Test_U_DirectShow_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  (*iterator).second.second->outputFormat.video.resolution.width = resolution_in.width;
+  (*iterator).second.second->outputFormat.video.resolution.height = resolution_in.height;
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false, // recurse upstream ?
+                     true); // expedite ?
 }
 
 //////////////////////////////////////////
@@ -690,7 +706,7 @@ Test_U_MediaFoundation_Stream::start ()
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::start"));
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (mediaSession_);
 
   struct _GUID GUID_s = GUID_NULL;
@@ -719,19 +735,19 @@ Test_U_MediaFoundation_Stream::start ()
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     return;
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   inherited::start ();
 }
 
 void
 Test_U_MediaFoundation_Stream::stop (bool waitForCompletion_in,
-                                                  bool recurseUpstream_in,
-                                                  bool highPriority_in)
+                                     bool recurseUpstream_in,
+                                     bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::stop"));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (mediaSession_)
   {
     HRESULT result = mediaSession_->Stop ();
@@ -741,7 +757,7 @@ Test_U_MediaFoundation_Stream::stop (bool waitForCompletion_in,
                   ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   inherited::stop (waitForCompletion_in,
                    recurseUpstream_in,
@@ -750,7 +766,7 @@ Test_U_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 
 HRESULT
 Test_U_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
-                                                            void** interface_out)
+                                               void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::QueryInterface"));
 
@@ -786,7 +802,7 @@ Test_U_MediaFoundation_Stream::Release ()
 
 HRESULT
 Test_U_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
-                                                           DWORD* queue_out)
+                                              DWORD* queue_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::GetParameters"));
 
@@ -1403,8 +1419,8 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (&HWDecode_, branch_p, index_i);
   else
     layout_in->append (&decode_, branch_p, index_i);
-  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
   layout_in->append (&delay_, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
 
   switch (inherited::configuration_->configuration_->renderer)
   {
@@ -1494,6 +1510,8 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (session_data_p->formats.empty ());
   // session_data_p->formats.push_back (configuration_in.configuration_->format);
 
+  (*iterator).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
 
   if (configuration_in.configuration_->setupPipeline)
@@ -1517,5 +1535,22 @@ error:
       setup_pipeline;
 
   return false;
+}
+
+void
+Test_U_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  (*iterator).second.second->outputFormat.video.resolution.width = resolution_in.width;
+  (*iterator).second.second->outputFormat.video.resolution.height = resolution_in.height;
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false, // recurse upstream ?
+                     true); // expedite ?
 }
 #endif // ACE_WIN32 || ACE_WIN64

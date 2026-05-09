@@ -113,12 +113,16 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : display console VU meter [")
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : console VU meter mode [")
             << STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x [VALUE]  : visualzation framework [")
+            << STREAM_VISUALIZATION_AUDIORENDERER_INVALID
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 }
@@ -132,8 +136,9 @@ do_processArguments (int argc_in,
                      std::string& outputFileName_out,
                      enum Stream_Device_Renderer& renderer_out,
                      bool& traceInformation_out,
-                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& consoleVUMeter_out,
-                     bool& printVersionAndExit_out)
+                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& consoleVUMeterMode_out,
+                     bool& printVersionAndExit_out,
+                     enum Stream_Visualization_AudioRenderer& visualizationRenderer_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -148,12 +153,13 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   renderer_out = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   traceInformation_out = false;
-  consoleVUMeter_out = STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
+  consoleVUMeterMode_out = STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   printVersionAndExit_out = false;
+  visualizationRenderer_out = STREAM_VISUALIZATION_AUDIORENDERER_INVALID;
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-                              ACE_TEXT ("b:f:lo:r:tu:v"),
+                              ACE_TEXT ("b:f:lo:r:tu:vx:"),
                               1,                         // skip command name
                               1,                         // report parsing errors
                               ACE_Get_Opt::PERMUTE_ARGS, // ordering
@@ -210,13 +216,24 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> value_i;
-        consoleVUMeter_out =
+        consoleVUMeterMode_out =
           static_cast<enum Stream_Visualization_SpectrumAnalyzer_2DMode> (value_i);
         break;
       }
       case 'v':
       {
         printVersionAndExit_out = true;
+        break;
+      }
+      case 'x':
+      {
+        int value_i;
+        converter.clear ();
+        converter.str (ACE_TEXT_ALWAYS_CHAR (""));
+        converter << argumentParser.opt_arg ();
+        converter >> value_i;
+        visualizationRenderer_out =
+          static_cast<enum Stream_Visualization_AudioRenderer> (value_i);
         break;
       }
       // error handling
@@ -318,10 +335,11 @@ do_initializeSignals (ACE_Sig_Set& signals_out,
 
 void
 do_work (ACE_UINT32 bufferSize_in,
-         enum Stream_Visualization_SpectrumAnalyzer_2DMode consoleVUMeter_in,
          const std::string& inputFileName_in,
          const std::string& outputFileName_in,
          enum Stream_Device_Renderer renderer_in,
+         enum Stream_Visualization_SpectrumAnalyzer_2DMode consoleVUMeterMode_in,
+         enum Stream_Visualization_AudioRenderer visualizationRenderer_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
          Common_SignalActions_t& previousSignalActions_inout,
@@ -417,11 +435,12 @@ do_work (ACE_UINT32 bufferSize_in,
   // ******************** (sub-)stream configuration data *********************
 
   struct Test_I_MP3Player_StreamConfiguration stream_configuration;
-  stream_configuration.consoleVUMeter = consoleVUMeter_in;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.printFinalReport = true;
   stream_configuration.fileIdentifier.identifier = outputFileName_in;
+  stream_configuration.analyzerMode = consoleVUMeterMode_in;
   stream_configuration.renderer = renderer_in;
+  stream_configuration.visualizationRenderer = visualizationRenderer_in;
   configuration.streamConfiguration.initialize (module_configuration,
                                                 modulehandler_configuration,
                                                 stream_configuration);
@@ -542,9 +561,11 @@ ACE_TMAIN (int argc_in,
   std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   enum Stream_Device_Renderer renderer_e = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   bool trace_information = false;
-  enum Stream_Visualization_SpectrumAnalyzer_2DMode console_VU_meter_e =
+  enum Stream_Visualization_SpectrumAnalyzer_2DMode console_VU_meter_mode_e =
     STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
   bool print_version_and_exit = false;
+  enum Stream_Visualization_AudioRenderer visualization_renderer_e =
+    STREAM_VISUALIZATION_AUDIORENDERER_INVALID;
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -555,8 +576,9 @@ ACE_TMAIN (int argc_in,
                             output_file,
                             renderer_e,
                             trace_information,
-                            console_VU_meter_e,
-                            print_version_and_exit))
+                            console_VU_meter_mode_e,
+                            print_version_and_exit,
+                            visualization_renderer_e))
   {
     do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
@@ -667,10 +689,11 @@ ACE_TMAIN (int argc_in,
   timer.start ();
   // step2: do actual work
   do_work (buffer_size_i,
-           console_VU_meter_e,
            input_file,
            output_file,
            renderer_e,
+           console_VU_meter_mode_e,
+           visualization_renderer_e,
            signal_set,
            ignored_signal_set,
            previous_signal_actions,

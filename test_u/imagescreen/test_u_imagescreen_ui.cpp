@@ -195,7 +195,14 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
           ACE_ASSERT (toggle_button_p);
           switch (renderer_e)
           {
-            case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+            case STREAM_VISUALIZATION_VIDEORENDERER_CONSOLE:
+            case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
+              ACE_ASSERT (false); // *TODO*
+              ACE_NOTSUP;
+              ACE_NOTREACHED (break;)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
             case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
               ACE_ASSERT (false); // *TODO*
@@ -211,14 +218,17 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
               ACE_ASSERT (false); // *TODO*
               ACE_NOTSUP;
               ACE_NOTREACHED (break;)
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
-            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+#else
+            case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+            case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
               ACE_ASSERT (false); // *TODO*
               ACE_NOTSUP;
               ACE_NOTREACHED (break;)
-#endif // GTK_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+            case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+              ACE_ASSERT (false); // *TODO*
+              ACE_NOTSUP;
+              ACE_NOTREACHED (break;)
             default:
             {
               ACE_DEBUG ((LM_ERROR,
@@ -255,7 +265,11 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
         {
           switch (renderer_e)
           {
-            case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+            case STREAM_VISUALIZATION_VIDEORENDERER_CONSOLE:
+            case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+            case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
               break;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
             case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_2D:
@@ -277,7 +291,13 @@ process_stream_events (struct Stream_ImageScreen_UI_CBData* CBData_in,
             case STREAM_VISUALIZATION_VIDEORENDERER_GDI:
             case STREAM_VISUALIZATION_VIDEORENDERER_MEDIAFOUNDATION:
               break;
+#else
+            case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+            case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+              break;
 #endif // ACE_WIN32 || ACE_WIN64
+            case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+              break;
             default:
             {
               ACE_DEBUG ((LM_ERROR,
@@ -1018,17 +1038,17 @@ continue_:
   // step3: set up device ?
   switch (cbdata_r.configuration->streamConfiguration.configuration_->renderer)
   {
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-    {
-      break;
-    }
-#if defined (GTK_USE)
+    case STREAM_VISUALIZATION_VIDEORENDERER_CONSOLE:
+    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
       break;
-#endif // GTK_USE
+    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1589,17 +1609,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
 
   switch (cbdata_r.configuration->streamConfiguration.configuration_->renderer)
   {
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
+    case STREAM_VISUALIZATION_VIDEORENDERER_CONSOLE:
+    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-    {
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
       break;
-    }
-//#if defined (GTK_USE)
-//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
-//    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
-//      break;
-//#endif // GTK_USE
+    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -1655,17 +1675,17 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     Stream_Visualization_Tools::rendererToModuleName (cbdata_r.configuration->streamConfiguration.configuration_->renderer);
   switch (cbdata_r.configuration->streamConfiguration.configuration_->renderer)
   {
-    case STREAM_VISUALIZATION_VIDEORENDERER_NULL:
-      break;
-    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
-    {
-      break;
-    }
-#if defined (GTK_USE)
+    case STREAM_VISUALIZATION_VIDEORENDERER_CONSOLE:
+    case STREAM_VISUALIZATION_VIDEORENDERER_CURSES:
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO:
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_PIXBUF:
+    case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
       break;
-#endif // GTK_USE
+    case STREAM_VISUALIZATION_VIDEORENDERER_X11:
+    case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+      break;
+    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

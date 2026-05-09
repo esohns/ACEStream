@@ -22,7 +22,10 @@
 #define STREAM_VIS_WAYLAND_WINDOW_H
 
 #include "wayland-client.h"
-#include "xdg-shell.h"
+#include "wayland-xdg-decoration-client-protocol.h"
+#include "wayland-xdg-shell-client-protocol.h"
+// #include "xdg-decoration-unstable-v1.h"
+// #include "xdg-shell.h"
 #include "xkbcommon/xkbcommon.h"
 
 #include "ace/Global_Macros.h"
@@ -40,24 +43,25 @@ extern const char libacestream_default_vis_wayland_window_module_name_string[];
 
 struct libacestream_vis_wayland_cb_data
 {
-  struct wl_buffer*             buffer;
-  struct wl_compositor*         compositor;
-  struct wl_display*            display;
-  struct wl_keyboard*           keyboard;
-  struct wl_seat*               seat;
-  struct wl_shm*                shm;
-  void*                         shm_data;
-  struct wl_surface*            surface;
-  struct xdg_wm_base*           wm_base;
-  struct xkb_context*           xkb_context;
-  struct xkb_keymap*            xkb_keymap;
-  struct xkb_state*             xkb_state;
+  struct wl_buffer*                   buffer;
+  struct wl_compositor*               compositor;
+  struct zxdg_decoration_manager_v1*  decoration_manager;
+  struct wl_display*                  display;
+  struct wl_keyboard*                 keyboard;
+  struct wl_seat*                     seat;
+  struct wl_shm*                      shm;
+  void*                               shm_data;
+  struct wl_surface*                  surface;
+  struct xdg_wm_base*                 wm_base;
+  struct xkb_context*                 xkb_context;
+  struct xkb_keymap*                  xkb_keymap;
+  struct xkb_state*                   xkb_state;
 
-  bool                          escapeKeyWasPressed;
-  Common_UI_IFullscreen*        fullscreen;
-  bool                          fullscreenTransition;
-  Stream_Visualization_IResize* resize;
-  Common_Image_Resolution_t     resolution;
+  bool                                escapeKeyWasPressed;
+  Common_UI_IFullscreen*              fullscreen;
+  bool                                fullscreenTransition;
+  Stream_Visualization_IResize*       resize;
+  Common_Image_Resolution_t           resolution;
 };
 
 void
@@ -75,6 +79,14 @@ libacestream_vis_wayland_global_registry_remover (void*,
                                                   struct wl_registry*,
                                                   uint32_t);
 extern struct wl_registry_listener libacestream_vis_wayland_registry_listener;
+
+//////////////////////////////////////////
+
+void
+libacestream_vis_wayland_xdg_decoration_configure (void*,
+                                                   struct zxdg_toplevel_decoration_v1*,
+                                                   uint32_t);
+extern struct zxdg_toplevel_decoration_v1_listener libacestream_vis_wayland_decoration_listener;
 
 //////////////////////////////////////////
 
@@ -178,6 +190,7 @@ class Stream_Module_Vis_Wayland_Window_T
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;
+  struct zxdg_toplevel_decoration_v1*     decoration_;
   unsigned int                            frameSize_;
   bool                                    isFullscreen_;
   struct xdg_surface*                     shellSurface_;

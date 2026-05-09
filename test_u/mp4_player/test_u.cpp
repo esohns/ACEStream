@@ -1140,6 +1140,20 @@ do_work (int argc_in,
       modulehandler_configuration.outputFormat.video.format = AV_PIX_FMT_BGRA;
       break;
     }
+#if defined (WAYLAND_SUPPORT)
+   case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+   {
+     // configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
+     //                                                              std::make_pair (&module_configuration,
+     //                                                                              &modulehandler_configuration_2)));
+     modulehandler_configuration_2b = modulehandler_configuration;
+     configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                   std::make_pair (&module_configuration,
+                                                                                   &modulehandler_configuration_2b)));
+
+     break;
+   }
+#endif // WAYLAND_SUPPORT
 //#if defined (GLUT_SUPPORT)
 //    case STREAM_VISUALIZATION_VIDEORENDERER_OPENGL_GLUT:
 //    {
@@ -1383,8 +1397,7 @@ do_work (int argc_in,
         }
       } // end SWITCH
 #else
-      modulehandler_configuration_2.outputFormat.video.format =
-        AV_PIX_FMT_RGB24;
+      modulehandler_configuration_2.outputFormat.video.format = AV_PIX_FMT_RGB24;
       configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
                                                                                    &modulehandler_configuration_2)));

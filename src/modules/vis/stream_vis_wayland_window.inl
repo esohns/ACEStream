@@ -51,6 +51,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
  , inherited4 ()
  , cbData_ ()
  , closeDisplay_ (false)
+ , decoration_ (NULL)
  , frameSize_ (0)
  , isFullscreen_ (false)
  , shellSurface_ (NULL)
@@ -84,6 +85,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     xdg_toplevel_destroy (topLevel_);
   if (shellSurface_)
     xdg_surface_destroy (shellSurface_);
+  if (decoration_)
+    zxdg_toplevel_decoration_v1_destroy (decoration_);
   if (cbData_.keyboard)
     wl_keyboard_destroy (cbData_.keyboard);
   if (cbData_.seat)
@@ -100,8 +103,12 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     xkb_keymap_unref (cbData_.xkb_keymap);
   if (cbData_.xkb_state)
     xkb_state_unref (cbData_.xkb_state);
+  if (cbData_.decoration_manager)
+    zxdg_decoration_manager_v1_destroy (cbData_.decoration_manager);
   if (cbData_.compositor)
     wl_compositor_destroy (cbData_.compositor);
+  if (cbData_.buffer)
+    wl_buffer_destroy (cbData_.buffer);
   if (closeDisplay_)
   { ACE_ASSERT (cbData_.display);
     wl_display_disconnect (cbData_.display);
@@ -247,6 +254,10 @@ end:
       {
         xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
       } // end IF
+      if (decoration_)
+      {
+        zxdg_toplevel_decoration_v1_destroy (decoration_); decoration_ = NULL;
+      } // end IF
       if (cbData_.keyboard)
       {
         wl_keyboard_destroy (cbData_.keyboard); cbData_.keyboard = NULL;
@@ -279,9 +290,17 @@ end:
       {
         xkb_state_unref (cbData_.xkb_state); cbData_.xkb_state = NULL;
       } // end IF
+      if (cbData_.buffer)
+      {
+        wl_buffer_destroy (cbData_.buffer); cbData_.buffer = NULL;
+      } // end IF
       if (cbData_.compositor)
       {
         wl_compositor_destroy (cbData_.compositor); cbData_.compositor = NULL;
+      } // end IF
+      if (cbData_.decoration_manager)
+      {
+        zxdg_decoration_manager_v1_destroy (cbData_.decoration_manager); cbData_.decoration_manager = NULL;
       } // end IF
       if (closeDisplay_)
       { ACE_ASSERT (cbData_.display);
@@ -320,15 +339,13 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (topLevel_);
 
+  cbData_.fullscreenTransition = true;
+
   if (isFullscreen_)
-  {
     xdg_toplevel_unset_fullscreen (topLevel_);
-  } // end IF
   else
-  {
     xdg_toplevel_set_fullscreen (topLevel_,
                                  NULL);
-  } // end ELSE
 
   isFullscreen_ = !isFullscreen_;
 }
@@ -406,6 +423,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     {
       xdg_surface_destroy (shellSurface_); shellSurface_ = NULL;
     } // end IF
+    if (decoration_)
+    {
+      zxdg_toplevel_decoration_v1_destroy (decoration_); decoration_ = NULL;
+    } // end IF
     if (cbData_.keyboard)
     {
       wl_keyboard_destroy (cbData_.keyboard); cbData_.keyboard = NULL;
@@ -438,9 +459,17 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     {
       xkb_state_unref (cbData_.xkb_state); cbData_.xkb_state = NULL;
     } // end IF
+    if (cbData_.decoration_manager)
+    {
+      zxdg_decoration_manager_v1_destroy (cbData_.decoration_manager); cbData_.decoration_manager = NULL;
+    } // end IF
     if (cbData_.compositor)
     {
       wl_compositor_destroy (cbData_.compositor); cbData_.compositor = NULL;
+    } // end IF
+    if (cbData_.buffer)
+    {
+      wl_buffer_destroy (cbData_.buffer); cbData_.buffer = NULL;
     } // end IF
     if (closeDisplay_)
     { ACE_ASSERT (cbData_.display);
@@ -563,6 +592,19 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                           ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_WAYLAND_WINDOW_DEFAULT_NAME_STRING));
   ACE_ASSERT (topLevel_);
 
+  if (cbData_.decoration_manager)
+  {
+    decoration_ =
+      zxdg_decoration_manager_v1_get_toplevel_decoration (cbData_.decoration_manager,
+                                                          topLevel_);
+    ACE_ASSERT (decoration_);
+    zxdg_toplevel_decoration_v1_add_listener (decoration_,
+                                              &libacestream_vis_wayland_decoration_listener,
+                                              &cbData_);
+    zxdg_toplevel_decoration_v1_set_mode (decoration_,
+                                          ZXDG_TOPLEVEL_DECORATION_V1_MODE_SERVER_SIDE);
+  } // end IF
+
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: display %@ ((shell) surface: %@,%@, toplevel surface: %@)\n"),
               inherited::mod_->name (),
@@ -606,6 +648,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   if (cbData_.shm_data)
   {
     ACE_OS::munmap (cbData_.shm_data, static_cast<size_t> (frameSize_)); cbData_.shm_data = NULL;
+  } // end IF
+  if (cbData_.buffer)
+  {
+    wl_buffer_destroy (cbData_.buffer); cbData_.buffer = NULL;
   } // end IF
 
   unsigned int width_i = resolution_in.width;
