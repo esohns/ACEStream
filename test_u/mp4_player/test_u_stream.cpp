@@ -638,8 +638,8 @@ Test_U_DirectShow_Stream::resize (const Common_Image_Resolution_t& resolution_in
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
-  (*iterator).second.second->outputFormat.video.resolution.width = resolution_in.width;
-  (*iterator).second.second->outputFormat.video.resolution.height = resolution_in.height;
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in,
+                                                         (*iterator).second.second->outputFormat);
 
   inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
                      false, // recurse upstream ?

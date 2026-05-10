@@ -200,7 +200,11 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
 
   // step1: run the graph on the image frame
   // start inference clock
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::chrono::steady_clock::time_point t0 =
+#else
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> t0 =
+#endif // ACE_WIN32 || ACE_WIN64
     std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
@@ -224,7 +228,11 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   } // end IF
 
   // stop inference clock
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  std::chrono::steady_clock::time_point t1 =
+#else
   std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> t1 =
+#endif // ACE_WIN32 || ACE_WIN64
     std::chrono::high_resolution_clock::now ();
   int inference_time_ms =
     std::chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count ();

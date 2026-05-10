@@ -152,7 +152,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
       layout_in->append (&SoXResampler_, NULL, 0);
 #endif // SOX_SUPPORT
 
-      if (inherited::configuration_->configuration_->consoleVUMeter != STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID)
+      if (inherited::configuration_->configuration_->analyzerMode != STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID)
       {
         //layout_in->append (&delay_, NULL, 0);
 
@@ -169,7 +169,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
         ++index_i;
         layout_in->append (&delay_, branch_p, index_i);
 
-        switch (inherited::configuration_->configuration_->consoleVUMeter)
+        switch (inherited::configuration_->configuration_->analyzerMode)
         {
           case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
           {
@@ -184,9 +184,9 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
           default:
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: invalid/unknown console VU meter mode (was: %d), aborting\n"),
+                        ACE_TEXT ("%s: invalid/unknown analyzer mode (was: %d), aborting\n"),
                         ACE_TEXT (stream_name_string_),
-                        inherited::configuration_->configuration_->consoleVUMeter));
+                        inherited::configuration_->configuration_->analyzerMode));
             return false;
           }
         } // end SWITCH
