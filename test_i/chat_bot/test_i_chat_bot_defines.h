@@ -33,6 +33,8 @@
 #define TEST_I_DEFAULT_MODEL_FILE                       "ggml-small.en.bin" // STT
 #elif defined (DEEPSPEECH_SUPPORT)
 #define TEST_I_DEFAULT_MODEL_FILE                       "deepspeech-0.9.3-models.pbmm" // STT
+#else
+#define TEST_I_DEFAULT_MODEL_FILE                       "" // STT
 #endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
 #define TEST_I_DEFAULT_SCORER_FILE                      "deepspeech-0.9.3-models.scorer" // STT
 #define TEST_I_DEFAULT_RNNN_FILE                        "sh.rnnn"
