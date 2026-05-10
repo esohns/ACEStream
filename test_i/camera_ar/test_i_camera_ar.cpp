@@ -1096,6 +1096,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // OLC_PGE_SUPPORT
 
   stream_configuration.messageAllocator = &message_allocator;
+// *IMPORTANT NOTE*: olc CGE support is currently broken (at least on Fedora 44 with sdl2-compat;
+//                   even with SDL_VIDEODRIVER=x11 set)
+// #undef OLC_CGE_SUPPORT
 #if defined (OLC_CGE_SUPPORT)
   stream_configuration.module = &CGE;
 #elif defined (OLC_PGE_SUPPORT)

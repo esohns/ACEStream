@@ -11,7 +11,7 @@
     <property name="deletable">False</property>
     <property name="program_name">httpget</property>
     <property name="version">0.1</property>
-    <property name="website">http://www.github.com/esohns/libACEStream</property>
+    <property name="website">https://www.github.com/esohns/ACEStream</property>
     <property name="website_label" translatable="yes">github project</property>
     <property name="authors">Erik Sohns</property>
     <property name="logo_icon_name">image-missing</property>

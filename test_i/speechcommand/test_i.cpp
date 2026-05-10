@@ -2464,7 +2464,7 @@ ACE_TMAIN (int argc_in,
                                                       ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
                                                       true); // configuration-
   const char* lib_root_p =
-      ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
   ACE_ASSERT (lib_root_p);
   std::string path = lib_root_p;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;

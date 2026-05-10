@@ -107,8 +107,6 @@ set (EXECUTABLE speechcommand)
 set (${EXECUTABLE}_EXE_SRCS
 #     stdafx.cpp
      stdafx.h
-     ../test_i_common.h
-     ../test_i_defines.h
      test_i.cpp
      test_i_speechcommand_common.h
      test_i_modules.h
@@ -142,6 +140,17 @@ if (WXWIDGETS_SUPPORT)
  set (${EXECUTABLE}_EXE_SRCS
       ${${EXECUTABLE}_EXE_SRCS})
 endif (WXWIDGETS_SUPPORT)
+
+set (ui_definition_file "")
+if (GTK_USE)
+ if (GTK3_USE)
+  set (ui_definition_file etc/test_i.gtk3)
+ elseif (GTK2_USE)
+  set (ui_definition_file etc/test_i.gtk2)
+ endif ()
+elseif (WXWIDGETS_USE)
+ set (ui_definition_file etc/test_i.xrc)
+endif ()
 
 if (WIN32)
  # *NOTE*: DirectShow uses 'DEBUG'
@@ -263,17 +272,6 @@ set (ds_german_scorer_file "de-aashishag-1-prune-kenlm.scorer")
 set (ds_model_file "etc/${ds_german_model_file}")
 set (ds_scorer_file "etc/${ds_german_scorer_file}")
 set (wh_model_file "$ENV{LIB_ROOT}/../models/ggml-medium.en.bin")
-
-set (ui_definition_file "")
-if (GTK_USE)
- if (GTK3_USE)
-  set (ui_definition_file etc/test_i.gtk3)
- elseif (GTK2_USE)
-  set (ui_definition_file etc/test_i.gtk2)
- endif ()
-elseif (WXWIDGETS_USE)
- set (ui_definition_file etc/test_i.xrc)
-endif ()
 
 install (TARGETS ${EXECUTABLE}
          EXPORT ${PROJECT_NAME}Targets

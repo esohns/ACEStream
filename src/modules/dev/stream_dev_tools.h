@@ -92,7 +92,7 @@ class Stream_Device_Tools
   static struct v4l2_pix_format getVideoCaptureFormat (int,                              // file descriptor
                                                        __u32,                            // pixel format
                                                        const Common_Image_Resolution_t&, // resolution {0: any}
-                                                       const struct v4l2_fract&);        // framerate {0/1: any}
+                                                       struct v4l2_fract&);              // framerate {0/1: any}
   static Stream_MediaFramework_V4L_CaptureFormats_t getCaptureSubFormats (int); // file descriptor
   static Common_Image_Resolutions_t getCaptureResolutions (int,    // file descriptor
                                                            __u32); // pixel format

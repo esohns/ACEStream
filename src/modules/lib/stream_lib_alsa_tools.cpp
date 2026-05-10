@@ -153,6 +153,11 @@ Stream_MediaFramework_ALSA_Tools::getDefaultFormat (const std::string& cardName_
                   ACE_TEXT (snd_strerror (result_2))));
       goto error;
     } // end IF
+    result_2 = snd_pcm_hw_params_test_format (handle_p,
+                                              snd_pcm_hw_params_p,
+                                              STREAM_LIB_ALSA_DEFAULT_FORMAT);
+    if (result_2 < 0)
+      goto error;
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("format not set, setting to default: \"%s\", continuing\n"),
                 ACE_TEXT (snd_pcm_format_name (STREAM_LIB_ALSA_DEFAULT_FORMAT))));
@@ -253,7 +258,7 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   unsigned int buffer_time_i = configuration_in.bufferTime;
   snd_pcm_sw_params_t* snd_pcm_sw_params_p = NULL;
   snd_pcm_uframes_t threshold_i =
-      ((snd_pcm_stream (handle_in) == SND_PCM_STREAM_PLAYBACK) ? configuration_in.bufferSize : 1);
+    ((snd_pcm_stream (handle_in) == SND_PCM_STREAM_PLAYBACK) ? configuration_in.bufferSize : 1);
 
   snd_pcm_hw_params_malloc (&snd_pcm_hw_params_p);
   if (unlikely (!snd_pcm_hw_params_p))
@@ -277,7 +282,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_access(%d): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.access,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.access,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -287,8 +293,9 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_format(%d): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.format->format,
+                ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_format(%s): \"%s\", aborting\n"),
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                ACE_TEXT (snd_pcm_format_name (configuration_in.format->format)),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -300,7 +307,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_channels(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.format->channels,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.format->channels,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -324,7 +332,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_rate(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.format->rate,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.format->rate,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -342,7 +351,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_min(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.periods,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.periods,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -354,7 +364,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_periods_first(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.periods,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.periods,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -372,7 +383,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_size_near(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.periodSize,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.periodSize,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -390,7 +402,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_period_time_near(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.periodTime,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.periodTime,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -408,7 +421,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_size_near(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.bufferSize,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.bufferSize,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -426,7 +440,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_near(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), configuration_in.bufferTime,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                configuration_in.bufferTime,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -456,7 +471,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to snd_pcm_hw_params_set_buffer_time_max(%u): \"%s\", aborting\n"),
-                  ACE_TEXT (snd_pcm_name (handle_in)), buffer_size_i,
+                  ACE_TEXT (snd_pcm_name (handle_in)),
+                  buffer_size_i,
                   ACE_TEXT (snd_strerror (result))));
       goto error;
     } // end IF
@@ -501,7 +517,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_sw_params_set_avail_min(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), period_size_i,
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                period_size_i,
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF
@@ -512,7 +529,8 @@ Stream_MediaFramework_ALSA_Tools::setFormat (struct _snd_pcm* handle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to snd_pcm_sw_params_set_start_threshold(%u): \"%s\", aborting\n"),
-                ACE_TEXT (snd_pcm_name (handle_in)), std::numeric_limits<snd_pcm_uframes_t>::max (),
+                ACE_TEXT (snd_pcm_name (handle_in)),
+                std::numeric_limits<snd_pcm_uframes_t>::max (),
                 ACE_TEXT (snd_strerror (result))));
     goto error;
   } // end IF

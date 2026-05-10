@@ -108,10 +108,12 @@ if (OLC_CGE_SUPPORT)
       test_i_camera_ar_module_cge.inl)
 endif (OLC_CGE_SUPPORT)
 
-if (WIN32)
+if (UNIX)
+ add_compile_options (-D_REENTRANT)
+elseif (WIN32)
  add_compile_options ($<$<CONFIG:Debug>:-DDEBUG>)
  add_compile_options ($<$<CONFIG:Debug>:-DD3D_DEBUG_INFO>)
-endif (WIN32)
+endif ()
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -220,7 +222,7 @@ endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 if (UNIX)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}" COMMAND)
  set (RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib)
-# set (ENVIRONMENT "GDK_BACKEND=x11")
+ set (ENVIRONMENT "SDL_VIDEODRIVER=x11")
 elseif (WIN32)
  file (TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_BUILD_TYPE}/${EXECUTABLE}.exe" COMMAND)
  string (REPLACE "\\" "\\\\" COMMAND ${COMMAND})

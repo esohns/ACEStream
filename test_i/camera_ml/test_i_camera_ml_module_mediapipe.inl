@@ -156,18 +156,27 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_T::handleDataMessage"));
 
-  static int nFrames = 30;
-  static int iFrame = 0;
+  static ACE_INT64 nFrames = 30;
+  static ACE_INT64 iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = time (NULL);
-  static time_t end;
-  if (nFrames % (iFrame + 1) == 0)
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::steady_clock::time_point end;
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> end;
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
+
+  if (((iFrame + 1) % nFrames) == 0)
   {
-    time (&end);
-    fps = nFrames / (float)difftime (end, start);
-    time (&start);
+    end = std::chrono::high_resolution_clock::now ();
+    std::chrono::duration<float> elapsed_time = end - start;
+    fps = nFrames / elapsed_time.count ();
+    start = end;
   } // end IF
-  iFrame++;
+  ++iFrame;
 
   // step0: convert image frame to matrix
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -186,16 +195,17 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   cv::cvtColor (frame_matrix, frame_matrix_normalized, cv::COLOR_BGR2RGB);
 #else
-  frame_matrix_normalized = frame_matrix.clone ();
+  frame_matrix_normalized = frame_matrix;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1: run the graph on the image frame
   // start inference clock
-  auto t0 = std::chrono::high_resolution_clock::now ();
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> t0 =
+    std::chrono::high_resolution_clock::now ();
 
   // feed RGB frame into MP graph (image data is COPIED internally by LibMP)
   if (unlikely (!graph_->Process (frame_matrix_normalized.data,
-                                  frame_matrix.cols, frame_matrix.rows,
+                                  frame_matrix_normalized.cols, frame_matrix_normalized.rows,
                                   mediapipe::ImageFormat::SRGB)))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -214,7 +224,8 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
   } // end IF
 
   // stop inference clock
-  auto t1 = std::chrono::high_resolution_clock::now ();
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> t1 =
+    std::chrono::high_resolution_clock::now ();
   int inference_time_ms =
     std::chrono::duration_cast<std::chrono::milliseconds> (t1 - t0).count ();
 
@@ -238,9 +249,7 @@ Test_I_CameraML_Module_MediaPipe_T<ConfigurationType,
                cv::Point (10, 60), cv::FONT_HERSHEY_PLAIN, 1.0, cv::Scalar (0, 255, 0));
 
   // step3b: draw fps
-  std::ostringstream converter;
-  converter << fps;
-  cv::putText (frame_matrix, converter.str ().substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
+  cv::putText (frame_matrix, std::to_string (fps).substr (0, 5) + ACE_TEXT_ALWAYS_CHAR (" fps"),
                cv::Point (10, frame_matrix.rows - 20), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar (255, 255, 255));
 }
 

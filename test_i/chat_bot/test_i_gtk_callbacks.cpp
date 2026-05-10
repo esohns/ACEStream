@@ -1365,8 +1365,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       stt_model_file_string =
         (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
-      //stt_scorer_file_string =
-      //  (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+      stt_scorer_file_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
       stt_language_string =
         (*directshow_modulehandler_configuration_iterator).second.second->language;
 
@@ -1379,8 +1379,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     {
       stt_model_file_string =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
-      //stt_scorer_file_string =
-      //  (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
+      stt_scorer_file_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
       stt_language_string =
         (*mediafoundation_modulehandler_configuration_iterator).second.second->language;
 
@@ -1400,8 +1400,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 #else
   stt_model_file_string =
     (*modulehandler_configuration_iterator).second.second->modelFile;
-  //stt_scorer_file_string =
-  //  (*modulehandler_configuration_iterator).second.second->scorerFile;
+  stt_scorer_file_string =
+    (*modulehandler_configuration_iterator).second.second->scorerFile;
   stt_language_string =
     (*modulehandler_configuration_iterator).second.second->language;
 
@@ -1432,8 +1432,8 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (file_p);
   result =
     gtk_file_chooser_set_file (GTK_FILE_CHOOSER (stt_scorer_file_chooser_button_p),
-                                file_p,
-                                &error_p);
+                               file_p,
+                               &error_p);
   ACE_ASSERT (result && !error_p);
   g_object_unref (file_p); file_p = NULL;
 

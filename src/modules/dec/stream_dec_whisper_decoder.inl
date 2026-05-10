@@ -159,8 +159,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     whisper_free (context_);
   if (unlikely (state_))
     whisper_free_state (state_);
-  whisper_free_context_params (&parameters_);
-  whisper_free_params (&parameters2_);
+  // whisper_free_context_params (&parameters_);
+  // whisper_free_params (&parameters2_);
   //whisper_vad_free_params (parameters2_.vad_params);
 }
 

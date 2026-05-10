@@ -748,7 +748,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   if (request_in->status () == libcamera::Request::RequestCancelled)
     return;
   const std::map<const libcamera::Stream*, libcamera::FrameBuffer*>& buffer_map_r =
-      request_in->buffers ();
+    request_in->buffers ();
   ACE_ASSERT (buffer_map_r.count (cameraStream_));
   libcamera::FrameBuffer* buffer_p = buffer_map_r.at (cameraStream_);
   ACE_ASSERT (buffer_p);

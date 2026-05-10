@@ -677,17 +677,17 @@ do_initialize_mediafoundation (const struct Stream_Device_Identifier& deviceIden
   STREAM_TRACE (ACE_TEXT ("::do_initialize_mediafoundation"));
 
   HRESULT result = E_FAIL;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
   IMFMediaSourceEx* media_source_p = NULL;
 #else
   IMFMediaSource* media_source_p = NULL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
   IMFTopology* topology_p = NULL;
 
   // sanity check(s)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   ACE_ASSERT (!IMFMediaSession_out);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   result = MFStartup (MF_VERSION,
                       MFSTARTUP_LITE);

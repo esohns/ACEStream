@@ -369,9 +369,15 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
+  bool high_priority_b = false;
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
@@ -425,7 +431,6 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
         bool lock_activate_was_b =
           inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
         inherited::lockActivate_ = false;
-
         result = inherited::TASK_BASE_T::open (NULL);
         if (unlikely (result == -1))
         {
@@ -456,6 +461,7 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
+end:
       // clean up
       if (likely (CBData_.stream))
       {
@@ -622,7 +628,8 @@ Stream_Dev_Mic_Source_Pipewire_T<ACE_SYNCH_USE,
   // *NOTE*: there should (!) never be a race here, as the second thread is
   //         started by the first (see above)
   if (isPipewireMainLoopThread_)
-  { ACE_ASSERT (loop_);
+  { isPipewireMainLoopThread_ = false;
+    ACE_ASSERT (loop_);
     result = pw_main_loop_run (loop_);
     if (unlikely (result < 0))
     {

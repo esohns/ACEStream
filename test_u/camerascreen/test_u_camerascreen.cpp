@@ -1630,6 +1630,7 @@ do_work (int argc_in,
   stream_p = &stream;
 
   modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.handleResize = false;
   switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:

@@ -607,7 +607,7 @@ struct v4l2_pix_format
 Stream_Device_Tools::getVideoCaptureFormat (int fileDescriptor_in,
                                             __u32 pixelFormat_in,
                                             const Common_Image_Resolution_t& resolution_in,
-                                            const struct v4l2_fract& frameRate_in)
+                                            struct v4l2_fract& frameRate_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::getVideoCaptureFormat"));
 
@@ -656,10 +656,14 @@ Stream_Device_Tools::getVideoCaptureFormat (int fileDescriptor_in,
     ACE_ASSERT (frmivalenum_s.width == resolution_in.width);
     ACE_ASSERT (frmivalenum_s.height == resolution_in.height);
     ACE_ASSERT (frmivalenum_s.type == V4L2_FRMIVAL_TYPE_DISCRETE);
-    if (((frameRate_in.denominator == frmivalenum_s.discrete.numerator) &&
-        (frameRate_in.numerator == frmivalenum_s.discrete.denominator)) ||
-        ((frameRate_in.denominator == 1) && (frameRate_in.numerator == 0))) // <-- don't care
+    if (((frameRate_inout.denominator == frmivalenum_s.discrete.numerator) && (frameRate_inout.numerator == frmivalenum_s.discrete.denominator)) ||
+        ((frameRate_inout.denominator == 1) && (frameRate_inout.numerator == 0))) // <-- don't care
     {
+      if ((frameRate_inout.denominator == 1) && (frameRate_inout.numerator == 0))
+      {
+        frameRate_inout.numerator = frmivalenum_s.discrete.denominator;
+        frameRate_inout.denominator = frmivalenum_s.discrete.numerator;
+      } // end IF
       return_value.width = resolution_in.width;
       return_value.height = resolution_in.height;
       return_value.pixelformat = pixelFormat_in;
@@ -1185,7 +1189,7 @@ Stream_Device_Tools::setFormat (int fileDescriptor_in,
     return false;
   } // end IF
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%d: set capture format to %u;\"%s\" @ %ux%u\n"),
+              ACE_TEXT ("%d: set capture format to %u \"%s\" @ %ux%u\n"),
               fileDescriptor_in,
               format_in.pixelformat, ACE_TEXT (Stream_Device_Tools::formatToString (fileDescriptor_in, format_in.pixelformat).c_str ()),
               format_in.width, format_in.height));

@@ -2787,19 +2787,22 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("espeak-ng-data");
 #else
       voices_directory_string =
-        ACE_TEXT_ALWAYS_CHAR ("/usr/share/espeak-ng-data");
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ESPEAK_NG_DECODE_DEFAULT_VOICES_DIRECTORY);
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
     case TTS_FESTIVAL:
     {
       char* festlib_dir_p =
-        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("FESTLIBDIR"));
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FESTIVAL_DECODE_ENV_FESTLIBDIR));
       if (likely (festlib_dir_p))
-      {
         voices_directory_string = festlib_dir_p;
-        voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      } // end IF
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+      else
+        voices_directory_string = ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_FESTIVAL_DECODE_DEFAULT_FESTLIBDIR);
+#endif // ACE_WIN32 || ACE_WIN64
+      voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("voices");
       voices_directory_string += ACE_DIRECTORY_SEPARATOR_STR_A;
       voices_directory_string += ACE_TEXT_ALWAYS_CHAR ("us");

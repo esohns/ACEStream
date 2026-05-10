@@ -912,8 +912,8 @@ button_execute_clicked_cb (GtkButton* button_in,
   gchar* URI_p = NULL;
   GError* error_p = NULL;
   gchar* hostname_p = NULL;
-  gchar* directory_p = NULL;
-  std::string directory_string;
+  gchar* file_path_p = NULL;
+  std::string file_path_string;
   GtkCheckButton* check_button_p = NULL;
   GtkFrame* frame_p = NULL;
   GtkProgressBar* progress_bar_p = NULL;
@@ -1008,8 +1008,8 @@ button_execute_clicked_cb (GtkButton* button_in,
 
   // retrieve filename
   file_chooser_button_p =
-      GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                       ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FILECHOOSERBUTTON_SAVE)));
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FILECHOOSERBUTTON_SAVE)));
   ACE_ASSERT (file_chooser_button_p);
   URI_p =
     gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (file_chooser_button_p));
@@ -1019,11 +1019,11 @@ button_execute_clicked_cb (GtkButton* button_in,
                 ACE_TEXT ("failed to gtk_file_chooser_get_uri(), returning\n")));
     goto error;
   } // end IF
-  directory_p = g_filename_from_uri (URI_p,
+  file_path_p = g_filename_from_uri (URI_p,
                                      &hostname_p,
                                      &error_p);
-  g_free (URI_p);
-  if (!directory_p)
+  g_free (URI_p); URI_p = NULL;
+  if (!file_path_p)
   { ACE_ASSERT (error_p);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to g_filename_from_uri(): \"%s\", returning\n"),
@@ -1033,13 +1033,15 @@ button_execute_clicked_cb (GtkButton* button_in,
   } // end IF
   ACE_ASSERT (!hostname_p);
   ACE_ASSERT (!error_p);
-  directory_string = Common_UI_GTK_Tools::UTF8ToLocale (directory_p, -1);
-  g_free (directory_p);
-  ACE_ASSERT (Common_File_Tools::isDirectory (directory_string));
-  (*iterator_2).second.second->targetFileName = directory_string;
-  (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR_A;
-  (*iterator_2).second.second->targetFileName +=
-    ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
+  file_path_string = Common_UI_GTK_Tools::UTF8ToLocale (file_path_p, -1);
+  g_free (file_path_p); file_path_p = NULL;
+  (*iterator_2).second.second->targetFileName = file_path_string;
+  if (Common_File_Tools::isDirectory (file_path_string))
+  {
+    (*iterator_2).second.second->targetFileName += ACE_DIRECTORY_SEPARATOR_STR_A;
+    (*iterator_2).second.second->targetFileName +=
+      ACE_TEXT_ALWAYS_CHAR (HTTP_GET_DEFAULT_OUTPUT_FILE);
+  } // end IF
 
 continue_:
   // update widgets

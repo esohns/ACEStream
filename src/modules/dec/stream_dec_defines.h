@@ -138,10 +138,20 @@
 #define STREAM_DEC_DEEPSPEECH_DEFAULT_BEAM_WIDTH                     512
 
 // espeak-ng TTS
-#define STREAM_DEC_ESPEAK_NG_DECODE_BUFFER_LENGTH_MS                500 // ms
+#define STREAM_DEC_ESPEAK_NG_DECODE_BUFFER_LENGTH_MS                 500 // ms
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define STREAM_DEC_ESPEAK_NG_DECODE_DEFAULT_VOICES_DIRECTORY         "/usr/share/espeak-ng-data"
+#endif // ACE_WIN32 || ACE_WIN64
+
+// festival TTS
+#define STREAM_DEC_FESTIVAL_DECODE_ENV_FESTLIBDIR                    "FESTLIBDIR"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define STREAM_DEC_FESTIVAL_DECODE_DEFAULT_FESTLIBDIR                "/usr/share/festival"
+#endif // ACE_WIN32 || ACE_WIN64
 
 // flite TTS
-// *NOTE*: feed this much sample data between DS_IntermediateDecode calls
 #define STREAM_DEC_FLITE_VOICE_FILENAME_EXTENSION_STRING             ".flitevox"
 
 // MPEG
@@ -170,12 +180,10 @@
 
 // ---------------------------------------
 
-#if defined (SOX_SUPPORT)
 // SoX
 #define STREAM_DEC_SOX_BUFFER_SIZE                                   32768 // bytes (default: 8192)
 #define STREAM_DEC_SOX_FORMAT_RAW_STRING                             "raw"
 #define STREAM_DEC_SOX_FORMAT_WAV_STRING                             "waveaudio"
 #define STREAM_DEC_SOX_SAMPLE_BUFFERS                                8192
-#endif // SOX_SUPPORT
 
 #endif

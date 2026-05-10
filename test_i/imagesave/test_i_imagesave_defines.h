@@ -21,24 +21,28 @@
 #ifndef TEST_I_IMAGESAVE_DEFINES_H
 #define TEST_I_IMAGESAVE_DEFINES_H
 
-#define TEST_I_DEFAULT_OUTPUT_FILE             "output.bmp"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#define TEST_I_DEFAULT_OUTPUT_FILE                     "output.bmp"
+#else
+#define TEST_I_DEFAULT_OUTPUT_FILE                     "output.png"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (GTK_USE)
 #undef TEST_I_UI_DEFINITION_FILE
 #if defined (GTK3_USE)
-#define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk3"
+#define TEST_I_UI_DEFINITION_FILE                      "imagesave.gtk3"
 #elif defined (GTK2_USE)
-#define TEST_I_UI_DEFINITION_FILE              "imagesave.gtk2"
+#define TEST_I_UI_DEFINITION_FILE                      "imagesave.gtk2"
 #endif // GTK3_USE || GTK2_USE
 #elif defined (QT_USE)
-#define TEST_I_UI_DEFINITION_FILE              "mainwindow.ui"
+#define TEST_I_UI_DEFINITION_FILE                      "mainwindow.ui"
 #elif defined (WXWIDGETS_USE)
-#define TEST_I_UI_DEFINITION_FILE              "imagesave.xrc"
+#define TEST_I_UI_DEFINITION_FILE                      "imagesave.xrc"
 #else
-#define TEST_I_UI_DEFINITION_FILE              ""
+#define TEST_I_UI_DEFINITION_FILE                      ""
 #endif // GTK_USE || QT_USE || WXWIDGETS_USE
 #undef TEST_I_UI_CSS_FILE
-#define TEST_I_UI_CSS_FILE                     "imagesave.css"
+#define TEST_I_UI_CSS_FILE                             "imagesave.css"
 
 //---------------------------------------
 #if defined (GTK_SUPPORT)

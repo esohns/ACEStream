@@ -29,8 +29,12 @@
 #define TEST_I_DEFAULT_STT_BACKEND                      STT_INVALID
 #endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
 
+#if defined (WHISPERCPP_SUPPORT)
+#define TEST_I_DEFAULT_MODEL_FILE                       "ggml-small.en.bin" // STT
+#elif defined (DEEPSPEECH_SUPPORT)
 #define TEST_I_DEFAULT_MODEL_FILE                       "deepspeech-0.9.3-models.pbmm" // STT
-#define TEST_I_DEFAULT_SCORER_FILE                      "deepspeech-0.9.3-models.scorer"
+#endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
+#define TEST_I_DEFAULT_SCORER_FILE                      "deepspeech-0.9.3-models.scorer" // STT
 #define TEST_I_DEFAULT_RNNN_FILE                        "sh.rnnn"
 #define TEST_I_DEFAULT_MODEL_FILE_2                     "Llama-3.1-8B-Instruct-IQ4_XS.gguf" // LLM
 

@@ -258,7 +258,7 @@ Test_I_EventHandler_T<NotificationType,
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
 
   numberOfFrames_++;
 
@@ -268,7 +268,7 @@ Test_I_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   UIStateType& state_r =
     const_cast<UIStateType&> (interface_->getR ());
-#endif // GTK_USE
+#endif // GTK_USE || WXWIDGETS_USE
 
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
@@ -276,9 +276,11 @@ Test_I_EventHandler_T<NotificationType,
   ACE_ASSERT (stream_iterator != CBData_->configuration->streamConfiguration.end ());
   if ((*stream_iterator).second.second->frameNumber == numberOfFrames_)
   {
-    std::string filename_string = Common_File_Tools::getTempDirectory ();
-    filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-    filename_string += ACE_TEXT_ALWAYS_CHAR ("output.bmp");
+    std::string filename_string =
+      (*stream_iterator).second.second->targetFileName;
+    // filename_string = Common_File_Tools::getTempDirectory ();
+    // filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+    // filename_string += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
     uint8_t* buffers_a[AV_NUM_DATA_POINTERS];
     ACE_OS::memset (&buffers_a[0], 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
     buffers_a[0] = reinterpret_cast<uint8_t*> (message_in.rd_ptr ());

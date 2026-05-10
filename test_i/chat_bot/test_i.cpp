@@ -120,7 +120,10 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path = Common_File_Tools::getWorkingDirectory ();
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -129,20 +132,29 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
-  std::string path = configuration_path;
+  const char* lib_root_p =
+      ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
+  std::string scorer_file = path;
+  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-a [STRING] : STT scorer file [\"")
+            << scorer_file
+            << ACE_TEXT_ALWAYS_CHAR ("\"]")
+            << std::endl;
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT) || defined (SAPI_SUPPORT)
+  std::string voice;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-b [STRING] : voice [\"")
             << voice
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
-  path = configuration_path;
-  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT || SAPI_SUPPORT
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   std::string voice_directory = path;
   // voice_directory += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
@@ -150,7 +162,7 @@ do_printUsage (const std::string& programName_in)
             << voice_directory
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-d [INTEGER]: device id [")
             << 0
@@ -179,7 +191,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #if defined (GTK_SUPPORT) || defined (WXWIDGETS_SUPPORT)
-  std::string UI_file = path;
+  std::string UI_file = configuration_path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
@@ -195,7 +207,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #if defined (GTK_SUPPORT)
-  std::string UI_style_file = path;
+  std::string UI_style_file = configuration_path;
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_CSS_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-i[[STRING]]: UI CSS file [\"")
@@ -262,6 +274,7 @@ do_printUsage (const std::string& programName_in)
 bool
 do_processArguments (int argc_in,
                      ACE_TCHAR** argv_in, // cannot be const...
+                     std::string& STTScorerFile_out,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                      std::string& voice_out,
                      std::string& voiceDirectory_out,
@@ -300,14 +313,25 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-  configuration_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  configuration_path +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
+  const char* lib_root_p =
+    ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
+  STTScorerFile_out = path;
+  STTScorerFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  STTScorerFile_out +=
+    ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  voice_out = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  voice_out.clear ();
   voiceDirectory_out = configuration_path;
   voiceDirectory_out += ACE_DIRECTORY_SEPARATOR_STR_A;
   voiceDirectory_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
@@ -322,7 +346,7 @@ do_processArguments (int argc_in,
     deviceIdentifier_out = ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
 #endif // ACE_WIN32 || ACE_WIN64
   gain_out = 0.0;
-  STTModelFile_out = configuration_path;
+  STTModelFile_out = path;
   STTModelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   STTModelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   UIFile_out = configuration_path;
@@ -331,14 +355,14 @@ do_processArguments (int argc_in,
 #if defined (GTK_SUPPORT)
   UICSSFile_out.clear ();
 #endif // GTK_SUPPORT
-  LLMModelFile_out = configuration_path;
+  LLMModelFile_out = path;
   LLMModelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   LLMModelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE_2);
   logToFile_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string path = Common_File_Tools::getTempDirectory ();
+  path = Common_File_Tools::getTempDirectory ();
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   targetFileName_out = path;
@@ -357,7 +381,7 @@ do_processArguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   language_out = ACE_TEXT_ALWAYS_CHAR ("en");
 
-  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("d:e:f:h:lo::s:tuvz:");
+  std::string options_string = ACE_TEXT_ALWAYS_CHAR ("a:d:e:f:h:lo::s:tuvz:");
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("b:c:");
 #endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
@@ -379,22 +403,17 @@ do_processArguments (int argc_in,
                                1,                          // report parsing errors
                                ACE_Get_Opt::PERMUTE_ARGS,  // ordering
                                0);                         // for now, don't use long options
-  //int result = argument_parser.long_option (ACE_TEXT ("sync"),
-  //                                          'x',
-  //                                          ACE_Get_Opt::NO_ARG);
-  //if (result == -1)
-  //{
-  //  ACE_DEBUG ((LM_ERROR,
-  //              ACE_TEXT ("failed to ACE_Get_Opt::long_option(): \"%m\", aborting\n")));
-  //  return false;
-  //} // end IF
-
   int option = 0;
   std::stringstream converter;
   while ((option = argument_parser ()) != EOF)
   {
     switch (option)
     {
+      case 'a':
+      {
+        STTScorerFile_out = ACE_TEXT_ALWAYS_CHAR (argument_parser.opt_arg ());
+        break;
+      }
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
       case 'b':
       {
@@ -1244,7 +1263,7 @@ do_finalize_mediafoundation ()
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
-do_work (
+do_work (const std::string& STTScorerFile_in,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
          const std::string& voice_in,
          const std::string& voiceDirectory_in,
@@ -1854,6 +1873,8 @@ do_work (
     }
   } // end SWITCH
 #else
+  modulehandler_configuration.concurrency =
+    STREAM_HEADMODULECONCURRENCY_ACTIVE;
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
   modulehandler_configuration.manageFestival = true;
   modulehandler_configuration.manageFlite = true;
@@ -1878,6 +1899,7 @@ do_work (
     modulehandler_configuration.effectOptions.push_back (converter.str ()); // gain-dB
   } // end IF
   modulehandler_configuration.modelFile = STTModelFile_in;
+  modulehandler_configuration.scorerFile = STTScorerFile_in;
 
   stream_configuration.allocatorConfiguration = allocator_configuration_p;
   if (unlikely (!Stream_MediaFramework_ALSA_Tools::getDefaultFormat (deviceIdentifier_in,
@@ -2549,20 +2571,31 @@ ACE_TMAIN (int argc_in,
 #endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
-  std::string path = configuration_path;
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
+  const char* lib_root_p =
+      ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+  ACE_ASSERT (lib_root_p);
+  std::string path = lib_root_p;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_PARENT_SUBDIRECTORY);
+  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_MODELS_SUBDIRECTORY);
 
   // step1a set defaults
-#if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
-  std::string voice_string = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE);
+  std::string scorer_file = path;
+  scorer_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  scorer_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_SCORER_FILE);
+#if defined (ESPEAK_NG_SUPPORT) || defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
+  std::string voice_string;
   std::string voice_directory = path;
   //voice_directory += ACE_DIRECTORY_SEPARATOR_STR_A;
   voice_directory += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_FLITE_VOICE_DIRECTORY);
-#endif // FESTIVAL_SUPPORT || FLITE_SUPPORT
+#endif // ESPEAK_NG_SUPPORT || FESTIVAL_SUPPORT || FLITE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   unsigned int device_id = 0;
 #else
@@ -2576,7 +2609,7 @@ ACE_TMAIN (int argc_in,
   std::string STT_model_file = path;
   STT_model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   STT_model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
-  std::string UI_definition_file = path;
+  std::string UI_definition_file = configuration_path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
 #if defined (GTK_SUPPORT)
@@ -2654,6 +2687,7 @@ ACE_TMAIN (int argc_in,
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
                             argv_in,
+                            scorer_file,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
                             voice_string,
                             voice_directory,
@@ -2701,8 +2735,8 @@ ACE_TMAIN (int argc_in,
   if (TEST_I_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to deadlocks --> make sure you know what you are doing...\n")));
-  if (/*!Common_File_Tools::isReadable (scorer_file)
-      ||*/ !Common_File_Tools::isReadable (STT_model_file)
+  if (!Common_File_Tools::isReadable (scorer_file)
+      || !Common_File_Tools::isReadable (STT_model_file)
       || (!UI_definition_file.empty () &&
           !Common_File_Tools::isReadable (UI_definition_file))
 #if defined (GTK_SUPPORT)
@@ -2721,8 +2755,7 @@ ACE_TMAIN (int argc_in,
 
   Common_UI_Tools::initialize ();
 #if defined (GTK_SUPPORT)
-  gtk_manager_p =
-    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  gtk_manager_p = COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
 #endif // GTK_SUPPORT
@@ -2908,7 +2941,7 @@ ACE_TMAIN (int argc_in,
 
   timer.start ();
   // step2: do actual work
-  do_work (
+  do_work (scorer_file,
 #if defined (FESTIVAL_SUPPORT) || defined (FLITE_SUPPORT)
            voice_string,
            voice_directory,

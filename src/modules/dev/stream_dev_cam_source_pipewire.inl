@@ -270,12 +270,17 @@ Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::isInitialized_);
 
   int result = -1;
+  bool high_priority_b = false;
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
@@ -423,9 +428,21 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
-      ACE_ASSERT (loop_);
-      pw_main_loop_quit (loop_);
-      // *TODO*: wait for thread
+end:
+      if (likely (loop_))
+        pw_main_loop_quit (loop_);
+      while (inherited::thr_count_ > 1)
+      {
+        ACE_DEBUG ((LM_DEBUG,
+                   ACE_TEXT ("%s: waiting for pipewire loop thread...\n"),
+                   inherited::mod_->name ()));
+        ACE_OS::sleep (ACE_Time_Value (1, 0));
+      } // end WHILE
+
+      if (likely (loop_))
+      {
+        pw_main_loop_destroy (loop_); loop_ = NULL;
+      } // end IF
 
       if (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT)
       { Common_ITask* itask_p = this;
@@ -532,7 +549,8 @@ Stream_Dev_Cam_Source_Pipewire_T<ACE_SYNCH_USE,
   // *NOTE*: there should (!) never be a race here, as the second thread is
   //         started by the first (see above)
   if (isPipewireMainLoopThread_)
-  { ACE_ASSERT (loop_);
+  { isPipewireMainLoopThread_ = false;
+    ACE_ASSERT (loop_);
     result = pw_main_loop_run (loop_);
     if (unlikely (result < 0))
     {
