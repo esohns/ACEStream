@@ -98,9 +98,9 @@ class Stream_Decoder_FAAD_T
   NeAACDecHandle               context_;
   bool                         isFirst_;
 
-  uint32_t                     channels_;
-  uint32_t                     sampleRate_;
-  uint32_t                     sampleSize_;
+  ACE_UINT32                   channels_;
+  ACE_UINT32                   sampleRate_;
+  ACE_UINT32                   sampleSize_;
 };
 
 // include template definition

@@ -116,16 +116,23 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
-                bytes_in));
+                bytes_to_allocate_i));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
-                bytes_in));
+                bytes_to_allocate_i));
     return NULL;
   } // end IF
-  ACE_ASSERT (data_block_p->size () == bytes_to_allocate_i);
+  if (unlikely (data_block_p->size () != bytes_to_allocate_i))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
+                bytes_to_allocate_i));
+    data_block_p->release ();
+    return NULL;
+  } // end IF
 
   // increment running counter
 //   poolSize_ += data_block->capacity ();

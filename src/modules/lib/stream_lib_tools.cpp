@@ -892,6 +892,8 @@ Stream_MediaFramework_Tools::toBitCount (REFGUID subType_in,
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_A2B10G10R10))
         return 32;
       // chroma-luminance
+      else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_IMC1))
+        return 8;
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_NV12))
         return 12;
       else if (InlineIsEqualGUID (subType_in, MEDIASUBTYPE_UYVY))

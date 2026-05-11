@@ -681,7 +681,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   struct _AMMediaType* media_type_p =
     Stream_MediaFramework_DirectShow_Tools::to (mediaType_in);
   ACE_ASSERT (media_type_p);
+  
   mediaType_out = *media_type_p;
+
+  delete media_type_p;
 }
 
 template <typename MediaType>
@@ -699,7 +702,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   struct _AMMediaType* media_type_p =
     Stream_MediaFramework_DirectShow_Tools::to (mediaType_in);
   ACE_ASSERT (media_type_p);
+
   mediaType_out = *media_type_p;
+
+  delete media_type_p;
 }
 
 template <typename MediaType>
@@ -712,6 +718,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+
   getMediaType (mediaType_in,
                 type_in,
                 media_type_s);

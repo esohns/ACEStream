@@ -173,6 +173,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = message_inout;
   void* result_p = NULL;
   struct NeAACDecFrameInfo frame_info_s;
+  ACE_OS::memset (&frame_info_s, 0, sizeof (struct NeAACDecFrameInfo));
   int result = -1;
   void* data_p = NULL;
   long result_2 = -1;
@@ -199,6 +200,9 @@ reinitialize:
         goto clean; // try with next buffer
       goto reinitialize; // try with next byte
     } // end IF
+    else if (result_2 == 0 && frame_info_s.error == 12)
+      result_2 = 1; // *NOTE*: make sure there is progress (i.e. at least 1 byte
+                    //         consumed) to avoid infinite loop(s) on invalid input
     message_block_p->rd_ptr (result_2);
     // ACE_DEBUG ((LM_DEBUG,
     //             ACE_TEXT ("%s: (re-)initialized faad context: %u channels @ %u samples/s\n"),
@@ -236,7 +240,7 @@ reinitialize:
       } // end IF
     } // end IF
 
-    ACE_OS::memset (&frame_info_s, 0, sizeof (struct NeAACDecFrameInfo));
+    //ACE_OS::memset (&frame_info_s, 0, sizeof (struct NeAACDecFrameInfo));
     data_p = buffer_->wr_ptr ();
     result_p =
       NeAACDecDecode2 (context_,
@@ -361,6 +365,9 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       ACE_ASSERT (context_);
       unsigned char faad_format = 0;
       unsigned char result_2 = 0;
+#if defined (FFMPEG_SUPPORT)
+      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+#endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -462,6 +469,33 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
         }
       } // end SWITCH
 #endif // ACE_WIN32 || ACE_WIN64
+
+      // initialize library directly ?
+#if defined (FFMPEG_SUPPORT)
+      iterator = session_data_r.codecConfiguration.find (AV_CODEC_ID_AAC);
+      if (iterator != session_data_r.codecConfiguration.end ())
+      { ACE_ASSERT ((*iterator).second.size && (*iterator).second.data);
+        unsigned long sample_rate = 0;
+        unsigned char channels = 0;
+        char result_3 =
+          NeAACDecInit2 (context_,
+                         reinterpret_cast<unsigned char*> ((*iterator).second.data),
+                         static_cast<unsigned long> ((*iterator).second.size),
+                         &sample_rate,
+                         &channels);
+        if (unlikely (result_3 < 0))
+        {
+          ACE_DEBUG ((LM_WARNING,
+                      ACE_TEXT ("%s: failed to NeAACDecInit2(): \"%s\", aborting\n"),
+                      inherited::mod_->name (),
+                      ACE_TEXT (NeAACDecGetErrorMessage (result_3))));
+          goto error;
+        } // end IF
+        sampleRate_ = sample_rate;
+        channels_ = channels;
+        isFirst_ = false; // don't initialize again
+      } // end IF
+#endif // FFMPEG_SUPPORT
 
       configuration_.defObjectType = LC;
       configuration_.defSampleRate = sampleRate_;

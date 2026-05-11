@@ -411,7 +411,9 @@ loop:
             finished_b = true;
         } // end lock scope
         if (!finished_b)
-          inherited::stop (false, false, false);
+          inherited::stop (false,
+                           false,
+                           false);
         continue;
       } // end IF
     } // end IF
@@ -444,10 +446,13 @@ loop:
             break;
           } // end IF
 
-          inherited::stop (false, false, false);
+          inherited::stop (false,
+                           false,
+                           false);
           continue;
         } // end IF
       } // end lock scope
+
       break;
     } // end ELSE IF
 
@@ -469,7 +474,9 @@ skip:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to av_read_frame(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-      inherited::stop (false, false, false);
+      inherited::stop (false,
+                       false,
+                       false);
       continue;
     } // end IF
     if ((inherited::configuration_->streamIndex >= 0 && packet_s.stream_index != inherited::configuration_->streamIndex) ||
@@ -489,7 +496,9 @@ skip:
                   inherited::mod_->name (),
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       av_packet_unref (&packet_s);
-      inherited::stop (false, false, false);
+      inherited::stop (false,
+                       false,
+                       false);
       continue;
     } // end IF
     message_p->size (packet_s.size);
@@ -504,7 +513,9 @@ skip:
                   packet_s.size));
       av_packet_unref (&packet_s);
       message_p->release (); message_p = NULL;
-      inherited::stop (false, false, false);
+      inherited::stop (false,
+                       false,
+                       false);
       continue;
     } // end IF
     message_p->setMediaType (streamIndexToMessageMediaType_[packet_s.stream_index]);
@@ -517,7 +528,9 @@ skip:
                   ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
       message_p->release (); message_p = NULL;
-      inherited::stop (false, false, false);
+      inherited::stop (false,
+                       false,
+                       false);
       continue;
     } // end IF
     message_p = NULL;

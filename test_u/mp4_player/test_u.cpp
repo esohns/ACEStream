@@ -981,14 +981,17 @@ do_work (int argc_in,
                                                                  directshow_modulehandler_configuration,
                                                                  stream_configuration);
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
-                                                                              std::make_pair (&module_configuration,
-                                                                                              &directshow_modulehandler_configuration_audio)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_audio)));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_FAAD_DEFAULT_NAME_STRING),
-                                                                              std::make_pair (&module_configuration,
-                                                                                              &directshow_modulehandler_configuration_audio)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_audio)));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_SOX_RESAMPLER_DEFAULT_NAME_STRING),
-                                                                              std::make_pair (&module_configuration,
-                                                                                              &directshow_modulehandler_configuration_audio)));
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_audio)));
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_2b)));
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_3)));
@@ -1376,9 +1379,6 @@ do_work (int argc_in,
           directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                                  std::make_pair (&module_configuration,
                                                                                                  &directshow_modulehandler_configuration_2)));
-          directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                                 std::make_pair (&module_configuration,
-                                                                                                 &directshow_modulehandler_configuration_2b)));
           break;
         }
         case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

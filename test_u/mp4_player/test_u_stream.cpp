@@ -163,7 +163,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   } // end IF
 #endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
-  //layout_in->append (&SOXResample_, branch_p, index_i);
+  layout_in->append (&SOXResample_, branch_p, index_i);
 #endif // SOX_SUPPORT
   layout_in->append (&WASAPISound_, branch_p, index_i);
 
@@ -174,8 +174,8 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   else
     layout_in->append (&decode_, branch_p, index_i);
   //layout_in->append (&convert_, branch_p, index_i);
-  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
   layout_in->append (&delay_, branch_p, index_i);
+  layout_in->append (&resize_, branch_p, index_i); // output is window size/fullscreen
 
   switch (inherited::configuration_->configuration_->renderer)
   {

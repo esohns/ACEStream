@@ -613,7 +613,7 @@ retry:
       message_p = NULL;
     }
 
-    // keep retrying ?
+    // *TODO*: really keep retrying forever ?
     if (unlikely (!message_p && !allocator_->block ()))
       goto retry;
   } // end IF
@@ -623,15 +623,11 @@ retry:
                                        requestedSize_in));                               // size
   if (unlikely (!message_p))
   {
-    if (allocator_)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to allocate data message: \"%m\", aborting\n"),
-                  inherited::mod_->name ()));
-    else
-      ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("%s: failed to allocate memory (requested %u byte(s)): \"%m\", aborting\n"),
-                  inherited::mod_->name (),
-                  requestedSize_in));
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate data message (requested %u byte(s)): \"%m\", aborting\n"),
+                inherited::mod_->name (),
+                requestedSize_in));
+    return NULL;
   } // end IF
   // *TODO*: remove type inference
   if (session_data_p)
