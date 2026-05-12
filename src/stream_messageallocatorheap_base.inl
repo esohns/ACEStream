@@ -79,7 +79,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::calloc"));
 
-  int result = -1;
+  int result;
 
   // step0: wait for an empty slot ?
   if (block_)
@@ -102,12 +102,12 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.calloc ()));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block()), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block), continuing\n")));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(), aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block, aborting\n")));
     --poolSize_;
     freeMessageCounter_.release ();
     return NULL;
@@ -124,7 +124,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                                                  this)); // message allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType(), continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType), continuing\n")));
   }
   if (unlikely (!message_p))
   {
@@ -153,7 +153,8 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::malloc"));
 
-  int result = -1;
+  int result;
+
   // step0: wait for an empty slot ?
   if (block_)
     result = freeMessageCounter_.acquire ();
@@ -175,13 +176,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                             static_cast<ACE_Data_Block*> (dataBlockAllocator_.malloc (bytes_in)));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%u)), continuing\n"),
+                ACE_TEXT ("caught exception in ACE_ALLOCATOR_NORETURN(ACE_Data_Block(%Q)), continuing\n"),
                 bytes_in));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(%u), aborting\n"),
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%Q): \"%m\", aborting\n"),
                 bytes_in));
     --poolSize_;
     freeMessageCounter_.release ();
@@ -210,13 +211,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
                                                    this));       // remember allocator upon destruction
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%u), continuing\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN((Session)MessageType(%Q), continuing\n"),
                 bytes_in));
   }
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("unable to allocate (Session)MessageType(%u), aborting\n"),
+                ACE_TEXT ("unable to allocate (Session)MessageType(%Q), aborting\n"),
                 bytes_in));
     data_block_p->release (); data_block_p = NULL;
     --poolSize_;
@@ -250,7 +251,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
               (bytes_in == sizeof (DataMessageType))    ||
               (bytes_in == sizeof (SessionMessageType)));
 
-  int result = -1;
+  int result;
   // step0: wait for an empty slot ?
   if (likely (block_))
     result = freeMessageCounter_.acquire ();
@@ -271,13 +272,13 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
     message_p = inherited::malloc (bytes_in);
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%u), continuing\n"),
+                ACE_TEXT ("caught exception in ACE_New_Allocator::malloc(%Q), continuing\n"),
                 bytes_in));
   }
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate (Session)MessageType(%u), aborting\n"),
+                ACE_TEXT ("failed to allocate (Session)MessageType(%Q), aborting\n"),
                 bytes_in));
     poolSize_--;
     freeMessageCounter_.release ();
@@ -302,7 +303,7 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageAllocatorHeapBase_T::free"));
 
-  int result = -1;
+  int result;
 
   inherited::free (handle_in);
 

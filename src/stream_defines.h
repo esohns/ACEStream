@@ -22,6 +22,17 @@
 #define STREAM_DEFINES_H
 
 // message
+// *NOTE*: this is the maximum time any (!) module will backoff for a message
+//         buffer to become available(, before retrying). Users may also
+//         want to implement this in the ACE_MessageBlock::duplicate ()
+//         method. See also below
+#define STREAM_MESSAGE_ALLOCATION_BACKOFF_TIMEOUT_S         1 // s
+// *NOTE*: this is the maximum time a source (!) module will backoff for a
+//         message buffer to become available(, before retrying)
+// *IMPORTANT NOTE*: while this improves source module 'behaviour', this does
+//                   not prevent potential pipeline deadlock
+#define STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S  3 // s
+
 // *IMPORTANT NOTE*: this is not what it seems; the value is currently used ONLY
 //                   to distinguish between message types (see e.g.
 //                   stream_cachedmessageallocatorheap_base.inl:190)
@@ -41,7 +52,7 @@
 //                   module may need to cache messages
 //                   --> applications must ensure that there are enough message
 //                       buffers to contain at least one decompressed frame,
-//                       otherwise the pipeline could lock without progressing
+//                       otherwise the pipeline may deadlock
 #define STREAM_QUEUE_MAX_MESSAGES                           1000
 // *IMPORTANT NOTE*: pre-cached messages (cached allocators only)
 #define STREAM_QUEUE_DEFAULT_CACHED_MESSAGES                ACE_DEFAULT_FREE_LIST_HWM

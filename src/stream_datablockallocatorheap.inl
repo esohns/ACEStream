@@ -70,12 +70,12 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                              this));
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(0)): \"%m\", continuing\n")));
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block): \"%m\", continuing\n")));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(0): \"%m\", aborting\n")));
+                ACE_TEXT ("failed to allocate ACE_Data_Block: \"%m\", aborting\n")));
     return NULL;
   } // end IF
 
@@ -115,20 +115,20 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                              this));                                   // data block allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%u)): \"%m\", continuing\n"),
+                ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ACE_Data_Block(%Q)): \"%m\", continuing\n"),
                 bytes_to_allocate_i));
   }
   if (unlikely (!data_block_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%Q): \"%m\", aborting\n"),
                 bytes_to_allocate_i));
     return NULL;
   } // end IF
   if (unlikely (data_block_p->size () != bytes_to_allocate_i))
   {
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate ACE_Data_Block(%u): \"%m\", aborting\n"),
+                ACE_TEXT ("failed to allocate ACE_Data_Block(%Q): \"%m\", aborting\n"),
                 bytes_to_allocate_i));
     data_block_p->release ();
     return NULL;
@@ -174,9 +174,9 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
     return heapAllocator_->cache_size (); // *TODO*: this doesn't look quite right
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  return std::numeric_limits<unsigned int>::max ();
+  return std::numeric_limits<size_t>::max ();
 #else
-  return -1;
+  return -1; // *TODO*: this doesn't look quite right
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -189,6 +189,6 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("total# of in-flight message(s): %u\n"),
+              ACE_TEXT ("total# of in-flight message(s): %Q\n"),
               poolSize_.value ()));
 }

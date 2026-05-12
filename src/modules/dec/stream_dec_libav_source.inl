@@ -206,6 +206,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
+  static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
   bool stop_processing = false;
   struct AVPacket packet_s;
 
@@ -488,7 +489,8 @@ skip:
     
     ACE_ASSERT (packet_s.size);
     message_p =
-      inherited::allocateMessage (packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes);
+      inherited::allocateMessage (packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes,
+                                  &backoff_timeout);
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,

@@ -23,6 +23,8 @@
 #include "stream_control_message.h"
 #include "stream_macros.h"
 
+#include "test_u_mp4_player_defines.h"
+
 template <typename DataType,
           typename SessionDataType>
 Test_U_Message_T<DataType,
@@ -86,30 +88,43 @@ Test_U_Message_T<DataType,
   STREAM_TRACE (ACE_TEXT ("Test_U_Message_T::duplicate"));
 
   OWN_TYPE_T* message_p = NULL;
+  static ACE_Time_Value backoff_timeout (TEST_U_MP4PLAYER_MESSAGE_ALLOCATION_BACKOFF_TIMEOUT_S, 0);
 
   // create a new Test_U_Message_T that contains unique copies of
   // the message block fields, but a (reference counted) shallow duplicate of
   // the ACE_Data_Block
 
-  // if there is no allocator, use the standard new and delete calls.
-  if (unlikely (!inherited::message_block_allocator_))
-    ACE_NEW_NORETURN (message_p,
-                      OWN_TYPE_T (*this));
-  else // otherwise, use the existing message_block_allocator
+  if (likely (inherited::message_block_allocator_))
   {
+retry:
     // *NOTE*: the argument to alloc() does not really matter, as this creates
     //         a shallow copy of the existing data block
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
+    if (unlikely (!message_p))
+    {
+      Stream_IAllocator* allocator_p =
+        dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
+      if (allocator_p && allocator_p->block ())
+      { // *TODO*: really keep retrying forever ?
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("message allocation failed, backing off (delay: %#T)...\n"),
+        //            &backoff_timeout));
+        ACE_OS::sleep (backoff_timeout);
+        goto retry;
+      } // end IF
+    } // end IF
   } // end ELSE
+  else
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (*this));
   if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if (allocator_p && allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate Test_U_Message_T: \"%m\", aborting\n")));
     return NULL;

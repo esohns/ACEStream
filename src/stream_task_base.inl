@@ -580,7 +580,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionMessageType,
                   StreamControlType,
                   SessionEventType,
-                  UserDataType>::allocateMessage (size_t requestedSize_in)
+                  UserDataType>::allocateMessage (size_t requestedSize_in,
+                                                  ACE_Time_Value* backoffTimeout_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::allocateMessage"));
 
@@ -612,10 +613,19 @@ retry:
                   requestedSize_in));
       message_p = NULL;
     }
-
     // *TODO*: really keep retrying forever ?
     if (unlikely (!message_p && !allocator_->block ()))
+    {
+      if (unlikely (backoffTimeout_in))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: allocation failed, backing off (delay: %#T)...\n"),
+                    inherited::mod_->name (),
+                    backoffTimeout_in));
+        ACE_OS::sleep (*backoffTimeout_in);
+      } // end IF
       goto retry;
+    } // end IF
   } // end IF
   else
     ACE_NEW_NORETURN (message_p,

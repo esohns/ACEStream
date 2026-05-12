@@ -21,4 +21,9 @@
 #ifndef TEST_U_MP4PLAYER_DEFINES_H
 #define TEST_U_MP4PLAYER_DEFINES_H
 
+// *WARNING*: limiting this value (i.e. != 0) may lead to deadlock. OTOH
+//            unlimited in-flight messages my exhaust the system commit size
+#define TEST_U_MP4PLAYER_MAXIMUM_INFLIGHT_MESSAGES            25000
+#define TEST_U_MP4PLAYER_MESSAGE_ALLOCATION_BACKOFF_TIMEOUT_S STREAM_MESSAGE_ALLOCATION_BACKOFF_TIMEOUT_S
+
 #endif

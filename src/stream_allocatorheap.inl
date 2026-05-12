@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include <limits>
-
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
 
@@ -33,7 +31,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
                        ConfigurationType>::Stream_AllocatorHeap_T ()
  : inherited ()
  , inherited2 ()
- , poolSize_ (0)
+ , poolSize_ (0ULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::Stream_AllocatorHeap_T"));
 
@@ -53,8 +51,8 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
                                      initialValue_in);
 
   // update allocation counter
-  if (result)
-    poolSize_ += static_cast<unsigned long> (bytes_in);
+  if (likely (result))
+    poolSize_ += static_cast<ACE_UINT64> (bytes_in);
 
   return result;
 }
@@ -75,9 +73,8 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
                                      initialValue_in);
 
   // update allocation counter
-  if (result)
-    poolSize_ +=
-      static_cast<unsigned long> (numberOfElements_in * sizePerElement_in);
+  if (likely (result))
+    poolSize_ += static_cast<ACE_UINT64> (numberOfElements_in * sizePerElement_in);
 
   return result;
 }
@@ -96,7 +93,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
                                      '\0');
 
   // update allocation counter
-  if (result)
+  if (likely (result))
     poolSize_ += sizeof (ACE_Message_Block);
 
   return result;
@@ -114,7 +111,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
 
   // update allocation counter
   if (likely (result))
-    poolSize_ += static_cast<unsigned long> (bytes_in);
+    poolSize_ += static_cast<ACE_UINT64> (bytes_in);
 
   return result;
 }
@@ -144,6 +141,6 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::dump_state"));
 
   ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("allocated heap space: %u byte(s)\n"),
+              ACE_TEXT ("allocated heap space: %Q byte(s)\n"),
               poolSize_.value ()));
 }

@@ -957,14 +957,14 @@ do_work (int argc_in,
   stream_configuration.renderer = renderer_in;
   stream_configuration.useHardwareDecoder = useHardwareDecoder_in;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_DirectShow_MessageAllocator_t directshow_message_allocator (TEST_U_MP4PLAYER_MAXIMUM_INFLIGHT_MESSAGES, // maximum #buffers
                                                                      &heap_allocator,     // heap allocator handle
                                                                      true);               // block ?
   Test_U_DirectShow_Stream directshow_stream;
   Test_U_DirectShow_MessageHandler_Module directshow_message_handler (&directshow_stream,
                                                                       ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
 
-  Test_U_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_MediaFoundation_MessageAllocator_t mediafoundation_message_allocator (TEST_U_MP4PLAYER_MAXIMUM_INFLIGHT_MESSAGES, // maximum #buffers
                                                                                &heap_allocator,     // heap allocator handle
                                                                                true);               // block ?
   Test_U_MediaFoundation_Stream mediafoundation_stream;
@@ -1026,7 +1026,7 @@ do_work (int argc_in,
     }
   } // end SWITCH
 #else
-  Test_U_MessageAllocator_t message_allocator (TEST_U_MAX_MESSAGES, // maximum #buffers
+  Test_U_MessageAllocator_t message_allocator (TEST_U_MP4PLAYER_MAXIMUM_INFLIGHT_MESSAGES, // maximum #buffers
                                                &heap_allocator,     // heap allocator handle
                                                true);               // block ?
   Test_U_Stream stream;

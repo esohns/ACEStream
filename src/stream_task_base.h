@@ -133,7 +133,8 @@ class Stream_TaskBase_T
                      MESSAGE_QUEUE_T* = NULL); // queue handle
 
   // helper methods
-  DataMessageType* allocateMessage (size_t); // (requested) size
+  DataMessageType* allocateMessage (size_t,                  // (requested) size
+                                    ACE_Time_Value* = NULL); // backoff timeout [NULL --> do not backoff]
 
   // implement Stream_ITask
   virtual void handleMessage (ACE_Message_Block*, // message handle
