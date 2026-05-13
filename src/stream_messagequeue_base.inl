@@ -239,9 +239,9 @@ Stream_MessageQueueBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageQueueBase_T::waitForIdleState"));
 
-  ACE_Time_Value one_second (1, 0);
-  int result = -1;
-  size_t count = 0;
+  static ACE_Time_Value one_second (1, 0);
+  int result;
+  size_t count;
   bool has_waited = false;
   OWN_TYPE_T* this_p = const_cast<OWN_TYPE_T*> (this);
   int i = 0;

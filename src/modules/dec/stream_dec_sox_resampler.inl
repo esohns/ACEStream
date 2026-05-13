@@ -685,9 +685,15 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       //         --> convert back to output format
       output_->out_signal.precision = signalInfoOut_.precision;
 
-      inherited2::getMediaType (inherited::configuration_->outputFormat,
-                                STREAM_MEDIATYPE_AUDIO,
+      //inherited2::getMediaType (inherited::configuration_->outputFormat,
+      //                          STREAM_MEDIATYPE_AUDIO,
+      //                          media_type_3);
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_3);
+      inherited2::set (inherited::configuration_->outputFormat,
+                       STREAM_MEDIATYPE_AUDIO,
+                       media_type_3);
       session_data_r.formats.push_back (media_type_3);
 
 continue_2:

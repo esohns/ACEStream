@@ -48,6 +48,40 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_Med
 #if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (const struct _AMMediaType& format_in,
+                                                            enum Stream_MediaType_Type type_in,
+                                                            struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::set"));
+
+  switch (type_in)
+  {
+    case STREAM_MEDIATYPE_AUDIO:
+    {
+      getMediaType (format_in,
+                    STREAM_MEDIATYPE_AUDIO,
+                    mediaType_inout.audio);
+      break;
+    }
+    case STREAM_MEDIATYPE_VIDEO:
+    {
+      getMediaType (format_in,
+                    STREAM_MEDIATYPE_VIDEO,
+                    mediaType_inout.video);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
+                  type_in));
+      return;
+    }
+  } // end SWITCH
+}
+
+template <typename MediaType>
+void
 Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFormat (enum AVSampleFormat format_in,
                                                                   struct _AMMediaType& mediaType_inout)
 {
@@ -206,8 +240,6 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
                                                                      struct Stream_MediaFramework_FFMPEG_MediaType& mediaType_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
-
-  ACE_UNUSED_ARG (type_in);
 
   switch (type_in)
   {

@@ -855,6 +855,7 @@ do_work (int argc_in,
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
+  struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_3; // display
   struct Test_U_FFMPEG_ModuleHandlerConfiguration modulehandler_configuration_audio; // decoder
   Test_U_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -882,6 +883,7 @@ do_work (int argc_in,
         &directShowConfiguration_in.direct3DConfiguration;
       directshow_modulehandler_configuration.fileIdentifier.identifier =
         inputFilePath_in;
+      directshow_modulehandler_configuration.handleResize = false;
       directshow_modulehandler_configuration.streamIndex = -1;
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
@@ -889,6 +891,7 @@ do_work (int argc_in,
 
       directshow_modulehandler_configuration_3 =
         directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_3.handleResize = true;
 
       directshow_modulehandler_configuration_audio =
         directshow_modulehandler_configuration;
@@ -939,8 +942,8 @@ do_work (int argc_in,
   modulehandler_configuration.debug = debug_in;
 #endif // _DEBUG
   modulehandler_configuration.delayConfiguration = &delay_configuration;
-  //  modulehandler_configuration.display = displayDevice_in;
   modulehandler_configuration.fileIdentifier.identifier = inputFilePath_in;
+  modulehandler_configuration.handleResize = false;
   modulehandler_configuration.streamIndex = -1;
   modulehandler_configuration.subscriber = &ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1131,6 +1134,20 @@ do_work (int argc_in,
   modulehandler_configuration.outputFormat.video.resolution.width = 640;
   modulehandler_configuration.outputFormat.video.resolution.height = 480;
   modulehandler_configuration.outputFormat.video.frameRate.num = 30;
+
+  modulehandler_configuration_2b = modulehandler_configuration;
+  modulehandler_configuration_2b.handleResize = true;
+
+  modulehandler_configuration_3 = modulehandler_configuration;
+  modulehandler_configuration_3.handleResize = true;
+
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                                std::make_pair (&module_configuration,
+                                                                                &modulehandler_configuration_2b)));
+  configuration_in.streamConfiguration.insert (std::make_pair (Stream_Visualization_Tools::rendererToModuleName (renderer_in),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_3)));
+
   switch (renderer_in)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
@@ -1149,11 +1166,6 @@ do_work (int argc_in,
      // configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
      //                                                              std::make_pair (&module_configuration,
      //                                                                              &modulehandler_configuration_2)));
-     modulehandler_configuration_2b = modulehandler_configuration;
-     configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &modulehandler_configuration_2b)));
-
      break;
    }
 #endif // WAYLAND_SUPPORT
@@ -1402,9 +1414,9 @@ do_work (int argc_in,
                                                                    std::make_pair (&module_configuration,
                                                                                    &modulehandler_configuration_2)));
 
-      configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
-                                                                   std::make_pair (&module_configuration,
-                                                                                   &modulehandler_configuration_2b)));
+      //configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+      //                                                             std::make_pair (&module_configuration,
+      //                                                                             &modulehandler_configuration_2b)));
 #endif // ACE_WIN32 || ACE_WIN64
       break;
     }
