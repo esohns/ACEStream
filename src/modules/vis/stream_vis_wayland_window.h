@@ -95,6 +95,9 @@ libacestream_vis_wayland_xdg_toplevel_configure (void*,
                                                 struct xdg_toplevel*,
                                                 int32_t, int32_t,
                                                 struct wl_array*);
+void
+libacestream_vis_wayland_xdk_toplevel_close (void*,
+                                             struct xdg_toplevel*);
 extern struct xdg_toplevel_listener libacestream_vis_wayland_xdg_toplevel_listener;
 
 //////////////////////////////////////////

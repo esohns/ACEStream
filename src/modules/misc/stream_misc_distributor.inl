@@ -422,18 +422,10 @@ end:
                false,            // dispose original ?
                high_priority_b); // high priority ?
 
-      //result = inherited::put_next (message_inout, NULL);
-      //if (unlikely (result == -1))
-      //  ACE_DEBUG ((LM_ERROR,
-      //              ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", continuing\n"),
-      //              inherited::mod_->name ()));
-
-      //// clean up
-      //message_inout = NULL;
-      //passMessageDownstream_out = false;
-
-      stop (true,             // wait ?
-            high_priority_b); // high priority ?
+      // *IMPORTANT NOTE*: cannot enqueue MB_STOP at the head (second argument), as the ABORT/END
+      //                   would not get dispatched anymore
+      stop (true,   // wait ?
+            false); // high priority ?
 
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         for (HEAD_TO_SESSIONDATA_ITERATOR_T iterator = data_.begin ();

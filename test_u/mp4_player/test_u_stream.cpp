@@ -1481,7 +1481,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   bool reset_setup_pipeline = false;
   Test_U_MP4Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
   Test_U_SessionManager_t* session_manager_p =
     Test_U_SessionManager_t::SINGLETON_T::instance ();
 

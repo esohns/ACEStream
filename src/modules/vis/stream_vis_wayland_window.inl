@@ -817,8 +817,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
     // session end ?
     if (unlikely (cbData_.escapeKeyWasPressed))
-    {
-      cbData_.escapeKeyWasPressed = false;
+    { cbData_.escapeKeyWasPressed = false;
+      if (isFullscreen_)
+        toggle ();
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
     } // end IF
 

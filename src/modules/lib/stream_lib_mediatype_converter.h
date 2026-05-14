@@ -202,6 +202,14 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_Image_Resolution_t result; result.height = mediaType_in.format.height; result.width = mediaType_in.format.width; return result; }
 
 #if defined (FFMPEG_SUPPORT)
+  inline void set (const struct Stream_MediaFramework_ALSA_MediaType& format_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { ACE_ASSERT (type_in == STREAM_MEDIATYPE_AUDIO); mediaType_inout = format_in; }
+  void set (const struct Stream_MediaFramework_ALSA_MediaType&, // media type
+            enum Stream_MediaType_Type,                         // media type type
+            struct Stream_MediaFramework_FFMPEG_MediaType&);    // return value: media type
+  void set (const struct Stream_MediaFramework_FFMPEG_MediaType&, // media type
+            enum Stream_MediaType_Type,                           // media type type
+            struct Stream_MediaFramework_FFMPEG_MediaType&);      // return value: media type
+
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (format_in); }
   inline void setFormat (enum AVPixelFormat format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (format_in); }
   inline void setFormat (enum AVSampleFormat format_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { mediaType_inout.format = Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (format_in); }
