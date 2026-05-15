@@ -1442,7 +1442,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       directshow_modulehandler_configuration.direct3DConfiguration =
         &directShowConfiguration_in.direct3DConfiguration;
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      //directshow_modulehandler_configuration.flipImage = true;
+      //directshow_modulehandler_configuration.flipImage = false;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
       directshow_modulehandler_configuration.handleResize = false; // there is a resize module downstream that handles resize messages
       directshow_modulehandler_configuration.lock = &state_r.subscribersLock;
 
@@ -1615,7 +1616,7 @@ error:
                                                                                              &directshow_modulehandler_configuration_2)));
 
       directshow_modulehandler_configuration_2b = directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_2b.flipImage = true;
+      //directshow_modulehandler_configuration_2b.flipImage = true;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2b)));
@@ -1655,6 +1656,7 @@ error:
 
 #if defined (FFMPEG_SUPPORT)
       directshow_modulehandler_configuration_4 = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_4.flipImage = true;
       directshow_modulehandler_configuration_4.handleResize = false; // write as-is
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (std::string (std::string (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING)) + ACE_TEXT_ALWAYS_CHAR ("_2")),
                                                                              std::make_pair (&module_configuration,

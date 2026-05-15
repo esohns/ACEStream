@@ -1218,13 +1218,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_2.outputFormat);
-      delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_modulehandler_configuration_2.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+      directshow_modulehandler_configuration_2.flipImage = true;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,

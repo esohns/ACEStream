@@ -1250,13 +1250,13 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_2.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
                                                          directshow_modulehandler_configuration_2.outputFormat);
-      delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      directshow_modulehandler_configuration_2.flipImage =
-        Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
+      directshow_modulehandler_configuration_2.flipImage = true;
+        //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.format);
 
       //media_type_p =
       //  Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
@@ -1276,9 +1276,9 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
         Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
       ACE_ASSERT (media_type_p);
       directshow_modulehandler_configuration_4.outputFormat = *media_type_p;
+      delete media_type_p; media_type_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
                                                          directshow_modulehandler_configuration_4.outputFormat);
-      delete media_type_p; media_type_p = NULL;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
