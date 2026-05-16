@@ -630,19 +630,14 @@ end:
       ACE_ASSERT (inherited::configuration_);
       ACE_ASSERT (inherited::configuration_->ALSAConfiguration);
 
+      if (unlikely (high_priority_b ||
+                    !inherited::configuration_->waitForDataOnEnd))
+        queue_.flush (false); // flush all data messages
       if (inherited::configuration_->ALSAConfiguration->asynch)
-      {
-        if (unlikely (high_priority_b))
-          queue_.flush (false); // flush all data messages
         queue_.waitForIdleState ();
-      } // end IF
       else if (inherited::thr_count_ > 0)
-      {
-        if (high_priority_b)
-          queue_.flush (false); // flush all data messages
         stop (true,                                                                   // wait ?
               inherited::configuration_->waitForDataOnEnd ? false : high_priority_b); // high priority ?
-      } // end ELSE IF
 
       if (likely (deviceHandle_))
       {
@@ -657,10 +652,11 @@ end:
                                                       : snd_pcm_drop (deviceHandle_);
         if (unlikely (result < 0))
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to snd_pcm_drain|drop(): \"%s\", continuing\n"),
+                      ACE_TEXT ("%s: failed to %s(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
+                      inherited::configuration_->waitForDataOnEnd ? ACE_TEXT ("snd_pcm_drain") : ACE_TEXT ("snd_pcm_drop"),
                       ACE_TEXT (snd_strerror (result))));
-        ACE_Time_Value delay (0, 100000); // 100 ms
+        static ACE_Time_Value delay (0, 100000); // 100 ms
         snd_pcm_state_t state_e = snd_pcm_state (deviceHandle_);
         while ((state_e == SND_PCM_STATE_DRAINING) ||
                (state_e == SND_PCM_STATE_RUNNING))
