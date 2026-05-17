@@ -1835,15 +1835,17 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     ACE_ASSERT ((*stream_iterator).second.second->window.win32_hwnd);
 #else
     (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_X11;
+#if defined (X11_SUPPORT)
     (*stream_iterator).second.second->window.x11_window =
       GDK_WINDOW_XID (window_p);
     ACE_ASSERT ((*stream_iterator).second.second->window.x11_window);
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     wxStringClientData* client_data_p =
       dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (choice_screen->GetSelection ()));
     ACE_ASSERT (client_data_p);
     (*stream_iterator).second.second->deviceIdentifier.identifier =
-        client_data_p->GetData ().ToStdString ();
+      client_data_p->GetData ().ToStdString ();
   } // end IF
   else
   {
@@ -1851,7 +1853,7 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     (*stream_iterator).second.second->window.win32_hwnd = NULL;
 #else
-    (*stream_iterator).second.second->window.x11_window = 0;
+    (*stream_iterator).second.second->window.window = 0;
 #endif // ACE_WIN32 || ACE_WIN64
     (*stream_iterator).second.second->window.type = Common_UI_Window::TYPE_INVALID;
     (*stream_iterator).second.second->deviceIdentifier.identifier.clear ();

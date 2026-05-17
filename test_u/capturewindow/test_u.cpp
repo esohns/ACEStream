@@ -29,9 +29,6 @@
 #include "uuids.h"
 #endif // UUIDS_H
 #else
-#include "X11/X.h"
-#include "X11/Xlib.h"
-
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
@@ -41,6 +38,11 @@ extern "C"
 }
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
+
+#if defined (X11_SUPPORT)
+#include "X11/X.h"
+#include "X11/Xlib.h"
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include <iostream>
@@ -75,7 +77,7 @@ extern "C"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "common_ui_x11_tools.h"
+#include "common_error_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (HAVE_CONFIG_H)
@@ -166,11 +168,7 @@ do_print_usage (const std::string& programName_in)
 bool
 do_process_arguments (int argc_in,
                       ACE_TCHAR** argv_in, // cannot be const...
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                      HWND& windowHandle_out,
-#else
-                      Window& windowId_out,
-#endif // ACE_WIN32 || ACE_WIN64
+                      struct Common_UI_Window& window_out,
                       pid_t& processId_out,
                       std::string& executableName_out,
                       bool& logToFile_out,
@@ -186,11 +184,7 @@ do_process_arguments (int argc_in,
     Common_File_Tools::getWorkingDirectory ();
 
   // initialize results
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  windowHandle_out = NULL;
-#else
-  windowId_out = 0;
-#endif // ACE_WIN32 || ACE_WIN64
+  window_out.type = Common_UI_Window::Type::TYPE_INVALID;
   processId_out = 0;
   executableName_out.clear ();
   logToFile_out = false;
@@ -232,17 +226,19 @@ do_process_arguments (int argc_in,
         converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         ACE_UINT64 handle_i = 0;
         converter >> handle_i;
-        windowHandle_out = reinterpret_cast<HWND> (handle_i);
+        window_out.type = Common_UI_Window::Type::TYPE_WIN32;
+        window_out.win32_hwnd = reinterpret_cast<HWND> (handle_i);
 #else
         converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
-        converter >> windowId_out;
+        converter >> window_out.x11_window;
         if (!windowId_out)
         { // try hexadecimal
           converter.str (ACE_TEXT_ALWAYS_CHAR (""));
           converter.clear ();
           converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
-          converter >> windowId_out;
+          converter >> window_out.x11_window;
         } // end IF
+        window_out.type = Common_UI_Window::Type::TYPE_X11;
 #endif // ACE_WIN32 || ACE_WIN64
         converter << std::dec;
         break;
@@ -284,7 +280,8 @@ do_process_arguments (int argc_in,
         ACE_DEBUG ((LM_INFO,
                     ACE_TEXT ("place mouse over window and press enter key (make sure focus-follows-mouse is disabled)\n")));
         std::cin.get ();
-        windowHandle_out = Common_Input_Tools::mouseCursorToWindowHandle (false);
+        window_out.win32_hwnd = Common_Input_Tools::mouseCursorToWindowHandle (false);
+        window_out.type = Common_UI_Window::Type::TYPE_WIN32;
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
@@ -529,12 +526,13 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
 }
 #else
+#if defined (X11_SUPPORT)
 bool
-do_initialize (Window windowHandle_in,
-               struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out,
-               struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
+do_initialize_x11 (Window windowHandle_in,
+                   struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out,
+                   struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
 {
-  STREAM_TRACE (ACE_TEXT ("::do_initialize"));
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_x11"));
 
   // intialize return value(s)
   ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
@@ -555,7 +553,7 @@ do_initialize (Window windowHandle_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to XGetGeometry(): \"%s\", aborting\n"),
-                ACE_TEXT (Common_UI_X11_Tools::toString (*display_p, result).c_str ())));
+                ACE_TEXT (Common_Error_Tools::toString (*display_p, result).c_str ())));
     result = XCloseDisplay (display_p); display_p = NULL;
     ACE_ASSERT (result == Success);
     return false;
@@ -589,10 +587,11 @@ do_initialize (Window windowHandle_in,
 }
 
 void
-do_finalize ()
+do_finalize_x11 ()
 {
-  STREAM_TRACE (ACE_TEXT ("::do_finalize"));
+  STREAM_TRACE (ACE_TEXT ("::do_finalize_x11"));
 }
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
@@ -655,13 +654,13 @@ do_initializeSignals (ACE_Sig_Set& signals_out)
 void
 do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         HWND windowHandle_in,
+         const struct Common_UI_Window& window_in,
          enum Stream_MediaFramework_Type mediaFramework_in,
          struct Test_U_DirectShow_Configuration& directShowConfiguration_in,
          struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
          int argc_in, ACE_TCHAR** argv_in,
-         Window windowHandle_in,
+         const struct Common_UI_Window& window_in,
          struct Test_U_CaptureWindow_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
          )
@@ -772,10 +771,7 @@ do_work (
 #endif // FFMPEG_SUPPORT
       directshow_modulehandler_configuration.fileFormat =
         ACE_TEXT_ALWAYS_CHAR ("mp4");
-      directshow_modulehandler_configuration.window.win32_hwnd =
-        windowHandle_in;
-      directshow_modulehandler_configuration.window.type =
-        Common_UI_Window::TYPE_WIN32;
+      directshow_modulehandler_configuration.window = window_in;
 
       //if (statisticReportingInterval_in)
       //{
@@ -822,8 +818,7 @@ do_work (
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.fileFormat = ACE_TEXT_ALWAYS_CHAR ("mp4");
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.window.x11_window = windowHandle_in;
-  modulehandler_configuration.window.type = Common_UI_Window::TYPE_X11;
+  modulehandler_configuration.window = window_in;
 
   struct Test_U_CaptureWindow_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -947,8 +942,8 @@ do_work (
   switch (mediaFramework_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      if (!do_initialize_directshow (windowHandle_in,
+    { ACE_ASSERT (window_in.type == Common_UI_Window::Type::TYPE_WIN32);
+      if (!do_initialize_directshow (window_in.win32_hwnd,
                                      directshow_stream_configuration.format,
                                      allocator_configuration))
       {
@@ -999,8 +994,8 @@ do_work (
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      if (!do_initialize_mediafoundation (windowHandle_in
+    { ACE_ASSERT (window_in.type == Common_UI_Window::Type::TYPE_WIN32);
+      if (!do_initialize_mediafoundation (window_in.win32_hwnd
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
                                           , mediafoundation_modulehandler_configuration.session))
 #else
@@ -1028,14 +1023,17 @@ do_work (
     }
   } // end SWITCH
 #else
-  if (!do_initialize (windowHandle_in,
-                      stream_configuration.format,
-                      allocator_configuration))
+#if defined (X11_SUPPORT)
+  ACE_ASSERT (window_in.type == Common_UI_Window::Type::TYPE_X11);
+  if (!do_initialize_x11 (window_in.x11_window,
+                          stream_configuration.format,
+                          allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ::do_initialize(), returning\n")));
     return;
   } // end IF
+#endif // X11_SUPPORT
   stream_p = &stream;
 
   switch (stream_configuration.renderer)
@@ -1162,7 +1160,9 @@ clean:
     }
   } // end SWITCH
 #else
-  do_finalize ();
+#if defined (X11_SUPPORT)
+  do_finalize_x11 ();
+#endif // X11_SUPPORT
 
   stream.remove (&message_handler,
                  true,
@@ -1231,17 +1231,15 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   enum Test_U_CaptureWindow_ProgramMode program_mode_e =
     TEST_U_PROGRAMMODE_NORMAL;
+  struct Common_UI_Window window_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::vector<HWND> window_handles_a;
-  HWND window_handle_h = NULL;
-#else
-  Window window_handle_h = 0;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
                              argv_in,
-                             window_handle_h,
+                             window_s,
                              process_id,
                              executable_name_string,
                              log_to_file,
@@ -1271,7 +1269,7 @@ ACE_TMAIN (int argc_in,
   if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (window_handle_h)
+  if (window_s.type != Common_UI_Window::Type::TYPE_INVALID)
     goto continue_;
   if (!executable_name_string.empty ())
   {
@@ -1328,12 +1326,14 @@ next_process_id:
     ACE_ASSERT (result_2);
     if ((window_size_s.right - window_size_s.left) && (window_size_s.bottom - window_size_s.top))
     {
-      window_handle_h = *iterator; 
+      window_s.win32_hwnd = *iterator;
+      window_s.type = Common_UI_Window::Type::TYPE_WIN32;
       break;
     } // end IF
   } // end FOR
 no_window_handles:
-  if (!window_handle_h && process_ids_iterator != process_ids_a.end ())
+  if (window_s.type == Common_UI_Window::Type::TYPE_INVALID &&
+      process_ids_iterator != process_ids_a.end ())
   {
     ++process_ids_iterator;
     if (process_ids_iterator != process_ids_a.end ())
@@ -1343,8 +1343,9 @@ no_window_handles:
     } // end IF
   } // end IF
 #else
-  window_handle_h = Common_Process_Tools::window (process_id);
-  if (unlikely (!window_handle_h))
+#if defined (X11_SUPPORT)
+  window_s.x11_window = Common_Process_Tools::window (process_id);
+  if (unlikely (!window_s.x11_window))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_Process_Tools::window(%d), aborting\n"),
@@ -1352,9 +1353,11 @@ no_window_handles:
     Common_Tools::finalize ();
     return EXIT_FAILURE;
   } // end IF
+  window_s.type = Common_UI_Window::Type::TYPE_X11;
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 continue_:
-  if (!window_handle_h)
+  if (window_s.type == Common_UI_Window::Type::TYPE_INVALID)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
@@ -1450,13 +1453,13 @@ continue_:
   // step2: do actual work
   do_work (
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           window_handle_h,
+           window_s,
            media_framework_e,
            directshow_configuration,
            mediafoundation_configuration
 #else
            argc_in, argv_in,
-           window_handle_h,
+           window_s,
            configuration
 #endif // ACE_WIN32 || ACE_WIN64
           );

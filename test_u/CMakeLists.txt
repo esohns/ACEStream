@@ -74,7 +74,7 @@ if (QT_SUPPORT)
 #  cmake_policy (SET CMP0020 OLD)
 # endif (WIN32)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC
-                             $<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>)
+                             "$<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>")
 endif (QT_SUPPORT)
 if (WXWIDGETS_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Test_U PUBLIC

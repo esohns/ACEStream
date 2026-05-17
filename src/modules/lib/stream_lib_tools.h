@@ -66,8 +66,8 @@ extern "C"
 #include "common_image_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_common.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_defines.h"
 #else
 #include "stream_lib_v4l_common.h"

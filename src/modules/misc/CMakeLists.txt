@@ -14,6 +14,7 @@ if (UNIX)
   target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                               $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
  endif (FFMPEG_SUPPORT)
+
  if (GTK_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                               "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
@@ -27,6 +28,14 @@ if (UNIX)
    endif (GTKGLAREA_SUPPORT)
   endif (GTKGL_SUPPORT)
  endif (GTK_SUPPORT)
+ if (QT_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                              "$<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>")
+ endif (QT_SUPPORT)
+ if (WXWIDGETS_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                              "$<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>")
+ endif (WXWIDGETS_SUPPORT)
 endif (UNIX)
 
 if (UNIX)

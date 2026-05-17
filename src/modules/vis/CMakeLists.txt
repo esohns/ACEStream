@@ -44,7 +44,10 @@ get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
 
 add_library (${PROJECT_NAME}_Visualization STATIC "")
 
-if (WIN32)
+if (UNIX)
+ target_compile_options (${PROJECT_NAME}_Visualization PUBLIC
+                         -Wno-pointer-arith)
+elseif (WIN32)
  target_compile_definitions (${PROJECT_NAME}_Visualization PUBLIC
                              -D__STDC_CONSTANT_MACROS)
  if (CMAKE_BUILD_TYPE STREQUAL Debug)
@@ -52,7 +55,7 @@ if (WIN32)
   target_compile_definitions (${PROJECT_NAME}_Visualization PUBLIC
                               -DDEBUG)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif (WIN32)
+endif ()
 
 if (WIN32 AND DIRECTXSDK_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -104,6 +107,14 @@ if (GTK_SUPPORT)
   endif (GTKGLAREA_SUPPORT)
  endif (GTKGL_SUPPORT)
 endif (GTK_SUPPORT)
+if (QT_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>")
+endif (QT_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>")
+endif (WXWIDGETS_SUPPORT)
 
 if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -115,16 +126,16 @@ if (OPENCV_SUPPORT)
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
 if (UNIX)
+ if (X11_SUPPORT)
+  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                              $<BUILD_INTERFACE:${X11_INCLUDE_DIRS}>)
+ endif (X11_SUPPORT)
  if (WAYLAND_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               "$<BUILD_INTERFACE:${WAYLAND_INCLUDE_DIRS}>")
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                               $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
  endif (WAYLAND_SUPPORT)
- if (X11_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
-                              $<BUILD_INTERFACE:${X11_INCLUDE_DIRS}>)
- endif (X11_SUPPORT)
 
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../../modules/Common/src>)

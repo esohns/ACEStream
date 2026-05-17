@@ -1799,7 +1799,7 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
       dynamic_cast<wxStringClientData*> (choice_screen->GetClientObject (choice_screen->GetSelection ()));
     ACE_ASSERT (client_data_p);
     (*stream_iterator).second.second->deviceIdentifier.identifier =
-        client_data_p->GetData ().ToStdString ();
+      client_data_p->GetData ().ToStdString ();
   } // end IF
   else
   {
