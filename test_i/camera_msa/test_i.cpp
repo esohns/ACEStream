@@ -930,6 +930,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
   struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Test_I_CameraMSA_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // resize
   Test_I_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -999,7 +1000,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   modulehandler_configuration.codecConfiguration = &codec_configuration;
 #endif // FFMPEG_SUPPORT
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-//  modulehandler_configuration.display = displayDevice_in;
+  modulehandler_configuration.handleResize = false;
+  //  modulehandler_configuration.display = displayDevice_in;
 //  // *TODO*: turn these into an option
 //  modulehandler_configuration.method = STREAM_DEV_CAM_V4L_DEFAULT_IO_METHOD;
   // Stream_Device_Tools::getDefaultCaptureFormat (deviceIdentifier_in.identifier,
@@ -1256,6 +1258,11 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+
+  modulehandler_configuration_3 = modulehandler_configuration_2;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                             std::make_pair (&module_configuration,
+                                                                            &modulehandler_configuration_3)));
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 

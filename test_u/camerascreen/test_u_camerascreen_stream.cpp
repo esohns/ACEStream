@@ -1486,6 +1486,6 @@ Stream_CameraScreen_Stream::resize (const Common_Image_Resolution_t& resolution_
 
   inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
                      false,
-                     false);
+                     true);
 }
 #endif // ACE_WIN32 || ACE_WIN64

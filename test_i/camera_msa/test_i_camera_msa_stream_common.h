@@ -49,7 +49,9 @@
 #else
 #include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_vis_common.h"
+#include "stream_vis_iresize.h"
 
 #include "test_i_common.h"
 
@@ -279,7 +281,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
 #endif // FFMPEG_SUPPORT
    , deviceIdentifier ()
    , display ()
-   //, fullScreen (false)
+   , resize (NULL)
    , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -294,7 +296,7 @@ struct Test_I_CameraMSA_ModuleHandlerConfiguration
 #else
   struct Common_UI_Display                                display; // display module
 #endif // ACE_WIN32 || ACE_WIN64
-  //bool                                                    fullScreen;
+  Stream_Visualization_IResize*                           resize;
   struct Common_UI_Window                                 window;
 };
 //extern const char stream_name_string_[];

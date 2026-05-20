@@ -211,7 +211,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
   layout_in->append (&source_, NULL, 0);
   //if ((*iterator).second.second->flipImage)
-    layout_in->append (&convert_, NULL, 0);
+  layout_in->append (&convert_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
 
   bool add_renderer_b = true;
@@ -563,12 +563,12 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   if (!add_renderer_b)
     goto continue_;
 
+  layout_in->append (&resize_2_, NULL, 0); // output is window size/fullscreen
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      layout_in->append (&resize_2_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }
@@ -591,7 +591,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_DIRECTSHOW:
     {
-      layout_in->append (&resize_2_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&DirectShowDisplay_, NULL, 0);
       break;
     }
@@ -648,7 +647,7 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
   iterator_2 =
     const_cast<inherited::CONFIGURATION_T&> (configuration_in).find (Stream_Visualization_Tools::rendererToModuleName (configuration_in.configuration_->renderer));
-  
+
   // sanity check(s)
   ACE_ASSERT (iterator != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
   ACE_ASSERT (iterator_2 != const_cast<inherited::CONFIGURATION_T&> (configuration_in).end ());
@@ -965,6 +964,8 @@ continue_:
   session_data_p->formats.push_back (media_type_s);
   //ACE_ASSERT (Stream_MediaFramework_DirectShow_Tools::matchMediaType (*session_data_p->sourceFormat, *(*iterator).second.second->sourceFormat));
 
+  (*iterator_2).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
   // step6: initialize head module
   //source_impl_p->setP (&(inherited::state_));
@@ -1016,6 +1017,23 @@ error:
     CoUninitialize ();
 
   return false;
+}
+
+void
+Test_U_DirectShow_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_DirectShow_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in,
+                                                         (*iterator).second.second->outputFormat);
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                    false,
+                    true);
 }
 
 //////////////////////////////////////////
@@ -1138,7 +1156,7 @@ Test_U_MediaFoundation_Stream::stop (bool waitForCompletion_in,
 
 HRESULT
 Test_U_MediaFoundation_Stream::QueryInterface (const IID& IID_in,
-                                                            void** interface_out)
+                                               void** interface_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::QueryInterface"));
 
@@ -1174,7 +1192,7 @@ Test_U_MediaFoundation_Stream::Release ()
 
 HRESULT
 Test_U_MediaFoundation_Stream::GetParameters (DWORD* flags_out,
-                                                           DWORD* queue_out)
+                                              DWORD* queue_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_U_MediaFoundation_Stream::GetParameters"));
 
@@ -1820,6 +1838,7 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&source_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
+  // layout_in->append (&resize_, NULL, 0);
 
   bool add_renderer_b = true;
   switch (inherited::configuration_->configuration_->mode)
@@ -1855,7 +1874,6 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
 #if defined (GLUT_SUPPORT)
     case TEST_U_MODE_GLUT:
     {
-      //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
       layout_in->append (&OpenGLDisplay_, NULL, 0);
       add_renderer_b = false;
       break;
@@ -2167,7 +2185,7 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   if (!add_renderer_b)
     goto continue_;
 
-  // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
   switch (inherited::configuration_->configuration_->renderer)
   {
 #if defined (GTK_SUPPORT)
@@ -2242,6 +2260,8 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
 
+  (*iterator).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
 
   if (configuration_in.configuration_->setupPipeline)
@@ -2261,9 +2281,25 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-      setup_pipeline;
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline = setup_pipeline;
 
   return false;
+}
+
+void
+Test_U_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_U_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  (*iterator).second.second->outputFormat.format.width = resolution_in.width;
+  (*iterator).second.second->outputFormat.format.height = resolution_in.height;
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false,
+                     true);
 }
 #endif // ACE_WIN32 || ACE_WIN64

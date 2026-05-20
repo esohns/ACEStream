@@ -1055,6 +1055,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 #else
   struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Test_U_CameraFilter_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // resize
   Test_U_EventHandler_t ui_event_handler;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1477,6 +1478,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
   modulehandler_configuration_2 = modulehandler_configuration;
+  modulehandler_configuration_2.handleResize = false;
   modulehandler_configuration_2.outputFormat.format.pixelformat =
     V4L2_PIX_FMT_RGBA32;
 
@@ -1569,6 +1571,13 @@ continue_:
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+
+  modulehandler_configuration_3 = modulehandler_configuration_2;
+  modulehandler_configuration_3.handleResize = true;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_3)));
+
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 

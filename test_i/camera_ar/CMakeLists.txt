@@ -39,12 +39,12 @@ endif (OLC_PGE_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/include)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/log)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/signal)
- include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/timer)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/include)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/log)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/signal)
+ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/timer)
 elseif (WIN32)
  if (DIRECTSHOW_BASECLASSES_SUPPORT)
   include_directories (${DS_BASECLASSES_INCLUDE_DIRS})
@@ -105,7 +105,8 @@ if (OLC_CGE_SUPPORT)
       ${${EXECUTABLE}_EXE_SRCS}
       test_i_camera_ar_module_cge.cpp
       test_i_camera_ar_module_cge.h
-      test_i_camera_ar_module_cge.inl)
+      test_i_camera_ar_module_cge.inl
+      test_i_olc_cge.cpp)
 endif (OLC_CGE_SUPPORT)
 
 if (UNIX)

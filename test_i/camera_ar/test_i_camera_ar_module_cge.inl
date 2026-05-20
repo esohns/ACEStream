@@ -161,8 +161,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   // erroneously indicate large local motion
   for (int i = 0; i < screen_resolution_i; i++)
   {
-    flowFieldX[i] = currentMotionImage[i] > 0.0f ? flowFieldX[i] : 0.0f;
-    flowFieldY[i] = currentMotionImage[i] > 0.0f ? flowFieldY[i] : 0.0f;
+    flowFieldX[i] *= currentMotionImage[i] > 0.0f ? 1.0f : 0.0f;
+    flowFieldY[i] *= currentMotionImage[i] > 0.0f ? 1.0f : 0.0f;
   } // end FOR
 }
 
@@ -311,13 +311,11 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   ballVelocityY *= TEST_I_CAMERA_AR_DRAG_FACTOR_F;
 
   // wrap ball around screen
-  while (ballX >= (float)inherited3::ScreenWidth ())
-    ballX -= (float)inherited3::ScreenWidth ();
-  while (ballY >= (float)inherited3::ScreenHeight ())
-    ballY -= (float)inherited3::ScreenHeight ();
-  while (ballX < 0.0f)
+  ballX = std::fmod (ballX, (float)inherited3::ScreenWidth ());
+  ballY = std::fmod (ballY, (float)inherited3::ScreenHeight ());
+  if (ballX < 0.0f)
     ballX += (float)inherited3::ScreenWidth ();
-  while (ballY < 0.0f)
+  if (ballY < 0.0f)
     ballY += (float)inherited3::ScreenHeight ();
 
   // draw image

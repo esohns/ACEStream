@@ -413,6 +413,8 @@ continue_:
     &const_cast<Test_I_CameraMSA_DirectShow_SessionData&> (session_manager_p->getR (inherited::id_));
   //session_data_p->targetFileName = (*iterator).second.second->targetFileName;
 
+  (*iterator).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
   // step4: initialize module(s)
 
@@ -496,6 +498,23 @@ error:
     CoUninitialize ();
 
   return false;
+}
+
+void
+Test_I_DirectShow_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_DirectShow_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in,
+                                                         (*iterator).second.second->outputFormat);
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                    false,
+                    true);
 }
 
 //////////////////////////////////////////
@@ -1204,7 +1223,7 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   if (requires_codec_b)
     layout_in->append (&decode_, NULL, 0);
   layout_in->append (&convert_, NULL, 0);
-  // layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+  layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
 
@@ -1253,6 +1272,8 @@ Test_I_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
 
+  (*iterator).second.second->resize = this;
+
   // ---------------------------------------------------------------------------
 
   if (configuration_in.configuration_->setupPipeline)
@@ -1276,5 +1297,22 @@ error:
       setup_pipeline;
 
   return false;
+}
+
+void
+Test_I_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+  (*iterator).second.second->outputFormat.format.width = resolution_in.width;
+  (*iterator).second.second->outputFormat.format.height = resolution_in.height;
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                    false,
+                    true);
 }
 #endif // ACE_WIN32 || ACE_WIN64

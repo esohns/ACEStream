@@ -226,12 +226,13 @@ do_process_arguments (int argc_in,
         converter << std::hex << ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ());
         ACE_UINT64 handle_i = 0;
         converter >> handle_i;
-        window_out.type = Common_UI_Window::Type::TYPE_WIN32;
         window_out.win32_hwnd = reinterpret_cast<HWND> (handle_i);
+        window_out.type = Common_UI_Window::Type::TYPE_WIN32;
 #else
         converter.str (ACE_TEXT_ALWAYS_CHAR (argumentParser.opt_arg ()));
+#if defined (X11_SUPPORT)
         converter >> window_out.x11_window;
-        if (!windowId_out)
+        if (!window_out.x11_window)
         { // try hexadecimal
           converter.str (ACE_TEXT_ALWAYS_CHAR (""));
           converter.clear ();
@@ -239,6 +240,7 @@ do_process_arguments (int argc_in,
           converter >> window_out.x11_window;
         } // end IF
         window_out.type = Common_UI_Window::Type::TYPE_X11;
+#endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
         converter << std::dec;
         break;

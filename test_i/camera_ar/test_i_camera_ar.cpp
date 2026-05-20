@@ -1119,11 +1119,8 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Stream_IStreamControlBase* stream_p = NULL;
-  Common_Image_Resolution_t resolution_s = {0, 0};
-#if defined (_DEBUG)
-#else
-  resolution_s = {160, 99};
-#endif // _DEBUG
+  Common_Image_Resolution_t resolution_s = {TEST_I_CAMERA_AR_CONSOLE_DEFAULT_SIZE_X,
+                                            TEST_I_CAMERA_AR_CONSOLE_DEFAULT_SIZE_Y};
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *NOTE*: console manipulation done by the CGE
@@ -1131,7 +1128,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   //                         TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE};
   //Common_UI_Tools::setConsoleFontSize (coord_s);
   Common_UI_Resolution_t resolution_s_2 = Common_UI_Tools::getConsoleSize (true); // get maximum size
-  resolution_s_2.cy = 80; // *TODO*: why ?
+  // resolution_s_2.cy = 80; // *TODO*: why ?
   //coord_s = {static_cast<SHORT> (resolution_s_2.cx), static_cast<SHORT> (resolution_s_2.cy)};
   //Common_UI_Tools::setConsoleSize (coord_s);
   //Common_UI_Tools::setConsoleMaxWindowSize (static_cast<ACE_INT16> (resolution_s.cx));
@@ -1241,9 +1238,6 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
     }
   } // end SWITCH
 #else
-  resolution_s = {80, 60};
-  // resolution_s = {320, 240};
-
   if (!do_initialize_v4l (deviceIdentifier_in.identifier,
                           modulehandler_configuration.deviceIdentifier,
                           stream_configuration.format,
@@ -1256,8 +1250,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
   stream_p = &stream;
 
 //  if (!Stream_MediaFramework_Tools::isRGB (stream_configuration.format.format.pixelformat))
-//    modulehandler_configuration.outputFormat.format.pixelformat =
-//      V4L2_PIX_FMT_RGB32;
+//    modulehandler_configuration.outputFormat.format.pixelformat = V4L2_PIX_FMT_RGB32;
   modulehandler_configuration.outputFormat.format.width = resolution_s.width;
   modulehandler_configuration.outputFormat.format.height = resolution_s.height;
 
@@ -1409,8 +1402,9 @@ ACE_TMAIN (int argc_in,
                             false); // RNG ?
 #else
   Common_Tools::initialize (false); // RNG ?
-  Common_UI_Tools::initialize ();
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_UI_Tools::initialize ();
+
   // initialize framework(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
@@ -1467,11 +1461,11 @@ ACE_TMAIN (int argc_in,
 #else
   video_renderer_e = STREAM_VISUALIZATION_VIDEORENDERER_X11;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Common_UI_DisplayDevice display_device_s =
+  struct Common_UI_DisplayDevice display_device_s;
     Common_UI_Tools::getDefaultDisplay ();
   bool trace_information = false;
   enum Stream_CameraAR_ProgramMode program_mode_e =
-      STREAM_CAMERA_AR_PROGRAMMODE_NORMAL;
+    STREAM_CAMERA_AR_PROGRAMMODE_NORMAL;
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
