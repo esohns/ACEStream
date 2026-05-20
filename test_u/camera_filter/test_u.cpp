@@ -1167,7 +1167,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
       //      bufferSize_in;
       directshow_stream_configuration.allocatorConfiguration = &allocator_configuration;
       directshow_stream_configuration.messageAllocator =
-          &directshow_message_allocator;
+        &directshow_message_allocator;
       directshow_stream_configuration.module =
         &directshow_message_handler;
       directshow_stream_configuration.mode = mode_in;
@@ -1178,6 +1178,7 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
                                                                  directshow_stream_configuration);
 
       directshow_modulehandler_configuration_2a = directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_2a.handleResize = false;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_2a)));
@@ -1298,58 +1299,58 @@ do_work (struct Stream_Device_Identifier& deviceIdentifier_in,
 
       // *NOTE*: need to set this for RGB-capture (!) formats ONLY !
       //  Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_stream_configuration.outputFormat);
-      switch (mode_in)
-      {
-        case TEST_U_MODE_GLUT_6:
-        case TEST_U_MODE_GLUT_7:
-        case TEST_U_MODE_GLUT_8:
-        case TEST_U_MODE_GLUT_9:
-        case TEST_U_MODE_GLUT_10:
-        case TEST_U_MODE_GLUT_11:
-        case TEST_U_MODE_GLUT_12:
-        case TEST_U_MODE_GLUT_13:
-        case TEST_U_MODE_GLUT_14:
-        case TEST_U_MODE_GLUT_15:
-        case TEST_U_MODE_GLUT_16:
-        case TEST_U_MODE_GLUT_17:
-        case TEST_U_MODE_GLUT_18:
-        case TEST_U_MODE_GLUT_19:
-        case TEST_U_MODE_GLUT_20:
-        case TEST_U_MODE_GLUT_21:
-        case TEST_U_MODE_GLUT_22:
-        case TEST_U_MODE_GLUT_23:
-        case TEST_U_MODE_GLUT_24:
-        case TEST_U_MODE_GLUT_25:
-        case TEST_U_MODE_GLUT_26:
-        case TEST_U_MODE_GLUT_27:
-        case TEST_U_MODE_GLUT_28:
-        case TEST_U_MODE_GLUT_29:
-        case TEST_U_MODE_GLUT_30:
-        case TEST_U_MODE_GLUT_31:
-        case TEST_U_MODE_GLUT_32:
-        case TEST_U_MODE_GLUT_33:
-        case TEST_U_MODE_GLUT_34:
-        case TEST_U_MODE_GLUT_35:
-        case TEST_U_MODE_GLUT_36:
-        case TEST_U_MODE_GLUT_37:
-        case TEST_U_MODE_GLUT_38:
-        case TEST_U_MODE_GLUT_39:
-        case TEST_U_MODE_GLUT_40:
-        case TEST_U_MODE_GLUT_41:
-        case TEST_U_MODE_GLUT_42:
-        case TEST_U_MODE_GLUT_43:
-        case TEST_U_MODE_GLUT_44:
-        case TEST_U_MODE_GLUT_45:
-        case TEST_U_MODE_GLUT_46:
-        case TEST_U_MODE_GLUT_47:
-        case TEST_U_MODE_GLUT_48:
-        case TEST_U_MODE_GLUT_49:
-        case TEST_U_MODE_GLUT_50:
+      //switch (mode_in)
+      //{
+      //  case TEST_U_MODE_GLUT_6:
+      //  case TEST_U_MODE_GLUT_7:
+      //  case TEST_U_MODE_GLUT_8:
+      //  case TEST_U_MODE_GLUT_9:
+      //  case TEST_U_MODE_GLUT_10:
+      //  case TEST_U_MODE_GLUT_11:
+      //  case TEST_U_MODE_GLUT_12:
+      //  case TEST_U_MODE_GLUT_13:
+      //  case TEST_U_MODE_GLUT_14:
+      //  case TEST_U_MODE_GLUT_15:
+      //  case TEST_U_MODE_GLUT_16:
+      //  case TEST_U_MODE_GLUT_17:
+      //  case TEST_U_MODE_GLUT_18:
+      //  case TEST_U_MODE_GLUT_19:
+      //  case TEST_U_MODE_GLUT_20:
+      //  case TEST_U_MODE_GLUT_21:
+      //  case TEST_U_MODE_GLUT_22:
+      //  case TEST_U_MODE_GLUT_23:
+      //  case TEST_U_MODE_GLUT_24:
+      //  case TEST_U_MODE_GLUT_25:
+      //  case TEST_U_MODE_GLUT_26:
+      //  case TEST_U_MODE_GLUT_27:
+      //  case TEST_U_MODE_GLUT_28:
+      //  case TEST_U_MODE_GLUT_29:
+      //  case TEST_U_MODE_GLUT_30:
+      //  case TEST_U_MODE_GLUT_31:
+      //  case TEST_U_MODE_GLUT_32:
+      //  case TEST_U_MODE_GLUT_33:
+      //  case TEST_U_MODE_GLUT_34:
+      //  case TEST_U_MODE_GLUT_35:
+      //  case TEST_U_MODE_GLUT_36:
+      //  case TEST_U_MODE_GLUT_37:
+      //  case TEST_U_MODE_GLUT_38:
+      //  case TEST_U_MODE_GLUT_39:
+      //  case TEST_U_MODE_GLUT_40:
+      //  case TEST_U_MODE_GLUT_41:
+      //  case TEST_U_MODE_GLUT_42:
+      //  case TEST_U_MODE_GLUT_43:
+      //  case TEST_U_MODE_GLUT_44:
+      //  case TEST_U_MODE_GLUT_45:
+      //  case TEST_U_MODE_GLUT_46:
+      //  case TEST_U_MODE_GLUT_47:
+      //  case TEST_U_MODE_GLUT_48:
+      //  case TEST_U_MODE_GLUT_49:
+      //  case TEST_U_MODE_GLUT_50:
           directshow_modulehandler_configuration_2a.flipImage = true;
-          break;
-        default:
-          break;
-      } // end SWITCH
+      //    break;
+      //  default:
+      //    break;
+      //} // end SWITCH
 
       //media_type_p =
       //  Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat);
