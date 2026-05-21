@@ -185,6 +185,7 @@ load_capture_devices (enum Stream_Device_Capturer capturer_in,
 
       return true;
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       ICreateDevEnum* enumerator_p = NULL;
@@ -2302,15 +2303,11 @@ idle_initialize_UI_cb (gpointer userData_in)
   STREAM_TRACE (ACE_TEXT ("::idle_initialize_UI_cb"));
 
   // sanity check(s)
-  ACE_ASSERT (userData_in);
-
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
-
+  ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   // step1: initialize dialog window(s)
@@ -3089,6 +3086,7 @@ idle_initialize_UI_cb (gpointer userData_in)
         index_i = 2;
         break;
       }
+      case STREAM_DEVICE_CAPTURER_GSTREAMER:
       case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       { ACE_ASSERT ((*directshow_stream_iterator).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::STRING);
         g_value_set_string (&value,
@@ -4801,6 +4799,7 @@ button_hw_settings_clicked_cb (GtkButton* button_in,
 
       break;
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       Stream_CamSave_DirectShow_Stream::CONFIGURATION_T::ITERATOR_T stream_iterator =
@@ -5152,6 +5151,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
         card_id_i;
       break;
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       if ((*directshow_stream_iterator).second.second->builder)
@@ -5362,6 +5362,7 @@ combobox_source_changed_cb (GtkWidget* widget_in,
     case STREAM_DEVICE_CAPTURER_VFW:
       result = true; // *TODO*
       break;
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     { ACE_ASSERT (directshow_cb_data_p->streamConfiguration);
       result = load_formats (directshow_cb_data_p->streamConfiguration,

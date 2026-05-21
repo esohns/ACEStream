@@ -100,6 +100,9 @@ class Stream_CamSave_DirectShow_Stream
   // modules
   Stream_CamSave_VfW_Source_Module                   vFWSource_;
   Stream_CamSave_DirectShow_Source_Module            directShowSource_;
+#if defined (GSTREAMER_SUPPORT)
+  Stream_CamSave_GStreamer_Source_Module             GStreamerSource_;
+#endif // GSTREAMER_SUPPORT
   Stream_CamSave_DirectShow_StatisticReport_Module   statisticReport_;
 #if defined (FFMPEG_SUPPORT)
   Stream_CamSave_DirectShow_LibAVDecoder_Module      decoder_; // --> RGB/ChromaLuminance

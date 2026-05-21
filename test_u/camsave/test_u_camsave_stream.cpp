@@ -51,6 +51,10 @@ Stream_CamSave_DirectShow_Stream::Stream_CamSave_DirectShow_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_VIDEOFORWINDOW_DEFAULT_NAME_STRING))
  , directShowSource_ (this,
                       ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_DIRECTSHOW_DEFAULT_NAME_STRING))
+#if defined (GSTREAMER_SUPPORT)
+ , GStreamerSource_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_GSTREAMER_DEFAULT_NAME_STRING))
+#endif // GSTREAMER_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
@@ -151,6 +155,14 @@ Stream_CamSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
       requires_codec_b = false;
 
       layout_in->append (&directShowSource_, NULL, 0);
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
+    {
+#if defined (GSTREAMER_SUPPORT)
+      requires_codec_b = false;
+      layout_in->append (&GStreamerSource_, NULL, 0);
+#endif // GSTREAMER_SUPPORT
       break;
     }
     case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
@@ -281,6 +293,7 @@ Stream_CamSave_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& 
   switch (configuration_in.configuration_->capturer)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
       goto continue_;
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       break;
@@ -368,6 +381,7 @@ continue_:
   switch (configuration_in.configuration_->capturer)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
       goto continue_2; // cannot set capture format here; do it in the module
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {

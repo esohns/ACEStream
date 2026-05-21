@@ -1,5 +1,6 @@
 include (ffmpeg)
 include (ImageMagick)
+include (gstreamer)
 
 if (UNIX)
 # include (CheckLibraryExists)
@@ -30,6 +31,9 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  include_directories (${ImageMagick_INCLUDE_DIRS})
 endif (IMAGEMAGICK_SUPPORT)
+if (GSTREAMER_SUPPORT)
+ include_directories (${GSTREAMER_INCLUDE_DIRS})
+endif (GSTREAMER_SUPPORT)
 
 if (LIBPIPEWIRE_SUPPORT)
  include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
@@ -169,6 +173,9 @@ endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
+if (GSTREAMER_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GSTREAMER_LIBRARIES})
+endif (GSTREAMER_SUPPORT)
 
 if (LIBPIPEWIRE_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
@@ -339,12 +346,14 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${GSTREAMER_LIB_DIR}" GSTREAMER_PATH)
  file (TO_CMAKE_PATH ${ACE_LIB_DIR} ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${LIBPNG_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
+                           ${GSTREAMER_PATH}
                            ${ACE_PATH})
 # set (ENVIRONMENT "GTK_DEBUG=size-request")
 endif ()

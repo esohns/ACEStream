@@ -50,15 +50,17 @@
 #include "stream_dev_cam_source_mediafoundation.h"
 #else
 #include "stream_dev_cam_source_v4l.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (LIBCAMERA_SUPPORT)
 #include "stream_dev_cam_source_libcamera.h"
 #endif // LIBCAMERA_SUPPORT
-
 #if defined (LIBPIPEWIRE_SUPPORT)
 #include "stream_dev_cam_source_pipewire.h"
 #endif // LIBPIPEWIRE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GSTREAMER_SUPPORT)
+#include "stream_dev_cam_source_gstreamer.h"
+#endif // GSTREAMER_SUPPORT
 
 #include "stream_file_sink.h"
 
@@ -225,6 +227,7 @@ typedef Stream_Dev_Cam_Source_VfW_T<ACE_MT_SYNCH,
                                     Common_Timer_Manager_t,
                                     struct Stream_UserData,
                                     struct _AMMediaType> Stream_CamSave_VfW_Source;
+
 typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            Stream_ControlMessage_t,
                                            Stream_CamSave_DirectShow_Message_t,
@@ -239,7 +242,6 @@ typedef Stream_Dev_Cam_Source_DirectShow_T<ACE_MT_SYNCH,
                                            struct Stream_UserData,
                                            struct _AMMediaType,
                                            false> Stream_CamSave_DirectShow_Source;
-
 typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Stream_ControlMessage_t,
                                                 Stream_CamSave_MediaFoundation_Message_t,
@@ -253,6 +255,22 @@ typedef Stream_Dev_Cam_Source_MediaFoundation_T<ACE_MT_SYNCH,
                                                 Common_Timer_Manager_t,
                                                 struct Stream_UserData,
                                                 IMFMediaType*> Stream_CamSave_MediaFoundation_Source;
+
+#if defined (GSTREAMER_SUPPORT)
+typedef Stream_Dev_Cam_Source_GStreamer_T<ACE_MT_SYNCH,
+                                          Stream_ControlMessage_t,
+                                          Stream_CamSave_DirectShow_Message_t,
+                                          Stream_CamSave_DirectShow_SessionMessage_t,
+                                          struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,
+                                          enum Stream_ControlType,
+                                          enum Stream_SessionMessageType,
+                                          struct Stream_CamSave_DirectShow_StreamState,
+                                          struct Stream_CamSave_StatisticData,
+                                          Test_U_DirectShow_SessionManager_t,
+                                          Common_Timer_Manager_t,
+                                          struct Stream_UserData,
+                                          struct _AMMediaType> Stream_CamSave_GStreamer_Source;
+#endif // GSTREAMER_SUPPORT
 
 typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -362,6 +380,22 @@ typedef Stream_Dev_Cam_Source_Pipewire_T<ACE_MT_SYNCH,
                                          Test_U_V4L_SessionManager_t,
                                          Common_Timer_Manager_t> Stream_CamSave_Pipewire_Source;
 #endif // LIBPIPEWIRE_SUPPORT
+
+#if defined (GSTREAMER_SUPPORT)
+typedef Stream_Dev_Cam_Source_GStreamer_T<ACE_MT_SYNCH,
+                                          Stream_ControlMessage_t,
+                                          Stream_CamSave_V4L_Message_t,
+                                          Stream_CamSave_V4L_SessionMessage_t,
+                                          struct Stream_CamSave_V4L_ModuleHandlerConfiguration,
+                                          enum Stream_ControlType,
+                                          enum Stream_SessionMessageType,
+                                          struct Stream_CamSave_V4L_StreamState,
+                                          struct Stream_CamSave_StatisticData,
+                                          Test_U_V4L_SessionManager_t,
+                                          Common_Timer_Manager_t,
+                                          struct Stream_UserData,
+                                          struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_GStreamer_Source;
+#endif // GSTREAMER_SUPPORT
 
 #if defined (FFMPEG_SUPPORT)
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
@@ -808,34 +842,43 @@ typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
                               struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_cam_source_vfw_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_VfW_Source);                                 // writer type
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Stream_CamSave_VfW_Source);                                  // writer type
+
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                                    // session event type
+                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,       // module handler configuration type
                               libacestream_default_dev_cam_source_directshow_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_DirectShow_Source);                // writer type
-
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,                // session data type
-                              enum Stream_SessionMessageType,                   // session event type
-                              struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              Stream_INotify_t,                                                  // stream notification interface type
+                              Stream_CamSave_DirectShow_Source);                                 // writer type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_MediaFoundation_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                                         // session event type
+                              struct Stream_CamSave_MediaFoundation_ModuleHandlerConfiguration,       // module handler configuration type
                               libacestream_default_dev_cam_source_mediafoundation_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_MediaFoundation_Source);           // writer type
+                              Stream_INotify_t,                                                       // stream notification interface type
+                              Stream_CamSave_MediaFoundation_Source);                                 // writer type
 
-DATASTREAM_MODULE_DUPLEX (Stream_CamSave_DirectShow_SessionData,            // session data type
-                          enum Stream_SessionMessageType,                   // session event type
+#if defined (GSTREAMER_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration,      // module handler configuration type
+                              libacestream_default_dev_cam_source_gstreamer_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CamSave_GStreamer_Source);                                 // writer type
+#endif // GSTREAMER_SUPPORT
+
+DATASTREAM_MODULE_DUPLEX (Stream_CamSave_DirectShow_SessionData,                       // session data type
+                          enum Stream_SessionMessageType,                              // session event type
                           struct Stream_CamSave_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
                           libacestream_default_misc_distributor_module_name_string,
-                          Stream_INotify_t,                                 // stream notification interface type
-                          Stream_CamSave_DirectShow_Distributor_Reader_t,   // reader type
-                          Stream_CamSave_DirectShow_Distributor_Writer_t,   // writer type
-                          Stream_CamSave_DirectShow_Distributor);           // name
+                          Stream_INotify_t,                                            // stream notification interface type
+                          Stream_CamSave_DirectShow_Distributor_Reader_t,              // reader type
+                          Stream_CamSave_DirectShow_Distributor_Writer_t,              // writer type
+                          Stream_CamSave_DirectShow_Distributor);                      // name
 
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_DirectShow_SessionData,            // session data type

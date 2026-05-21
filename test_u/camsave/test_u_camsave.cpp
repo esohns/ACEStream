@@ -27,12 +27,15 @@
 #include "mfapi.h"
 #else
 #include "libv4l2.h"
+#endif // ACE_WIN32 || ACE_WIN64
 #if defined (LIBCAMERA_SUPPORT)
 #undef emit
 #undef slots
 #include "libcamera/libcamera.h"
 #endif // LIBCAMERA_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GSTREAMER_SUPPORT)
+#include "gst/gst.h"
+#endif // GSTREAMER_SUPPORT
 
 #if defined (GTK_SUPPORT)
 #include "gtk/gtk.h"
@@ -240,6 +243,12 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (GSTREAMER_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u          : use GStreamer framework [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // GSTREAMER_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
@@ -326,17 +335,22 @@ do_processArguments (int argc_in,
   traceInformation_out = false;
   mode_out = STREAM_CAMSAVE_PROGRAMMODE_NORMAL;
 
+  std::string argument_string = ACE_TEXT_ALWAYS_CHAR ("cd:f::g::hlo:s:tvw");
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  argument_string += ACE_TEXT_ALWAYS_CHAR ("23m");
+#else
+  argument_string += ACE_TEXT_ALWAYS_CHAR ("x");
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (GSTREAMER_SUPPORT)
+  argument_string += ACE_TEXT_ALWAYS_CHAR ("u");
+#endif // GSTREAMER_SUPPORT
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                              ACE_TEXT ("23cd:f::g::hlmo:s:tvw"),
-#else
-                              ACE_TEXT ("cd:f::g::hlo:s:tvwx"),
-#endif // ACE_WIN32 || ACE_WIN64
-                              1,                          // skip command name
-                              1,                          // report parsing errors
-                              ACE_Get_Opt::PERMUTE_ARGS,  // ordering
-                              0);                         // for now, don't use long options
+                              ACE_TEXT (argument_string.c_str ()),
+                              1,                         // skip command name
+                              1,                         // report parsing errors
+                              ACE_Get_Opt::PERMUTE_ARGS, // ordering
+                              0);                        // for now, don't use long options
 
   int option = 0;
   std::stringstream converter;
@@ -427,6 +441,13 @@ do_processArguments (int argc_in,
         traceInformation_out = true;
         break;
       }
+#if defined (GSTREAMER_SUPPORT)
+      case 'u':
+      {
+        capturer_out = STREAM_DEVICE_CAPTURER_GSTREAMER;
+        break;
+      }
+#endif // GSTREAMER_SUPPORT
       case 'v':
       {
         mode_out = STREAM_CAMSAVE_PROGRAMMODE_PRINT_VERSION;
@@ -450,11 +471,6 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
-      // case 'y':
-      //{
-      //  runStressTest_out = true;
-      //  break;
-      //}
       // error handling
       case ':':
       {
@@ -599,6 +615,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
          (/*UNITS*/ 10000000 / static_cast<DWORD> (video_info_header_p->AvgTimePerFrame)); // fps
       goto continue_;
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       break;
     case STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION:
@@ -1430,6 +1447,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //directshow_modulehandler_configuration.preview = true;
       // *WARNING*: falls through !
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_modulehandler_configuration.allocatorConfiguration =
@@ -1594,6 +1612,7 @@ error:
     {
       // *WARNING*: falls through !
     }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directshow_stream_configuration.messageAllocator =
@@ -1755,6 +1774,7 @@ error:
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       struct _AMMediaType* media_type_p = NULL;
@@ -1920,6 +1940,7 @@ error:
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       resolution_s =
@@ -1993,6 +2014,7 @@ error:
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_VFW:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
     case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
     {
       directShowConfiguration_in.signalHandlerConfiguration.messageAllocator =
@@ -2050,6 +2072,7 @@ error:
     switch (capturer_in)
     {
       case STREAM_DEVICE_CAPTURER_VFW:
+      case STREAM_DEVICE_CAPTURER_GSTREAMER:
       case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       {
         directShowCBData_in.stream = &directshow_stream;
@@ -2158,6 +2181,7 @@ error:
     switch (capturer_in)
     {
       case STREAM_DEVICE_CAPTURER_VFW:
+      case STREAM_DEVICE_CAPTURER_GSTREAMER:
       case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       {
         Common_UI_GTK_Tools::initialize (directShowCBData_in.configuration->GTKConfiguration.argc,
@@ -2411,6 +2435,12 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
+#if defined (GSTREAMER_SUPPORT)
+  gst_init (NULL, NULL);
+#endif // GSTREAMER_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, initialize ACE...
   result = ACE::init ();
@@ -2432,9 +2462,6 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
-#if defined (LIBPIPEWIRE_SUPPORT)
-  pw_init (&argc_in, &argv_in);
-#endif // LIBPIPEWIRE_SUPPORT
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
@@ -2550,6 +2577,7 @@ ACE_TMAIN (int argc_in,
           Stream_Device_VideoForWindows_Tools::getDefaultCaptureDevice ();
         break;
       }
+      case STREAM_DEVICE_CAPTURER_GSTREAMER:
       case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
       {
         media_framework_e = STREAM_MEDIAFRAMEWORK_DIRECTSHOW;
@@ -3097,14 +3125,14 @@ ACE_TMAIN (int argc_in,
   if (capturer_e == STREAM_DEVICE_CAPTURER_LIBCAMERA)
 #if defined (LIBCAMERA_SUPPORT)
     result_2 =
-        gtk_manager_p->initialize (libcamera_ui_cb_data.configuration->GTKConfiguration);
+      gtk_manager_p->initialize (libcamera_ui_cb_data.configuration->GTKConfiguration);
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("use_libcamera specified, but LIBCAMERA_SUPPORT not set, continuing\n")));
 #endif // LIBCAMERA_SUPPORT
   else
     result_2 =
-        gtk_manager_p->initialize (v4l_ui_cb_data.configuration->GTKConfiguration);
+      gtk_manager_p->initialize (v4l_ui_cb_data.configuration->GTKConfiguration);
 #endif // GTK_USE
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_USE)
@@ -3250,14 +3278,6 @@ ACE_TMAIN (int argc_in,
                                  previous_signal_mask);
   Common_Log_Tools::finalize ();
   Common_Tools::finalize ();
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-#else
-#if defined (LIBPIPEWIRE_SUPPORT)
-  pw_deinit ();
-#endif // LIBPIPEWIRE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, finalize ACE...
   result = ACE::fini ();
@@ -3265,6 +3285,12 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GSTREAMER_SUPPORT)
+  gst_deinit ();
+#endif // GSTREAMER_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
 
   return EXIT_SUCCESS;
 } // end main

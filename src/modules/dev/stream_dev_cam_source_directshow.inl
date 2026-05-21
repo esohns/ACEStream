@@ -231,7 +231,8 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
                                   allocator_in);
   if (!result)
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n")));
+                ACE_TEXT ("%s: failed to Stream_HeadModuleTaskBase_T::initialize(), aborting\n"),
+                inherited::mod_->name ()));
 
   if (COM_initialized)
     Common_Tools::finalizeCOM ();
@@ -317,6 +318,7 @@ Stream_Dev_Cam_Source_DirectShow_T<ACE_SYNCH_USE,
       bool set_capture_format_b = true;
       HWND window_h = NULL;
       MediaType media_type_2;
+      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
 
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
@@ -519,10 +521,10 @@ continue_:
         pin_p->Release (); pin_p = NULL;
       } // end IF
 
-      ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
       ACE_ASSERT (!session_data_r.formats.empty ());
-      Stream_MediaFramework_DirectShow_Tools::copy (session_data_r.formats.back (),
-                                                    media_type_2);
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_2);
       inherited2::set (media_type_s,
                        STREAM_MEDIATYPE_VIDEO,
                        media_type_2);
@@ -533,6 +535,8 @@ continue_:
       //            ACE_TEXT ("%s: frame grabber filter output format: \"%s\"\n"),
       //            inherited::mod_->name (),
       //            ACE_TEXT (Stream_MediaFramework_DirectShow_Tools::toString (media_type_s, true).c_str ())));
+
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
 #if defined (_DEBUG)
       log_file_name =
@@ -638,8 +642,9 @@ error:
       if (sample_grabber_p)
         sample_grabber_p->Release ();
 
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
       if (release_media_type)
-        Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+        inherited2::free_ (media_type_2);
 
       if (COM_initialized)
         Common_Tools::finalizeCOM ();

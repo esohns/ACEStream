@@ -4,6 +4,8 @@ endif (WIN32)
 
 include (ffmpeg)
 
+include (gstreamer)
+
 if (WIN32)
  set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
  include (DirectXBaseClasses)
@@ -39,6 +41,11 @@ if (FFMPEG_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
 endif (FFMPEG_SUPPORT)
+if (GSTREAMER_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             "$<BUILD_INTERFACE:${GSTREAMER_INCLUDE_DIRS}>")
+endif (GSTREAMER_SUPPORT)
+
 if (WIN32 AND DIRECTSHOW_BASECLASSES_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${DS_BASECLASSES_INCLUDE_DIRS}>)
@@ -106,6 +113,13 @@ set (source_files
      stream_dev_tools.cpp
      stream_dev_tools.h
      stream_dev_tools.inl)
+if (GSTREAMER_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dev_cam_source_gstreamer.cpp
+      stream_dev_cam_source_gstreamer.h
+      stream_dev_cam_source_gstreamer.inl)
+endif (GSTREAMER_SUPPORT)
 if (LIBPIPEWIRE_SUPPORT)
  set (source_files
       ${source_files}
@@ -211,13 +225,6 @@ if (UNIX)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PKG_LIBALSA_LIBRARIES})
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${PKG_LIBV4L2_LIBRARIES})
- if (LIBPIPEWIRE_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBPIPEWIRE_LIBRARIES})
- endif (LIBPIPEWIRE_SUPPORT)
- if (LIBCAMERA_SUPPORT)
-  target_link_directories (${PROJECT_NAME}_Device PUBLIC /usr/local/lib64)
-  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
- endif (LIBCAMERA_SUPPORT)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC CommonTask)
 elseif (WIN32)
@@ -244,6 +251,20 @@ elseif (WIN32)
 
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC Common)
 endif ()
+if (GSTREAMER_SUPPORT)
+# target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${GSTREAMER_LIBRARIES})
+endif (GSTREAMER_SUPPORT)
+if (LIBPIPEWIRE_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+endif (LIBPIPEWIRE_SUPPORT)
+if (LIBCAMERA_SUPPORT)
+ # *TODO*: move this into the libcamera.cmake file
+ if (UNIX)
+  target_link_directories (${PROJECT_NAME}_Device PUBLIC /usr/local/lib64)
+ endif (UNIX)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
+endif (LIBCAMERA_SUPPORT)
+
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device
@@ -257,6 +278,13 @@ install (FILES
          stream_dev_tools.inl
          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
          COMPONENT mod_include)
+if (GSTREAMER_SUPPORT)
+ install (FILES
+          stream_dev_cam_source_gstreamer.h
+          stream_dev_cam_source_gstreamer.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif (GSTREAMER_SUPPORT)
 if (LIBPIPEWIRE_SUPPORT)
  install (FILES
           stream_dev_cam_source_pipewire.h

@@ -323,7 +323,7 @@ elseif (WIN32)
  endif (DIRECTSHOW_BASECLASSES_SUPPORT)
 endif ()
 if (GSTREAMER_SUPPORT)
- target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${GSTREAMER_LIBRARIES})
+ target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${GSTREAMER_LIBRARIES_WITH_GLIB})
 
  target_link_libraries (${PROJECT_NAME}_GStreamerSrc PUBLIC ${ACE_LIBRARY})
 endif (GSTREAMER_SUPPORT)

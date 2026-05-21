@@ -200,18 +200,18 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
                                    HWND,                           // (target) window handle [NULL: NullRenderer]
                                    IDirect3DDeviceManager9*,       // direct 3d manager handle
                                    IMFMediaType*,                  // media type handle
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
                                    IMFMediaSourceEx*&,             // media source handle (in/out)
 #else
                                    IMFMediaSource*&,               // media source handle (in/out)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
                                    WCHAR*&,                        // return value: symbolic link
                                    UINT32&,                        // return value: symbolic link size
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                    IMFSampleGrabberSinkCallback2*, // grabber sink callback handle [NULL: do not use tee/grabber]
 #else
                                    IMFSampleGrabberSinkCallback*,  // grabber sink callback handle [NULL: do not use tee/grabber]
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                    IMFTopology*&);                 // return value: topology handle
 
   LONGLONG              baseTimeStamp_;
@@ -226,9 +226,9 @@ class Stream_Dev_Cam_Source_MediaFoundation_T
   long                  referenceCount_;
   TOPOID                sampleGrabberSinkNodeId_;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   IMFMediaSession*      mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 };
 
 // include template definition

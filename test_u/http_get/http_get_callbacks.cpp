@@ -1011,22 +1011,25 @@ button_execute_clicked_cb (GtkButton* button_in,
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (HTTPGET_UI_WIDGET_NAME_FILECHOOSERBUTTON_SAVE)));
   ACE_ASSERT (file_chooser_button_p);
-  URI_p =
-    gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (file_chooser_button_p));
-  if (!URI_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_get_uri(), returning\n")));
-    goto error;
-  } // end IF
-  file_path_p = g_filename_from_uri (URI_p,
-                                     &hostname_p,
-                                     &error_p);
-  g_free (URI_p); URI_p = NULL;
+  //URI_p =
+  //  gtk_file_chooser_get_uri (GTK_FILE_CHOOSER (file_chooser_button_p));
+  //if (!URI_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_file_chooser_get_uri(), returning\n")));
+  //  goto error;
+  //} // end IF
+  // *TODO*: this causes a linker error (in conjunction with the glib pulled in by GStreamer)...:-(
+  //file_path_p = g_filename_from_uri (URI_p,
+  //                                   &hostname_p,
+  //                                   &error_p);
+  //g_free (URI_p); URI_p = NULL;
+  file_path_p =
+    gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (file_chooser_button_p));
   if (!file_path_p)
   { ACE_ASSERT (error_p);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to g_filename_from_uri(): \"%s\", returning\n"),
+                ACE_TEXT ("failed to gtk_file_chooser_get_filename(): \"%s\", returning\n"),
                 ACE_TEXT (error_p->message)));
     g_error_free (error_p); error_p = NULL;
     goto error;
@@ -1114,18 +1117,18 @@ continue_:
   thread_manager_p = ACE_Thread_Manager::instance ();
   ACE_ASSERT (thread_manager_p);
   result =
-      thread_manager_p->spawn (::stream_processing_function,     // function
-                               thread_data_p,                    // argument
-                               (THR_NEW_LWP      |
-                                THR_JOINABLE     |
-                                THR_INHERIT_SCHED),              // flags
-                               &thread_id,                       // id
-                               &thread_handle,                   // handle
-                               ACE_DEFAULT_THREAD_PRIORITY,      // priority
-                               COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
-                               NULL,                             // stack
-                               0,                                // stack size
-                               &thread_name_p);                  // name
+    thread_manager_p->spawn (::stream_processing_function,     // function
+                             thread_data_p,                    // argument
+                             (THR_NEW_LWP      |
+                              THR_JOINABLE     |
+                              THR_INHERIT_SCHED),              // flags
+                             &thread_id,                       // id
+                             &thread_handle,                   // handle
+                             ACE_DEFAULT_THREAD_PRIORITY,      // priority
+                             COMMON_EVENT_REACTOR_THREAD_GROUP_ID + 1, // *TODO*: group id
+                             NULL,                             // stack
+                             0,                                // stack size
+                             &thread_name_p);                  // name
   if (result == -1)
   {
     ACE_DEBUG ((LM_ERROR,
