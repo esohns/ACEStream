@@ -162,6 +162,7 @@ continue_:
   ACE_ASSERT (header_p);
 
   // step2: unprepare header
+  TCHAR error_msg_a[BUFSIZ];
   message_block_2 =
     reinterpret_cast<ACE_Message_Block*> (header_p->dwUser);
   if (likely (message_block_2))
@@ -170,8 +171,7 @@ continue_:
                                    header_p,
                                    sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
-  { char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+  { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutUnprepareHeader(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -189,8 +189,7 @@ continue_:
                                  header_p,
                                  sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
-  { char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+  { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutPrepareHeader(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -203,8 +202,7 @@ continue_:
                          header_p,
                          sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
-  { char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+  { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveOutWrite(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
@@ -270,6 +268,8 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::isInitialized_);
 
+  TCHAR error_msg_a[BUFSIZ];
+
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_ABORT:
@@ -283,7 +283,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -317,8 +317,7 @@ Stream_Dev_Target_WavOut_T<ACE_SYNCH_USE,
                      reinterpret_cast<DWORD_PTR> (&CBData_),
                      flags_u);
       if (unlikely (result != MMSYSERR_NOERROR))
-      { char error_msg_a[BUFSIZ];
-        waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+      { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to waveOutOpen(%u,0x%x): \"%s\", aborting\n"),
                     inherited::mod_->name (),
@@ -353,9 +352,7 @@ error:
       {
         result = waveOutReset (handle_);
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
-          char error_msg_a[BUFSIZ];
-          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+        { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to waveOutReset(): \"%s\", continuing\n"),
                       inherited::mod_->name (),
@@ -364,9 +361,7 @@ error:
 
         result = waveOutClose (handle_);
         if (unlikely (result != MMSYSERR_NOERROR))
-        {
-          char error_msg_a[BUFSIZ];
-          waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+        { waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s: failed to waveOutClose(): \"%s\", continuing\n"),
                       inherited::mod_->name (),

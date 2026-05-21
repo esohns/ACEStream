@@ -76,6 +76,20 @@ set (${EXECUTABLE}_EXE_SRCS
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
                 ${${EXECUTABLE}_EXE_SRCS})
+if (WIN32)
+ if (CMAKE_MAJOR_VERSION LESS 3)
+  message (WARNING "cmake version 3.0 or newer is required use build variable TARGET_FILE")
+ else ()
+  # support utf8 characters in commandline arguments on Win32
+  set (MANIFEST_FILE "${PROJECT_SOURCE_DIR}/share/msvc_codepage_utf8.manifest")
+  file (TO_NATIVE_PATH "${MANIFEST_FILE}" MANIFEST_FILE)
+  add_custom_command (TARGET ${EXECUTABLE}
+                      POST_BUILD
+                      COMMAND "mt.exe" -nologo -manifest \"${MANIFEST_FILE}\" -inputresource:\"$<TARGET_FILE:${EXECUTABLE}>\"\;\#1 -outputresource:\"$<TARGET_FILE:${EXECUTABLE}>\"\;\#1
+                      COMMENT "adding executable UTF8-codepage manifest file \"${MANIFEST_FILE}\"")
+ endif (CMAKE_MAJOR_VERSION LESS 3)
+endif (WIN32)
+
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_i")
 if (WIN32)
  if (NOT BUILD_TEST_I)
