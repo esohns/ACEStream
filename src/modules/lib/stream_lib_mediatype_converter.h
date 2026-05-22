@@ -122,6 +122,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
 #endif // FFMPEG_SUPPORT
 
   inline Common_Image_Resolution_t getResolution (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in); }
+  inline float getFramerate (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in); }
   inline Common_Image_Resolution_t getResolution (const IMFMediaType* mediaType_in) { return Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in); }
 
   inline void set (struct _AMMediaType& mediaType_in, enum Stream_MediaType_Type, struct _AMMediaType& mediaType_out) { mediaType_out = mediaType_in; }

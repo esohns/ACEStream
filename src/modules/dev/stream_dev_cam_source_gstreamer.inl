@@ -557,14 +557,21 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
   } // end IF
   // *TODO*: currently, this fails on Win32 (due to conflicting glib-2.0.lib|dll versions ?)
   // *NOTE*: when linking against the gstreamer-provided glib2, GTK misbehaves
-  // ACE_DEBUG ((LM_DEBUG,
-  //             ACE_TEXT ("%s: instantiated appsink element of type \"%s\"\n"),
-  //             inherited::mod_->name (),
-  //             G_OBJECT_TYPE_NAME (sink)));
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  ACE_ASSERT (G_OBJECT_TYPE_NAME (sink));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: instantiated appsink element of type \"%s\"\n"),
+              inherited::mod_->name (),
+              G_OBJECT_TYPE_NAME (sink)));
+#endif // ACE_WIN32 || ACE_WIN64
 
   // apply some properties to the source
   g_object_set (G_OBJECT (source),
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                ACE_TEXT_ALWAYS_CHAR ("device"), deviceIdentifier_in.identifier._string,
+#else
                 ACE_TEXT_ALWAYS_CHAR ("device"), deviceIdentifier_in.identifier.c_str (),
+#endif // ACE_WIN32 || ACE_WIN64
                 // ACE_TEXT_ALWAYS_CHAR ("is-live"), TRUE,
                 // ACE_TEXT_ALWAYS_CHAR ("pattern"), 18, // ball
                 NULL);
@@ -574,7 +581,9 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
   Common_Image_Resolution_t resolution_s = inherited2::getResolution (mediaType_in);
   unsigned int framerate_numerator = 0, framerate_denominator = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  ACE_ASSERT (false); // *TODO*
+  float frame_rate_f = inherited2::getFramerate (mediaType_in);
+  framerate_numerator = static_cast<unsigned int> (frame_rate_f);
+  framerate_denominator = 1;
 #else
   struct v4l2_fract frame_rate_s = inherited2::getFramerate (mediaType_in);
   framerate_numerator = frame_rate_s.numerator;
