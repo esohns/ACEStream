@@ -79,9 +79,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
  , presentationClock_ (NULL)
  , referenceCount_ (0)
  , sampleGrabberSinkNodeId_ (0)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
  , mediaSession_ (NULL)
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::Stream_Dev_Cam_Source_MediaFoundation_T"));
 
@@ -116,9 +116,9 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::~Stream_Dev_Cam_Source_MediaFoundation_T"));
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   HRESULT result = E_FAIL;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
   if (unlikely (symbolicLinkSize_))
     CoTaskMemFree (symbolicLink_);
@@ -126,7 +126,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   if (unlikely (presentationClock_))
     presentationClock_->Release ();
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   if (unlikely (mediaSession_))
   {
     result = mediaSession_->Shutdown ();
@@ -137,7 +137,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
     mediaSession_->Release ();
   } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 }
 
 template <ACE_SYNCH_DECL,
@@ -203,7 +203,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
     referenceCount_ = 0;
     sampleGrabberSinkNodeId_ = 0;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     if (mediaSession_)
     {
       result_2 = mediaSession_->Shutdown ();
@@ -213,7 +213,7 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       mediaSession_->Release (); mediaSession_ = NULL;
     } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   } // end IF
 
   result = inherited::initialize (configuration_in,
@@ -227,7 +227,8 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
   } // end IF
 
 error:
-  if (COM_initialized) Common_Tools::finalizeCOM ();
+  if (COM_initialized)
+    Common_Tools::finalizeCOM ();
 
   return result;
 }
@@ -387,11 +388,11 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                          STREAM_MEDIATYPE_VIDEO,
                          media_type_2);
         session_data_r.formats.push_back (media_type_2);
-        media_type_p = NULL;
+        media_type_p->Release (); media_type_p = NULL;
 
         IMFAttributes* attributes_p = NULL;
         result_2 = MFCreateAttributes (&attributes_p, 4);
-        if (unlikely (FAILED (result_2)))
+        if (unlikely (FAILED (result_2) || !attributes_p))
         {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("failed to MFCreateAttributes(): \"%s\", aborting\n"),
@@ -399,17 +400,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
+        ACE_ASSERT (attributes_p);
         result_2 = attributes_p->SetUINT32 (MF_SESSION_GLOBAL_TIME, FALSE);
         ACE_ASSERT (SUCCEEDED (result_2));
         result_2 = attributes_p->SetGUID (MF_SESSION_QUALITY_MANAGER, GUID_NULL);
         ACE_ASSERT (SUCCEEDED (result_2));
         //result_2 = attributes_p->SetGUID (MF_SESSION_TOPOLOADER, );
         //ACE_ASSERT (SUCCEEDED (result_2));
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
         result_2 = attributes_p->SetUINT32 (MF_LOW_LATENCY, TRUE);
         ACE_ASSERT (SUCCEEDED (result_2));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
         result_2 = MFCreateMediaSession (attributes_p,
                                          &mediaSession_);
         if (unlikely (FAILED (result_2)))
@@ -422,10 +424,10 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
         ACE_ASSERT (mediaSession_);
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
         attributes_p->Release (); attributes_p = NULL;
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
         DWORD topology_flags = (MFSESSION_SETTOPOLOGY_IMMEDIATE);// |
                                 //MFSESSION_SETTOPOLOGY_NORESOLUTION);// |
                                 //MFSESSION_SETTOPOLOGY_CLEAR_CURRENT);
@@ -439,16 +441,17 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
           topology_p->Release (); topology_p = NULL;
           goto error;
         } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
         topology_p->Release (); topology_p = NULL;
       } // end ELSE
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       ACE_ASSERT (mediaSession_);
       reference_count = mediaSession_->AddRef ();
       session_data_r.session = mediaSession_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       break;
 
@@ -465,7 +468,7 @@ error:
       //  session_data_r.direct3DDevice->Release (); session_data_r.direct3DDevice = NULL;
       //  session_data_r.direct3DManagerResetToken = 0;
       //} // end IF
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       if (session_data_r.session)
       {
         result = session_data_r.session->Shutdown ();
@@ -484,7 +487,7 @@ error:
                       ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
       if (symbolicLinkSize_)
       {
@@ -522,10 +525,10 @@ error:
 
       bool COM_initialized = Common_Tools::initializeCOM ();
       bool close_session = true;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       if (unlikely (!mediaSession_))
         goto continue_;
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
       //IMFMediaSource* media_source_p = NULL;
       //if (!Stream_Device_Tools::getMediaSource (mediaSession_,
@@ -541,15 +544,15 @@ error:
       //              ACE_TEXT ("failed to IMFMediaSource::Stop(): \"%s\", continuing\n"),
       //              ACE_TEXT (Common_Error_Tools::errorToString (result_2).c_str ())));
       //media_source_p->Release ();
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 continue_:
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
       if (likely (presentationClock_))
       {
         presentationClock_->Release (); presentationClock_ = NULL;
       } // end IF
 
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
       if (likely (session_data_r.session))
       {
         result_2 = session_data_r.session->Close ();
@@ -598,9 +601,10 @@ continue_:
         } // end IF
         mediaSession_->Release (); mediaSession_ = NULL;
       } // end IF
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
 
-      if (COM_initialized) Common_Tools::finalizeCOM ();
+      if (COM_initialized)
+        Common_Tools::finalizeCOM ();
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
       { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
@@ -1143,18 +1147,18 @@ Stream_Dev_Cam_Source_MediaFoundation_T<ACE_SYNCH_USE,
                                                                                 HWND windowHandle_in,
                                                                                 IDirect3DDeviceManager9* IDirect3DDeviceManager_in,
                                                                                 IMFMediaType* IMFMediaType_in,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
                                                                                 IMFMediaSourceEx*& IMFMediaSource_inout,
 #else
                                                                                 IMFMediaSource*& IMFMediaSource_inout,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
                                                                                 WCHAR*& symbolicLink_out,
                                                                                 UINT32& symbolicLinkSize_out,
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
                                                                                 IMFSampleGrabberSinkCallback2* IMFSampleGrabberSinkCallback_in,
 #else
                                                                                 IMFSampleGrabberSinkCallback* IMFSampleGrabberSinkCallback_in,
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
                                                                                 IMFTopology*& IMFTopology_out)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Cam_Source_MediaFoundation_T::initialize_MediaFoundation"));
