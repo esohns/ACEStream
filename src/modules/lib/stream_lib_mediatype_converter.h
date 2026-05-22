@@ -125,7 +125,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline float getFramerate (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in); }
   inline Common_Image_Resolution_t getResolution (const IMFMediaType* mediaType_in) { return Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in); }
 
-  inline void set (struct _AMMediaType& mediaType_in, enum Stream_MediaType_Type, struct _AMMediaType& mediaType_out) { mediaType_out = mediaType_in; }
+  inline void set (struct _AMMediaType& mediaType_in, enum Stream_MediaType_Type, struct _AMMediaType& mediaType_out) { bool result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); ACE_ASSERT (result); }
   void set (struct _AMMediaType&,                                       // media type
             enum Stream_MediaType_Type,                                 // media type type
             struct Stream_MediaFramework_DirectShow_AudioVideoFormat&); // return value: media type

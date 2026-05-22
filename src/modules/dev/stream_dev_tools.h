@@ -28,11 +28,11 @@
 #include "d3d9.h"
 #include "dxva2api.h"
 #include "guiddef.h"
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0602) // _WIN32_WINNT_WIN8
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0602) // _WIN32_WINNT_WIN8
 #include "minwindef.h"
 #else
 #include "windef.h"
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0602)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0602)
 #include "strmif.h"
 #else
 #include <memory>
@@ -86,6 +86,10 @@ class Stream_Device_Tools
   static void id (const struct Stream_Device_Identifier&, // device identifier
                   struct _GUID&,                          // return value: device identifier
                   bool = true); // capture ? : render
+
+#if defined (GSTREAMER_SUPPORT)
+  static std::string formatToString (const struct _AMMediaType&); // media type
+#endif // GSTREAMER_SUPPORT
 #else
   // v4l
   static Stream_Device_List_t getVideoCaptureDevices ();
@@ -167,6 +171,10 @@ class Stream_Device_Tools
 
   static std::string formatToString (int,    // file descriptor
                                      __u32); // format (fourcc)
+
+#if defined (GSTREAMER_SUPPORT)
+  static std::string formatToString (__u32); // format (fourcc)
+#endif // GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
  private:

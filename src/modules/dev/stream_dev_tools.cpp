@@ -85,6 +85,7 @@ extern "C"
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_lib_tools.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//#include "stream_lib_directshow_tools.h"
 #else
 #include "stream_lib_alsa_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
@@ -196,6 +197,35 @@ Stream_Device_Tools::id (const struct Stream_Device_Identifier& deviceIdentifier
     }
   } // end SWITCH
 }
+
+#if defined (GSTREAMER_SUPPORT)
+std::string
+Stream_Device_Tools::formatToString (const struct _AMMediaType& mediaType_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::formatToString"));
+
+  // initialize return value(s)
+  std::string return_value;
+
+  if (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Video))
+  {
+    if (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_YUY2))
+      return_value = ACE_TEXT_ALWAYS_CHAR ("YUY2");
+    else if (InlineIsEqualGUID (mediaType_in.subtype, MEDIASUBTYPE_NV12))
+      return_value = ACE_TEXT_ALWAYS_CHAR ("NV12");
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("unsupported video media type subtype (was: %s), aborting\n"),
+                  ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
+  } // end IF
+  else
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("unsupported media major type (was: %s), aborting\n"),
+                ACE_TEXT (Stream_MediaFramework_Tools::mediaMajorTypeToString (mediaType_in.majortype).c_str ())));
+
+  return return_value;
+}
+#endif // GSTREAMER_SUPPORT
 #else
 std::string
 Stream_Device_Tools::getDefaultVideoCaptureDevice (bool useLibCamera_in)
@@ -1429,4 +1459,57 @@ Stream_Device_Tools::formatToString (int fileDescriptor_in,
 
   return result;
 }
+
+#if defined (GSTREAMER_SUPPORT)
+std::string
+Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::formatToString"));
+
+  std::string result;
+
+  switch (pixelFormat_in)
+  {
+    case V4L2_PIX_FMT_RGB332:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB332");
+      break;
+    case V4L2_PIX_FMT_RGB444:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB444");
+      break;
+    case V4L2_PIX_FMT_RGB555:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB555");
+      break;
+    case V4L2_PIX_FMT_RGB565:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB565");
+      break;
+    case V4L2_PIX_FMT_RGB555X:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB555X");
+      break;
+    case V4L2_PIX_FMT_BGR24:
+      result = ACE_TEXT_ALWAYS_CHAR ("BGR");
+      break;
+    case V4L2_PIX_FMT_RGB24:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGB");
+      break;
+    case V4L2_PIX_FMT_BGR32:
+      result = ACE_TEXT_ALWAYS_CHAR ("BGRA");
+      break;
+    case V4L2_PIX_FMT_RGB32:
+      result = ACE_TEXT_ALWAYS_CHAR ("RGBA");
+      break;
+    case V4L2_PIX_FMT_YUYV:
+      result = ACE_TEXT_ALWAYS_CHAR ("YUY2");
+      break;
+    case V4L2_PIX_FMT_NV12:
+      result = ACE_TEXT_ALWAYS_CHAR ("NV12");
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown pixel format (was: %u), aborting\n"),
+                  pixelFormat_in));
+  } // end SWITCH
+
+  return result;
+}
+#endif // GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64

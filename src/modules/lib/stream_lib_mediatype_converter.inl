@@ -184,7 +184,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFormat (enum AVPixelFo
       video_info_header_p->bmiHeader.biPlanes = 1;
       // set to sane 30 fps
       video_info_header_p->AvgTimePerFrame =
-        static_cast<REFERENCE_TIME> (1 / static_cast<float> (30) * 100000000000000.0f) / NANOSECONDS;
+        static_cast<REFERENCE_TIME> (1 / 30.0f * 100000000000000.0f) / NANOSECONDS;
     } // end IF
   } // end IF
 
@@ -205,11 +205,11 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (mediaType_in);
+    Stream_MediaFramework_DirectShow_Tools::toAVSampleFormat (mediaType_in);
   mediaType_out.channels =
-      Stream_MediaFramework_DirectShow_Tools::toChannels (mediaType_in);
+    Stream_MediaFramework_DirectShow_Tools::toChannels (mediaType_in);
   mediaType_out.sampleRate =
-      static_cast<unsigned int> (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in));
+    static_cast<unsigned int> (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in));
 }
 
 template <typename MediaType>
@@ -276,20 +276,20 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
+  bool result;
+
   switch (type_in)
   {
     case STREAM_MEDIATYPE_AUDIO:
-    {
-      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
-      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
-                                                    mediaType_out.audio);
+    { Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                             mediaType_out.audio);
       break;
     }
     case STREAM_MEDIATYPE_VIDEO:
-    {
-      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
-      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
-                                                    mediaType_out.video);
+    { Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                             mediaType_out.video);
       break;
     }
     default:
@@ -300,6 +300,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
       return;
     }
   } // end SWITCH
+  ACE_ASSERT (result);
 }
 
 template <typename MediaType>
@@ -310,18 +311,20 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::getMediaType"));
 
+  bool result;
+
   switch (type_in)
   {
     case STREAM_MEDIATYPE_AUDIO:
     {
-      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.audio,
-                                                    mediaType_out);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.audio,
+                                                             mediaType_out);
       break;
     }
     case STREAM_MEDIATYPE_VIDEO:
     {
-      Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.video,
-                                                    mediaType_out);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in.video,
+                                                             mediaType_out);
       break;
     }
     default:
@@ -332,6 +335,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
       return;
     }
   } // end SWITCH
+  ACE_ASSERT (result);
 }
 
 template <typename MediaType>
@@ -342,18 +346,20 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (struct _AMMediaType&
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::set"));
 
+  bool result;
+
   switch (type_in)
   {
     case STREAM_MEDIATYPE_AUDIO:
-    {
-      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
-      mediaType_out.audio = mediaType_in;
+    { Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.audio);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                             mediaType_out.audio);
       break;
     }
     case STREAM_MEDIATYPE_VIDEO:
-    {
-      Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
-      mediaType_out.video = mediaType_in;
+    { Stream_MediaFramework_DirectShow_Tools::free (mediaType_out.video);
+      result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                             mediaType_out.video);
       break;
     }
     default:
@@ -364,6 +370,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (struct _AMMediaType&
       return;
     }
   } // end SWITCH
+  ACE_ASSERT (result);
 }
 
 template <typename MediaType>
@@ -374,6 +381,10 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (IMFMediaType* mediaT
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::set"));
 
+  // sanity check(s)
+  ACE_ASSERT (mediaType_in);
+
+  mediaType_in->AddRef ();
   switch (type_in)
   {
     case STREAM_MEDIATYPE_AUDIO:
@@ -395,6 +406,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::set (IMFMediaType* mediaT
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown media type type (was: %d), returning\n"),
                   type_in));
+      mediaType_in->Release ();
       return;
     }
   } // end SWITCH
@@ -595,7 +607,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
     MFCreateAMMediaTypeFromMFMediaType (const_cast<IMFMediaType*> (mediaType_in),
                                         GUID_s,
                                         &media_type_p);
-  if (unlikely (FAILED (result)))
+  if (unlikely (FAILED (result) || !media_type_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to MFCreateAMMediaTypeFromMFMediaType(): \"%s\", aborting\n"),
@@ -604,6 +616,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
   } // end IF
   ACE_ASSERT (media_type_p);
   mediaType_inout = *media_type_p;
+  CoTaskMemFree (media_type_p); media_type_p = NULL;
 
   if (type_in == STREAM_MEDIATYPE_VIDEO)
   {
@@ -613,8 +626,6 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                            mediaType_inout);
   } // end IF
-
-  CoTaskMemFree (media_type_p); media_type_p = NULL;
 }
 
 #if defined (FFMPEG_SUPPORT)
@@ -633,6 +644,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+
   getMediaType (mediaType_in,
                 type_in,
                 media_type_s);
@@ -658,6 +670,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const IMFMe
 
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+
   getMediaType (mediaType_in,
                 type_in,
                 media_type_s);
@@ -680,12 +693,16 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   {
     case STREAM_MEDIATYPE_AUDIO:
     {
-      getMediaType (mediaType_in.audio, type_in, mediaType_out);
+      getMediaType (mediaType_in.audio,
+                    type_in,
+                    mediaType_out);
       break;
     }
     case STREAM_MEDIATYPE_VIDEO:
     {
-      getMediaType (mediaType_in.video, type_in, mediaType_out);
+      getMediaType (mediaType_in.video,
+                    type_in,
+                    mediaType_out);
       break;
     }
     default:
@@ -772,6 +789,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+
   getMediaType (mediaType_in,
                 type_in,
                 media_type_s);
@@ -859,7 +877,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (mediaType_in.format);
+    Stream_MediaFramework_Tools::ffmpegFormatToALSAFormat (mediaType_in.format);
   mediaType_out.channels = mediaType_in.channels;
   mediaType_out.rate = mediaType_in.sampleRate;
 }
@@ -877,7 +895,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   mediaType_out.format.pixelformat =
-      Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (mediaType_in.format);
+    Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (mediaType_in.format);
   mediaType_out.format.width = mediaType_in.resolution.width;
   mediaType_out.format.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.numerator = mediaType_in.frameRate.num;
@@ -915,7 +933,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (mediaType_in.format.pixelformat);
+    Stream_MediaFramework_Tools::v4lFormatToffmpegFormat (mediaType_in.format.pixelformat);
   mediaType_out.resolution.width = mediaType_in.format.width;
   mediaType_out.resolution.height = mediaType_in.format.height;
   mediaType_out.frameRate.den = mediaType_in.frameRate.denominator;
@@ -933,6 +951,9 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
+
+  ACE_ASSERT (false);
+  ACE_NOTREACHED (return;)
 }
 #endif // FFMPEG_SUPPORT
 
@@ -948,7 +969,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   mediaType_out.format.pixelformat =
-      Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (mediaType_in.format));
+    Stream_MediaFramework_Tools::ffmpegFormatToV4lFormat (Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (mediaType_in.format));
   mediaType_out.format.width = mediaType_in.resolution.width;
   mediaType_out.format.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.numerator = mediaType_in.frameRateNumerator;
@@ -967,7 +988,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_UNUSED_ARG (type_in);
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (mediaType_in.format);
+    Stream_MediaFramework_Tools::ffmpegFormatToLibCameraFormat (mediaType_in.format);
   mediaType_out.resolution.width = mediaType_in.resolution.width;
   mediaType_out.resolution.height = mediaType_in.resolution.height;
   mediaType_out.frameRateNumerator = mediaType_in.frameRate.num;
@@ -987,7 +1008,7 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
   mediaType_out.format =
-      Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (mediaType_in.format);
+    Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (mediaType_in.format);
   mediaType_out.resolution.width = mediaType_in.resolution.width;
   mediaType_out.resolution.height = mediaType_in.resolution.height;
   mediaType_out.frameRate.num = mediaType_in.frameRateNumerator;
@@ -1005,7 +1026,9 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
   ACE_UNUSED_ARG (type_in);
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
-  ACE_ASSERT (false); // *TODO*
+
+  ACE_ASSERT (false);
+  ACE_NOTREACHED (return;)
 }
 #endif // FFMPEG_SUPPORT
 #endif // LIBCAMERA_SUPPORT

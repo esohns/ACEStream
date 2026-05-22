@@ -360,7 +360,7 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
                        STREAM_MEDIATYPE_VIDEO,
                        media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
       session_data_r.formats.push_back (media_type_2);
 
@@ -377,7 +377,7 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      //Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
@@ -577,7 +577,23 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
                 NULL);
 
   // apply some properties to the input filter
-  // *TODO*: convert the source media type format to the corresponding GStreamer format
+  std::string format_string;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct _AMMediaType media_type_s;
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  inherited2::getMediaType (mediaType_in,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_s);
+  format_string = Stream_Device_Tools::formatToString (media_type_s);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+  struct Stream_MediaFramework_V4L_MediaType media_type_s;
+  inherited2::getMediaType (mediaType_in,
+                            STREAM_MEDIATYPE_VIDEO,
+                            media_type_s);
+  format_string =
+    Stream_Device_Tools::formatToString (media_type_s.format.pixelformat);
+#endif // ACE_WIN32 || ACE_WIN64
   Common_Image_Resolution_t resolution_s = inherited2::getResolution (mediaType_in);
   unsigned int framerate_numerator = 0, framerate_denominator = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -585,14 +601,14 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
   framerate_numerator = static_cast<unsigned int> (frame_rate_f);
   framerate_denominator = 1;
 #else
-  struct v4l2_fract frame_rate_s = inherited2::getFramerate (mediaType_in);
+  struct v4l2_fract frame_rate_s = inherited2::getFramerate (media_type_in);
   framerate_numerator = frame_rate_s.numerator;
   framerate_denominator = frame_rate_s.denominator;
 #endif // ACE_WIN32 || ACE_WIN64
   GstCaps* caps_p =
     gst_caps_new_simple (ACE_TEXT_ALWAYS_CHAR ("video/x-raw"),
                          // *WARNING*: 'YUYV' (v4l) --> 'YUY2' (gstreamer)
-                         ACE_TEXT_ALWAYS_CHAR ("format"), G_TYPE_STRING, ACE_TEXT_ALWAYS_CHAR ("YUY2"),
+                         ACE_TEXT_ALWAYS_CHAR ("format"), G_TYPE_STRING, format_string.c_str (),
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                          ACE_TEXT_ALWAYS_CHAR ("width"), G_TYPE_INT, resolution_s.cx,
                          ACE_TEXT_ALWAYS_CHAR ("height"), G_TYPE_INT, resolution_s.cy,
