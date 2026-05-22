@@ -55,16 +55,15 @@ acestream_dev_gstreamer_bus_cb (GstBus* bus_in,
     }
     case GST_MESSAGE_ERROR:
     {
-      gchar  *debug;
-      GError *error;
-
-      gst_message_parse_error (message_in, &error, &debug);
-      g_free (debug);
+      gchar*  debug_p = NULL;
+      GError* error_p = NULL;
+      gst_message_parse_error (message_in, &error_p, &debug_p);
+      g_free (debug_p);
 
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("error: \"%s\", aborting\n"),
-                  ACE_TEXT (error->message)));
-      g_error_free (error);
+                  ACE_TEXT (error_p->message)));
+      g_error_free (error_p);
 
       g_main_loop_quit (cb_data_p->loop);
 
@@ -85,6 +84,9 @@ acestream_dev_gstreamer_new_sample_cb (GstElement* sink_in,
   struct ACEStream_Device_GStreamer_CBData* cb_data_p =
     static_cast<struct ACEStream_Device_GStreamer_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->allocator);
+  ACE_ASSERT (cb_data_p->queue);
+  // ACE_ASSERT (cb_data_p->sessionId);
 
   GstSample* sample_p = gst_app_sink_pull_sample (GST_APP_SINK (sink_in));
   if (unlikely (!sample_p))
@@ -101,9 +103,19 @@ acestream_dev_gstreamer_new_sample_cb (GstElement* sink_in,
     gst_sample_unref (sample_p);
     return GST_FLOW_ERROR;
   } // end IF
-  g_print ("Grabbed frame! Size: %" G_GSIZE_FORMAT "\n", map.size);
 
-  // map.data can be processed or copied here
+  ACE_Message_Block* message_block_p =
+    static_cast<ACE_Message_Block*> (cb_data_p->allocator->malloc (map.size));
+  ACE_ASSERT (message_block_p);
+
+  int result =
+    message_block_p->copy (reinterpret_cast<char*> (map.data),
+                           static_cast<size_t> (map.size));
+  ACE_ASSERT (result == 0);
+
+  result = cb_data_p->queue->enqueue (message_block_p,
+                                      NULL);
+  ACE_ASSERT (result != -1);
 
   // clean up
   gst_buffer_unmap (buffer_p, &map);

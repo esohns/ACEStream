@@ -927,6 +927,15 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
                               Stream_CamSave_Pipewire_Source);                      // writer type
 #endif // LIBPIPEWIRE_SUPPORT
 
+#if defined (GSTREAMER_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                                   // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CamSave_V4L_ModuleHandlerConfiguration,             // module handler configuration type
+                              libacestream_default_dev_cam_source_gstreamer_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CamSave_GStreamer_Source);                                 // writer type
+#endif // GSTREAMER_SUPPORT
+
 #if defined (LIBCAMERA_SUPPORT)
 #if defined (FFMPEG_SUPPORT)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type

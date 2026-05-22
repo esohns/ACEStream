@@ -43,7 +43,7 @@ extern "C"
 {
 #include "libavcodec/codec_id.h"
 
-#include "libavutil/pixdesc.h"
+// #include "libavutil/pixdesc.h"
 #include "libavutil/pixfmt.h"
 
 #include "libswscale/swscale.h"

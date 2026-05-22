@@ -333,6 +333,9 @@ class Stream_CamSave_V4L_Stream
 #if defined (LIBPIPEWIRE_SUPPORT)
   Stream_CamSave_Pipewire_Source_Module      pipewireSource_;
 #endif // LIBPIPEWIRE_SUPPORT
+#if defined (GSTREAMER_SUPPORT)
+  Stream_CamSave_GStreamer_Source_Module     GStreamerSource_;
+#endif // GSTREAMER_SUPPORT
 //  Stream_CamSave_StatisticReport_Module statisticReport_;
   Stream_CamSave_V4L_LibAVDecoder_Module     decoder_; // --> RGB
   Stream_CamSave_V4L_Distributor_Module      distributor_; // (sub-)branch ?

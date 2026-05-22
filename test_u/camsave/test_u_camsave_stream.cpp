@@ -1551,6 +1551,10 @@ Stream_CamSave_V4L_Stream::Stream_CamSave_V4L_Stream ()
  , pipewireSource_ (this,
                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING))
 #endif // LIBPIPEWIRE_SUPPORT
+#if defined (GSTREAMER_SUPPORT)
+ , GStreamerSource_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_GSTREAMER_DEFAULT_NAME_STRING))
+#endif // GSTREAMER_SUPPORT
 // , statisticReport_ (this,
 //                     ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , decoder_ (this,
@@ -1609,6 +1613,9 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
+  enum AVCodecID codec_id_e =
+    Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (inherited::configuration_->configuration_->format.format.pixelformat);
+  bool requires_codec_b = codec_id_e != AV_CODEC_ID_NONE;
 
   switch (inherited::configuration_->configuration_->capturer)
   {
@@ -1621,9 +1628,15 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
     {
 #if defined (LIBPIPEWIRE_SUPPORT)
       layout_in->append (&pipewireSource_, NULL, 0);
-
-
 #endif // LIBPIPEWIRE_SUPPORT
+      break;
+    }
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
+    {
+#if defined (GSTREAMER_SUPPORT)
+      requires_codec_b = false;
+      layout_in->append (&GStreamerSource_, NULL, 0);
+#endif // GSTREAMER_SUPPORT
       break;
     }
     default:
@@ -1637,9 +1650,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   } // end SWITCH
 //  layout_inout.append (&statisticReport_, NULL, 0);
 
-  enum AVCodecID codec_id_e =
-      Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (inherited::configuration_->configuration_->format.format.pixelformat);
-  if (codec_id_e != AV_CODEC_ID_NONE)
+  if (requires_codec_b)
     layout_in->append (&decoder_, NULL, 0); // output is uncompressed RGB
 
   if (display_b && save_to_file_b)
@@ -1658,7 +1669,7 @@ Stream_CamSave_V4L_Stream::load (Stream_ILayout* layout_in,
   {
     if (display_b)
     {
-      if (codec_id_e == AV_CODEC_ID_NONE)
+      if (!requires_codec_b)
         layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)

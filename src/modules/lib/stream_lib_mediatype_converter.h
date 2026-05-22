@@ -21,7 +21,6 @@
 #ifndef STREAM_LIB_MEDIATYPE_CONVERTER_H
 #define STREAM_LIB_MEDIATYPE_CONVERTER_H
 
-#include "ace/config-lite.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  // *WORKAROUND*: mfobjects.h includes cguid.h, which requires this
 #define __CGUID_H__
@@ -199,7 +198,11 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { mediaType_out = mediaType_in; }
 
   inline void setFormat (__u32 format_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.pixelformat = format_in; }
+  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
   inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { Common_Image_Resolution_t result; result.height = mediaType_in.format.height; result.width = mediaType_in.format.width; return result; }
+  inline struct v4l2_fract getFramerate (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in) { return mediaType_in.frameRate; }
+  inline void free_ (struct Stream_MediaFramework_V4L_MediaType&) {}
+  inline void set (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, enum Stream_MediaType_Type, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout = mediaType_in; }
 
 #if defined (FFMPEG_SUPPORT)
   inline void set (const struct Stream_MediaFramework_ALSA_MediaType& format_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_MediaType& mediaType_inout) { ACE_ASSERT (type_in == STREAM_MEDIATYPE_AUDIO); mediaType_inout = format_in; }
@@ -237,9 +240,7 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void free_ (struct Stream_MediaFramework_FFMPEG_VideoMediaType&) {}
 #endif // FFMPEG_SUPPORT
   inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_inout) { mediaType_inout.video.format.width = resolution_in.width; mediaType_inout.video.format.height = resolution_in.height; }
-  inline void setResolution (const Common_Image_Resolution_t& resolution_in, struct Stream_MediaFramework_V4L_MediaType& mediaType_inout) { mediaType_inout.format.width = resolution_in.width; mediaType_inout.format.height = resolution_in.height; }
   inline void free_ (struct Stream_MediaFramework_ALSA_V4L_Format&) {}
-  inline void free_ (struct Stream_MediaFramework_V4L_MediaType&) {}
 
 #if defined (LIBCAMERA_SUPPORT)
   // libCamera

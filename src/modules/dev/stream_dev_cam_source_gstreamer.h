@@ -23,8 +23,6 @@
 
 #include "gst/gst.h"
 
-#include <string>
-
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
@@ -34,6 +32,8 @@
 
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
+
+#include "stream_dev_common.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -46,10 +46,14 @@ GstFlowReturn acestream_dev_gstreamer_new_sample_cb (GstElement*,
 struct ACEStream_Device_GStreamer_CBData
 {
   ACEStream_Device_GStreamer_CBData ()
-   : loop (NULL)
+   : allocator (NULL)
+   , loop (NULL)
+   , queue (NULL)
   {}
 
-  GMainLoop* loop;
+  Stream_IAllocator*      allocator;
+  GMainLoop*              loop;
+  ACE_Message_Queue_Base* queue;
 };
 
 //////////////////////////////////////////
@@ -144,6 +148,8 @@ class Stream_Dev_Cam_Source_GStreamer_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -158,7 +164,8 @@ class Stream_Dev_Cam_Source_GStreamer_T
 
   // helper methods
   bool initialize_GStreamer (const struct Stream_Device_Identifier&, // device identifier
-                             const struct Common_UI_Window&);        // (target) window handle [NULL: NullSink]
+                             const struct Common_UI_Window&,         // (target) window handle [NULL: NullSink]
+                             const MediaType&);                      // (source) media type
 
   virtual int svc (void);
 
@@ -167,6 +174,7 @@ class Stream_Dev_Cam_Source_GStreamer_T
   bool                                     isFirst_;
   bool                                     notifyAbort_;
   GstPipeline*                             pipeline_;
+  Stream_SessionId_t                       sessionId_;
 };
 
 // include template definition
