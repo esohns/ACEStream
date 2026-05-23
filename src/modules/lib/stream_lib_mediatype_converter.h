@@ -172,6 +172,8 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 #endif // FFMPEG_SUPPORT
 
+  inline unsigned int getSamplerate (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return mediaType_in.rate; }
+  inline unsigned int getChannels (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return mediaType_in.channels; }
   inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { Common_Image_Resolution_t result; return result; }
 
 #if defined (FFMPEG_SUPPORT)
@@ -195,6 +197,9 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { getMediaType (mediaType_in, type_in, mediaType_out.video); }
   void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&);
   void getMediaType (const struct Stream_MediaFramework_V4L_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_AudioMediaType&);
+
+  inline struct AVRational getFramerate (const struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_in) { return mediaType_in.frameRate; }
+  inline void set (const struct Stream_MediaFramework_V4L_MediaType& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_FFMPEG_VideoMediaType& mediaType_out) { getMediaType (mediaType_in, type_in, mediaType_out); }
 #endif // FFMPEG_SUPPORT
 
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_in, enum Stream_MediaType_Type type_in, struct Stream_MediaFramework_ALSA_V4L_Format& mediaType_out) { mediaType_out = mediaType_in; }

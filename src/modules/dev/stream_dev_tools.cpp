@@ -1598,21 +1598,6 @@ Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
 
   switch (pixelFormat_in)
   {
-    case V4L2_PIX_FMT_RGB332:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGB332");
-      break;
-    case V4L2_PIX_FMT_RGB444:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGB444");
-      break;
-    case V4L2_PIX_FMT_RGB555:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGB555");
-      break;
-    case V4L2_PIX_FMT_RGB565:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGB565");
-      break;
-    case V4L2_PIX_FMT_RGB555X:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGB555X");
-      break;
     case V4L2_PIX_FMT_BGR24:
       result = ACE_TEXT_ALWAYS_CHAR ("BGR");
       break;
@@ -1620,10 +1605,10 @@ Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
       result = ACE_TEXT_ALWAYS_CHAR ("RGB");
       break;
     case V4L2_PIX_FMT_BGR32:
-      result = ACE_TEXT_ALWAYS_CHAR ("BGRA");
+      result = ACE_TEXT_ALWAYS_CHAR ("BGRx");
       break;
     case V4L2_PIX_FMT_RGB32:
-      result = ACE_TEXT_ALWAYS_CHAR ("RGBA");
+      result = ACE_TEXT_ALWAYS_CHAR ("RGBx");
       break;
     case V4L2_PIX_FMT_YUYV:
       result = ACE_TEXT_ALWAYS_CHAR ("YUY2");

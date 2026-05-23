@@ -19,9 +19,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 
-#include <iostream>
-#include <string>
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #define INITGUID // *NOTE*: this exports DEFINE_GUIDs (see stream_misc_common.h)
 #include "mfapi.h"
@@ -44,6 +41,9 @@
 //#include "gdk/gdk.h"
 //#include "gtk/gtk.h"
 #endif // WXWIDGETS_SUPPORT
+
+#include <iostream>
+#include <string>
 
 #include "ace/Get_Opt.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2434,7 +2434,7 @@ ACE_TMAIN (int argc_in,
   pw_init (&argc_in, &argv_in);
 #endif // LIBPIPEWIRE_SUPPORT
 #if defined (GSTREAMER_SUPPORT)
-  gst_init (NULL, NULL);
+  gst_init (&argc_in, &argv_in);
 #endif // GSTREAMER_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, initialize ACE...
@@ -2460,9 +2460,9 @@ ACE_TMAIN (int argc_in,
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
+  Common_UI_Tools::initialize ();
 #if defined (WXWIDGETS_USE)
-  if (!Common_UI_WxWidgets_Tools::initialize (argc_in,
-                                              argv_in))
+  if (!Common_UI_WxWidgets_Tools::initialize (argc_in, argv_in))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Common_UI_WxWidgets_Tools::initialize(), aborting\n")));
@@ -2851,7 +2851,6 @@ ACE_TMAIN (int argc_in,
   //ACE_ASSERT (ui_cb_data_p);
 
   // step1h: initialize UI framework
-  Common_UI_Tools::initialize ();
   struct Common_UI_State* ui_state_p = NULL;
 #if defined (GTK_USE)
   ui_state_p = &const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());

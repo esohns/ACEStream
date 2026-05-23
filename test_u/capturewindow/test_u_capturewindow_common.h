@@ -326,6 +326,9 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+   , pipewireNodeId (0)
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
    , window ()
   {
     concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
@@ -334,6 +337,9 @@ struct Test_U_CaptureWindow_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  ACE_UINT32                                              pipewireNodeId;
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
   struct Common_UI_Window                                 window;
 };
 //extern const char stream_name_string_[];
@@ -544,12 +550,18 @@ struct Test_U_CaptureWindow_StreamConfiguration
    : Test_U_StreamConfiguration ()
    , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_INVALID)
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+   , useGStreamerPipewire (false)
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
   {
     printFinalReport = true;
   }
 
   struct Stream_MediaFramework_FFMPEG_VideoMediaType format; // session data-
   enum Stream_Visualization_VideoRenderer            renderer;
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  bool                                               useGStreamerPipewire;
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 };
 
 typedef Stream_IStreamControl_T<enum Stream_ControlType,

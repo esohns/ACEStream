@@ -226,15 +226,18 @@ class Test_U_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_U_Stream& operator= (const Test_U_Stream&))
 
   // modules
-  Test_U_WindowSource_Module    source_;
-  Test_U_StatisticReport_Module statisticReport_;
-  Test_U_Distributor_Module     distributor_;
-  Test_U_LibAVConvert_Module    convert_2; // RGB --> NV12
-  Test_U_LibAVEncoder_Module    encode_; // --> H264
-  Test_U_LibAVResize_Module     resize_; // --> window size/fullscreen
-  Test_U_LibAVConvert_Module    convert_; // RGB24 --> BGRA
-  Test_U_Wayland_Display_Module WaylandDisplay_;
-  Test_U_X11_Display_Module     X11Display_;
+  Test_U_WindowSource_Module            source_;
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  Test_U_GStreamerPipewireSource_Module pipewireSource_;
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
+  Test_U_StatisticReport_Module         statisticReport_;
+  Test_U_Distributor_Module             distributor_;
+  Test_U_LibAVConvert_Module            convert_2; // RGB --> NV12
+  Test_U_LibAVEncoder_Module            encode_; // --> H264
+  Test_U_LibAVResize_Module             resize_; // --> window size/fullscreen
+  Test_U_LibAVConvert_Module            convert_; // RGB24 --> BGRA
+  Test_U_Wayland_Display_Module         WaylandDisplay_;
+  Test_U_X11_Display_Module             X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -56,17 +56,20 @@
 #include "stream_lib_mediafoundation_source.h"
 #include "stream_lib_mediafoundation_target.h"
 #else
+#include "stream_dev_mic_source_alsa.h"
+#include "stream_dev_target_alsa.h"
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_dev_mic_source_pipewire.h"
+#endif // LIBPIPEWIRE_SUPPORT
+#if defined (GSTREAMER_SUPPORT)
+#include "stream_dev_mic_source_gstreamer.h"
+#endif // GSTREAMER_SUPPORT
+
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
 #endif // SOX_SUPPORT
 
-#include "stream_dev_mic_source_alsa.h"
-#include "stream_dev_target_alsa.h"
-
-#if defined (LIBPIPEWIRE_SUPPORT)
-#include "stream_dev_mic_source_pipewire.h"
-#endif // LIBPIPEWIRE_SUPPORT
-#endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_asynch.h"
 #include "stream_misc_delay.h"
 #include "stream_misc_distributor.h"
@@ -372,6 +375,28 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_Pipewire);                                 // writer type
 #endif // LIBPIPEWIRE_SUPPORT
+
+#if defined (GSTREAMER_SUPPORT)
+typedef Stream_Dev_Mic_Source_GStreamer_T<ACE_MT_SYNCH,
+                                          Stream_ControlMessage_t,
+                                          Test_U_AudioEffect_Message,
+                                          Test_U_AudioEffect_SessionMessage,
+                                          struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                                          enum Stream_ControlType,
+                                          enum Stream_SessionMessageType,
+                                          struct Test_U_AudioEffect_StreamState,
+                                          struct Test_U_AudioEffect_Statistic,
+                                          Test_U_SessionManager_t,
+                                          Common_Timer_Manager_t,
+                                          struct Stream_UserData,
+                                          struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dev_Mic_Source_GStreamer;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                                  // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
+                              libacestream_default_dev_mic_source_gstreamer_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Mic_Source_GStreamer);                                // writer type
+#endif // GSTREAMER_SUPPORT
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,

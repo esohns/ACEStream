@@ -1,7 +1,12 @@
-set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
-include (png)
 include (ffmpeg)
 include (ImageMagick)
+include (gstreamer)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
+include (png)
+
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dev/scripts")
+include (pipewire)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
 include (wayland)
@@ -21,6 +26,13 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
 endif (FFMPEG_SUPPORT)
+if (GSTREAMER_SUPPORT)
+ include_directories (${GSTREAMER_INCLUDE_DIRS})
+endif (GSTREAMER_SUPPORT)
+
+if (LIBPIPEWIRE_SUPPORT)
+ include_directories (${LIBPIPEWIRE_INCLUDE_DIRS})
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
  include_directories (${PKG_V4L_INCLUDE_DIRS})
 
@@ -58,8 +70,8 @@ include_directories (${CMAKE_CURRENT_SOURCE_DIR}/..)
 set (EXECUTABLE capturewindow)
 set (${EXECUTABLE}_EXE_SRCS
      stdafx.h
-     ../test_u_common.h
-     ../test_u_defines.h
+#     ../test_u_common.h
+#     ../test_u_defines.h
      test_u.cpp
      test_u_capturewindow_common.h
      test_u_common_modules.h
@@ -77,6 +89,13 @@ set (${EXECUTABLE}_EXE_SRCS
      test_u_signalhandler.h
      test_u_stream.cpp
      test_u_stream.h)
+if (GSTREAMER_SUPPORT AND LIBPIPEWIRE_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_gstreamer_pipewire_source.cpp
+      test_u_gstreamer_pipewire_source.h
+      test_u_gstreamer_pipewire_source.inl)
+endif (GSTREAMER_SUPPORT AND LIBPIPEWIRE_SUPPORT)
 
 #cmake_policy (SET CMP0065 OLD) # do not add flags to export symbols from executables without the ENABLE_EXPORTS target property
 add_executable (${EXECUTABLE}
@@ -102,18 +121,16 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
+if (GSTREAMER_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${GSTREAMER_LIBRARIES})
+endif (GSTREAMER_SUPPORT)
+
+if (LIBPIPEWIRE_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
+endif (LIBPIPEWIRE_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
-elseif (WIN32)
-# target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
-# target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-
-# if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
-# else ()
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
-# endif (CMAKE_BUILD_TYPE STREQUAL Debug)
-endif ()
+endif (UNIX)
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} PUBLIC Common)

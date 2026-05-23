@@ -21,14 +21,17 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "amvideo.h"
-//#undef NANOSECONDS
-//#include "reftime.h"
 #if defined (UUIDS_H)
 #else
 #define UUIDS_H
 #include "uuids.h"
 #endif // UUIDS_H
 #else
+#if defined (X11_SUPPORT)
+#include "X11/X.h"
+#include "X11/Xlib.h"
+#endif // X11_SUPPORT
+
 #if defined (FFMPEG_SUPPORT)
 #ifdef __cplusplus
 extern "C"
@@ -39,11 +42,14 @@ extern "C"
 #endif // __cplusplus
 #endif // FFMPEG_SUPPORT
 
-#if defined (X11_SUPPORT)
-#include "X11/X.h"
-#include "X11/Xlib.h"
-#endif // X11_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+#include "gio/gio.h"
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (GSTREAMER_SUPPORT)
+#include "gst/gst.h"
+#endif // GSTREAMER_SUPPORT
 
 #include <iostream>
 #include <string>
@@ -79,6 +85,8 @@ extern "C"
 #else
 #include "common_error_tools.h"
 #endif // ACE_WIN32 || ACE_WIN64
+
+#include "common_ui_tools.h"
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
@@ -157,12 +165,19 @@ do_print_usage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-w          : use pipewire [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // LIBPIPEWIRE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : get window handle from mouse position [")
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+
 }
 
 bool
@@ -176,6 +191,9 @@ do_process_arguments (int argc_in,
                       enum Stream_MediaFramework_Type mediaFramework_out,
 #endif // ACE_WIN32 || ACE_WIN64
                       bool& traceInformation_out,
+#if defined (LIBPIPEWIRE_SUPPORT)
+                      bool& usePipewire_out,
+#endif // LIBPIPEWIRE_SUPPORT
                       enum Test_U_CaptureWindow_ProgramMode& mode_out)
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
@@ -192,12 +210,18 @@ do_process_arguments (int argc_in,
   mediaFramework_out = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   traceInformation_out = false;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  usePipewire_out = false;
+#endif // LIBPIPEWIRE_SUPPORT
   mode_out = TEST_U_PROGRAMMODE_NORMAL;
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("f:i:lp:tv");
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   options_string += ACE_TEXT_ALWAYS_CHAR ("my");
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (LIBPIPEWIRE_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("w");
+#endif // LIBPIPEWIRE_SUPPORT
 
   ACE_Get_Opt argumentParser (argc_in,
                               argv_in,
@@ -287,6 +311,13 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (LIBPIPEWIRE_SUPPORT)
+      case 'w':
+      {
+        usePipewire_out = true;
+        break;
+      }
+#endif // LIBPIPEWIRE_SUPPORT
       // error handling
       case ':':
       {
@@ -531,26 +562,52 @@ do_finalize_mediafoundation (IMFMediaSession*& mediaSession_inout)
 #if defined (X11_SUPPORT)
 bool
 do_initialize_x11 (Window windowHandle_in,
+                   struct Stream_MediaFramework_FFMPEG_VideoMediaType& inputFormat_out,
                    struct Stream_MediaFramework_FFMPEG_VideoMediaType& outputFormat_out,
                    struct Common_AllocatorConfiguration& allocatorConfiguration_inout)
 {
   STREAM_TRACE (ACE_TEXT ("::do_initialize_x11"));
 
   // intialize return value(s)
+  ACE_OS::memset (&inputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
   ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
 
-  Display* display_p = XOpenDisplay (NULL);
-  ACE_ASSERT (display_p);
+  Display* display_p = NULL;
   Window window;
   int x, y;
   unsigned int width, height, border_width, depth;
-  int result = XGetGeometry (display_p,
-                             windowHandle_in,
-                             &window,
-                             &x, &y,
-                             &width, &height,
-                             &border_width,
-                             &depth);
+  int result;
+
+  if (!windowHandle_in)
+  { // --> capture screen using gstreamer & pipewire
+    width = 1920;
+    height = 1080;
+
+    inputFormat_out.format = AV_PIX_FMT_BGRA;
+    inputFormat_out.resolution.width = width;
+    inputFormat_out.resolution.height = height;
+    inputFormat_out.codecId = AV_CODEC_ID_NONE;
+    inputFormat_out.frameRate.num = 30;
+    inputFormat_out.frameRate.den = 1;
+
+    outputFormat_out.format = AV_PIX_FMT_RGBA;
+    outputFormat_out.resolution.width = 800;
+    outputFormat_out.resolution.height = 600;
+    outputFormat_out.codecId = AV_CODEC_ID_NONE;
+    outputFormat_out.frameRate.num = 30;
+    outputFormat_out.frameRate.den = 1;
+
+    goto continue_;
+  } // end IF
+  display_p = XOpenDisplay (NULL);
+  ACE_ASSERT (display_p);
+  result = XGetGeometry (display_p,
+                         windowHandle_in,
+                         &window,
+                         &x, &y,
+                         &width, &height,
+                         &border_width,
+                         &depth);
   if (unlikely (result == 0))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -563,22 +620,19 @@ do_initialize_x11 (Window windowHandle_in,
   result = XCloseDisplay (display_p); display_p = NULL;
   ACE_ASSERT (result == Success);
 
-  // *NOTE*: Gtk 2 expects RGB24
-  // *NOTE*: "...CAIRO_FORMAT_ARGB32: each pixel is a 32-bit quantity, with
-  //         alpha in the upper 8 bits, then red, then green, then blue. The
-  //         32-bit quantities are stored native-endian. ..."
   // *NOTE*: X11 expects RGB32
-  // *TODO*: auto-determine color depth of selected (default) screen (i.e.
-  //         'Display' ":0")
-  outputFormat_out.format = AV_PIX_FMT_RGBA;
-  outputFormat_out.resolution.width = width;
-  outputFormat_out.resolution.height = height;
-  outputFormat_out.codecId = AV_CODEC_ID_NONE;
-  outputFormat_out.frameRate.num = 30;
-  outputFormat_out.frameRate.den = 1;
+  inputFormat_out.format = AV_PIX_FMT_RGBA;
+  inputFormat_out.resolution.width = width;
+  inputFormat_out.resolution.height = height;
+  inputFormat_out.codecId = AV_CODEC_ID_NONE;
+  inputFormat_out.frameRate.num = 30;
+  inputFormat_out.frameRate.den = 1;
 
+  outputFormat_out = inputFormat_out;
+
+continue_:
   allocatorConfiguration_inout.defaultBufferSize =
-    av_image_get_buffer_size (outputFormat_out.format,
+    av_image_get_buffer_size (inputFormat_out.format,
                               width, height,
                               1);
 
@@ -594,6 +648,141 @@ do_finalize_x11 ()
   STREAM_TRACE (ACE_TEXT ("::do_finalize_x11"));
 }
 #endif // X11_SUPPORT
+
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+#define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
+#define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
+#define PORTAL_INTERFACE "org.freedesktop.portal.ScreenCast"
+
+struct Test_U_CaptureWindow_GDBus_CBData
+{
+  GDBusConnection* connection;
+  GMainLoop*       loop;
+  char*            session_handle;
+  ACE_UINT32       node_id;
+};
+
+void
+test_u_capturewindow_gdbus_on_signal_cb (GDBusConnection* connection,
+                                         const gchar* sender_name,
+                                         const gchar* object_path,
+                                         const gchar* interface_name,
+                                         const gchar* signal_name,
+                                         GVariant* parameters,
+                                         gpointer user_data)
+{
+  struct Test_U_CaptureWindow_GDBus_CBData* cb_data_p =
+    (struct Test_U_CaptureWindow_GDBus_CBData*)user_data;
+  ACE_ASSERT (cb_data_p);
+
+  guint32 response;
+  GVariant* results;
+  g_variant_get (parameters, "(u@a{sv})", &response, &results);
+  if (response != 0)
+  {
+    g_printerr ("Portal request denied or cancelled by user.\n");
+    g_main_loop_quit (cb_data_p->loop);
+    return;
+  } // end IF
+
+  GVariantDict dict;
+  g_variant_dict_init (&dict, results);
+
+  // Step 2: Handle CreateSession callback
+  if (g_variant_dict_contains (&dict, "session_handle") && cb_data_p->session_handle == NULL)
+  {
+    g_variant_lookup (results, "session_handle", "s", &cb_data_p->session_handle);
+    g_print ("Session created: %s\n", cb_data_p->session_handle);
+
+    // Request sources (Screen, Window)
+    GVariantBuilder builder;
+    g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+    g_variant_builder_add (&builder, "{sv}", "types", g_variant_new_uint32(1)); // 1 = Screen, 2 = Window
+    g_variant_builder_add (&builder, "{sv}", "multiple", g_variant_new_boolean(FALSE));
+
+    g_dbus_connection_call_sync (cb_data_p->connection, PORTAL_BUS_NAME, PORTAL_OBJECT_PATH,
+                                 PORTAL_INTERFACE, "SelectSources",
+                                 g_variant_new ("(o@a{sv})", cb_data_p->session_handle, g_variant_builder_end (&builder)),
+                                 NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+
+    // Start the session to trigger the system popup
+    g_dbus_connection_call_sync (cb_data_p->connection, PORTAL_BUS_NAME, PORTAL_OBJECT_PATH,
+                                 PORTAL_INTERFACE, "Start",
+                                 g_variant_new("(os@a{sv})", cb_data_p->session_handle, "", g_variant_new_array(G_VARIANT_TYPE("{sv}"), NULL, 0)),
+                                 NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+  } // end IF
+  // Step 4: Handle Start callback where PipeWire provides the node ID
+  else if (g_variant_dict_contains (&dict, "streams"))
+  {
+    GVariant* streams_variant =
+      g_variant_dict_lookup_value (&dict, "streams", G_VARIANT_TYPE_ARRAY);
+    if (!streams_variant)
+    {
+      g_printerr ("Failed to parse streams from portal response\n");
+      g_main_loop_quit (cb_data_p->loop);
+      return;
+    } // end IF
+    ACE_ASSERT (streams_variant);
+    GVariantIter iter;
+    g_variant_iter_init (&iter, streams_variant);
+    GVariant* stream_options = NULL;
+    if (g_variant_iter_next (&iter, "(u@a{sv})", &cb_data_p->node_id, &stream_options))
+    {
+      g_print ("Successfully obtained PipeWire Node ID: %u\n", cb_data_p->node_id);
+
+      if (stream_options)
+        g_variant_unref (stream_options);
+
+      // return control to do_initialize_gdbus()
+      g_main_loop_quit (cb_data_p->loop);
+    } // end IF
+  } // end ELSE IF
+}
+
+bool
+do_initialize_gdbus (ACE_UINT32& nodeId_out)
+{
+  STREAM_TRACE (ACE_TEXT ("::do_initialize_gdbus"));
+
+  // initialize return value(s)
+  nodeId_out = 0;
+
+  struct Test_U_CaptureWindow_GDBus_CBData cb_data_s = {0};
+  cb_data_s.loop = g_main_loop_new (NULL, FALSE);
+  ACE_ASSERT (cb_data_s.loop);
+  cb_data_s.connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  ACE_ASSERT (cb_data_s.connection);
+
+  // Subscribe to Portal response signals asynchronously
+  g_dbus_connection_signal_subscribe (cb_data_s.connection, PORTAL_BUS_NAME, "org.freedesktop.portal.Request",
+                                      "Response", NULL, NULL, G_DBUS_SIGNAL_FLAGS_NONE,
+                                      test_u_capturewindow_gdbus_on_signal_cb, &cb_data_s, NULL);
+
+  // Step 1: Request creation of a desktop screencast session
+  // GVariantBuilder options;
+  // g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  // g_variant_builder_add (&options, "{sv}", "session_handle_token", g_variant_new_string ("gst_session"));
+  // g_variant_builder_add (&options, "{sv}", "handle_token", g_variant_new_string ("gst_start"));
+  // GVariant* session_options = g_variant_builder_end(&options);
+  GVariant* session_options =
+    g_variant_new_parsed ("({'session_handle_token': <'gst_session'>, 'handle_token': <'gst_start'>},)");
+  g_dbus_connection_call_sync (cb_data_s.connection, PORTAL_BUS_NAME, PORTAL_OBJECT_PATH,
+                               PORTAL_INTERFACE, "CreateSession",
+                               // g_variant_new ("(a{sv})", session_options),
+                               session_options,
+                               NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
+  g_print ("Please authorize the screen capture in your system prompt...\n");
+  g_main_loop_run (cb_data_s.loop);
+
+  g_free (cb_data_s.session_handle);
+  g_object_unref (cb_data_s.connection);
+  g_main_loop_unref (cb_data_s.loop);
+
+  nodeId_out = cb_data_s.node_id;
+
+  return true;
+}
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 void
@@ -662,9 +851,12 @@ do_work (
          struct Test_U_MediaFoundation_Configuration& mediaFoundationConfiguration_in
 #else
          int argc_in, ACE_TCHAR** argv_in,
-         const struct Common_UI_Window& window_in,
+         struct Common_UI_Window& window_in,
          struct Test_U_CaptureWindow_Configuration& configuration_in
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (LIBPIPEWIRE_SUPPORT)
+         ,bool usePipewire_in
+#endif // LIBPIPEWIRE_SUPPORT
          )
 {
   STREAM_TRACE (ACE_TEXT ("::do_work"));
@@ -755,6 +947,7 @@ do_work (
 #else
   struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
+  struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
   struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_3; // converter_2
   struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration modulehandler_configuration_4; // display
   Test_U_EventHandler_t ui_event_handler;
@@ -823,6 +1016,9 @@ do_work (
   modulehandler_configuration.window = window_in;
 
   struct Test_U_CaptureWindow_StreamConfiguration stream_configuration;
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  stream_configuration.useGStreamerPipewire = usePipewire_in;
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -886,9 +1082,9 @@ do_work (
       //  mediaFoundationCBData_in.configuration->streamConfiguration.allocatorConfiguration_.defaultBufferSize =
       //      bufferSize_in;
       mediafoundation_stream_configuration.messageAllocator =
-          &mediafoundation_message_allocator;
+        &mediafoundation_message_allocator;
       mediafoundation_stream_configuration.module =
-          &mediafoundation_message_handler;
+        &mediafoundation_message_handler;
       //mediaFoundationConfiguration_in.streamConfiguration.configuration_.renderer =
       //  renderer_in;
 
@@ -1025,17 +1221,39 @@ do_work (
     }
   } // end SWITCH
 #else
+  modulehandler_configuration_2b = modulehandler_configuration;
 #if defined (X11_SUPPORT)
-  ACE_ASSERT (window_in.type == Common_UI_Window::Type::TYPE_X11);
   if (!do_initialize_x11 (window_in.x11_window,
                           stream_configuration.format,
+                          modulehandler_configuration_2b.outputFormat,
                           allocator_configuration))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ::do_initialize(), returning\n")));
+                ACE_TEXT ("failed to ::do_initialize_x11(), returning\n")));
+    Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                   previous_actions_a,
+                                   previous_mask);
     return;
   } // end IF
 #endif // X11_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  if (usePipewire_in)
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("using GDBus to request PipeWire screencast session...\n")));
+    if (!do_initialize_gdbus (modulehandler_configuration.pipewireNodeId) ||
+        !modulehandler_configuration.pipewireNodeId)
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to initialize GDBus/PipeWire, returning\n")));
+      Common_Signal_Tools::finalize (COMMON_SIGNAL_DISPATCH_SIGNAL,
+                                     previous_actions_a,
+                                     previous_mask);
+      return;
+    } // end IF
+    ACE_ASSERT (modulehandler_configuration.pipewireNodeId);
+  } // end IF
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
   stream_p = &stream;
 
   switch (stream_configuration.renderer)
@@ -1050,19 +1268,16 @@ do_work (
       //                   of what 'depth' values are set (in fact, it requires BGRA
       //                   on little-endian platforms) --> convert
       modulehandler_configuration_2 = modulehandler_configuration;
-      modulehandler_configuration_2.outputFormat.format =
-        AV_PIX_FMT_BGRA;
+      modulehandler_configuration_2.outputFormat.format = AV_PIX_FMT_BGRA;
 
       modulehandler_configuration_3 = modulehandler_configuration;
-      modulehandler_configuration_3.outputFormat.format =
-        AV_PIX_FMT_YUV420P; // *NOTE*: required by H264
+      modulehandler_configuration_3.outputFormat.format = AV_PIX_FMT_YUV420P; // *NOTE*: required by H264
       // modulehandler_configuration_3.outputFormat.resolution.width = 640;
       // modulehandler_configuration_3.outputFormat.resolution.height = 480;
 
-      modulehandler_configuration_4 = modulehandler_configuration;
+      modulehandler_configuration_4 = modulehandler_configuration_2b;
       modulehandler_configuration_4.window.x11_window = 0;
-      modulehandler_configuration_4.window.type =
-        Common_UI_Window::TYPE_INVALID;
+      modulehandler_configuration_4.window.type = Common_UI_Window::TYPE_INVALID;
       break;
     }
     default:
@@ -1071,6 +1286,9 @@ do_work (
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2b)));
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
@@ -1087,11 +1305,6 @@ do_work (
   timer_manager_p->start (NULL);
 
   // step0f: (initialize) processing stream
-
-  // event loop(s):
-  // - catch SIGINT/SIGQUIT/SIGTERM/... signals (connect / perform orderly shutdown)
-  // [- signal timer expiration to perform server queries] (see above)
-
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (mediaFramework_in)
   {
@@ -1178,7 +1391,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 int
 ACE_TMAIN (int argc_in,
@@ -1191,6 +1404,12 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step0: initialize
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_init (&argc_in, &argv_in);
+#endif // LIBPIPEWIRE_SUPPORT
+#if defined (GSTREAMER_SUPPORT)
+  gst_init (&argc_in, &argv_in);
+#endif // GSTREAMER_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *PORTABILITY*: on Windows, initialize ACE...
   result = ACE::init ();
@@ -1207,13 +1426,14 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
+  // initialize framework(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
-  // initialize framework(s)
+  Common_UI_Tools::initialize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1231,6 +1451,9 @@ ACE_TMAIN (int argc_in,
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
   bool trace_information = false;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  bool use_pipewire_b = false;
+#endif // LIBPIPEWIRE_SUPPORT
   enum Test_U_CaptureWindow_ProgramMode program_mode_e =
     TEST_U_PROGRAMMODE_NORMAL;
   struct Common_UI_Window window_s;
@@ -1249,6 +1472,9 @@ ACE_TMAIN (int argc_in,
                              media_framework_e,
 #endif // ACE_WIN32 || ACE_WIN64
                              trace_information,
+#if defined (LIBPIPEWIRE_SUPPORT)
+                             use_pipewire_b,
+#endif // LIBPIPEWIRE_SUPPORT
                              program_mode_e))
   {
     do_print_usage (ACE::basename (argv_in[0]));
@@ -1264,14 +1490,19 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1c: validate arguments
-  // *IMPORTANT NOTE*: iff the number of message buffers is limited, the
-  //                   reactor/proactor thread could (dead)lock on the
-  //                   allocator lock, as it cannot dispatch events that would
-  //                   free slots
+#if defined (LIBPIPEWIRE_SUPPORT)
+  if (use_pipewire_b) // make sure not to exit out below
+    window_s.type = Common_UI_Window::Type::TYPE_WAYLAND;
+#endif // LIBPIPEWIRE_SUPPORT
   if (TEST_U_MAX_MESSAGES)
     ACE_DEBUG ((LM_WARNING,
                 ACE_TEXT ("limiting the number of message buffers could (!) lead to a deadlock --> ensure the streaming elements are sufficiently efficient in this regard\n")));
-  if (window_s.type != Common_UI_Window::Type::TYPE_INVALID)
+  if (window_s.type != Common_UI_Window::Type::TYPE_INVALID
+#if defined (LIBPIPEWIRE_SUPPORT)
+      || use_pipewire_b)
+#else
+     )
+#endif // LIBPIPEWIRE_SUPPORT
     goto continue_;
   if (!executable_name_string.empty ())
   {
@@ -1359,12 +1590,17 @@ no_window_handles:
 #endif // X11_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 continue_:
-  if (window_s.type == Common_UI_Window::Type::TYPE_INVALID)
+  if (window_s.type == Common_UI_Window::Type::TYPE_INVALID
+#if defined (LIBPIPEWIRE_SUPPORT) && !defined (GSTREAMER_SUPPORT)
+      || use_pipewire_b)
+#else
+     )
+#endif // LIBPIPEWIRE_SUPPORT && !GSTREAMER_SUPPORT
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
     Common_Tools::finalize ();
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -1379,9 +1615,8 @@ continue_:
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-        Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                          ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)));
   if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR_A)), // program name
                                      log_file_name,                                // log file name
                                      false,                                        // log to syslog ?
@@ -1464,7 +1699,10 @@ continue_:
            window_s,
            configuration
 #endif // ACE_WIN32 || ACE_WIN64
-          );
+#if defined (LIBPIPEWIRE_SUPPORT)
+           ,use_pipewire_b
+#endif // LIBPIPEWIRE_SUPPORT
+           );
   timer.stop ();
 
   std::string working_time_string;
@@ -1553,6 +1791,12 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to ACE::fini(): \"%m\", continuing\n")));
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (GSTREAMER_SUPPORT)
+  gst_deinit ();
+#endif // GSTREAMER_SUPPORT
+#if defined (LIBPIPEWIRE_SUPPORT)
+  pw_deinit ();
+#endif // LIBPIPEWIRE_SUPPORT
 
   return EXIT_SUCCESS;
 } // end main

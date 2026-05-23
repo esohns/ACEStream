@@ -32,7 +32,7 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#include "stream_lib_alsa_common.h"
+#include "stream_lib_v4l_common.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_dev_defines.h"
@@ -51,21 +51,28 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::Stream_Dev_Mic_Source_GStreamer_T (ISTREAM_T* stream_in)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::Test_U_GStreamer_Pipewire_Source_T (ISTREAM_T* stream_in)
  : inherited (stream_in) // stream handle
  , inherited2 ()
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , inherited3 ()
+#else
+#if defined (X11_SUPPORT)
+ , inherited3 ()
+#endif // X11_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
  , busWatchId_ (0)
  , CBData_ ()
  , isFirst_ (true)
@@ -73,7 +80,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
  , pipeline_ (NULL)
  , sessionId_ (0)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::Stream_Dev_Mic_Source_GStreamer_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::Test_U_GStreamer_Pipewire_Source_T"));
 
 }
 
@@ -90,21 +97,21 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::~Stream_Dev_Mic_Source_GStreamer_T ()
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::~Test_U_GStreamer_Pipewire_Source_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::~Stream_Dev_Mic_Source_GStreamer_T"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::~Test_U_GStreamer_Pipewire_Source_T"));
 
   if (busWatchId_)
   {
@@ -134,22 +141,22 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 bool
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                          Stream_IAllocator* allocator_in)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                           Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::initialize"));
 
   bool result;
 
@@ -172,6 +179,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   } // end IF
 
   CBData_.allocator = allocator_in;
+  CBData_.nodeId = configuration_in.pipewireNodeId;
   CBData_.queue = inherited::msg_queue_;
 
   result = inherited::initialize (configuration_in,
@@ -198,22 +206,22 @@ template <ACE_SYNCH_DECL,
          typename UserDataType,
          typename MediaType>
 void
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                 bool& passMessageDownstream_out)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                  bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::handleDataMessage"));
 
   // sanity check(s)
   ACE_ASSERT (sessionId_);
@@ -236,22 +244,22 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 void
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                    bool& passMessageDownstream_out)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                     bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::handleSessionMessage"));
 
   int result;
 
@@ -286,7 +294,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
@@ -319,11 +327,12 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!session_data_r.formats.empty ());
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_AUDIO,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_2);
 
       // *TODO*: remove type inferences
-      if (!initialize_GStreamer (inherited::configuration_->deviceIdentifier,
+      if (!initialize_GStreamer (CBData_.nodeId,
+                                 inherited::configuration_->window,
                                  media_type_2))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -338,33 +347,19 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
       // *TODO*: set capture format based on session data
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_AUDIO,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      // sanity check(s)
-      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
-      struct tWAVEFORMATEX* waveformatex_p =
-        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-      ACE_ASSERT (waveformatex_p);
-      waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
-      waveformatex_p->nChannels = 2;
-      waveformatex_p->nSamplesPerSec = 48000;
-      waveformatex_p->wBitsPerSample = 16;
-      // recompute derived values
-      waveformatex_p->nBlockAlign =
-        waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
-      waveformatex_p->nAvgBytesPerSec =
-        waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
-      mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
+      inherited2::setFormat (MEDIASUBTYPE_RGB24,
+                             media_type_s);
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_AUDIO,
+                                STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      media_type_s.format = SND_PCM_FORMAT_S16_LE;
-      media_type_s.channels = 2;
-      media_type_s.rate = 48000;
+      inherited2::setFormat (V4L2_PIX_FMT_BGR24,
+                             media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2::set (media_type_s,
-                       STREAM_MEDIATYPE_AUDIO,
+                       STREAM_MEDIATYPE_VIDEO,
                        media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
@@ -449,21 +444,21 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 bool
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::collect (StatisticContainerType& data_out)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::collect (StatisticContainerType& data_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::collect"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::collect"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::isInitialized_);
@@ -498,22 +493,23 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 bool
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::initialize_GStreamer (const struct Stream_Device_Identifier& deviceIdentifier_in,
-                                                                    const MediaType& mediaType_in)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::initialize_GStreamer (ACE_UINT32 nodeId_in,
+                                                                     const struct Common_UI_Window& window_in,
+                                                                     const MediaType& mediaType_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::initialize_GStreamer"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::initialize_GStreamer"));
 
   // sanity check(s)
   ACE_ASSERT (!busWatchId_);
@@ -532,22 +528,17 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   // add a message handler
   GstBus* bus_p = gst_pipeline_get_bus (pipeline_);
   ACE_ASSERT (bus_p);
-  busWatchId_ = gst_bus_add_watch (bus_p, acestream_dev_mic_source_gstreamer_bus_cb, &CBData_);
+  busWatchId_ = gst_bus_add_watch (bus_p, test_u_gstreamer_pipewire_source_bus_cb, &CBData_);
   gst_object_unref (bus_p); bus_p = NULL;
 
   // set up pipeline elements
   GstElement* source = NULL, *filter_in = NULL, *convert = NULL, *filter_out = NULL, *sink = NULL;
   source =
-    // gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("audiotestsrc"), ACE_TEXT_ALWAYS_CHAR ("source"));
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-    gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("dshowaudiosrc"), ACE_TEXT_ALWAYS_CHAR ("source"));
-#else
-    gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("alsasrc"), ACE_TEXT_ALWAYS_CHAR ("source"));
-#endif // ACE_WIN32 || ACE_WIN64
+    gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("pipewiresrc"), ACE_TEXT_ALWAYS_CHAR ("source"));
   filter_in =
     gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("capsfilter"),   ACE_TEXT_ALWAYS_CHAR ("filter_in"));
   convert =
-    gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("audioconvert"),   ACE_TEXT_ALWAYS_CHAR ("convert"));
+    gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("videoconvert"),   ACE_TEXT_ALWAYS_CHAR ("convert"));
   filter_out =
     gst_element_factory_make (ACE_TEXT_ALWAYS_CHAR ("capsfilter"),   ACE_TEXT_ALWAYS_CHAR ("filter_out"));
   sink =
@@ -572,14 +563,11 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // apply some properties to the source
+  std::ostringstream converter;
+  converter << nodeId_in;
   g_object_set (G_OBJECT (source),
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-                ACE_TEXT_ALWAYS_CHAR ("device"), deviceIdentifier_in.identifier._string,
-#else
-                ACE_TEXT_ALWAYS_CHAR ("device"), deviceIdentifier_in.identifier.c_str (),
-#endif // ACE_WIN32 || ACE_WIN64
-                // ACE_TEXT_ALWAYS_CHAR ("is-live"), TRUE,
-                // ACE_TEXT_ALWAYS_CHAR ("pattern"), 18, // ball
+                ACE_TEXT_ALWAYS_CHAR ("path"), converter.str ().c_str (),
+                ACE_TEXT_ALWAYS_CHAR ("do-timestamp"), TRUE,
                 NULL);
 
   // apply some properties to the input filter
@@ -588,26 +576,43 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (mediaType_in,
-                            STREAM_MEDIATYPE_AUDIO,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   format_string = Stream_Device_Tools::formatToString (media_type_s);
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+  struct Stream_MediaFramework_V4L_MediaType media_type_s;
   inherited2::getMediaType (mediaType_in,
-                            STREAM_MEDIATYPE_AUDIO,
+                            STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
   format_string =
-    Stream_Device_Tools::formatToString (media_type_s.format);
+    Stream_Device_Tools::formatToString (media_type_s.format.pixelformat);
 #endif // ACE_WIN32 || ACE_WIN64
+  std::string media_type_string =
+   Stream_Device_Tools::GStreamerFormatToMediaType (format_string);
 
-  unsigned int sample_rate_i = inherited2::getSamplerate (mediaType_in);
-  unsigned int channels_i = inherited2::getChannels (mediaType_in);
+  // Common_Image_Resolution_t resolution_s = inherited2::getResolution (mediaType_in);
+  // unsigned int framerate_numerator = 0, framerate_denominator = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // float frame_rate_f = inherited2::getFramerate (media_type_s);
+  // framerate_numerator = static_cast<unsigned int> (frame_rate_f);
+  // framerate_denominator = 1;
+#else
+  // struct v4l2_fract frame_rate_s = inherited2::getFramerate (media_type_s);
+  // framerate_numerator = frame_rate_s.numerator;
+  // framerate_denominator = frame_rate_s.denominator;
+#endif // ACE_WIN32 || ACE_WIN64
   GstCaps* caps_p =
-    gst_caps_new_simple (ACE_TEXT_ALWAYS_CHAR ("audio/x-raw"),
+    gst_caps_new_simple (media_type_string.c_str (),
                          ACE_TEXT_ALWAYS_CHAR ("format"), G_TYPE_STRING, format_string.c_str (),
-                         ACE_TEXT_ALWAYS_CHAR ("rate"), G_TYPE_INT, sample_rate_i,
-                         ACE_TEXT_ALWAYS_CHAR ("channels"), G_TYPE_INT, channels_i,
+// #if defined (ACE_WIN32) || defined (ACE_WIN64)
+//                          ACE_TEXT_ALWAYS_CHAR ("width"), G_TYPE_INT, resolution_s.cx,
+//                          ACE_TEXT_ALWAYS_CHAR ("height"), G_TYPE_INT, resolution_s.cy,
+// #else
+//                          ACE_TEXT_ALWAYS_CHAR ("width"), G_TYPE_INT, resolution_s.width,
+//                          ACE_TEXT_ALWAYS_CHAR ("height"), G_TYPE_INT, resolution_s.height,
+// #endif // ACE_WIN32 || ACE_WIN64
+                         // ACE_TEXT_ALWAYS_CHAR ("framerate"), GST_TYPE_FRACTION, framerate_numerator, framerate_denominator,
                          NULL);
   ACE_ASSERT (caps_p);
   g_object_set (G_OBJECT (filter_in),
@@ -617,7 +622,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
 
   // apply some properties to the output filter
   char buffer_a[BUFSIZ];
-  ACE_OS::sprintf (buffer_a, ACE_TEXT_ALWAYS_CHAR ("audio/x-raw,format=S16LE,rate=48000,channels=2"));
+  ACE_OS::sprintf (buffer_a, ACE_TEXT_ALWAYS_CHAR ("video/x-raw,format=BGR"));
   caps_p = gst_caps_from_string (buffer_a);
   ACE_ASSERT (caps_p);
   g_object_set (G_OBJECT (filter_out),
@@ -635,11 +640,19 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   // set up frame-grabbing callback
   g_signal_connect (G_OBJECT (sink),
                     ACE_TEXT_ALWAYS_CHAR ("new-sample"),
-                    G_CALLBACK (acestream_dev_mic_source_gstreamer_new_sample_cb),
+                    G_CALLBACK (test_u_gstreamer_pipewire_source_new_sample_cb),
                     &CBData_);
 
   gst_bin_add_many (GST_BIN (pipeline_), source, filter_in, convert, filter_out, sink, NULL);
-  gboolean result = gst_element_link_many (source, filter_in, convert, filter_out, sink, NULL);
+  gboolean result;
+  // if (decode)
+  // {
+  //   result = gst_bin_add (GST_BIN (pipeline_), decode);
+  //   ACE_ASSERT (result);
+  //   result = gst_element_link_many (source, filter_in, decode, convert, filter_out, sink, NULL);
+  // } // end IF
+  // else
+    result = gst_element_link_many (source, filter_in, convert, filter_out, sink, NULL);
   if (unlikely (!result))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -667,21 +680,21 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 int
-Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
-                                  ControlMessageType,
-                                  DataMessageType,
-                                  SessionMessageType,
-                                  ConfigurationType,
-                                  StreamControlType,
-                                  StreamNotificationType,
-                                  StreamStateType,
-                                  StatisticContainerType,
-                                  SessionManagerType,
-                                  TimerManagerType,
-                                  UserDataType,
-                                  MediaType>::svc (void)
+Test_U_GStreamer_Pipewire_Source_T<ACE_SYNCH_USE,
+                                   ControlMessageType,
+                                   DataMessageType,
+                                   SessionMessageType,
+                                   ConfigurationType,
+                                   StreamControlType,
+                                   StreamNotificationType,
+                                   StreamStateType,
+                                   StatisticContainerType,
+                                   SessionManagerType,
+                                   TimerManagerType,
+                                   UserDataType,
+                                   MediaType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_GStreamer_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Test_U_GStreamer_Pipewire_Source_T::svc"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);

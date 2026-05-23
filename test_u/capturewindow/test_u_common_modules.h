@@ -56,6 +56,7 @@
 #include "test_u_capturewindow_common.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+#include "test_u_gstreamer_pipewire_source.h"
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -167,6 +168,21 @@ typedef Stream_Module_Window_Source_T<ACE_MT_SYNCH,
                                       Test_U_SessionManager_t,
                                       Common_Timer_Manager_t,
                                       struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_WindowSource;
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+typedef Test_U_GStreamer_Pipewire_Source_T<ACE_MT_SYNCH,
+                                           Stream_ControlMessage_t,
+                                           Test_U_Message_t,
+                                           Test_U_SessionMessage_t,
+                                           struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,
+                                           enum Stream_ControlType,
+                                           enum Stream_SessionMessageType,
+                                           struct Test_U_StreamState,
+                                           struct Test_U_StatisticData,
+                                           Test_U_SessionManager_t,
+                                           Common_Timer_Manager_t,
+                                           struct Stream_UserData,
+                                           struct Stream_MediaFramework_FFMPEG_VideoMediaType> Test_U_GStreamerPipewireSource;
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 
 typedef Stream_Miscellaneous_Distributor_WriterTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -385,6 +401,14 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                 
                               libacestream_default_misc_window_source_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_U_WindowSource);                                      // writer type
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_CaptureWindow_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_CaptureWindow_2_ModuleHandlerConfiguration,  // module handler configuration type
+                              test_u_gstreamer_pipewire_source_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_GStreamerPipewireSource);                           // writer type
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 
 DATASTREAM_MODULE_DUPLEX (Test_U_CaptureWindow_SessionData,                         // session data type
                           enum Stream_SessionMessageType,                           // session event type

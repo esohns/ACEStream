@@ -841,6 +841,10 @@ Test_U_Stream::Test_U_Stream ()
  : inherited ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_WINDOW_SOURCE_DEFAULT_NAME_STRING))
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+ , pipewireSource_ (this,
+                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_CAM_SOURCE_GSTREAMER_DEFAULT_NAME_STRING))
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , distributor_ (this,
@@ -878,7 +882,13 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   unsigned int index_i = 0;
   Stream_Branches_t branches_a;
 
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
+  if (inherited::configuration_->configuration_->useGStreamerPipewire)
+    layout_in->append (&pipewireSource_, NULL, 0);
+  else
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
   layout_in->append (&source_, NULL, 0);
+
   layout_in->append (&statisticReport_, NULL, 0);
 
   layout_in->append (&distributor_, NULL, 0);
@@ -894,10 +904,12 @@ Test_U_Stream::load (Stream_ILayout* layout_in,
   switch (inherited::configuration_->configuration_->renderer)
   {
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
+      layout_in->append (&resize_, branch_p, index_i);
       layout_in->append (&WaylandDisplay_, branch_p, index_i);
       break;
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
       layout_in->append (&convert_, branch_p, index_i);
+      layout_in->append (&resize_, branch_p, index_i);
       layout_in->append (&X11Display_, branch_p, index_i);
       break;
     default:
