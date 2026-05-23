@@ -215,12 +215,12 @@ Stream_Device_Tools::formatToString (const struct _AMMediaType& mediaType_in)
       return_value = ACE_TEXT_ALWAYS_CHAR ("NV12");
     else
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("unsupported video media type subtype (was: %s), aborting\n"),
+                  ACE_TEXT ("invalid/unknown media subtype (was: %s), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
   } // end IF
   else
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("unsupported media major type (was: %s), aborting\n"),
+                ACE_TEXT ("invalid/unknown media major type (was: %s), aborting\n"),
                 ACE_TEXT (Stream_MediaFramework_Tools::mediaMajorTypeToString (mediaType_in.majortype).c_str ())));
 
   return return_value;
@@ -1462,6 +1462,78 @@ Stream_Device_Tools::formatToString (int fileDescriptor_in,
 
 #if defined (GSTREAMER_SUPPORT)
 std::string
+Stream_Device_Tools::formatToString (enum _snd_pcm_format sampleFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::formatToString"));
+
+  std::string result;
+
+  switch (sampleFormat_in)
+  {
+    case SND_PCM_FORMAT_S8:
+      result = ACE_TEXT_ALWAYS_CHAR ("S8");
+      break;
+    case SND_PCM_FORMAT_U8:
+      result = ACE_TEXT_ALWAYS_CHAR ("U8");
+      break;
+    case SND_PCM_FORMAT_S16_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S16LE");
+      break;
+    case SND_PCM_FORMAT_S16_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S16BE");
+      break;
+    case SND_PCM_FORMAT_U16_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U16LE");
+      break;
+    case SND_PCM_FORMAT_U16_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U16BE");
+      break;
+    case SND_PCM_FORMAT_S24_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S24LE");
+      break;
+    case SND_PCM_FORMAT_S24_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S24BE");
+      break;
+    case SND_PCM_FORMAT_U24_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U24LE");
+      break;
+    case SND_PCM_FORMAT_U24_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U24BE");
+      break;
+    case SND_PCM_FORMAT_S32_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S32LE");
+      break;
+    case SND_PCM_FORMAT_S32_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("S32BE");
+      break;
+    case SND_PCM_FORMAT_U32_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U32LE");
+      break;
+    case SND_PCM_FORMAT_U32_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("U32BE");
+      break;
+    case SND_PCM_FORMAT_FLOAT_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("FLOATLE");
+      break;
+    case SND_PCM_FORMAT_FLOAT_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("FLOATBE");
+      break;
+    case SND_PCM_FORMAT_FLOAT64_LE:
+      result = ACE_TEXT_ALWAYS_CHAR ("FLOAT64LE");
+      break;
+    case SND_PCM_FORMAT_FLOAT64_BE:
+      result = ACE_TEXT_ALWAYS_CHAR ("FLOAT64BE");
+      break;
+    default:
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample format (was: %d), aborting\n"),
+                  sampleFormat_in));
+  } // end SWITCH
+
+  return result;
+}
+
+std::string
 Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::formatToString"));
@@ -1503,6 +1575,9 @@ Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
     case V4L2_PIX_FMT_NV12:
       result = ACE_TEXT_ALWAYS_CHAR ("NV12");
       break;
+    case V4L2_PIX_FMT_MJPEG:
+      result = ACE_TEXT_ALWAYS_CHAR ("MJPG");
+      break;
     default:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown pixel format (was: %u), aborting\n"),
@@ -1513,3 +1588,18 @@ Stream_Device_Tools::formatToString (__u32 pixelFormat_in)
 }
 #endif // GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (GSTREAMER_SUPPORT)
+std::string
+Stream_Device_Tools::GStreamerFormatToMediaType (const std::string& format_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Device_Tools::GStreamerFormatToMediaType"));
+
+  std::string result = ACE_TEXT_ALWAYS_CHAR ("video/x-raw");
+
+  if (format_in == ACE_TEXT_ALWAYS_CHAR ("MJPG"))
+    result = ACE_TEXT_ALWAYS_CHAR ("image/jpeg");
+
+  return result;
+}
+#endif // GSTREAMER_SUPPORT

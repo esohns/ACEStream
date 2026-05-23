@@ -118,7 +118,10 @@ if (GSTREAMER_SUPPORT)
       ${source_files}
       stream_dev_cam_source_gstreamer.cpp
       stream_dev_cam_source_gstreamer.h
-      stream_dev_cam_source_gstreamer.inl)
+      stream_dev_cam_source_gstreamer.inl
+      stream_dev_mic_source_gstreamer.cpp
+      stream_dev_mic_source_gstreamer.h
+      stream_dev_mic_source_gstreamer.inl)
 endif (GSTREAMER_SUPPORT)
 if (LIBPIPEWIRE_SUPPORT)
  set (source_files
@@ -282,6 +285,8 @@ if (GSTREAMER_SUPPORT)
  install (FILES
           stream_dev_cam_source_gstreamer.h
           stream_dev_cam_source_gstreamer.inl
+          stream_dev_mic_source_gstreamer.h
+          stream_dev_mic_source_gstreamer.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif (GSTREAMER_SUPPORT)

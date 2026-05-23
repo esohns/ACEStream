@@ -21,6 +21,7 @@
 #ifndef STREAM_IALLOCATOR_H
 #define STREAM_IALLOCATOR_H
 
+#include "stddef.h"
 //#include "ace/Malloc_Base.h"
 
 class Stream_IAllocatorStatistic

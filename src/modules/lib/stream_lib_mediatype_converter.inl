@@ -952,8 +952,8 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::getMediaType (const struc
 
   ACE_OS::memset (&mediaType_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_AudioMediaType));
 
-  ACE_ASSERT (false);
-  ACE_NOTREACHED (return;)
+  // ACE_ASSERT (false);
+  // ACE_NOTREACHED (return;)
 }
 #endif // FFMPEG_SUPPORT
 

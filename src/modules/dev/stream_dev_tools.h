@@ -170,12 +170,17 @@ class Stream_Device_Tools
                             const struct v4l2_fract&); // frame rate (in time-per-frame (s))
 
   static std::string formatToString (int,    // file descriptor
-                                     __u32); // format (fourcc)
+                                     __u32); // format (v4l fourcc)
 
 #if defined (GSTREAMER_SUPPORT)
-  static std::string formatToString (__u32); // format (fourcc)
+  static std::string formatToString (enum _snd_pcm_format); // format (alsa)
+  static std::string formatToString (__u32); // format (v4l fourcc)
 #endif // GSTREAMER_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+
+#if defined (GSTREAMER_SUPPORT)
+  static std::string GStreamerFormatToMediaType (const std::string&); // (GStreamer-) format string
+#endif // GSTREAMER_SUPPORT
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Device_Tools ())

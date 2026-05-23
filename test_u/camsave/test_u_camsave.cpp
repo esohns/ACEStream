@@ -1197,8 +1197,7 @@ do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
   camera_p = Stream_Device_Tools::getCamera (camera_manager_p,
                                              devices_a.front ().identifier).get ();
   ACE_ASSERT (camera_p);
-  captureFormat_out =
-      Stream_Device_Tools::defaultCaptureFormat (camera_p);
+  captureFormat_out = Stream_Device_Tools::defaultCaptureFormat (camera_p);
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("\"%s\": default capture format: \"%s\", resolution: %ux%u, framerate: %u/%u\n"),
               ACE_TEXT (devices_a.front ().identifier.c_str ()),
@@ -1211,8 +1210,7 @@ do_initialize_libcamera (struct Stream_Device_Identifier& deviceIdentifier_out,
   //         32-bit quantities are stored native-endian. ..."
   // *TODO*: determine color depth of selected (default) screen (i.e.'Display'
   //         ":0")
-  outputFormat_out.format =
-    libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'), 0);
+  outputFormat_out.format = libcamera::PixelFormat (FOURCC ('R', 'G', 'B', 'A'), 0);
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
   outputFormat_out.format =
@@ -1241,7 +1239,7 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
 
   // intialize return value(s)
   ACE_OS::memset (&captureFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
-//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_FFMPEG_VideoMediaType));
+//  ACE_OS::memset (&outputFormat_out, 0, sizeof (struct Stream_MediaFramework_V4L_MediaType));
 
   // sanity check(s)
   ACE_ASSERT (!deviceIdentifier_in.empty ());
@@ -1249,13 +1247,11 @@ do_initialize_v4l (const std::string& deviceIdentifier_in,
   // *NOTE*: use O_NONBLOCK with a reactor (v4l2_select()) or proactor
   //         (v4l2_poll()) for asynchronous operation
   // *TODO*: support O_NONBLOCK
-  int open_mode =
-      ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
-                                                              : O_RDONLY);
+  int open_mode = ((STREAM_LIB_V4L_DEFAULT_IO_METHOD == V4L2_MEMORY_MMAP) ? O_RDWR
+                                                                          : O_RDONLY);
   int result = -1;
-  deviceIdentifier_out.fileDescriptor =
-    v4l2_open (deviceIdentifier_in.c_str (),
-               open_mode);
+  deviceIdentifier_out.fileDescriptor = v4l2_open (deviceIdentifier_in.c_str (),
+                                                   open_mode);
   if (unlikely (deviceIdentifier_out.fileDescriptor == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -2247,7 +2243,6 @@ error:
     } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
     ACE_ASSERT (stream_p);
-    // *NOTE*: this will block until the file has been copied...
     stream_p->start ();
 //    if (!stream_p->isRunning ())
 //    {
