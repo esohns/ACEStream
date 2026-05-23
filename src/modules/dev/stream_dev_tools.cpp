@@ -65,6 +65,7 @@ extern "C"
 #include "ace/OS.h"
 
 #include "common_file_tools.h"
+#include "common_os_tools.h"
 
 #include "common_time_common.h"
 
@@ -218,6 +219,61 @@ Stream_Device_Tools::formatToString (const struct _AMMediaType& mediaType_in)
                   ACE_TEXT ("invalid/unknown media subtype (was: %s), aborting\n"),
                   ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (mediaType_in.subtype).c_str ())));
   } // end IF
+  else if (InlineIsEqualGUID (mediaType_in.majortype, MEDIATYPE_Audio))
+  {
+    if (InlineIsEqualGUID (mediaType_in.formattype, FORMAT_WaveFormatEx))
+    { ACE_ASSERT (mediaType_in.pbFormat);
+      WAVEFORMATEX* waveFormatEx_p = reinterpret_cast<WAVEFORMATEX*> (mediaType_in.pbFormat);
+      if (waveFormatEx_p->wFormatTag == WAVE_FORMAT_PCM)
+      {
+        switch (waveFormatEx_p->wBitsPerSample)
+        {
+          case 8:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("S8");
+            break;
+          case 16:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("S16LE");
+            break;
+          case 24:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("S24LE");
+            break;
+          case 32:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("S32LE");
+            break;
+          default:
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown PCM bits per sample (was: %d), aborting\n"),
+                        waveFormatEx_p->wBitsPerSample));
+            break;
+        } // end SWITCH
+      } // end IF
+      else if (waveFormatEx_p->wFormatTag == WAVE_FORMAT_IEEE_FLOAT)
+      {
+        switch (waveFormatEx_p->wBitsPerSample)
+        {
+          case 32:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("FLOATLE");
+            break;
+          case 64:
+            return_value = ACE_TEXT_ALWAYS_CHAR ("FLOAT64LE");
+            break;
+          default:
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("invalid/unknown PCM bits per sample (was: %d), aborting\n"),
+                        waveFormatEx_p->wBitsPerSample));
+            break;
+        } // end SWITCH
+      } // end ELSE IF
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid/unknown audio format tag (was: %d), aborting\n"),
+                    waveFormatEx_p->wFormatTag));
+    } // end IF
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown audio format type (was: %s), aborting\n"),
+                  ACE_TEXT (Common_OS_Tools::GUIDToString (mediaType_in.formattype).c_str ())));
+  } // end ELSE IF
   else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid/unknown media major type (was: %s), aborting\n"),
