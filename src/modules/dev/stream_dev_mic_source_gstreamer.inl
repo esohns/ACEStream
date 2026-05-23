@@ -286,7 +286,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
 #else
-      struct Stream_MediaFramework_V4L_MediaType media_type_s;
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
 #endif // ACE_WIN32 || ACE_WIN64
       MediaType media_type_2;
       ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
@@ -319,7 +319,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
 
       ACE_ASSERT (!session_data_r.formats.empty ());
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_2);
 
       // *TODO*: remove type inferences
@@ -338,19 +338,33 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
       // *TODO*: set capture format based on session data
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      inherited2::setFormat (MEDIASUBTYPE_RGB24,
-                             media_type_s);
+      // sanity check(s)
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      struct tWAVEFORMATEX* waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+      ACE_ASSERT (waveformatex_p);
+      waveformatex_p->wFormatTag = WAVE_FORMAT_PCM;
+      waveformatex_p->nChannels = 2;
+      waveformatex_p->nSamplesPerSec = 48000;
+      waveformatex_p->wBitsPerSample = 16;
+      // recompute derived values
+      waveformatex_p->nBlockAlign =
+        waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
+      waveformatex_p->nAvgBytesPerSec =
+        waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+      mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
+                                STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      inherited2::setFormat (V4L2_PIX_FMT_BGR24,
-                             media_type_s);
+      media_type_s.format = SND_PCM_FORMAT_S16_LE;
+      media_type_s.channels = 2;
+      media_type_s.rate = 48000;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited2::set (media_type_s,
-                       STREAM_MEDIATYPE_VIDEO,
+                       STREAM_MEDIATYPE_AUDIO,
                        media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
@@ -518,7 +532,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   // add a message handler
   GstBus* bus_p = gst_pipeline_get_bus (pipeline_);
   ACE_ASSERT (bus_p);
-  busWatchId_ = gst_bus_add_watch (bus_p, acestream_dev_gstreamer_bus_cb, &CBData_);
+  busWatchId_ = gst_bus_add_watch (bus_p, acestream_dev_mic_source_gstreamer_bus_cb, &CBData_);
   gst_object_unref (bus_p); bus_p = NULL;
 
   // set up pipeline elements
@@ -621,7 +635,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
   // set up frame-grabbing callback
   g_signal_connect (G_OBJECT (sink),
                     ACE_TEXT_ALWAYS_CHAR ("new-sample"),
-                    G_CALLBACK (acestream_dev_gstreamer_new_sample_cb),
+                    G_CALLBACK (acestream_dev_mic_source_gstreamer_new_sample_cb),
                     &CBData_);
 
   gst_bin_add_many (GST_BIN (pipeline_), source, filter_in, convert, filter_out, sink, NULL);

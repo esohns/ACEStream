@@ -35,15 +35,15 @@
 
 #include "stream_lib_mediatype_converter.h"
 
-gboolean acestream_dev_gstreamer_bus_cb (GstBus*,
+gboolean acestream_dev_mic_source_gstreamer_bus_cb (GstBus*,
                                          GstMessage*,
                                          gpointer);
-GstFlowReturn acestream_dev_gstreamer_new_sample_cb (GstElement*,
-                                                     gpointer);
+GstFlowReturn acestream_dev_mic_source_gstreamer_new_sample_cb (GstElement*,
+                                                                gpointer);
 
-struct ACEStream_Device_GStreamer_CBData
+struct ACEStream_Device_Mic_Source_GStreamer_CBData
 {
-  ACEStream_Device_GStreamer_CBData ()
+  ACEStream_Device_Mic_Source_GStreamer_CBData ()
    : allocator (NULL)
    , loop (NULL)
    , queue (NULL)
@@ -152,12 +152,12 @@ class Stream_Dev_Mic_Source_GStreamer_T
 
   virtual int svc (void);
 
-  guint                                    busWatchId_;
-  struct ACEStream_Device_GStreamer_CBData CBData_;
-  bool                                     isFirst_;
-  bool                                     notifyAbort_;
-  GstPipeline*                             pipeline_;
-  Stream_SessionId_t                       sessionId_;
+  guint                                               busWatchId_;
+  struct ACEStream_Device_Mic_Source_GStreamer_CBData CBData_;
+  bool                                                isFirst_;
+  bool                                                notifyAbort_;
+  GstPipeline*                                        pipeline_;
+  Stream_SessionId_t                                  sessionId_;
 };
 
 // include template definition

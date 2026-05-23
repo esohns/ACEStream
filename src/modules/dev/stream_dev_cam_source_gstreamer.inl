@@ -527,7 +527,7 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
   // add a message handler
   GstBus* bus_p = gst_pipeline_get_bus (pipeline_);
   ACE_ASSERT (bus_p);
-  busWatchId_ = gst_bus_add_watch (bus_p, acestream_dev_gstreamer_bus_cb, &CBData_);
+  busWatchId_ = gst_bus_add_watch (bus_p, acestream_dev_cam_source_gstreamer_bus_cb, &CBData_);
   gst_object_unref (bus_p); bus_p = NULL;
 
   // set up pipeline elements
@@ -664,7 +664,7 @@ Stream_Dev_Cam_Source_GStreamer_T<ACE_SYNCH_USE,
   // set up frame-grabbing callback
   g_signal_connect (G_OBJECT (sink),
                     ACE_TEXT_ALWAYS_CHAR ("new-sample"),
-                    G_CALLBACK (acestream_dev_gstreamer_new_sample_cb),
+                    G_CALLBACK (acestream_dev_cam_source_gstreamer_new_sample_cb),
                     &CBData_);
 
   gst_bin_add_many (GST_BIN (pipeline_), source, filter_in, convert, filter_out, sink, NULL);

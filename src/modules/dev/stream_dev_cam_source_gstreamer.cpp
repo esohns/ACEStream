@@ -31,15 +31,15 @@ const char libacestream_default_dev_cam_source_gstreamer_module_name_string[] =
 //////////////////////////////////////////
 
 gboolean
-acestream_dev_gstreamer_bus_cb (GstBus* bus_in,
-                                GstMessage* message_in,
-                                gpointer data_in)
+acestream_dev_cam_source_gstreamer_bus_cb (GstBus* bus_in,
+                                           GstMessage* message_in,
+                                           gpointer data_in)
 {
-  STREAM_TRACE (ACE_TEXT ("acestream_dev_gstreamer_bus_cb"));
+  STREAM_TRACE (ACE_TEXT ("acestream_dev_cam_source_gstreamer_bus_cb"));
 
   // sanity check(s)
-  struct ACEStream_Device_GStreamer_CBData* cb_data_p =
-    static_cast<struct ACEStream_Device_GStreamer_CBData*> (data_in);
+  struct ACEStream_Device_Cam_Source_GStreamer_CBData* cb_data_p =
+    static_cast<struct ACEStream_Device_Cam_Source_GStreamer_CBData*> (data_in);
   ACE_ASSERT (cb_data_p);
 
   switch (GST_MESSAGE_TYPE (message_in))
@@ -77,12 +77,12 @@ acestream_dev_gstreamer_bus_cb (GstBus* bus_in,
 }
 
 GstFlowReturn
-acestream_dev_gstreamer_new_sample_cb (GstElement* sink_in,
-                                       gpointer userData_in)
+acestream_dev_cam_source_gstreamer_new_sample_cb (GstElement* sink_in,
+                                                  gpointer userData_in)
 {
   // sanity check(s)
-  struct ACEStream_Device_GStreamer_CBData* cb_data_p =
-    static_cast<struct ACEStream_Device_GStreamer_CBData*> (userData_in);
+  struct ACEStream_Device_Cam_Source_GStreamer_CBData* cb_data_p =
+    static_cast<struct ACEStream_Device_Cam_Source_GStreamer_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->allocator);
   ACE_ASSERT (cb_data_p->queue);

@@ -1409,7 +1409,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
 
       // *NOTE*: need to set this for RGB-capture formats ONLY !
-      //directshow_video_modulehandler_configuration_2.flipImage = true;
+      directshow_video_modulehandler_configuration_2.flipImage = true;
         //Stream_MediaFramework_DirectShow_Tools::isMediaTypeBottomUp (directshow_video_stream_configuration.format.video);
 
       media_type_p =

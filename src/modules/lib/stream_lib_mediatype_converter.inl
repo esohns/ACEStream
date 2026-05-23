@@ -45,6 +45,50 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::Stream_MediaFramework_Med
 }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setSampleRate (unsigned int sampleRate_in,
+                                                                      struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setSampleRate"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
+
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->nSamplesPerSec = sampleRate_in;
+
+  // recompute derived values
+  waveformatex_p->nAvgBytesPerSec =
+    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+}
+
+template <typename MediaType>
+void
+Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setChannels (unsigned int channels_in,
+                                                                    struct _AMMediaType& mediaType_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setChannels"));
+
+  // sanity check(s)
+  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
+
+  struct tWAVEFORMATEX* waveformatex_p =
+    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
+  ACE_ASSERT (waveformatex_p);
+  waveformatex_p->nChannels = channels_in;
+
+  // recompute derived values
+  waveformatex_p->nBlockAlign =
+    waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
+  waveformatex_p->nAvgBytesPerSec =
+    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
+
+  mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
+}
+
 #if defined (FFMPEG_SUPPORT)
 template <typename MediaType>
 void
@@ -101,54 +145,12 @@ Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setFormat (enum AVSampleF
     Stream_MediaFramework_Tools::AVSampleFormatToBitCount (format_in);
 
   // recompute derived values
-  mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
   waveformatex_p->nBlockAlign =
     waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
   waveformatex_p->nAvgBytesPerSec =
     waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
-}
 
-template <typename MediaType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setSampleRate (unsigned int sampleRate_in,
-                                                                      struct _AMMediaType& mediaType_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setSampleRate"));
-
-  // sanity check(s)
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
-
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
-  ACE_ASSERT (waveformatex_p);
-  waveformatex_p->nSamplesPerSec = sampleRate_in;
-
-  // recompute derived values
-  waveformatex_p->nAvgBytesPerSec =
-    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
-}
-
-template <typename MediaType>
-void
-Stream_MediaFramework_MediaTypeConverter_T<MediaType>::setChannels (unsigned int channels_in,
-                                                                    struct _AMMediaType& mediaType_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_MediaTypeConverter_T::setChannels"));
-
-  // sanity check(s)
-  ACE_ASSERT (InlineIsEqualGUID (mediaType_inout.formattype, FORMAT_WaveFormatEx));
-
-  struct tWAVEFORMATEX* waveformatex_p =
-    reinterpret_cast<struct tWAVEFORMATEX*> (mediaType_inout.pbFormat);
-  ACE_ASSERT (waveformatex_p);
-  waveformatex_p->nChannels = channels_in;
-
-  // recompute derived values
   mediaType_inout.lSampleSize = waveformatex_p->nBlockAlign;
-  waveformatex_p->nBlockAlign =
-    waveformatex_p->nChannels * (waveformatex_p->wBitsPerSample / 8);
-  waveformatex_p->nAvgBytesPerSec =
-    waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign;
 }
 
 template <typename MediaType>
