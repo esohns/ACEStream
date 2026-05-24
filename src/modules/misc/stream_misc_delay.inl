@@ -289,7 +289,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         static_cast<ACE_UINT64> (average_bytes_per_second_i * (static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0f));
       token_factor_f =
         token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
-      availableTokens_ *= token_factor_f;
+      availableTokens_ = static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
         availableTokens_;
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
@@ -1334,7 +1334,7 @@ Stream_Module_Delay_2<ACE_SYNCH_USE,
         static_cast<ACE_UINT64> (static_cast<float> (average_bytes_per_second_i) * static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0F);
       token_factor_f =
         token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
-      availableTokens_ *= token_factor_f;
+      availableTokens_ = static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
       inherited::configuration_->delayConfiguration->averageTokensPerInterval =
         availableTokens_;
       inherited::configuration_->delayConfiguration->interval =

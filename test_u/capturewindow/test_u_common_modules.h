@@ -56,7 +56,9 @@
 #include "test_u_capturewindow_common.h"
 #include "test_u_message.h"
 #include "test_u_session_message.h"
+#if defined (LIBPIPEWIRE_SUPPORT) && defined (GSTREAMER_SUPPORT)
 #include "test_u_gstreamer_pipewire_source.h"
+#endif // LIBPIPEWIRE_SUPPORT && GSTREAMER_SUPPORT
 
 // declare module(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -1644,8 +1644,8 @@ Stream_Decoder_AVIEncoder_WriterTask_T<ACE_SYNCH_USE,
   } // end ELSE
 
   fps_i =
-    10000000 / (video_info_header_p ? video_info_header_p->AvgTimePerFrame
-                                    : video_info_header2_p->AvgTimePerFrame);
+    static_cast<ACE_UINT32> (10000000 / (video_info_header_p ? video_info_header_p->AvgTimePerFrame
+                                                             : video_info_header2_p->AvgTimePerFrame));
 
   if (InlineIsEqualGUID (media_type_2.formattype, FORMAT_WaveFormatEx))
     wave_format_ex_p = reinterpret_cast<struct tWAVEFORMATEX*> (media_type_2.pbFormat);

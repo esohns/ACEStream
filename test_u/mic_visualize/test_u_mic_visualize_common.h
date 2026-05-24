@@ -227,13 +227,13 @@ struct Test_U_MicVisualize_Statistic
    , volumeVariance (0.0)
   {}
 
-  double       amplitudeAverage;
-  double       amplitudeVariance;
-  double       streakAverage;
-  unsigned int streakCount;
-  double       streakVariance;
-  double       volumeAverage;
-  double       volumeVariance;
+  double     amplitudeAverage;
+  double     amplitudeVariance;
+  double     streakAverage;
+  ACE_UINT64 streakCount;
+  double     streakVariance;
+  double     volumeAverage;
+  double     volumeVariance;
 };
 typedef Common_StatisticHandler_T<struct Test_U_MicVisualize_Statistic> Test_U_MicVisualize_StatisticHandler_t;
 
