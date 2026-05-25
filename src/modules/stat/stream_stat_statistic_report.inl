@@ -427,7 +427,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   } // end lock scope
 
   // step2: update session data and dispatch statistic message
-  update (ACE_Time_Value (1, 0));
+  update (ACE_Time_Value::zero);
 }
 
 template <ACE_SYNCH_DECL,

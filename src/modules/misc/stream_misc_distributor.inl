@@ -134,20 +134,25 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
             data_.find ((*iterator_2).second);
           SessionMessageType* session_message_p =
             static_cast<SessionMessageType*> (messageBlock_in);
+          highPriority_in = session_message_p->expedited ();
+
           // *NOTE*: if some upstream initialization failed and the task sends
           //         'abort', 'this' has not been initialized yet
-          if (likely (iterator_3 != data_.end ()))
-          { ACE_ASSERT ((*iterator_3).second);
-            (*iterator_3).second->increase ();
-            session_message_p->setP ((*iterator_3).second);
-          } // end IF
-          else
-          {
-            typename SessionMessageType::DATA_T& session_data_container_r =
-              const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
-            session_data_container_r.increase ();
-          } // end ELSE
-          highPriority_in = session_message_p->expedited ();
+          if (unlikely (iterator_3 == data_.end ()))
+            break;
+          ACE_ASSERT ((*iterator_3).second);
+
+          // update statistic (and other relevant-) session data
+          typename SessionMessageType::DATA_T& session_data_container_r =
+            const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
+          typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+            const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_r.getR ());
+          typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
+            const_cast<typename SessionMessageType::DATA_T::DATA_T&> ((*iterator_3).second->getR ());
+          session_data_2 += session_data_r;
+
+          (*iterator_3).second->increase ();
+          session_message_p->setP ((*iterator_3).second);
 
           break;
         }
