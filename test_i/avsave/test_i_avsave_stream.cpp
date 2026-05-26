@@ -83,14 +83,6 @@ Stream_AVSave_DirectShow_Stream::Stream_AVSave_DirectShow_Stream ()
 
 }
 
-Stream_AVSave_DirectShow_Stream::~Stream_AVSave_DirectShow_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_AVSave_DirectShow_Stream::~Stream_AVSave_DirectShow_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
-}
-
 bool
 Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
                                        bool& delete_out)
@@ -163,7 +155,9 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
 
     if (save_to_file_b)
     {
-      layout_in->append (&converter_2, branch_p, index_i);
+      // check whether the converter is required at all (i.e. only for MP4, not for AVI)
+      if ((*iterator).second.second->codecConfiguration->codecId == AV_CODEC_ID_H264)
+        layout_in->append (&converter_2, branch_p, index_i);
       layout_in->append (&tagger_, branch_p, index_i);
       ACE_ASSERT (inherited::configuration_->configuration_->module_2);
       layout_in->append (inherited::configuration_->configuration_->module_2, branch_p, index_i);

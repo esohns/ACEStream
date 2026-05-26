@@ -13,7 +13,7 @@ set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../m
 include (fftw)
 
 #include (ffmpeg)
-#include (ImageMagick)
+include (ImageMagick)
 include (gstreamer)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/dec/scripts")
@@ -373,6 +373,9 @@ elseif (WIN32)
  if (FFTW_SUPPORT)
   file (TO_CMAKE_PATH "${FFTW_LIB_DIR}" FFTW_PATH)
  endif (FFTW_SUPPORT)
+ if (GSTREAMER_SUPPORT)
+  file (TO_CMAKE_PATH "${GSTREAMER_LIB_DIR}" GSTREAMER_PATH)
+ endif (GSTREAMER_SUPPORT)
  # *NOTE*: ffmpeg was built with "vcpkg-libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
@@ -394,6 +397,7 @@ elseif (WIN32)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
                           ${GLEW_PATH}
                           ${FFTW_PATH}
+                          ${GSTREAMER_PATH}
                           ${VCPKG_PATH}
                           ${FFMPEG_PATH}
                           ${IMAGEMAGICK_PATH}

@@ -1424,7 +1424,6 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       delete media_type_p; media_type_p = NULL;
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB32,
                                                          directshow_video_modulehandler_configuration_5.outputFormat);
-      directshow_video_modulehandler_configuration_5.flipImage = true;
 
       directshow_video_modulehandler_configuration_6 = directshow_audio_modulehandler_configuration;
       directshow_video_modulehandler_configuration_6.codecConfiguration =

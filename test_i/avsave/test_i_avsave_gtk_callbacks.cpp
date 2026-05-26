@@ -6992,7 +6992,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
       if (!ACE_OS::strcmp (save_format_string.c_str (),
                            ACE_TEXT_ALWAYS_CHAR ("AVI")))
       {
-        (*directshow_stream_iterator_2).second.second->flipImage = true;
+        (*directshow_stream_iterator_2).second.second->flipImage = false;
         format_s = MEDIASUBTYPE_RGB32;
       } // end IF
       else // --> MP4
@@ -7002,8 +7002,6 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
       } // end ELSE
       Stream_MediaFramework_DirectShow_Tools::setFormat (format_s,
                                                          (*directshow_stream_iterator_2).second.second->outputFormat);
-
-
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

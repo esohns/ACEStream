@@ -86,7 +86,7 @@ class Stream_AVSave_DirectShow_Stream
 
  public:
   Stream_AVSave_DirectShow_Stream ();
-  virtual ~Stream_AVSave_DirectShow_Stream ();
+  inline virtual ~Stream_AVSave_DirectShow_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // i/o value: layout
