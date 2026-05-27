@@ -209,6 +209,9 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+if (GSTREAMER_SUPPORT)
+ file (TO_CMAKE_PATH "${GSTREAMER_LIB_DIR}" GSTREAMER_PATH)
+endif (GSTREAMER_SUPPORT)
  if (GTK_SUPPORT)
   file (TO_CMAKE_PATH "${GTK_LIB_DIRS}" GTK_PATH)
  endif (GTK_SUPPORT)
@@ -217,12 +220,10 @@ elseif (WIN32)
  endif (WXWIDGETS_SUPPORT)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-#                           ${OPENGL_PATH}
-#                           ${GLUT_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
-#                           ${ASSIMP_PATH}
+                           ${GSTREAMER_PATH}
                            ${LIBPNG_PATH}
                            ${ACE_LIBRARY_PATH})
  if (GTK_SUPPORT)
