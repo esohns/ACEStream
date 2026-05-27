@@ -234,7 +234,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  if (unlikely (!buffer_))
+  if (likely (!buffer_))
   {
     buffer_ = inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
@@ -469,6 +469,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       struct sox_signalinfo_t intermediate_signal_s, target_signal_s;
       MediaType media_type_3;
       ACE_OS::memset (&media_type_3, 0, sizeof (MediaType));
+      bool set_media_type_b = true;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s, media_type_2;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
@@ -508,7 +509,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: output format is input format, continuing\n"),
                     inherited::mod_->name ()));
-        goto continue_2;
+        set_media_type_b = false;
+        //goto continue_2;
       } // end IF
 
       ACE_ASSERT (!chain_);
@@ -685,11 +687,13 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
       //         --> convert back to output format
       output_->out_signal.precision = signalInfoOut_.precision;
 
+      if (unlikely (!set_media_type_b))
+        goto continue_2;
       //inherited2::getMediaType (inherited::configuration_->outputFormat,
       //                          STREAM_MEDIATYPE_AUDIO,
       //                          media_type_3);
       inherited2::getMediaType (session_data_r.formats.back (),
-                                STREAM_MEDIATYPE_VIDEO,
+                                STREAM_MEDIATYPE_VIDEO, // *NOTE*: use video media type just to pass that info along...
                                 media_type_3);
       inherited2::set (inherited::configuration_->outputFormat,
                        STREAM_MEDIATYPE_AUDIO,
