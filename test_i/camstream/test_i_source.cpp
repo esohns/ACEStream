@@ -920,10 +920,11 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   struct Stream_ModuleConfiguration module_configuration;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration;
-  //struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // visualization
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2a; // converter for network io (flip image)
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2b; // resize for network io
   struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // network io
-  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // converter
-  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_5; // resize
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4a; // converter
+  struct Test_I_Source_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4b; // resize
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration;
   struct Test_I_Source_DirectShow_StreamConfiguration directshow_stream_configuration_2;
   Test_I_Source_DirectShow_StreamConfiguration_t directshow_stream_configuration_3;
@@ -972,26 +973,29 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       //                                                        std::make_pair (&module_configuration,
       //                                                                        &directshow_modulehandler_configuration_2)));
 
-      directshow_modulehandler_configuration_4 =
+      directshow_modulehandler_configuration_2a =
         directshow_modulehandler_configuration;
-      directshow_modulehandler_configuration_4.flipImage = true;
-      directshow_modulehandler_configuration_4.handleResize = false;
+      directshow_modulehandler_configuration_2a.flipImage = true;
+      directshow_modulehandler_configuration_2a.handleResize = false;
 
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
-                                                                              &directshow_modulehandler_configuration_4)));
+                                                                              &directshow_modulehandler_configuration_2a)));
+      directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
+                                                              std::make_pair (&module_configuration,
+                                                                              &directshow_modulehandler_configuration_4a)));
 
 
-      directshow_modulehandler_configuration_5 =
+      directshow_modulehandler_configuration_2b =
         directshow_modulehandler_configuration;
-      //directshow_modulehandler_configuration_5.flipImage = true;
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                               std::make_pair (&module_configuration,
-                                                                              &directshow_modulehandler_configuration_5)));
-
+                                                                              &directshow_modulehandler_configuration_2b)));
+      directshow_modulehandler_configuration_4b =
+        directshow_modulehandler_configuration;
       directshow_stream_configuration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
                                                               std::make_pair (&module_configuration,
-                                                                              &directshow_modulehandler_configuration_4)));
+                                                                              &directshow_modulehandler_configuration_4b)));
 
       directShowCBData_in.configuration->streamConfigurations.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (""),
                                                                                       directshow_stream_configuration));
@@ -1272,13 +1276,16 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                   directShowCBData_in.streamConfiguration,
                                   (*directshow_stream_iterator).second.configuration_->format,
                                   directshow_modulehandler_configuration.outputFormat);
-
       Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat,
-                                                    directshow_modulehandler_configuration_4.outputFormat);
+                                                    directshow_modulehandler_configuration_2a.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat,
+                                                    directshow_modulehandler_configuration_2b.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration.outputFormat,
+                                                    directshow_modulehandler_configuration_4a.outputFormat);
       Stream_MediaFramework_DirectShow_Tools::setFormat (MEDIASUBTYPE_RGB24,
-                                                         directshow_modulehandler_configuration_4.outputFormat);
-      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_4.outputFormat,
-                                                    directshow_modulehandler_configuration_5.outputFormat);
+                                                         directshow_modulehandler_configuration_4a.outputFormat);
+      Stream_MediaFramework_DirectShow_Tools::copy (directshow_modulehandler_configuration_4a.outputFormat,
+                                                    directshow_modulehandler_configuration_4b.outputFormat);
 
       break;
     }
