@@ -64,6 +64,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       UserDataType>::Stream_Module_Delay_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , availableTokens_ (0)
+ , blockSize_ (0)
  , condition_ (inherited::lock_)
  , isFirstDispatchingThread_ (true)
  , queue_ (0,     // max # slots --> unlimited
@@ -77,6 +78,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
  , task_ (ACE_INVALID_HANDLE)
  , task_2_ (ACE_INVALID_HANDLE)
 #endif // ACE_WIN32 || ACE_WIN64
+ , adaptiveState_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::Stream_Module_Delay_T"));
 
@@ -275,6 +277,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
       average_bytes_per_second_i = waveformatex_p->nAvgBytesPerSec;
+      blockSize_ = waveformatex_p->nBlockAlign;
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -284,6 +287,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         media_type_s.rate                                *
         (snd_pcm_format_width (media_type_s.format) / 8) *
         media_type_s.channels;
+      blockSize_ = (snd_pcm_format_width (media_type_s.format) / 8) *
+                   media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
       availableTokens_ =
         static_cast<ACE_UINT64> (average_bytes_per_second_i * (static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0f));
@@ -295,6 +300,20 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
+
+      if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor)
+      {
+        adaptiveState_.currentFactor = inherited::configuration_->delayConfiguration->tokenFactor;
+        adaptiveState_.underrunCount = 0;
+        adaptiveState_.successCount = 0;
+        adaptiveState_.lastAdjustmentTickId = 0;
+        ACE_DEBUG ((LM_DEBUG,
+                    ACE_TEXT ("%s: adaptive token factor enabled (initial: %.2f, range: [%.2f, %.2f])\n"),
+                    inherited::mod_->name (),
+                    adaptiveState_.currentFactor,
+                    inherited::configuration_->delayConfiguration->minTokenFactor,
+                    inherited::configuration_->delayConfiguration->maxTokenFactor));
+      } // end IF
 
 continue_:
       switch (inherited::configuration_->delayConfiguration->mode)
@@ -548,8 +567,68 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   int result;
+  static ACE_UINT64 tick_id_s = 0;
+  ++tick_id_s;
 
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+
+    float new_factor = adaptiveState_.currentFactor;
+    bool adjust_b = false;
+
+    if (!inherited::configuration_->delayConfiguration->adaptiveTokenFactor ||
+        ((tick_id_s - adaptiveState_.lastAdjustmentTickId) < 10)) // adjust every 10 ticks
+      goto continue_;
+
+    if (adaptiveState_.underrunCount >= inherited::configuration_->delayConfiguration->underrunThreshold)
+    {
+      // increase factor to supply more tokens
+      new_factor =
+        std::min (adaptiveState_.currentFactor * 1.05f, // increase by 5%
+                  inherited::configuration_->delayConfiguration->maxTokenFactor);
+      if (new_factor != adaptiveState_.currentFactor)
+      {
+        adjust_b = true;
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("%s: underruns detected (%u), increasing tokenFactor: %.2f -> %.2f\n"),
+        //            inherited::mod_->name (),
+        //            adaptiveState_.underrunCount,
+        //            adaptiveState_.currentFactor,
+        //            new_factor));
+      } // end IF
+      adaptiveState_.underrunCount = 0;
+    } // end IF
+    else if (adaptiveState_.successCount >= 5) // plenty of tokens available for 5 ticks
+    {
+      // decrease factor to tighten isochronicity
+      new_factor =
+        std::max (adaptiveState_.currentFactor * 0.98f, // decrease by 2%
+                  inherited::configuration_->delayConfiguration->minTokenFactor);
+      if (new_factor != adaptiveState_.currentFactor)
+      {
+        adjust_b = true;
+        //ACE_DEBUG ((LM_DEBUG,
+        //            ACE_TEXT ("%s: tokens available (%u ticks), decreasing tokenFactor: %.2f -> %.2f\n"),
+        //            inherited::mod_->name (),
+        //            adaptiveState_.successCount,
+        //            adaptiveState_.currentFactor,
+        //            new_factor));
+      }
+      adaptiveState_.successCount = 0;
+    } // end ELSE IF
+
+    if (adjust_b)
+    {
+      adaptiveState_.currentFactor = new_factor;
+      adaptiveState_.lastAdjustmentTickId = tick_id_s;
+          
+      // recompute average tokens per interval with new factor
+      ACE_UINT64 base_tokens =
+        (inherited::configuration_->delayConfiguration->averageTokensPerInterval / (adaptiveState_.currentFactor > 0.001f ? adaptiveState_.currentFactor : 1.0f)); // avoid div-by-zero
+      inherited::configuration_->delayConfiguration->averageTokensPerInterval =
+        static_cast<ACE_UINT64> (base_tokens * new_factor);
+    } // end IF
+
+continue_:
     availableTokens_ =
       (inherited::configuration_->delayConfiguration->catchUp ? availableTokens_ + inherited::configuration_->delayConfiguration->averageTokensPerInterval
                                                               : inherited::configuration_->delayConfiguration->averageTokensPerInterval);
@@ -776,7 +855,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: worker thread %t failed to ACE_Message_Queue_T::dequeue_head(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
-        return -1;
+        break;
       } // end IF
       result = 0; // OK, queue has been deactivate()d
       break;
@@ -825,9 +904,7 @@ done:
     resetTimeoutHandlerId_ = -1;
   } // end IF
 
-  result = 0;
 done_2:
-
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("%s: (%s): worker thread (id: %t, group: %d) leaving\n"),
               inherited::mod_->name (),
@@ -937,6 +1014,15 @@ continue_:
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
     while (!availableTokens_)
     {
+      if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor)
+      {
+        ++adaptiveState_.underrunCount;
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("%s: token underrun (count: %u), waiting for reset...\n"),
+        //            inherited::mod_->name (),
+        //            adaptiveState_.underrunCount));
+      } // end IF
+
       result = condition_.wait (NULL);
       if (unlikely (result == -1))
       {
@@ -956,6 +1042,11 @@ continue_:
         total_length_i = messageBlock_in->total_length ();
         tokens_to_dispatch_i = std::min (total_length_i, availableTokens_);
         availableTokens_ -= tokens_to_dispatch_i;
+
+        if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor &&
+            availableTokens_ > (inherited::configuration_->delayConfiguration->averageTokensPerInterval / 2))
+          ++adaptiveState_.successCount;
+
         break;
       }
       case STREAM_MISCELLANEOUS_DELAY_MODE_MESSAGES:
@@ -983,6 +1074,8 @@ continue_:
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
     {
       ACE_Message_Block* message_block_2 = messageBlock_in;
+      if (blockSize_ > 0)
+        tokens_to_dispatch_i = (tokens_to_dispatch_i / blockSize_) * blockSize_; // align to block size
       if (tokens_to_dispatch_i < total_length_i)
       {
         message_block_2 = Stream_Tools::get (tokens_to_dispatch_i,

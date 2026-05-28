@@ -46,6 +46,11 @@
 // *NOTE*: adjust the average bps by this factor to allow smooth audio playback
 #define STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F          1.0f
 
+#define STREAM_MISC_DEFAULT_DELAY_ADAPTIVE_TOKEN_FACTOR             false
+#define STREAM_MISC_DEFAULT_DELAY_MIN_TOKEN_MULTIPLIER_F            0.5f
+#define STREAM_MISC_DEFAULT_DELAY_MAX_TOKEN_MULTIPLIER_F            3.0f
+#define STREAM_MISC_DEFAULT_DELAY_UNDERRUN_THRESHOLD                3
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 #define STREAM_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)

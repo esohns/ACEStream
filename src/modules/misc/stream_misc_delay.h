@@ -108,6 +108,9 @@ class Stream_Module_Delay_T
   void dispatch (ACE_Message_Block*); // next message
 
   ACE_UINT64                          availableTokens_;
+  // *NOTE*: transmit a multiple of this number of bytes per interval (if 'mode' is set to
+  //         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES or STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES)
+  ACE_UINT32                          blockSize_;
   ACE_SYNCH_CONDITION                 condition_;
   bool                                isFirstDispatchingThread_;
   typename inherited::MESSAGE_QUEUE_T queue_; // inbound-
@@ -120,6 +123,13 @@ class Stream_Module_Delay_T
   HANDLE                              task_; // inbound dispatch task
   HANDLE                              task_2_; // outbound dispatch task
 #endif // ACE_WIN32 || ACE_WIN64
+  struct
+  {
+    float currentFactor;             // current multiplier
+    ACE_UINT32 underrunCount;        // consecutive underruns
+    ACE_UINT32 successCount;         // consecutive token-satisfactions
+    ACE_UINT64 lastAdjustmentTickId; // prevent too-frequent adjustments
+  }                                   adaptiveState_;
 };
 
 //////////////////////////////////////////

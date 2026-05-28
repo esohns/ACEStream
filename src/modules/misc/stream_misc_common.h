@@ -36,6 +36,8 @@
 #include "stream_session_data.h"
 #include "stream_session_message_base.h"
 
+#include "stream_misc_defines.h"
+
 // forward declarations
 class ACE_Message_Queue_Base;
 
@@ -59,6 +61,10 @@ struct Stream_Miscellaneous_DelayConfiguration
    , isMultimediaTask (false)
    , mode (STREAM_MISCELLANEOUS_DELAY_MODE_INVALID)
    , tokenFactor (1.0f)
+   , adaptiveTokenFactor (STREAM_MISC_DEFAULT_DELAY_ADAPTIVE_TOKEN_FACTOR)
+   , minTokenFactor (STREAM_MISC_DEFAULT_DELAY_MIN_TOKEN_MULTIPLIER_F)
+   , maxTokenFactor (STREAM_MISC_DEFAULT_DELAY_MAX_TOKEN_MULTIPLIER_F)
+   , underrunThreshold (STREAM_MISC_DEFAULT_DELAY_UNDERRUN_THRESHOLD)
   {}
 
   ACE_UINT64                              averageTokensPerInterval;
@@ -71,6 +77,12 @@ struct Stream_Miscellaneous_DelayConfiguration
   enum Stream_Miscellaneous_DelayModeType mode;
   // *NOTE*: currently used only for audio streams when 'mode' is invalid (== -1)
   float                                   tokenFactor;
+  // adaptive token factor adjustment strategy
+  bool                                    adaptiveTokenFactor;
+  float                                   minTokenFactor;
+  float                                   maxTokenFactor;
+  // *NEW*: threshold (in ticks) to trigger increase when underruns are detected
+  ACE_UINT32                              underrunThreshold;
 };
 
 //////////////////////////////////////////

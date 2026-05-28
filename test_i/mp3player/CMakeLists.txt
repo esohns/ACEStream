@@ -145,7 +145,7 @@ install (TARGETS ${EXECUTABLE}
 
 if (UNIX)
  create_target_launcher (${EXECUTABLE}
-                         ARGS "-f /run/media/eriksohns/ARCHIVE/test.mp3 -l -u 1"
+                         ARGS "-f /run/media/eriksohns/ARCHIVE/test.mp3 -l -u 1 -x 0"
 #                         FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${PROJECT_SOURCE_DIR}/modules/ACE/lib
                                               ${PROJECT_SOURCE_DIR}/../Common/${BUILD_PATH_SUFFIX}/src/${CMAKE_BUILD_TYPE}
@@ -180,7 +180,7 @@ elseif (WIN32)
                            ${ACE_PATH})
  create_target_launcher (${EXECUTABLE}
                          COMMAND ${COMMAND}
-                         ARGS "-f F:\\\\test.mp3 -l -u 1"
+                         ARGS "-f F:\\\\test.mp3 -l -u 1 -x 0"
 #                        FORWARD_ARGS
                          RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                          WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_i/${EXECUTABLE}

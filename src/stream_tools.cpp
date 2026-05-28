@@ -65,7 +65,7 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
   ACE_UINT64 total_bytes_i = messageBlock_in->total_length ();
-  if (bytes_in > total_bytes_i)
+  if (!bytes_in || bytes_in > total_bytes_i)
     return NULL;
   else if (bytes_in == total_bytes_i)
     return messageBlock_in;
@@ -85,7 +85,7 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
   // skipped_bytes_i >= bytes_in
 
   if (skipped_bytes_i == bytes_in)
-  {
+  { ACE_ASSERT (message_block_2);
     message_block_2->cont (NULL);
     messageBlock_out = message_block_p;
     return messageBlock_in;
