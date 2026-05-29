@@ -64,13 +64,24 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
  
   // sanity check(s)
   ACE_ASSERT (messageBlock_in);
-  ACE_UINT64 total_bytes_i = messageBlock_in->total_length ();
-  if (!bytes_in || bytes_in > total_bytes_i)
+  size_t total_bytes_i = messageBlock_in->total_length ();
+  if (unlikely (!bytes_in))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("invalid argument (requested: 0/%B byte(s)), aborting\n"),
+                total_bytes_i));
     return NULL;
-  else if (bytes_in == total_bytes_i)
+  } // end IF
+  else if (unlikely (bytes_in >= total_bytes_i))
+  {
+    if (unlikely (bytes_in > total_bytes_i))
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("invalid argument (requested: %Q/%B byte(s)), continuing\n"),
+                  bytes_in, total_bytes_i));
     return messageBlock_in;
+  } // end ELSE IF
 
-  // bytes_in < total_bytes_i
+  // --> bytes_in < total_bytes_i
 
   ACE_UINT64 skipped_bytes_i = 0, bytes_to_skip_i = 0;
   ACE_Message_Block* message_block_p = messageBlock_in, *message_block_2 = NULL;
@@ -82,7 +93,7 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
     message_block_p = message_block_p->cont ();
   } // end WHILE
 
-  // skipped_bytes_i >= bytes_in
+  // --> skipped_bytes_i >= bytes_in
 
   if (skipped_bytes_i == bytes_in)
   { ACE_ASSERT (message_block_2);
@@ -91,7 +102,7 @@ Stream_Tools::get (ACE_UINT64 bytes_in,
     return messageBlock_in;
   } // end IF
 
-  // skipped_bytes_i > bytes_in
+  // --> skipped_bytes_i > bytes_in
 
   bytes_to_skip_i = message_block_2->length () - (skipped_bytes_i - bytes_in);
   messageBlock_out = message_block_2->duplicate ();

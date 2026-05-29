@@ -1074,8 +1074,8 @@ continue_:
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES:
     {
       ACE_Message_Block* message_block_2 = messageBlock_in;
-      if (blockSize_ > 0)
-        tokens_to_dispatch_i = (tokens_to_dispatch_i / blockSize_) * blockSize_; // align to block size
+      if (blockSize_ > 0)  // align to block size ?
+        tokens_to_dispatch_i = ((tokens_to_dispatch_i < blockSize_ ? blockSize_ : tokens_to_dispatch_i) / blockSize_) * blockSize_;
       if (tokens_to_dispatch_i < total_length_i)
       {
         message_block_2 = Stream_Tools::get (tokens_to_dispatch_i,
