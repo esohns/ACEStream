@@ -89,8 +89,6 @@ const char toplevel_widget_name_string_[] =
 int
 dirent_selector_cb (const dirent* dirEntry_in)
 {
-  // *IMPORTANT NOTE*: select all files
-
   std::string filename (ACE_TEXT_ALWAYS_CHAR (dirEntry_in->d_name));
 
   // step1: filter '.' and '..'
@@ -104,13 +102,13 @@ dirent_selector_cb (const dirent* dirEntry_in)
     Common_String_Tools::tolower (Common_File_Tools::fileExtension (filename, false));
 
   // step3: filter image types
-  if (!ACE_OS::strncmp (file_extension.c_str (),
-                        ACE_TEXT_ALWAYS_CHAR ("jpg"),
-                        ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("jpg"))))
-    return 1;
-  else if (!ACE_OS::strncmp (file_extension.c_str (),
-                             ACE_TEXT_ALWAYS_CHAR ("png"),
-                             ACE_OS::strlen (ACE_TEXT_ALWAYS_CHAR ("png"))))
+  static std::vector<std::string> image_extensions_a = {ACE_TEXT_ALWAYS_CHAR ("bmp"),
+                                                        ACE_TEXT_ALWAYS_CHAR ("gif"),
+                                                        ACE_TEXT_ALWAYS_CHAR ("jpg"),
+                                                        ACE_TEXT_ALWAYS_CHAR ("png")};
+  if (std::find (image_extensions_a.begin (),
+                 image_extensions_a.end (),
+                 file_extension) != image_extensions_a.end ())
     return 1;
 
   return 0;

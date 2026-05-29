@@ -460,7 +460,6 @@ next:
     inherited2::getMediaType (media_type_3,
                               STREAM_MEDIATYPE_VIDEO,
                               media_type_2);
-    Stream_MediaFramework_DirectShow_Tools::free (media_type_3);
 #else
 #if defined (FFMPEG_SUPPORT)
     inherited2::getMediaType (media_type_s,
@@ -495,6 +494,10 @@ continue_:
 
     inherited::stop (false, false, false);
   } while (true);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_3);
+#endif // ACE_WIN32 || ACE_WIN64
 
 continue_2:
   return result_2;
