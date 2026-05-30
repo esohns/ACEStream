@@ -4234,10 +4234,16 @@ idle_update_display_cb (gpointer userData_in)
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+  ACE_ASSERT (toggle_button_p);
+
   // trigger refresh of the 2D areas
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
+                                              (gtk_toggle_button_get_active (toggle_button_p) ? ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
+                                                                                              : ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME))));
   ACE_ASSERT (drawing_area_p);
   GtkDrawingArea* drawing_area_2 =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
@@ -5091,23 +5097,36 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 {
   STREAM_TRACE (ACE_TEXT ("::togglebutton_fullscreen_toggled_cb"));
 
+  // sanity check(s)
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
-
-  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
-
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
+  bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
+
+  GtkDrawingArea* drawing_area_p =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
+  ACE_ASSERT (drawing_area_p);
+  GtkDrawingArea* drawing_area_2 =
+    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)));
+  ACE_ASSERT (drawing_area_2);
+  GtkWindow* window_p =
+    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_WINDOW_FULLSCREEN)));
+  ACE_ASSERT (window_p);
+
   Stream_IStreamControlBase* stream_base_p = NULL;
   Stream_IStream_t* stream_p = NULL;
+  std::string module_name_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator;
+  Stream_AVSave_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_stream_iterator_2;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
     NULL;
   Stream_AVSave_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_stream_iterator;
@@ -5123,7 +5142,17 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       directshow_stream_iterator =
         directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_stream_iterator != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
-      //(*directshow_stream_iterator).second.second->fullScreen = is_active_b;
+      directshow_stream_iterator_2 =
+        directshow_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+      ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->videoStreamConfiguration.end ());
+
+      (*directshow_stream_iterator_2).second.second->window.gdk_window =
+        (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
+                     : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+      ACE_ASSERT ((*directshow_stream_iterator_2).second.second->window.gdk_window);
+
+      module_name_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5136,7 +5165,6 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->videoStreamConfiguration.end ());
-      //(*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:
@@ -5156,62 +5184,47 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
-//  (*iterator_2).second.second->fullScreen = is_active_b;
-#endif
-  ACE_ASSERT (stream_base_p);
-  if (!stream_base_p->isRunning ())
-    return;
+  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+  ACE_ASSERT (iterator_3 != cb_data_p->configuration->videoStreamConfiguration.end ());
 
-  ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
-  GtkWindow* window_p =
-    GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
-                                        ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_WINDOW_FULLSCREEN)));
-  ACE_ASSERT (window_p);
+  (*iterator_3).second.second->window.gdk_window =
+    (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
+                 : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
+  ACE_ASSERT ((*iterator_3).second.second->window.gdk_window);
+
+  module_name_string =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_base_p);
 
   if (is_active_b)
   {
     gtk_widget_show (GTK_WIDGET (window_p));
-//  gtk_window_fullscreen (window_p);
     gtk_window_maximize (window_p);
+    gtk_window_fullscreen (window_p);
   } // end IF
   else
   {
-//    gtk_window_minimize (window_p);
-//  gtk_window_unfullscreen (window_p);
+    gtk_window_unfullscreen (window_p);
+    gtk_window_unmaximize (window_p);
     gtk_widget_hide (GTK_WIDGET (window_p));
+
+    gtk_widget_queue_resize (GTK_WIDGET (drawing_area_p));
   } // end ELSE
+
+  if (!stream_base_p->isRunning ())
+    return;
 
   ACE_ASSERT (stream_p);
   const Stream_Module_t* module_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      module_p =
-        stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_DIRECTSHOW_DEFAULT_NAME_STRING));
-      break;
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      module_p =
-        stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING));
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unkown media framework (was: %d), returning\n"),
-                  ACE_TEXT (stream_p->name ().c_str ()),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-  module_p =
-      stream_p->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
-#endif
-  if (!module_p)
+  module_p = stream_p->find (module_name_string);
+  if (unlikely (!module_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IStream::find(\"Display\"), returning\n"),
-                ACE_TEXT (stream_p->name ().c_str ())));
+                ACE_TEXT ("%s: failed to Stream_IStream::find(%s), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name_string.c_str ())));
     return;
   } // end IF
   Common_UI_IFullscreen* ifullscreen_p =
@@ -7634,16 +7647,23 @@ drawingarea_video_resize_end (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_video_resize_end"));
 
+  // sanity check(s)
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
-  // sanity check(s)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
+
+  GtkToggleButton* toggle_button_p =
+    GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TOGGLEBUTTON_FULLSCREEN_NAME)));
+  ACE_ASSERT (toggle_button_p);
+  bool is_active_b = gtk_toggle_button_get_active (toggle_button_p);
   GtkDrawingArea* drawing_area_p =
     GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME)));
+                                              (is_active_b ? ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_FULLSCREEN_NAME)
+                                                           : ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_DRAWINGAREA_VIDEO_NAME))));
   ACE_ASSERT (drawing_area_p);
 
   GtkAllocation allocation_s;
@@ -7754,43 +7774,47 @@ drawingarea_video_resize_end (gpointer userData_in)
   //         - enqueue a 'resize' session message
 
   // step1:
-  module_p = stream_p->find (module_name);
-  if (!module_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
-                ACE_TEXT (stream_p->name ().c_str ()),
-                ACE_TEXT (module_name.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  Stream_Visualization_IResize* iresize_p =
-    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-  if (!iresize_p)
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
-                ACE_TEXT (stream_p->name ().c_str ()),
-                ACE_TEXT (module_name.c_str ()),
-                const_cast<Stream_Module_t*> (module_p)->writer ()));
-    return G_SOURCE_REMOVE;
-  } // end IF
-  try {
-    iresize_p->resizing ();
-  } catch (...) {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
-    return G_SOURCE_REMOVE;
-  }
+  //module_p = stream_p->find (module_name);
+  //if (!module_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
+  //              ACE_TEXT (stream_p->name ().c_str ()),
+  //              ACE_TEXT (module_name.c_str ())));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+  //Stream_Visualization_IResize* iresize_p =
+  //  dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  //if (!iresize_p)
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
+  //              ACE_TEXT (stream_p->name ().c_str ()),
+  //              ACE_TEXT (module_name.c_str ()),
+  //              const_cast<Stream_Module_t*> (module_p)->writer ()));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
+  //try {
+  //  iresize_p->resizing ();
+  //} catch (...) {
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
+  //  return G_SOURCE_REMOVE;
+  //}
 
   // step2
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      directshow_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+      directshow_cb_data_p->videoStream->notify (STREAM_SESSION_MESSAGE_RESIZE,
+                                                 false, // recurse upstream ?
+                                                 true); // expedite ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      mediafoundation_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+      mediafoundation_cb_data_p->videoStream->notify (STREAM_SESSION_MESSAGE_RESIZE,
+                                                      false, // recurse upstream ?
+                                                      true); // expedite ?
       break;
     default:
     {
@@ -7802,12 +7826,10 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->videoStream->control (STREAM_CONTROL_RESIZE, false);
+  ui_cb_data_p->videoStream->notify (STREAM_SESSION_MESSAGE_RESIZE,
+                                     false, // recurse upstream ?
+                                     true); // expedite ?
 #endif // ACE_WIN32 || ACE_WIN64
-
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("video window resized to %dx%d\n"),
-              allocation_s.width, allocation_s.height));
 
   return G_SOURCE_REMOVE;
 } // drawingarea_video_resize_end
@@ -7822,6 +7844,98 @@ drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (allocation_in);
 
+  // sanity check(s)
+  struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
+    static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
+
+  Stream_IStream_t* stream_p = NULL;
+  const Stream_Module_t* module_p = NULL;
+  std::string module_name;
+  Stream_Visualization_IResize* iresize_p = NULL;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
+  struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
+    NULL;
+  switch (ui_cb_data_base_p->mediaFramework)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+    {
+      directshow_cb_data_p =
+        static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
+      if (!directshow_cb_data_p->videoStream->isRunning ())
+        goto continue_;
+      stream_p = directshow_cb_data_p->videoStream;
+      module_name =
+        Stream_Visualization_Tools::rendererToModuleName (directshow_cb_data_p->configuration->videoStreamConfiguration.configuration_->renderer);
+      break;
+    }
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+    {
+      mediafoundation_cb_data_p =
+        static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
+      if (!mediafoundation_cb_data_p->videoStream->isRunning ())
+        goto continue_;
+      stream_p = mediafoundation_cb_data_p->videoStream;
+      module_name =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_MEDIAFOUNDATION_DEFAULT_NAME_STRING);
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+                  ui_cb_data_base_p->mediaFramework));
+      return;
+    }
+  } // end SWITCH
+#else
+  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
+  if (!ui_cb_data_p->stream->isRunning ())
+    goto continue_;
+  stream_p = ui_cb_data_p->stream;
+  module_name =
+    ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
+#endif // ACE_WIN32 || ACE_WIN64
+  ACE_ASSERT (stream_p);
+
+  // *NOTE*: two things need doing:
+  //         - drop inbound frames until the 'resize' session message is through
+  //         - enqueue a 'resize' session message
+  //         The second item is done in a timeout callback to avoid multiple
+  //         messages during resizing
+
+  // step1:
+  module_p = stream_p->find (module_name);
+  if (!module_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_IStream::find(\"%s\"), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ())));
+    return;
+  } // end IF
+  iresize_p =
+    dynamic_cast<Stream_Visualization_IResize*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+  if (!iresize_p)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s:%s: failed to dynamic_cast<Stream_Visualization_IResize*>(%@), returning\n"),
+                ACE_TEXT (stream_p->name ().c_str ()),
+                ACE_TEXT (module_name.c_str ()),
+                const_cast<Stream_Module_t*> (module_p)->writer ()));
+    return;
+  } // end IF
+  try {
+    iresize_p->resizing ();
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), returning\n")));
+    return;
+  }
+
+continue_:
   static gint timer_id_2 = 0;
   if (timer_id_2 == 0)
   {

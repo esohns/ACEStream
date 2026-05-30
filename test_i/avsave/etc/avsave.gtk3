@@ -1278,24 +1278,31 @@
   </object>
   <object class="GtkWindow" id="window_fullscreen">
     <property name="visible">True</property>
-    <property name="app_paintable">True</property>
     <property name="can_focus">True</property>
     <property name="can_default">True</property>
     <property name="receives_default">True</property>
     <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
     <property name="no_show_all">True</property>
-    <property name="double_buffered">False</property>
     <property name="resizable">False</property>
     <property name="hide_titlebar_when_maximized">True</property>
-    <property name="accept_focus">False</property>
-    <property name="focus_on_map">False</property>
     <property name="decorated">False</property>
     <property name="deletable">False</property>
-    <signal name="draw" handler="window_fullscreen_draw_cb" swapped="no"/>
-    <signal name="key-press-event" handler="drawingarea_audio_key_press_event_cb" swapped="no"/>
-    <signal name="size-allocate" handler="window_fullscreen_size_allocate_cb" swapped="no"/>
     <child>
-      <placeholder/>
+        <object class="GtkDrawingArea" id="drawingarea_fullscreen">
+            <property name="visible">True</property>
+            <property name="app_paintable">True</property>
+            <property name="can_focus">True</property>
+            <property name="has_focus">True</property>
+            <property name="is_focus">True</property>
+            <property name="can_default">True</property>
+            <property name="has_default">True</property>
+            <property name="receives_default">True</property>
+            <property name="events">GDK_EXPOSURE_MASK | GDK_KEY_PRESS_MASK | GDK_KEY_RELEASE_MASK | GDK_STRUCTURE_MASK</property>
+            <property name="double_buffered">False</property>
+            <signal name="draw" handler="drawingarea_video_draw_cb" swapped="no"/>
+            <signal name="key-press-event" handler="drawingarea_audio_key_press_event_cb" swapped="no"/>
+            <signal name="size-allocate" handler="drawingarea_video_size_allocate_cb" swapped="no"/>
+        </object>
     </child>
   </object>
 </interface>

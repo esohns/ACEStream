@@ -3577,7 +3577,7 @@ idle_update_display_cb (gpointer userData_in)
 
   // sanity check(s)
   struct Stream_CamSave_UI_CBData* ui_cb_data_base_p =
-      static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
+    static_cast<struct Stream_CamSave_UI_CBData*> (userData_in);
   ACE_ASSERT (userData_in);
   Common_UI_GTK_BuildersIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
@@ -4525,7 +4525,6 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
         directshow_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
       ACE_ASSERT (directshow_stream_iterator_2 != directshow_cb_data_p->configuration->streamConfiguration.end ());
 
-      //(*directshow_stream_iterator_2).second.second->fullScreen = is_active_b;
       (*directshow_stream_iterator_2).second.second->window.gdk_window =
         (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                      : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
@@ -4542,7 +4541,6 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
       mediafoundation_stream_iterator =
         mediafoundation_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_stream_iterator != mediafoundation_cb_data_p->configuration->streamConfiguration.end ());
-      //(*mediafoundation_stream_iterator).second.second->fullScreen = is_active_b;
       break;
     }
     default:
@@ -6715,13 +6713,13 @@ drawing_area_resize_end (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       directshow_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                            false,  // recurse upstream ?
-                                            false); // expedite ?
+                                            false, // recurse upstream ?
+                                            true); // expedite ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       mediafoundation_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                                 false,  // recurse upstream ?
-                                                 false); // expedite ?
+                                                 false, // recurse upstream ?
+                                                 true); // expedite ?
       break;
     default:
     {
@@ -6734,8 +6732,8 @@ drawing_area_resize_end (gpointer userData_in)
   } // end SWITCH
 #else
   ui_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                false,  // recurse upstream ?
-                                false); // expedite ?
+                                false, // recurse upstream ?
+                                true); // expedite ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_REMOVE;

@@ -1242,6 +1242,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
                                            : NULL);
       directshow_video_stream_configuration.moduleBranch =
         ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME);
+      //directshow_video_stream_configuration.renderer = renderer_in;
 
       directshow_video_stream_configuration.allocatorConfiguration =
         &allocator_configuration;

@@ -659,7 +659,11 @@ struct Stream_AVSave_DirectShow_StreamConfiguration
    , capturer (STREAM_DEVICE_CAPTURER_WASAPI)
    , format ()
    , renderer (STREAM_VISUALIZATION_VIDEORENDERER_DIRECTDRAW_3D)
-  {}
+  {
+#if defined (GTK_USE)
+    renderer = STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO;
+#endif // GTK_USE
+  }
 
   enum Stream_Device_Capturer                              capturer;
   struct Stream_MediaFramework_DirectShow_AudioVideoFormat format;
