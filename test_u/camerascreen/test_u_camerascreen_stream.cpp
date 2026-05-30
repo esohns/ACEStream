@@ -601,7 +601,7 @@ Stream_CameraScreen_DirectShow_Stream::resize (const Common_Image_Resolution_t& 
 
   inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
                      false,
-                     false);
+                     true);
 }
 
 //////////////////////////////////////////

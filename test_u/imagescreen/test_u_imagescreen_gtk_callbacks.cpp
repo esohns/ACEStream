@@ -939,11 +939,12 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   stream_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
-  //(*stream_iterator).second.second->fullScreen = is_active_b;
 
-  GdkWindow* window_p =
-    gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
-                                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME))));
+  GtkWidget* widget_p =
+    GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
+                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
+  ACE_ASSERT (widget_p);
+  GdkWindow* window_p = gtk_widget_get_window (widget_p);
   ACE_ASSERT (window_p);
   GdkWindow* window_2 =
     gtk_widget_get_window (GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
@@ -953,6 +954,15 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_WINDOW (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_WINDOW_FULLSCREEN)));
   ACE_ASSERT (window_fullscreen_p);
+
+  if (is_active_b)
+  {
+    ACE_ASSERT (window_2);
+    (*stream_iterator).second.second->window.gdk_window = window_2;
+  } // end IF
+  else
+    (*stream_iterator).second.second->window.gdk_window = window_p;
+  ACE_ASSERT ((*stream_iterator).second.second->window.gdk_window);
 
   if (is_active_b)
   {
@@ -969,15 +979,9 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
 #endif // GTK_CHECK_VERSION (3,0,0)
     gtk_window_unmaximize (window_fullscreen_p);
     gtk_widget_hide (GTK_WIDGET (window_fullscreen_p));
-  } // end ELSE
 
-  if (is_active_b)
-  { ACE_ASSERT (window_2);
-    (*stream_iterator).second.second->window.gdk_window = window_2;
-  } // end IF
-  else
-    (*stream_iterator).second.second->window.gdk_window = window_p;
-  ACE_ASSERT ((*stream_iterator).second.second->window.gdk_window);
+    gtk_widget_queue_resize (widget_p);
+  } // end ELSE
 
   ACE_ASSERT (stream_base_p);
   if (!stream_base_p->isRunning ())

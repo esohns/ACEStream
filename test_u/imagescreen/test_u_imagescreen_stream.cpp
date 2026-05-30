@@ -249,3 +249,24 @@ error:
 
   return false;
 }
+
+void
+Stream_ImageScreen_Stream::resize (const Common_Image_Resolution_t& resolution_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Stream::resize"));
+
+  inherited::CONFIGURATION_T::ITERATOR_T iterator =
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  ACE_ASSERT (iterator != inherited::configuration_->end ());
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_in,
+                                                         (*iterator).second.second->outputFormat);
+#else
+  (*iterator).second.second->outputFormat.resolution = resolution_in;
+#endif // ACE_WIN32 || ACE_WIN64
+
+  inherited::notify (STREAM_SESSION_MESSAGE_RESIZE,
+                     false,
+                     true);
+}

@@ -42,6 +42,8 @@
 #include "stream_base.h"
 #include "stream_common.h"
 
+#include "stream_vis_iresize.h"
+
 #include "test_u_camerascreen_common.h"
 #include "test_u_camerascreen_common_modules.h"
 #include "test_u_camerascreen_message.h"
