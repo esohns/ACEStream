@@ -455,6 +455,7 @@ do_work (int argc_in,
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.handleResize = false;
+  //modulehandler_configuration_2.waitForDataOnEnd = true;
 
   Stream_ImageScreen_EventHandler_t ui_event_handler (
                                                       &ui_cb_data
@@ -548,7 +549,7 @@ do_work (int argc_in,
 
   // initialize timer manager
   Common_Timer_Manager_t* timer_manager_p =
-      COMMON_TIMERMANAGER_SINGLETON::instance ();
+    COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   timer_manager_p->initialize (configuration.timerConfiguration);
   timer_manager_p->start (NULL);

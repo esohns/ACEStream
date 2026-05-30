@@ -129,6 +129,73 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
+int
+Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 StreamStateType,
+                                 StatisticContainerType,
+                                 SessionManagerType,
+                                 TimerManagerType,
+                                 UserDataType,
+                                 MediaType>::put (ACE_Message_Block* messageBlock_in,
+                                                  ACE_Time_Value* timeout_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_File_ImageMagick_Source_T::put"));
+
+  int result;
+
+  // use the queue, if necessary
+  switch (messageBlock_in->msg_type ())
+  {
+    case STREAM_MESSAGE_SESSION:
+    {
+      SessionMessageType* message_p =
+        static_cast<SessionMessageType*> (messageBlock_in);
+      switch (message_p->type ())
+      {
+        case STREAM_SESSION_MESSAGE_RESIZE:
+        {
+          result = inherited::put_next (messageBlock_in, timeout_in);
+          if (unlikely (result == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            messageBlock_in->release ();
+            return -1;
+          } // end IF
+
+          return 0;
+        }
+        default:
+          break;
+      } // end SWITCH
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+
+  return inherited::put (messageBlock_in, timeout_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename StreamStateType,
+          typename StatisticContainerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
+          typename UserDataType,
+          typename MediaType>
 bool
 Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -397,10 +464,8 @@ next:
                   inherited::mod_->name (),
                   ACE_TEXT (file_path_string.c_str ()),
                   ACE_TEXT (Common_Image_Tools::errorToString (context_).c_str ())));
-
       finished = true;
       inherited::stop (false, false, false);
-
       continue;
     } // end IF
 
@@ -468,6 +533,7 @@ next:
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
     message_data_s.format = media_type_2;
+    ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
     message_data_s.relinquishMemory = data_p;
     message_p->initialize (message_data_s,
                            message_p->sessionId (),

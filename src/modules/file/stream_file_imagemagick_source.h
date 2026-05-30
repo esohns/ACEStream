@@ -89,6 +89,10 @@ class Stream_File_ImageMagick_Source_T
   Stream_File_ImageMagick_Source_T (typename inherited::ISTREAM_T*); // stream handle
   virtual ~Stream_File_ImageMagick_Source_T ();
 
+  // override some task-based members
+  virtual int put (ACE_Message_Block*, // data chunk
+                   ACE_Time_Value*);   // timeout value
+
 #if defined (__GNUG__) || defined (_MSC_VER)
   // *PORTABILITY*: for some reason, this base class member is not exposed
   //                (MSVC/gcc)

@@ -377,6 +377,7 @@ error:
       int flags_i = 0;
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       inherited::getMediaType (media_type_r,
+                               STREAM_MEDIATYPE_VIDEO,
                                media_type_2);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -502,7 +503,9 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   const typename DataMessageType::DATA_T& message_data_r =
     message_inout->getR ();
   typename DataMessageType::DATA_T message_data_2;
-  message_data_2.format = message_data_r.format;
+  inherited::getMediaType (message_data_r.format,
+                           STREAM_MEDIATYPE_VIDEO,
+                           message_data_2.format);
   DataMessageType* message_p = NULL;
   std::string input_format_string;
   Common_Image_Resolution_t resolution_s, resolution_2;
@@ -557,7 +560,6 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
               inherited::mod_->name (),
               resolution_s.cx, resolution_s.cy,
               resolution_2.cx, resolution_2.cy));
-              //targetResolution_.cx, targetResolution_.cy));
   input_format_string = ACE_TEXT_ALWAYS_CHAR ("RGBA"); // *TODO*
   ACE_ASSERT (Stream_MediaFramework_Tools::isRGB32 (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW));
   Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
@@ -777,8 +779,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      ACE_ASSERT (!session_data_r.formats.empty ());
+    { ACE_ASSERT (!session_data_r.formats.empty ());
       MediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (MediaType));
       inherited::getMediaType (session_data_r.formats.back (),
@@ -786,15 +787,13 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
                                media_type_s);
       Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      //targetResolution_ =
       resolution_s =
         Stream_MediaFramework_DirectShow_Tools::toResolution (inherited::configuration_->outputFormat);
 #else
-      //targetResolution_ =
       resolution_s =
         inherited::getResolution (inherited::configuration_->outputFormat);
 #endif // ACE_WIN32 || ACE_WIN64
-      inherited::setResolution (resolution_s,// targetResolution_,
+      inherited::setResolution (resolution_s,
                                 media_type_s);
       session_data_r.formats.push_back (media_type_s);
 

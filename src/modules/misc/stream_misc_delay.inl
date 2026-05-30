@@ -466,42 +466,29 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
-      if (inherited::configuration_->waitForDataOnEnd)
-      {
-        queue_.waitForIdleState ();
-        queue_2_.waitForIdleState ();
-        // wait for the next (i.e. at least one-) dispatch cycle to complete
-        int result;
-        { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
-          result = condition_.wait (NULL);
-          if (unlikely (result == -1))
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n"),
-                        inherited::mod_->name ()));
-        } // end lock scope
-      } // end IF
-
-      // *NOTE*: this is done in svc() to allow ordered shutdown
-      //if (likely (resetTimeoutHandlerId_ != -1))
+      //if (inherited::configuration_->waitForDataOnEnd)
       //{
-      //  const void* act_p = NULL;
-      //  int result = itimer_p->cancel_timer (resetTimeoutHandlerId_,
-      //                                       &act_p);
-      //  if (unlikely (result <= 0))
-      //    ACE_DEBUG ((LM_ERROR,
-      //                ACE_TEXT ("%s: failed to Common_ITimerCBBase::cancel_timer(%d): \"%m\", continuing\n"),
-      //                inherited::mod_->name (),
-      //                resetTimeoutHandlerId_));
-      //  else
-      //    ACE_DEBUG ((LM_DEBUG,
-      //                ACE_TEXT ("%s: cancelled interval timer (id was: %d)\n"),
-      //                inherited::mod_->name (),
-      //                resetTimeoutHandlerId_));
-      //  resetTimeoutHandlerId_ = -1;
+      //  queue_.waitForIdleState ();
+      //  queue_2_.waitForIdleState ();
+      //  // wait for the next (i.e. at least one-) dispatch cycle to complete
+      //  int result;
+      //  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+      //    result = condition_.wait (NULL);
+      //    if (unlikely (result == -1))
+      //      ACE_DEBUG ((LM_ERROR,
+      //                  ACE_TEXT ("%s: failed to ACE_SYNCH_CONDITION::wait(): \"%m\", continuing\n"),
+      //                  inherited::mod_->name ()));
+      //  } // end lock scope
       //} // end IF
 
-      stop (true,             // wait ?
-            high_priority_b); // high priority ?
+      // *NOTE*: the inbound-processing thread will stop() the outbound-processing
+      //         thread (see below)
+      // *TODO*: waiting here is problematic, because this blocks the source
+      //         module; OTOH failing to wait here will rip state out from under
+      //         any downstream module(s)...
+      stop (true,                                                                              // inbound- ?
+            true,                                                                              // wait ?
+            high_priority_b ? high_priority_b : !inherited::configuration_->waitForDataOnEnd); // high priority ?
 
       break;
     }
@@ -657,12 +644,17 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       DataMessageType,
                       SessionMessageType,
                       MediaType,
-                      UserDataType>::stop (bool waitForCompletion_in,
+                      UserDataType>::stop (bool stopInbound_in,
+                                           bool waitForCompletion_in,
                                            bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Delay_T::stop"));
 
   ACE_Message_Block* message_block_p = NULL;
+  int result;
+
+  if (unlikely (!stopInbound_in))
+    goto outbound;
 
   // enqueue a control message
   ACE_NEW_NORETURN (message_block_p,
@@ -685,8 +677,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  int result = (highPriority_in ? queue_.enqueue_head (message_block_p, NULL) :
-                                  queue_.enqueue_tail (message_block_p, NULL));
+  result = (highPriority_in ? queue_.enqueue_head (message_block_p, NULL) :
+                              queue_.enqueue_tail (message_block_p, NULL));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -697,6 +689,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   } // end IF  
   message_block_p = NULL;
 
+  goto continue_;
+
+outbound:
   // enqueue a control message
   ACE_NEW_NORETURN (message_block_p,
                     ACE_Message_Block (0,                                  // size
@@ -728,8 +723,8 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                 (highPriority_in ? ACE_TEXT ("enqueue_head") : ACE_TEXT ("enqueue_tail"))));
     message_block_p->release (); message_block_p = NULL;
   } // end IF  
-  message_block_p = NULL;
 
+continue_:
   if (waitForCompletion_in)
   {
     Common_ITask* itask_p = this;
@@ -880,6 +875,11 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   } // end IF
 done:
 #endif // ACE_WIN32 || ACE_WIN64
+
+  stop (false,                                         // inbound ?
+        false,                                         // wait ?
+        !inherited::configuration_->waitForDataOnEnd); // high priority ?
+  inherited::thr_mgr ()->join (inherited::threadIds_[0].id (), NULL);
 
   if (likely (resetTimeoutHandlerId_ != -1))
   {

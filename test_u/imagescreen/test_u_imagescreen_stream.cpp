@@ -74,14 +74,6 @@ Stream_ImageScreen_Stream::Stream_ImageScreen_Stream ()
 
 }
 
-Stream_ImageScreen_Stream::~Stream_ImageScreen_Stream ()
-{
-  STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_Stream::~Stream_ImageScreen_Stream"));
-
-  // *NOTE*: this implements an ordered shutdown on destruction...
-  inherited::shutdown ();
-}
-
 bool
 Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
                                  bool& delete_out)
@@ -93,16 +85,23 @@ Stream_ImageScreen_Stream::load (Stream_ILayout* layout_in,
 
 #if defined (IMAGEMAGICK_SUPPORT)
   layout_in->append (&imagemagick_source_, NULL, 0);
-  layout_in->append (&imagemagick_resize_, NULL, 0); // output is window size/fullscreen
 #else
   layout_in->append (&source_, NULL, 0);
 #if defined (FFMPEG_SUPPORT)
   layout_in->append (&ffmpeg_decode_, NULL, 0); // output is uncompressed RGBA
-  layout_in->append (&ffmpeg_resize_, NULL, 0); // output is window size/fullscreen
   layout_in->append (&ffmpeg_convert_, NULL, 0); // output is uncompressed BGRA
 #endif // FFMPEG_SUPPORT
 #endif // IMAGEMAGICK_SUPPORT
   layout_in->append (&delay_, NULL, 0);
+
+#if defined (IMAGEMAGICK_SUPPORT)
+  layout_in->append (&imagemagick_resize_, NULL, 0); // output is window size/fullscreen
+#else
+#if defined (FFMPEG_SUPPORT)
+  layout_in->append (&ffmpeg_resize_, NULL, 0); // output is window size/fullscreen
+#endif // FFMPEG_SUPPORT
+#endif // IMAGEMAGICK_SUPPORT
+
 #if defined (GTK_USE)
   layout_in->append (&displayGTK_, NULL, 0);
 #elif defined (ACE_WIN32) || defined (ACE_WIN64)

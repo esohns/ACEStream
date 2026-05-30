@@ -222,13 +222,13 @@ drawingarea_resize_end (gpointer userData_in)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
       ui_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                    false,  // recurse upstream ?
-                                    false); // expedite ?
+                                    false, // recurse upstream ?
+                                    true); // expedite ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       ui_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                    false,  // recurse upstream ?
-                                    false); // expedite ?
+                                    false, // recurse upstream ?
+                                    true); // expedite ?
       break;
     default:
     {
@@ -241,8 +241,8 @@ drawingarea_resize_end (gpointer userData_in)
   } // end SWITCH
 #else
   ui_cb_data_p->stream->notify (STREAM_SESSION_MESSAGE_RESIZE,
-                                false,  // recurse upstream ?
-                                false); // expedite ?
+                                false, // recurse upstream ?
+                                true); // expedite ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_REMOVE;
@@ -725,7 +725,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (iterator != ui_cb_data_p->UIState->builders.end ());
   ACE_ASSERT (ui_cb_data_p->configuration);
   Stream_ImageScreen_StreamConfiguration_t::ITERATOR_T stream_configuration_iterator =
-      ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   bool is_active_b = gtk_toggle_button_get_active (toggleButton_in);
@@ -749,9 +749,9 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
 //    ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
 
     // stop stream
-    ui_cb_data_p->stream->stop (false,  // wait ?
-                                false,  // recurse upstream ?
-                                false); // high priority ?
+    ui_cb_data_p->stream->stop (false, // wait ?
+                                false, // recurse upstream ?
+                                true); // high priority ?
 
     return;
   } // end IF
@@ -849,6 +849,7 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to initialize stream, returning\n")));
+    g_idle_add (idle_session_end_cb, userData_in);
     return;
   } // end IF
 
@@ -1137,10 +1138,45 @@ button_quit_clicked_cb (GtkWidget* widget_in,
                         gpointer userData_in)
 {
   ACE_UNUSED_ARG (widget_in);
-  ACE_UNUSED_ARG (userData_in);
+  // sanity check(s)
+  struct Stream_ImageScreen_UI_CBData* ui_cb_data_p =
+    static_cast<struct Stream_ImageScreen_UI_CBData*> (userData_in);
+  ACE_ASSERT (ui_cb_data_p);
+  ACE_ASSERT (ui_cb_data_p->stream);
 
-  COMMON_UI_GTK_MANAGER_SINGLETON::instance ()->stop (false,  // wait for completion ?
-                                                      false);
+  if (!ui_cb_data_p->stream->isRunning ())
+    ui_cb_data_p->stream->stop (true,
+                                false,
+                                true);
+
+  // wait for processing thread(s)
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, ui_cb_data_p->UIState->lock, FALSE);
+    if (!ui_cb_data_p->progressData.pendingActions.empty ())
+      return FALSE; // simply refuse to quit... :-)
+    // *NOTE*: cannot wait on condition here, because it's signalled in
+    //         idle_update_progress_cb(), which is never invoked while
+    //         this thread is blocked...
+      //ui_cb_data_base_p->UIState->condition.wait (NULL);
+  } // end lock scope
+
+  // step1: remove event sources
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->UIState->lock, FALSE);
+    for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_p->UIState->eventSourceIds.begin ();
+         iterator != ui_cb_data_p->UIState->eventSourceIds.end ();
+         iterator++)
+      if (!g_source_remove (*iterator))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+                    *iterator));
+    ui_cb_data_p->UIState->eventSourceIds.clear ();
+  } // end lock scope
+
+  // step3: invoke signal handler
+  int result = ACE_OS::raise (SIGINT);
+  if (result == -1)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to ACE_OS::raise(%S): \"%m\", continuing\n"),
+                SIGINT));
 
   return FALSE;
 } // button_quit_clicked_cb

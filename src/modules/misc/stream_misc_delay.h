@@ -98,7 +98,8 @@ class Stream_Module_Delay_T
   virtual void reset ();
 
   // enqueue MB_STOP --> stop worker thread(s)
-  virtual void stop (bool = true,   // wait for completion ?
+  virtual void stop (bool = true,   // stop inbound ? : outbound
+                     bool = true,   // wait for completion ?
                      bool = false); // high priority ? (i.e. do not wait for queued messages)
 
   // override (part of) ACE_Task_Base

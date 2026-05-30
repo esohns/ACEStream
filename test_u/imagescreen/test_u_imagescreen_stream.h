@@ -69,7 +69,7 @@ class Stream_ImageScreen_Stream
 
  public:
   Stream_ImageScreen_Stream ();
-  virtual ~Stream_ImageScreen_Stream ();
+  inline virtual ~Stream_ImageScreen_Stream () { inherited::shutdown (); }
 
   // implement (part of) Stream_IStreamControlBase
   virtual bool load (Stream_ILayout*, // return value: layout
