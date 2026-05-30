@@ -5184,14 +5184,14 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->videoStreamConfiguration.end ());
-  Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator_3 != cb_data_p->configuration->videoStreamConfiguration.end ());
+  // Stream_AVSave_ALSA_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+  //   cb_data_p->configuration->videoStreamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING));
+  // ACE_ASSERT (iterator_3 != cb_data_p->configuration->videoStreamConfiguration.end ());
 
-  (*iterator_3).second.second->window.gdk_window =
+  (*iterator_2).second.second->window.gdk_window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                  : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
-  ACE_ASSERT ((*iterator_3).second.second->window.gdk_window);
+  ACE_ASSERT ((*iterator_2).second.second->window.gdk_window);
 
   module_name_string =
     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
@@ -5203,6 +5203,11 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_widget_show (GTK_WIDGET (window_p));
     gtk_window_maximize (window_p);
     gtk_window_fullscreen (window_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    gtk_widget_queue_resize (GTK_WIDGET (drawing_area_2));
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
   {
@@ -7890,11 +7895,11 @@ drawingarea_video_size_allocate_cb (GtkWidget* widget_in,
     }
   } // end SWITCH
 #else
-  struct Stream_AVSave_V4L_UI_CBData* ui_cb_data_p =
-    static_cast<struct Stream_AVSave_V4L_UI_CBData*> (ui_cb_data_base_p);
-  if (!ui_cb_data_p->stream->isRunning ())
+	struct Stream_AVSave_ALSA_V4L_UI_CBData* ui_cb_data_p =
+		static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
+	if (!ui_cb_data_p->videoStream->isRunning ())
     goto continue_;
-  stream_p = ui_cb_data_p->stream;
+	stream_p = ui_cb_data_p->videoStream;
   module_name =
     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING);
 #endif // ACE_WIN32 || ACE_WIN64

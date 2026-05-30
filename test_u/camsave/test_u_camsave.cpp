@@ -1567,6 +1567,7 @@ error:
       V4L2_PIX_FMT_RGB32;
     allocator_configuration.defaultBufferSize =
       v4l_modulehandler_configuration.outputFormat.format.sizeimage;
+    v4l_modulehandler_configuration.handleResize = false;
     if (statisticReportingInterval_in)
     {
       v4l_modulehandler_configuration.statisticCollectionInterval.set (0,
@@ -1892,6 +1893,7 @@ error:
 #endif // LIBCAMERA_SUPPORT
 
   v4l_resize_modulehandler_configuration = v4l_modulehandler_configuration;
+  v4l_resize_modulehandler_configuration.handleResize = true;
   configuration_in.v4l_streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                    std::make_pair (&module_configuration,
                                                                                    &v4l_resize_modulehandler_configuration)));

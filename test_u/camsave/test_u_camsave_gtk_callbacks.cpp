@@ -1862,9 +1862,9 @@ set_capture_format (struct Stream_CamSave_UI_CBData* CBData_in)
   } // end SWITCH
 #else
   cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.format =
-      pixel_format_s;
+    pixel_format_s;
   cb_data_p->configuration->v4l_streamConfiguration.configuration_->format.frameRate =
-      framerate_s;
+    framerate_s;
 #endif // ACE_WIN32 || ACE_WIN64
 }
 
@@ -4560,7 +4560,6 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
     cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO)));
   ACE_ASSERT (iterator_2 != cb_data_p->configuration->v4l_streamConfiguration.end ());
-  //(*iterator_2).second.second->fullScreen = is_active_b;
   (*iterator_2).second.second->window.gdk_window =
     (is_active_b ? gtk_widget_get_window (GTK_WIDGET (drawing_area_2))
                  : gtk_widget_get_window (GTK_WIDGET (drawing_area_p)));
@@ -4578,6 +4577,11 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_widget_show (GTK_WIDGET (window_p));
     gtk_window_maximize (window_p);
     gtk_window_fullscreen (window_p);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+    gtk_widget_queue_resize (GTK_WIDGET (drawing_area_2));
+#endif // ACE_WIN32 || ACE_WIN64
   } // end IF
   else
   {
