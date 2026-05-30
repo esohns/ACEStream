@@ -4586,6 +4586,8 @@ togglebutton_fullscreen_toggled_cb (GtkToggleButton* toggleButton_in,
     gtk_window_unfullscreen (window_p);
     gtk_window_unmaximize (window_p);
     gtk_widget_hide (GTK_WIDGET (window_p));
+
+    gtk_widget_queue_resize (GTK_WIDGET (drawing_area_p));
   } // end ELSE
 
   if (!stream_base_p->isRunning ())
