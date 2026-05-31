@@ -2282,7 +2282,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     stream_p->stop (false, // wait for completion ?
                     false, // recurse upstream ?
                     true); // high priority ?
-                    //is_file_source_b); // high priority ?
 
     return;
   } // end IF
@@ -2466,7 +2465,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     return;
   } // end IF
   ACE_ASSERT (progress_data_p);
-  // progress_data_p->bytesPerFrame = bytes_per_frame_i;
   progress_data_p->statistic = Test_I_Statistic ();
 
   ACE_OS::memset (thread_name, 0, sizeof (thread_name));
@@ -2528,9 +2526,6 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     thread_data_p->eventSourceId = progress_data_p->eventSourceId;
     progress_data_p->pendingActions[progress_data_p->eventSourceId] =
       ACE_Thread_ID (thread_id, thread_handle);
-    //    ACE_DEBUG ((LM_DEBUG,
-    //                ACE_TEXT ("idle_update_progress_cb: %d\n"),
-    //                event_source_id));
     state_r.eventSourceIds.insert (progress_data_p->eventSourceId);
   } // end lock scope
 } // togglebutton_record_toggled_cb

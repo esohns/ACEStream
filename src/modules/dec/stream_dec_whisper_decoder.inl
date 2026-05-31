@@ -188,17 +188,20 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     aborted_ = false;
-    if (likely (buffer_))
+    if (unlikely (buffer_))
     {
       buffer_->release (); buffer_ = NULL;
     } // end IF
     bufferedMs_ = 0;
-    if (likely (context_))
+    if (unlikely (context_))
     {
       whisper_free (context_); context_ = NULL;
     } // end IF
     sampleSize_ = 0;
-    state_ = NULL;
+    if (unlikely (state_))
+    {
+      whisper_free_state (state_); state_ = NULL;
+    } // end IF
   } // end IF
 
   whisper_log_set (acestream_dec_whispercpp_on_log_cb, NULL);
@@ -291,7 +294,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::configuration_->messageAllocator);
 
-  if (unlikely (!buffer_))
+  if (!buffer_)
     buffer_ = message_inout;
   else
     Stream_Tools::append (buffer_,
@@ -444,6 +447,11 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_ABORT:
     {
       aborted_ = true;
+      if (buffer_)
+      {
+        buffer_->release (); buffer_ = NULL;
+      } // end IF
+      bufferedMs_ = 0;
       goto end;
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
@@ -539,7 +547,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      sampleSize_ = (snd_pcm_format_width (media_type_s.format) / 8);
+      sampleSize_ = snd_pcm_format_width (media_type_s.format) / 8;
 #endif // ACE_WIN32 || ACE_WIN64
 
       break;
@@ -553,11 +561,18 @@ error:
 
       break;
     }
-//    case STREAM_SESSION_MESSAGE_RESIZE:
-//      break;
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
+      if (likely (state_))
+      {
+        whisper_free_state (state_); state_ = NULL;
+      } // end IF
+      if (likely (context_))
+      {
+        whisper_free (context_); context_ = NULL;
+      } // end IF
+
       break;
     }
     default:

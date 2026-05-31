@@ -223,6 +223,9 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           if (likely (!isHighPriorityStop_))
             break;
 
+          control (STREAM_CONTROL_ABORT,
+                   false); // forward upstream ?
+
           // sanity check(s)
           ACE_ASSERT (inherited::msg_queue_);
 
@@ -239,12 +242,6 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           } // end lock scope
           isHighPriorityStop_ = false;
 
-          // *IMPORTANT NOTE*: it is either too early or too late to process
-          //                   this message by this (and (!) subsequent
-          //                   synchronous downstream-) task(s)
-          //                   --> do it manually
-          control (STREAM_CONTROL_ABORT,
-                   false); // forward upstream ?
           messageBlock_in->release ();
           return 0;
         }
