@@ -2190,7 +2190,9 @@ ACE_TMAIN (int argc_in,
   enum Stream_MediaFramework_Type media_framework_e =
     STREAM_LIB_DEFAULT_MEDIAFRAMEWORK;
 #endif // ACE_WIN32 || ACE_WIN64
-  std::string target_filename;
+  std::string target_filename = Common_File_Tools::getTempDirectory ();
+  target_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  target_filename += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   unsigned int statistic_reporting_interval =
     STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S;
   bool trace_information = false;

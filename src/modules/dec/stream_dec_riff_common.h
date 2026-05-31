@@ -24,7 +24,7 @@ struct RIFF_chunk_meta
   // , offset (0)
   //{}
 
-  bool operator== (const RIFF_chunk_meta& rhs_in) const
+  bool operator== (const struct RIFF_chunk_meta& rhs_in) const
   {
     return ((identifier == rhs_in.identifier) ||
             (riff_list_identifier == rhs_in.riff_list_identifier));

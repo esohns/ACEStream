@@ -137,7 +137,7 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   int result;
   struct Stream_Decoder_MPEG_TS_PacketHeader* packet_header_p;
   ACE_UINT16 packet_identifier;
-  unsigned int already_skipped_bytes;
+  unsigned int already_skipped_bytes = 0;
   ACE_Message_Block* message_block_p;
   ACE_Message_Block* message_block_2;
   DataMessageType* message_p;

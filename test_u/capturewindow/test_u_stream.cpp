@@ -974,7 +974,9 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
   ACE_ASSERT (session_data_p->formats.empty ());
   session_data_p->formats.push_back (configuration_in.configuration_->format);
   session_data_p->stream = this;
-  session_data_p->targetFileName =
+  session_data_p->targetFileName = Common_File_Tools::getTempDirectory ();
+  session_data_p->targetFileName += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  session_data_p->targetFileName +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_CAPTUREWINDOW_DEFAULT_FILENAME);
 
   // ---------------------------------------------------------------------------

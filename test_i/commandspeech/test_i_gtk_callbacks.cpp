@@ -629,7 +629,7 @@ error:
 //                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true, false).c_str ())));
 //        return false;
 //      } // end IF
-//#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0601) // _WIN32_WINNT_WIN7
+//#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0601) // _WIN32_WINNT_WIN7
 //      result_2 =
 //        attributes_p->SetGUID (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
 //                               MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
@@ -654,7 +654,7 @@ error:
 //      ACE_ASSERT (false);
 //      ACE_NOTSUP_RETURN (false);
 //      ACE_NOTREACHED (return false;)
-//#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0601)
+//#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0601)
 //      attributes_p->Release (); attributes_p = NULL;
       for (UINT32 index = 0; index < item_count; index++)
       {
@@ -751,9 +751,9 @@ error:
     if (snd_card_get_longname (card_i, &string_p) || !string_p)
       continue;
     result_2 =
-        snd_device_name_hint (card_i,
-                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
-                              &hints_p);
+      snd_device_name_hint (card_i,
+                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PCM_INTERFACE_NAME),
+                            &hints_p);
     if (result_2 < 0)
     {
       ACE_DEBUG ((LM_ERROR,

@@ -91,7 +91,9 @@ do_printUsage (const std::string& programName_in)
   std::cout.setf (std::ios::boolalpha);
 
   std::string path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -123,7 +125,7 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::string output_file = path;
+  std::string output_file = Common_File_Tools::getTempDirectory ();
   output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : (output) file name [")
@@ -193,7 +195,9 @@ do_processArguments (int argc_in,
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
   std::string path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -209,7 +213,7 @@ do_processArguments (int argc_in,
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB);
   outputDataBaseTable_out =
     ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_DB_TABLE);
-  outputFileName_out = path;
+  outputFileName_out = Common_File_Tools::getTempDirectory ();
   outputFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   hostName_out.clear ();
@@ -565,11 +569,9 @@ do_work (unsigned int bufferSize_in,
     return;
   } // end IF
   if (useReactor_in)
-    configuration.dispatchConfiguration.numberOfReactorThreads =
-      numberOfDispatchThreads_in;
+    configuration.dispatchConfiguration.numberOfReactorThreads = numberOfDispatchThreads_in;
   else
-    configuration.dispatchConfiguration.numberOfProactorThreads =
-      numberOfDispatchThreads_in;
+    configuration.dispatchConfiguration.numberOfProactorThreads = numberOfDispatchThreads_in;
 
   Stream_Module_t* module_p = NULL;
   Test_I_Module_DataBaseWriter_Module database_writer (stream_p,
@@ -869,10 +871,13 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
   Net_Common_Tools::initialize ();
 
   std::string configuration_path =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // step1a set defaults
   unsigned int buffer_size = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -891,7 +896,9 @@ ACE_TMAIN (int argc_in,
   std::string path = configuration_path;
   path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   path += ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  std::string output_file = ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
+  std::string output_file = Common_File_Tools::getTempDirectory ();
+  output_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  output_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   bool log_to_file = false;
   unsigned short port = HTTP_DEFAULT_SERVER_PORT;
   bool use_reactor =
@@ -930,7 +937,7 @@ ACE_TMAIN (int argc_in,
                             address,
                             use_ssl))
   {
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     Net_Common_Tools::finalize ();
     Common_Tools::finalize ();
@@ -971,7 +978,7 @@ ACE_TMAIN (int argc_in,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("invalid arguments, aborting\n")));
 
-    do_printUsage (ACE::basename (argv_in[0]));
+    do_printUsage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 
     Common_Tools::finalize ();
     // *PORTABILITY*: on Windows, finalize ACE...
@@ -989,10 +996,9 @@ ACE_TMAIN (int argc_in,
   // step1d: initialize logging and/or tracing
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE::basename (argv_in[0]));
-  if (!Common_Log_Tools::initialize (ACE::basename (argv_in[0]),           // program name
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+  if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,                        // log file name
                                      false,                                // log to syslog ?
                                      false,                                // trace messages ?

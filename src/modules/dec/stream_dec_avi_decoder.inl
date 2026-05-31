@@ -268,6 +268,7 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   // find offset of the first (frame) data chunk
   ACE_ASSERT (!inherited2::chunks_.empty ());
   struct RIFF_chunk_meta temp;
+  ACE_OS::memset (&temp, 0, sizeof (struct RIFF_chunk_meta));
   temp.riff_list_identifier = FOURCC ('m', 'o', 'v', 'i');
   iterator =
     std::find (inherited2::chunks_.begin (), inherited2::chunks_.end (), temp);

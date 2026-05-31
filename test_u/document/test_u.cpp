@@ -42,7 +42,9 @@ do_print_usage (const std::string& programName_in)
   std::cout.setf (std::ios::boolalpha);
 
   std::string path_root =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -52,9 +54,6 @@ do_print_usage (const std::string& programName_in)
   std::cout << ACE_TEXT_ALWAYS_CHAR ("currently available options:")
             << std::endl;
   std::string filename_string = path_root;
-  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  filename_string +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   filename_string +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
@@ -71,9 +70,6 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   filename_string = path_root;
-  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  filename_string +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
   filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   filename_string +=
       ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
@@ -97,23 +93,17 @@ do_process_arguments (int argc_in,
                       bool& traceInformation_out)
 {
   std::string path_root =
-    Common_File_Tools::getWorkingDirectory ();
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
 
   // initialize results
   templateFileName_out = path_root;
   templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  templateFileName_out +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  templateFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  templateFileName_out +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
+  templateFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
   rcFileName_out = path_root;
   rcFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  rcFileName_out +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  rcFileName_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  rcFileName_out +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
+  rcFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
   logToFile_out = false;
   exportAsPDF_out = false;
   traceInformation_out = false;
@@ -240,7 +230,7 @@ do_work (int argc_in,
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.fileIdentifier.identifierDiscriminator =
     Common_File_Identifier::FILE;
-  std::string filename_string = Common_File_Tools::getWorkingDirectory ();
+  std::string filename_string = Common_File_Tools::getTempDirectory ();
   filename_string += ACE_DIRECTORY_SEPARATOR_STR;
   filename_string += Common_File_Tools::basename (templateFileName_in);
   if (exportAsPDF_in)
@@ -317,6 +307,7 @@ ACE_TMAIN (int argc_in,
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64
+  Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 
   ACE_High_Res_Timer timer;
   ACE_Time_Value working_time;
@@ -324,26 +315,23 @@ ACE_TMAIN (int argc_in,
   ACE_Profile_Timer::Rusage elapsed_rusage;
   ACE_Time_Value user_time, system_time;
 
+  std::string configuration_path =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration-
+
   // step1a set defaults
   bool log_to_file = false;
   std::string log_file_name;
   bool export_as_pdf_b = false;
   bool trace_information = false;
   std::string template_filename;
-  template_filename = Common_File_Tools::getWorkingDirectory ();
+  template_filename = configuration_path;
   template_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  template_filename +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  template_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  template_filename +=
-    ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
-  std::string rc_filename = Common_File_Tools::getWorkingDirectory ();
+  template_filename += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_INPUT_FILE);
+  std::string rc_filename = configuration_path;
   rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  rc_filename +=
-    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY);
-  rc_filename += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  rc_filename +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
+  rc_filename += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_RC_FILE);
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -354,7 +342,7 @@ ACE_TMAIN (int argc_in,
                              export_as_pdf_b,
                              trace_information))
   {
-    do_print_usage (ACE::basename (argv_in[0]));
+    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
     goto clean;
   } // end IF
 
@@ -362,15 +350,14 @@ ACE_TMAIN (int argc_in,
 //  {
 //    ACE_DEBUG ((LM_ERROR,
 //                ACE_TEXT ("invalid argument(s), aborting\n")));
-//    do_print_usage (ACE::basename (argv_in[0]));
+//    do_print_usage (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
 //    goto clean;
 //  } // end IF
 
   // step1c: initialize logging and/or tracing
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)));
   if (!Common_Log_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (ACE::basename (argv_in[0], ACE_DIRECTORY_SEPARATOR_CHAR)), // program name
                                      log_file_name,              // log file name
                                      false,                      // log to syslog ?
