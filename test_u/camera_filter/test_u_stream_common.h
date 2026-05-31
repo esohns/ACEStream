@@ -34,7 +34,7 @@
 #include "common_statistic_handler.h"
 
 #include "common_ui_common.h"
-#include "common_ui_windowtype_converter.h"
+#include "common_ui_window.h"
 
 #include "stream_common.h"
 #include "stream_configuration.h"

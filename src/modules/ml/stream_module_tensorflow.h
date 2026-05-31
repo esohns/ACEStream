@@ -23,7 +23,7 @@
 
 #include "tensorflow/c/c_api.h"
 #if defined (TENSORFLOW_CC_SUPPORT)
-//#undef Status
+#undef Status
 //#undef Success
 #include "tensorflow/core/public/session.h"
 #endif // TENSORFLOW_CC_SUPPORT

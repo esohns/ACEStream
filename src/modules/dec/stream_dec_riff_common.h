@@ -1,7 +1,7 @@
 #ifndef STREAM_DECODER_RIFF_COMMON_H
 #define STREAM_DECODER_RIFF_COMMON_H
 
-#include <cstdint>
+//#include <cstdint>
 #include <vector>
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -16,7 +16,7 @@
 
 struct RIFF_chunk_meta
 {
-  // *TODO*: will not compile with gcc (non-trivial union member ctor)
+  // *TODO*: will not compile with neither msvc nor gcc (non-trivial union member ctor)
   //RIFF_chunk_meta ()
   // : identifier (0)
   // , size (0)
@@ -31,24 +31,24 @@ struct RIFF_chunk_meta
   }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  DWORD        identifier;
+  DWORD      identifier;
 #else
-  uint32_t     identifier; // *NOTE*: libavformat type
+  ACE_UINT32 identifier; // *NOTE*: libavformat type
 #endif // ACE_WIN32 || ACE_WIN64
 
   // *NOTE*: adhering to the RIFF standard, this excludes the chunk
   //         'identifier', the 'size' field itself and any 'pad' bytes, iff odd
-  ACE_UINT32   size;
+  ACE_UINT32 size;
 
   // *NOTE*: applies to RIFF and LIST chunks only
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   //FOURCC      riff_list_identifier;
-  DWORD        riff_list_identifier;
+  DWORD      riff_list_identifier;
 #else
-  uint32_t     riff_list_identifier; // *NOTE*: libavformat type
+  ACE_UINT32 riff_list_identifier; // *NOTE*: libavformat type
 #endif // ACE_WIN32 || ACE_WIN64
 
-  ACE_UINT64   offset;
+  ACE_UINT64 offset;
 };
 
 //struct less_RIFF_chunk_meta

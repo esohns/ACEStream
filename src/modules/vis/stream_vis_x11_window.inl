@@ -22,7 +22,7 @@
 #define None       0L
 #define KeyPress   2
 #define KeyRelease 3
-#include "X11/Xlib.h"
+// #include "X11/Xlib.h"
 #include "X11/Xutil.h"
 #include "X11/Xatom.h"
 

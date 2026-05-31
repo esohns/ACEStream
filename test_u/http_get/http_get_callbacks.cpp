@@ -909,7 +909,7 @@ button_execute_clicked_cb (GtkButton* button_in,
 
   GtkSpinButton* spin_button_p = NULL;
   GtkFileChooserButton* file_chooser_button_p = NULL;
-  gchar* URI_p = NULL;
+  // gchar* URI_p = NULL;
   GError* error_p = NULL;
   gchar* hostname_p = NULL;
   gchar* file_path_p = NULL;

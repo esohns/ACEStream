@@ -96,10 +96,16 @@ libacestream_default_vis_wl_keyboard_enter (void* data_in,
   ACE_ASSERT (data_p);
 
   // fprintf (stderr, "keyboard enter; keys pressed are:\n");
-  void* key_p;
+  uint32_t* key_p;
+  // void* key_p;
   char buf[128];
   xkb_keysym_t sym;
-  wl_array_for_each (key_p, keys_in)
+#define wl_array_for_each_2(pos, array)                                       \
+  for (pos = (typeof(pos))(array)->data;                                      \
+       (array)->size != 0                                                     \
+       && (const char *)pos < ((const char *)(array)->data + (array)->size);  \
+       (pos)++)
+  wl_array_for_each_2 (key_p, keys_in)
   {
     sym = xkb_state_key_get_one_sym (data_p->xkb_state,
                                      *static_cast<uint32_t*> (key_p) + 8);
