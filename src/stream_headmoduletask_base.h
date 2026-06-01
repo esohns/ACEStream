@@ -138,7 +138,8 @@ class Stream_HeadModuleTaskBase_T
                      bool = false) const; // N/A
 
   virtual void control (StreamControlType, // control type
-                        bool = false);      // N/A
+                        bool = false,      // forward upstream ? : downstream
+                        bool = false);     // expedite ?
   // *WARNING*: currently, the default stream implementation forwards all
   //            notifications to the head module. This implementation generates
   //            session messages for all events except 'abort'

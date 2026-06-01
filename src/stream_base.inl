@@ -1188,7 +1188,8 @@ Stream_Base_T<ACE_SYNCH_USE,
               DataMessageType,
               SessionMessageType,
               UserDataType>::control (ControlType control_in,
-                                      bool recurseUpstream_in)
+                                      bool recurseUpstream_in,
+                                      bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Base_T::control"));
 
@@ -1210,7 +1211,8 @@ Stream_Base_T<ACE_SYNCH_USE,
     } // end IF
     try {
       istreamcontrol_p->control (control_in,
-                                 recurseUpstream_in);
+                                 recurseUpstream_in,
+                                 expedite_in);
     } catch (...) {
       ISTREAM_T* istream_p = dynamic_cast<ISTREAM_T*> (inherited::linked_us_);
       ACE_DEBUG ((LM_ERROR,
@@ -1261,7 +1263,8 @@ Stream_Base_T<ACE_SYNCH_USE,
       } // end IF
       try {
         istreamcontrol_p->control (control_in,
-                                   false); // N/A
+                                   false,
+                                   expedite_in);
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s/%s: caught exception in Stream_IStreamControl_T::control(%d), returning\n"),

@@ -113,12 +113,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     {
       unsigned int result = queue_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))
-      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-        return;
-      } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting: flushed %u inbound data messages\n"),
@@ -127,12 +124,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
 
       result = queue_2_.flush (false); // flush all data messages
       if (unlikely (result == static_cast<unsigned int> (-1)))
-      {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-        return;
-      } // end IF
       else if (result > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting: flushed %u outbound data messages\n"),
@@ -404,10 +398,10 @@ continue_:
         inherited::threadCount_ = 2;
         bool lock_activate_was_b = inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
         inherited::lockActivate_ = false;
-        if (unlikely (!inherited::start (NULL)))
+        if (unlikely (inherited::open (NULL) == -1))
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: failed to Common_Task_Base_T::start(), aborting\n"),
+                      ACE_TEXT ("%s: failed to Common_Task_Base_T::open(), aborting\n"),
                       inherited::mod_->name ()));
           inherited::lockActivate_ = lock_activate_was_b;
           inherited::threadCount_ = 0;
@@ -521,8 +515,10 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     availableTokens_ = 0;
+    blockSize_ = 0;
     isFirstDispatchingThread_ = true;
     resizeOccured_ = false;
+    ACE_OS::memset (&adaptiveState_, 0, sizeof (struct AdaptiveState));
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -556,66 +552,64 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   int result;
   static ACE_UINT64 tick_id_s = 0;
   ++tick_id_s;
+  float new_factor;
+  bool adjust_b = false;
 
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
+  if (!inherited::configuration_->delayConfiguration->adaptiveTokenFactor ||
+      ((tick_id_s - adaptiveState_.lastAdjustmentTickId) < 10)) // adjust (at most) every 10 ticks
+    goto continue_;
 
-    float new_factor = adaptiveState_.currentFactor;
-    bool adjust_b = false;
-
-    if (!inherited::configuration_->delayConfiguration->adaptiveTokenFactor ||
-        ((tick_id_s - adaptiveState_.lastAdjustmentTickId) < 10)) // adjust every 10 ticks
-      goto continue_;
-
-    if (adaptiveState_.underrunCount >= inherited::configuration_->delayConfiguration->underrunThreshold)
+  if (adaptiveState_.underrunCount >= inherited::configuration_->delayConfiguration->underrunThreshold)
+  {
+    // increase factor to supply more tokens
+    new_factor =
+      std::min (adaptiveState_.currentFactor * 1.05f, // increase by 5%
+                inherited::configuration_->delayConfiguration->maxTokenFactor);
+    if (new_factor != adaptiveState_.currentFactor)
     {
-      // increase factor to supply more tokens
-      new_factor =
-        std::min (adaptiveState_.currentFactor * 1.05f, // increase by 5%
-                  inherited::configuration_->delayConfiguration->maxTokenFactor);
-      if (new_factor != adaptiveState_.currentFactor)
-      {
-        adjust_b = true;
-        //ACE_DEBUG ((LM_WARNING,
-        //            ACE_TEXT ("%s: underruns detected (%u), increasing tokenFactor: %.2f -> %.2f\n"),
-        //            inherited::mod_->name (),
-        //            adaptiveState_.underrunCount,
-        //            adaptiveState_.currentFactor,
-        //            new_factor));
-      } // end IF
-      adaptiveState_.underrunCount = 0;
+      adjust_b = true;
+      //ACE_DEBUG ((LM_WARNING,
+      //            ACE_TEXT ("%s: underruns detected (%u), increasing tokenFactor: %.2f -> %.2f\n"),
+      //            inherited::mod_->name (),
+      //            adaptiveState_.underrunCount,
+      //            adaptiveState_.currentFactor,
+      //            new_factor));
     } // end IF
-    else if (adaptiveState_.successCount >= 5) // plenty of tokens available for 5 ticks
+    adaptiveState_.underrunCount = 0;
+  } // end IF
+  else if (adaptiveState_.successCount >= 5) // plenty of tokens available for 5 ticks
+  {
+    // decrease factor to tighten isochronicity
+    new_factor =
+      std::max (adaptiveState_.currentFactor * 0.98f, // decrease by 2%
+                inherited::configuration_->delayConfiguration->minTokenFactor);
+    if (new_factor != adaptiveState_.currentFactor)
     {
-      // decrease factor to tighten isochronicity
-      new_factor =
-        std::max (adaptiveState_.currentFactor * 0.98f, // decrease by 2%
-                  inherited::configuration_->delayConfiguration->minTokenFactor);
-      if (new_factor != adaptiveState_.currentFactor)
-      {
-        adjust_b = true;
-        //ACE_DEBUG ((LM_DEBUG,
-        //            ACE_TEXT ("%s: tokens available (%u ticks), decreasing tokenFactor: %.2f -> %.2f\n"),
-        //            inherited::mod_->name (),
-        //            adaptiveState_.successCount,
-        //            adaptiveState_.currentFactor,
-        //            new_factor));
-      }
-      adaptiveState_.successCount = 0;
-    } // end ELSE IF
+      adjust_b = true;
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: tokens available (%u ticks), decreasing tokenFactor: %.2f -> %.2f\n"),
+      //            inherited::mod_->name (),
+      //            adaptiveState_.successCount,
+      //            adaptiveState_.currentFactor,
+      //            new_factor));
+    }
+    adaptiveState_.successCount = 0;
+  } // end ELSE IF
 
-    if (adjust_b)
-    {
-      adaptiveState_.currentFactor = new_factor;
-      adaptiveState_.lastAdjustmentTickId = tick_id_s;
-          
-      // recompute average tokens per interval with new factor
-      ACE_UINT64 base_tokens =
-        (inherited::configuration_->delayConfiguration->averageTokensPerInterval / (adaptiveState_.currentFactor > 0.001f ? adaptiveState_.currentFactor : 1.0f)); // avoid div-by-zero
-      inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-        static_cast<ACE_UINT64> (base_tokens * new_factor);
-    } // end IF
+  if (unlikely (adjust_b))
+  { ACE_ASSERT (adaptiveState_.currentFactor != 0.0f); // sanity check to avoid div-by-zero
+    // recompute average tokens per interval with new factor
+    ACE_UINT64 base_tokens =
+      (inherited::configuration_->delayConfiguration->averageTokensPerInterval / adaptiveState_.currentFactor);
+    inherited::configuration_->delayConfiguration->averageTokensPerInterval =
+      static_cast<ACE_UINT64> (base_tokens * new_factor);
+
+    adaptiveState_.currentFactor = new_factor;
+    adaptiveState_.lastAdjustmentTickId = tick_id_s;
+  } // end IF
 
 continue_:
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
     availableTokens_ =
       (inherited::configuration_->delayConfiguration->catchUp ? availableTokens_ + inherited::configuration_->delayConfiguration->averageTokensPerInterval
                                                               : inherited::configuration_->delayConfiguration->averageTokensPerInterval);

@@ -34,7 +34,6 @@
 
 // forward declarations
 class ACE_Allocator;
-class ACE_Data_Block;
 //template <ACE_SYNCH_DECL,
 //          typename AllocatorConfigurationType,
 //          typename ControlMessageType,

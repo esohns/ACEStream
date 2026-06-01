@@ -878,7 +878,8 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   SessionEventType,
                   UserDataType>::putControlMessage (Stream_SessionId_t sessionId_in,
                                                     StreamControlType messageType_in,
-                                                    bool sendUpStream_in)
+                                                    bool forwardUpStream_in,
+                                                    bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::putControlMessage"));
 
@@ -906,7 +907,9 @@ retry:
   } // end IF
   else
     ACE_NEW_NORETURN (control_message_p,
-                      ControlMessageType (messageType_in));
+                      ControlMessageType (sessionId_in,
+                                          messageType_in,
+                                          expedite_in));
   if (unlikely (!control_message_p))
   {
     if (likely (allocator_))
@@ -924,25 +927,27 @@ retry:
   } // end IF
   if (likely (allocator_))
     if (unlikely (!control_message_p->initialize (sessionId_in,
-                                                  messageType_in)))
+                                                  messageType_in,
+                                                  expedite_in)))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_ControlMessage_T::initialize(%u,%d), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_ControlMessage_T::initialize(%u,%d,%d), aborting\n"),
                   inherited::mod_->name (),
                   sessionId_in,
-                  messageType_in));
+                  messageType_in,
+                  expedite_in));
       control_message_p->release ();
       return false;
     } // end IF
 
-  result = (sendUpStream_in ? inherited::reply (control_message_p, NULL)
-                            : put (control_message_p, NULL));
+  result = (forwardUpStream_in ? inherited::reply (control_message_p, NULL)
+                               : put (control_message_p, NULL));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Task::%s(): \"%m\", aborting\n"),
                 inherited::mod_->name (),
-                (sendUpStream_in ? ACE_TEXT ("reply") : ACE_TEXT ("put"))));
+                (forwardUpStream_in ? ACE_TEXT ("reply") : ACE_TEXT ("put"))));
     control_message_p->release (); control_message_p = NULL;
     return false;
   } // end IF
@@ -1127,11 +1132,11 @@ Stream_TaskBase_T<ACE_SYNCH_USE,
                   StreamControlType,
                   SessionEventType,
                   UserDataType>::control (int messageType_in,
-                                          bool highPriority_in)
+                                          bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_TaskBase_T::control"));
 
-  ACE_UNUSED_ARG (highPriority_in);
+  ACE_UNUSED_ARG (expedite_in);
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;

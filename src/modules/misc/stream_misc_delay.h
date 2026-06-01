@@ -124,7 +124,7 @@ class Stream_Module_Delay_T
   HANDLE                              task_; // inbound dispatch task
   HANDLE                              task_2_; // outbound dispatch task
 #endif // ACE_WIN32 || ACE_WIN64
-  struct
+  struct AdaptiveState
   {
     float currentFactor;             // current multiplier
     ACE_UINT32 underrunCount;        // consecutive underruns

@@ -885,19 +885,20 @@ Stream_Module_Net_IO_Stream_T<ACE_SYNCH_USE,
                               AddressType,
                               ConnectionManagerType,
                               UserDataType>::control (ControlType type_in,
-                                                      bool recurseUpstream_in)
+                                                      bool recurseUpstream_in,
+                                                      bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_IO_Stream_T::control"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->configuration_);
-
-  if (!inherited::configuration_->configuration_->inbound)
+  if (!inherited::configuration_->configuration_->inbound) // *TODO*: ?
     return; // nothing to do
 
   inherited::control (type_in,
-                      recurseUpstream_in);
+                      recurseUpstream_in,
+                      expedite_in);
 }
 
 template <ACE_SYNCH_DECL,

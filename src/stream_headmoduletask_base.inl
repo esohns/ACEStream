@@ -224,7 +224,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
             break;
 
           control (STREAM_CONTROL_ABORT,
-                   false); // forward upstream ?
+                   false, // forward upstream ?
+                   true); // expedited ?
 
           // sanity check(s)
           ACE_ASSERT (inherited::msg_queue_);
@@ -253,14 +254,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
           switch (message_p->type ())
           {
             case STREAM_CONTROL_MESSAGE_ABORT:
-            { // *IMPORTANT NOTE*: try to ensure the message is actually processed
+            { ACE_ASSERT (message_p->expedited ());
+              // *IMPORTANT NOTE*: try to ensure the message is actually processed
               bool enqueue_b = false; // fallback
               { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX_T, aGuard, inherited::msg_queue_->lock (), -1);
                 // *NOTE*: cannot just use queue_, because msg_queue_ may not
                 //         be the same as queue_ (e.g. when 'this' is a 'queue
                 //         source')
                 typename inherited::MESSAGE_QUEUE_T* queue_p =
-                    dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
+                  dynamic_cast<typename inherited::MESSAGE_QUEUE_T*> (inherited::msg_queue_);
                 if (likely (inherited::thr_count_      &&
                             queue_p                    &&
                             !queue_p->isShuttingDown ()))
@@ -281,7 +283,12 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
               return 0;
             }
             default:
+            {
+              if (unlikely (message_p->expedited ()))
+                return inherited::msg_queue_->enqueue_head (messageBlock_in,
+                                                            NULL);
               break;
+            }
           } // end SWITCH
 
           break;
@@ -1098,15 +1105,15 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::stop"));
 
-  // sanity check(s)
   // *NOTE*: inherited::control() ignores highPriority_in, but invokes
   //         this->put(), which re-evaluates isHighPriorityStop_
-
   inherited::control (ACE_Message_Block::MB_STOP,
                       highPriority_in);
 
   if (waitForCompletion_in)
-    this->wait (true, false, false);
+    this->wait (true,
+                false,
+                false);
 }
 
 template <ACE_SYNCH_DECL,
@@ -1376,7 +1383,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                             SessionManagerType,
                             TimerManagerType,
                             UserDataType>::control (StreamControlType control_in,
-                                                    bool forwardUpStream_in)
+                                                    bool forwardUpStream_in,
+                                                    bool expedite_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_HeadModuleTaskBase_T::control"));
 
@@ -1422,7 +1430,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         session_data_container_p->getR ();
       if (!inherited::putControlMessage (session_data_r.sessionId,
                                          control_in,
-                                         forwardUpStream_in))
+                                         forwardUpStream_in,
+                                         expedite_in)) // expedited ?
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putControlMessage(%u,%d), continuing\n"),
                     inherited::mod_->name (),
@@ -1479,6 +1488,8 @@ send_session_message:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::lock(true,true), returning\n"),
                   inherited::mod_->name ()));
+      if (release_session_data_container_b)
+        session_data_container_p->decrease ();
       return;
     }
   } // end IF
@@ -1489,7 +1500,7 @@ send_session_message:
   if (unlikely (!inherited::putSessionMessage (message_type_e,
                                                session_data_container_2,
                                                streamState_->userData,
-                                               false))) // expedited ?
+                                               expedite_in))) // expedited ?
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                 inherited::mod_->name (),
@@ -1505,6 +1516,8 @@ send_session_message:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: caught exception in Stream_ILock_T::unlock(false,true), returning\n"),
                   inherited::mod_->name ()));
+      if (release_session_data_container_b)
+        session_data_container_p->decrease ();
       return;
     }
   } // end IF
@@ -1580,7 +1593,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
       if (likely (!abortSent_))
         control (STREAM_CONTROL_ABORT,
-                 false); // forward upstream ?
+                 false, // forward upstream ?
+                 true); // expedited ?
 
       // *WARNING*: falls through
       ACE_FALLTHROUGH;
@@ -1720,7 +1734,8 @@ retry:
         {
           if (likely (!abortSent_))
             control (STREAM_CONTROL_ABORT,
-                     false); // forward upstream ?
+                     false, // forward upstream ?
+                     true); // expedited ?
         } // end IF
 
         goto wait_2; // wait for any remaining workers ?

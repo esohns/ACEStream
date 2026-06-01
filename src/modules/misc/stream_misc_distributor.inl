@@ -247,11 +247,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Miscellaneous_Distributor_WriterTask_T::handleControlMessage"));
 
-  bool is_high_priority_b = false;
   switch (message_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_ABORT:
-    {
+    { ACE_ASSERT (message_in.expedited ());
       QUEUE_TO_MODULE_CONST_ITERATOR_T iterator_2;
       BRANCH_TO_HEAD_CONST_ITERATOR_T iterator_3;
       Stream_IMessageQueue* iqueue_p = NULL;
@@ -282,7 +281,6 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                         flushed_messages_i));
         } // end FOR
       } // end lock scope
-      is_high_priority_b = true;
       break;
     }
     default:
@@ -290,8 +288,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   } // end SWITCH
 
   forward (&message_in,
-           false,               // dispose original ?
-           is_high_priority_b); // high priority ?
+           false,                    // dispose original ?
+           message_in.expedited ()); // high priority ?
 }
 
 template <ACE_SYNCH_DECL,
@@ -320,7 +318,6 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_inout);
 
   bool high_priority_b = false;
-  //int result;
 
   switch (message_inout->type ())
   {
@@ -419,16 +416,20 @@ error:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
-      //if (!high_priority_b &&
-      //    inherited::configuration_->waitForDataOnEnd)
-      //  idle ();
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+
+      if (!high_priority_b &&
+          inherited::configuration_->waitForDataOnEnd)
+        idle ();
 
       forward (message_inout,
                false,            // dispose original ?
                high_priority_b); // high priority ?
 
       // *IMPORTANT NOTE*: cannot enqueue MB_STOP at the head (second argument), as the ABORT/END
-      //                   would not get dispatched anymore
+      //                   would (probably ?) not get dispatched anymore by the branch processor
+      //                   thread(s)
       stop (true,   // wait ?
             false); // high priority ?
 
@@ -445,6 +446,12 @@ end:
         heads_.clear ();
         modules_.clear ();
         numberOfBranches_ = 0;
+        for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
+             iterator != queues_.end ();
+             ++iterator)
+        { ACE_ASSERT ((*iterator).second);
+          delete (*iterator).second;
+        } // end FOR
         queues_.clear ();
       } // end lock scope
 
@@ -511,8 +518,8 @@ end:
 
 continue_:
       forward (message_inout,
-               false,         // dispose original ?
-               false);        // high priority ?
+               false,                        // dispose original ?
+               message_inout->expedited ()); // high priority ?
 
       break;
 
@@ -524,8 +531,8 @@ error_2:
     default:
     {
       forward (message_inout,
-               false,  // dispose original ?
-               false); // high priority ?
+               false,                        // dispose original ?
+               message_inout->expedited ()); // high priority ?
     }
   } // end SWITCH
 }
@@ -587,8 +594,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
     modules_.insert (std::make_pair (queue_p, module_in));
     ACE_ASSERT (!branches_.empty ());
     std::pair<BRANCH_TO_HEAD_ITERATOR_T, bool> result_s =
-        heads_.insert (std::make_pair (branches_.front (),
-                                       module_in));
+      heads_.insert (std::make_pair (branches_.front (),
+                                     module_in));
     ACE_ASSERT (result_s.second);
     branches_.pop_front ();
 //    ACE_DEBUG ((LM_DEBUG,

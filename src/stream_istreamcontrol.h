@@ -85,7 +85,8 @@ class Stream_IStreamControlBase_T
  public:
   // *NOTE*: enqeues a control message
   virtual void control (ControlType,       // control type
-                        bool = false) = 0; // recurse upstream (if any) ?
+                        bool = false,      // recurse upstream (if any) ?
+                        bool = false) = 0; // expedite ?
   virtual StatusType status () const = 0;
   virtual const StateType& state () const = 0;
 };

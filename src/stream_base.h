@@ -248,7 +248,8 @@ template <ACE_SYNCH_DECL,
   virtual void pause ();
   virtual void rewind ();
   virtual void control (ControlType,   // control type
-                        bool = false); // recurse upstream (if any) ?
+                        bool = false,  // recurse upstream (if any) ?
+                        bool = false); // expedite ?
   // *NOTE*: the default implementation forwards calls to the head module
   virtual void notify (NotificationType, // notification type
                        bool = false,     // recurse upstream (if any) ?

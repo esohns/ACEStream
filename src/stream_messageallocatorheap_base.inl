@@ -120,8 +120,9 @@ Stream_MessageAllocatorHeapBase_T<ACE_SYNCH_USE,
   try {
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<ControlMessageType*> (inherited::malloc (sizeof (ControlMessageType))),
-                             ControlMessageType (data_block_p,
-                                                 this)); // message allocator
+                             ControlMessageType (0,            // session id
+                                                 data_block_p, // data block to use
+                                                 this));       // message allocator
   } catch (...) {
     ACE_DEBUG ((LM_CRITICAL,
                 ACE_TEXT ("caught exception in ACE_NEW_MALLOC_NORETURN(ControlMessageType), continuing\n")));

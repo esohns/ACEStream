@@ -142,29 +142,32 @@ class Stream_TaskBase_T
   inline virtual bool isAggregator () { return aggregate_; }
   inline virtual bool isHead () { return false; }
 
-  // convenience methods to send (session-specific) notifications downstream
-  // *NOTE*: these invoke put(), so the messages are processed by 'this' module
-  //         as well
+  // convenience methods to send (session-specific) notifications up|downstream
+  // *NOTE*: (when forwarding dowstream,) these invoke put(), so the messages
+  //         are processed by 'this' module as well
+  // *NOTE*: when forwarding upstream, this invokes reply(), (potentially) ignoring
+  //         expedition
   bool putControlMessage (Stream_SessionId_t, // session id
                           StreamControlType,  // control type
-                          bool = false);      // send upstream ? : downstream
+                          bool = false,       // forward upstream ? : downstream
+                          bool = false);      // expedited ?
   // *NOTE*: "fire-and-forget" the second argument
   bool putSessionMessage (SessionEventType,                      // session message type
                           typename SessionMessageType::DATA_T*&, // session data container
                           UserDataType*,                         // user data handle
-                          bool);                                 // expedited ?
+                          bool = false);                         // expedited ?
 
   virtual void notify (SessionEventType, // session event
                        bool = false);    // expedite ?
 
   // helper methods
-  // *NOTE*: 'high priority' effectively means that the message is enqueued at
-  //         the head end (i.e. will be the next to dequeue), whereas it would
-  //         be enqueued at the tail end otherwise
-  // *WARNING*: this definition put()s messages, potentially ignoring the
-  //            'high-priority' argument
-  virtual void control (int,           // message type
-                        bool = false); // high-priority ?
+  // *NOTE*: 'high priority' effectively means that the message ought to be
+  //         enqueued at the head end (i.e. will be the next to dequeue), 
+  //         whereas it would be enqueued at the tail end otherwise
+  // *WARNING*: this definition put()s messages, (potentially) ignoring
+  //            expedition
+  virtual void control (int,           // (ACE-)message type
+                        bool = false); // expedited ?
 
   // *TODO*: make this 'private' and use 'friend' access
   bool                                 aggregate_; // support multiple initializations ?

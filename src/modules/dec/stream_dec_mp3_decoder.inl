@@ -412,7 +412,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
           {
             if (likely (!inherited::abortSent_))
               inherited::control (STREAM_CONTROL_ABORT,
-                                  false); // forward upstream ?
+                                  false, // forward upstream ?
+                                  true); // expedited ?
           } // end IF
 
           bool finish_b = false;
@@ -455,6 +456,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 
           // --> SESSION_END has been processed; leave
           done_b = true;
+          result = 0;
           break;
         }
         default:

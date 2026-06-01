@@ -28,12 +28,21 @@
 
 #include "common_iinitialize.h"
 
-//#include "stream_cachedmessageallocator.h"
 #include "stream_imessage.h"
-//#include "stream_messageallocatorheap_base.h"
 
 // forward declarations
 class ACE_Allocator;
+// template <ACE_SYNCH_DECL,
+//           typename AllocatorConfigurationType,
+//           typename ControlMessageType,
+//           typename DataMessageType,
+//           typename SessionMessageType> class
+//           Stream_MessageAllocatorHeapBase_T;
+// template <ACE_SYNCH_DECL,
+//           typename AllocatorConfigurationType,
+//           typename ControlMessageType,
+//           typename DataMessageType,
+//           typename SessionMessageType> class Stream_CachedMessageAllocator_T;
 
 template <typename ControlType,
           typename MessageType>
@@ -69,12 +78,16 @@ class Stream_ControlMessage_T
   typedef Stream_ControlMessage_T<ControlType,
                                   MessageType> OWN_TYPE_T;
 
-  Stream_ControlMessage_T (ControlType);
+  Stream_ControlMessage_T (Stream_SessionId_t, // session id
+                           ControlType,        // type
+                           bool);              // expedited ?
   // *NOTE*: to be used by message allocators
-  // *TODO*: find a way to make this 'protected' (i.e. usable by allocators
-  //         only)
-  Stream_ControlMessage_T (ACE_Data_Block*,
-                           ACE_Allocator*); // message allocator
+  // *TODO*: make these protected and use 'friend' access (see above)
+  Stream_ControlMessage_T (Stream_SessionId_t, // session id
+                           ACE_Allocator*);    // message allocator
+  Stream_ControlMessage_T (Stream_SessionId_t, // session id
+                           ACE_Data_Block*,    // data block to use
+                           ACE_Allocator*);    // message allocator
   virtual ~Stream_ControlMessage_T ();
 
   // overload from ACE_Message_Block
@@ -82,13 +95,15 @@ class Stream_ControlMessage_T
   virtual ACE_Message_Block* duplicate () const;
 
   // implement Stream_IMessage_T
-  inline virtual bool expedited () const { return false; }
-  inline virtual Stream_MessageId_t id () const { return id_; }
+  inline virtual bool expedited () const { return expedited_; }
+  inline virtual Stream_MessageId_t id () const { return 0; }
   inline virtual Stream_SessionId_t sessionId () const { return sessionId_; }
   inline virtual MessageType type () const { return type_; }
 
-  bool initialize (Stream_SessionId_t,  // session id
-                   const ControlType&);
+  // initialization-after-construction
+  bool initialize (Stream_SessionId_t, // session id
+                   const ControlType&, // type
+                   bool);              // expedited ?
 
   // debug tools
   static std::string ControlMessageTypeToString (MessageType); // message type
@@ -97,7 +112,7 @@ class Stream_ControlMessage_T
   // (copy) ctor to be used by duplicate()
   Stream_ControlMessage_T (const OWN_TYPE_T&);
 
-  Stream_MessageId_t id_;
+  bool               expedited_;
   Stream_SessionId_t sessionId_;
   MessageType        type_;
 

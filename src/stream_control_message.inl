@@ -33,7 +33,9 @@
 template <typename ControlType,
           typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType>::Stream_ControlMessage_T (ControlType type_in)
+                        MessageType>::Stream_ControlMessage_T (Stream_SessionId_t sessionId_in,
+                                                               ControlType type_in,
+                                                               bool expedited_in)
  : inherited (0,                                  // size
               STREAM_MESSAGE_CONTROL,             // type
               NULL,                               // continuation
@@ -45,29 +47,33 @@ Stream_ControlMessage_T<ControlType,
               ACE_Time_Value::max_time,           // deadline time
               NULL,                               // data block allocator
               NULL)                               // message block allocator
- , id_ (0)
- , sessionId_ (0)
+ , expedited_ (expedited_in)
+ , sessionId_ (sessionId_in)
  , type_ (STREAM_CONTROL_MESSAGE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
 
-  if (!initialize (0,
-                   type_in))
+  if (!initialize (sessionId_in,
+                   type_in,
+                   expedited_in))
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_ControlMessage_T::initialize(0,%d), continuing\n"),
-                type_in));
+                ACE_TEXT ("failed to Stream_ControlMessage_T::initialize(%d,%d,%d), continuing\n"),
+                sessionId_in,
+                type_in,
+                expedited_in));
 }
 
 template <typename ControlType,
           typename MessageType>
 Stream_ControlMessage_T<ControlType,
-                        MessageType>::Stream_ControlMessage_T (ACE_Data_Block* dataBlock_in,
+                        MessageType>::Stream_ControlMessage_T (Stream_SessionId_t sessionId_in,
+                                                               ACE_Data_Block* dataBlock_in,
                                                                ACE_Allocator* messageAllocator_in)
  : inherited (dataBlock_in,        // data block (may be NULL)
               0,                   // pass ownership to base class
               messageAllocator_in) // message block allocator
- , id_ (0)
- , sessionId_ (0)
+ , expedited_ (false)
+ , sessionId_ (sessionId_in)
  , type_ (STREAM_CONTROL_MESSAGE_INVALID)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::Stream_ControlMessage_T"));
@@ -87,7 +93,7 @@ Stream_ControlMessage_T<ControlType,
  : inherited (message_in.data_block_->duplicate (), // make a "shallow" copy of the data block
               0,                                    // "own" the duplicate
               message_in.message_block_allocator_)  // message allocator
- , id_ (0)
+ , expedited_ (message_in.expedited_)
  , sessionId_ (message_in.sessionId_)
  , type_ (message_in.type_)
 {
@@ -107,6 +113,7 @@ Stream_ControlMessage_T<ControlType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::~Stream_ControlMessage_T"));
 
+  expedited_ = false;
   sessionId_ = 0;
   type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
@@ -122,10 +129,12 @@ template <typename ControlType,
 bool
 Stream_ControlMessage_T<ControlType,
                         MessageType>::initialize (Stream_SessionId_t sessionId_in,
-                                                  const ControlType& type_in)
+                                                  const ControlType& type_in,
+                                                  bool expedited_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ControlMessage_T::initialize"));
 
+  expedited_ = expedited_in;
   sessionId_ = sessionId_in;
   type_ = STREAM_CONTROL_MESSAGE_INVALID;
 
@@ -181,22 +190,20 @@ Stream_ControlMessage_T<ControlType,
   // the ACE_Data_Block
 
   // if there is no allocator, use the standard new and delete calls
-  if (!inherited::message_block_allocator_)
+  if (unlikely (!inherited::message_block_allocator_))
     ACE_NEW_NORETURN (message_p,
                       OWN_TYPE_T (*this));
   else
-  {
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
                              OWN_TYPE_T (*this));
-  }
   if (unlikely (!message_p))
   {
     Stream_IAllocator* allocator_p =
       dynamic_cast<Stream_IAllocator*> (inherited::message_block_allocator_);
-    ACE_ASSERT (allocator_p);
-    if (allocator_p->block ())
+    if (allocator_p &&
+        allocator_p->block ())
       ACE_DEBUG ((LM_CRITICAL,
                   ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
     return NULL;
@@ -220,20 +227,28 @@ Stream_ControlMessage_T<ControlType,
 
   switch (type_in)
   {
+    case STREAM_CONTROL_MESSAGE_END:
+      result = ACE_TEXT_ALWAYS_CHAR ("END"); break;
+    case STREAM_CONTROL_MESSAGE_ABORT:
+      result = ACE_TEXT_ALWAYS_CHAR ("ABORT"); break;
     case STREAM_CONTROL_MESSAGE_CONNECT:
       result = ACE_TEXT_ALWAYS_CHAR ("CONNECT"); break;
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
       result = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT"); break;
-    case STREAM_CONTROL_MESSAGE_FLUSH:
-      result = ACE_TEXT_ALWAYS_CHAR ("FLUSH"); break;
     case STREAM_CONTROL_MESSAGE_LINK:
       result = ACE_TEXT_ALWAYS_CHAR ("LINK"); break;
+    case STREAM_CONTROL_MESSAGE_RESIZE:
+      result = ACE_TEXT_ALWAYS_CHAR ("RESIZE"); break;
+    case STREAM_CONTROL_MESSAGE_UNLINK:
+      result = ACE_TEXT_ALWAYS_CHAR ("UNLINK"); break;
+    case STREAM_CONTROL_MESSAGE_FLUSH:
+      result = ACE_TEXT_ALWAYS_CHAR ("FLUSH"); break;
     case STREAM_CONTROL_MESSAGE_RESET:
       result = ACE_TEXT_ALWAYS_CHAR ("RESET"); break;
     case STREAM_CONTROL_MESSAGE_STEP:
       result = ACE_TEXT_ALWAYS_CHAR ("STEP"); break;
-    case STREAM_CONTROL_MESSAGE_UNLINK:
-      result = ACE_TEXT_ALWAYS_CHAR ("UNLINK"); break;
+    case STREAM_CONTROL_MESSAGE_STEP_2:
+      result = ACE_TEXT_ALWAYS_CHAR ("STEP_2"); break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
