@@ -1311,7 +1311,9 @@ Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_CamSave_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.stream);
 
-  cbdata_r.stream->control (STREAM_CONTROL_STEP_2);
+  cbdata_r.stream->control (STREAM_CONTROL_STEP_2,
+                            false,
+                            true); // expedited ?
 }
 void
 Stream_CamSave_WxWidgetsDialog_T<wxDialog_main,

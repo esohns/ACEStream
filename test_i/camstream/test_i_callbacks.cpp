@@ -8137,11 +8137,14 @@ drawingarea_video_resize_end (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      directshow_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      directshow_cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                                             false,
+                                             true); // expedited ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
       mediafoundation_cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
-                                                  false);
+                                                  false,
+                                                  true); // expedited ?
       break;
     default:
     {
@@ -8153,7 +8156,9 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+  ui_cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                                 false,
+                                 true); // expedited ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

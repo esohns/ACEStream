@@ -109,6 +109,7 @@ class Stream_Module_Delay_T
   void dispatch (ACE_Message_Block*); // next message
 
   ACE_UINT64                          availableTokens_;
+  ACE_UINT64                          baseNumberOfTokens_;
   // *NOTE*: transmit a multiple of this number of bytes per interval (if 'mode' is set to
   //         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES or STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES)
   ACE_UINT32                          blockSize_;

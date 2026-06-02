@@ -1636,7 +1636,8 @@ button_cut_clicked_cb (GtkButton* button_in,
   ACE_ASSERT (cb_data_p);
 
   cb_data_p->stream->control (STREAM_CONTROL_STEP,
-                              false);
+                              false,
+                              true); // expedited ?
 } // button_cut_clicked_cb
 
 void
@@ -2416,10 +2417,14 @@ drawingarea_video_resize_end (gpointer userData_in)
   switch (cb_data_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                                  false,
+                                  true); // expedited ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+      cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                                  false,
+                                  true); // expedited ?
       break;
     default:
     {
@@ -2431,7 +2436,9 @@ drawingarea_video_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+  cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                              false,
+                              true); // expedited ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

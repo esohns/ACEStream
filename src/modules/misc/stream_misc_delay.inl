@@ -64,6 +64,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                       UserDataType>::Stream_Module_Delay_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , availableTokens_ (0)
+ , baseNumberOfTokens_ (0)
  , blockSize_ (0)
  , condition_ (inherited::lock_)
  , isFirstDispatchingThread_ (true)
@@ -284,8 +285,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       blockSize_ = (snd_pcm_format_width (media_type_s.format) / 8) *
                    media_type_s.channels;
 #endif // ACE_WIN32 || ACE_WIN64
-      availableTokens_ =
+      baseNumberOfTokens_ =
         static_cast<ACE_UINT64> (average_bytes_per_second_i * (static_cast<float> (STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US) / 1000000.0f));
+      availableTokens_ = baseNumberOfTokens_;
       token_factor_f =
         token_factor_f ? token_factor_f : STREAM_MISC_DEFAULT_DELAY_AUDIO_TOKEN_MULTIPLIER_F;
       availableTokens_ = static_cast<ACE_UINT64> (availableTokens_ * token_factor_f);
@@ -515,6 +517,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (unlikely (inherited::isInitialized_))
   {
     availableTokens_ = 0;
+    baseNumberOfTokens_ = 0;
     blockSize_ = 0;
     isFirstDispatchingThread_ = true;
     resizeOccured_ = false;
@@ -597,12 +600,10 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   } // end ELSE IF
 
   if (unlikely (adjust_b))
-  { ACE_ASSERT (adaptiveState_.currentFactor != 0.0f); // sanity check to avoid div-by-zero
+  { ACE_ASSERT (baseNumberOfTokens_);
     // recompute average tokens per interval with new factor
-    ACE_UINT64 base_tokens =
-      (inherited::configuration_->delayConfiguration->averageTokensPerInterval / adaptiveState_.currentFactor);
     inherited::configuration_->delayConfiguration->averageTokensPerInterval =
-      static_cast<ACE_UINT64> (base_tokens * new_factor);
+      static_cast<ACE_UINT64> (baseNumberOfTokens_ * new_factor);
 
     adaptiveState_.currentFactor = new_factor;
     adaptiveState_.lastAdjustmentTickId = tick_id_s;

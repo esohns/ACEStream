@@ -127,7 +127,7 @@ class Stream_TaskBaseAsynch_T
   // *NOTE*: 'high priority' effectively means that the message is enqueued at
   //         the head end (i.e. will be the next to dequeue), whereas it would
   //         be enqueued at the tail end otherwise
-  virtual void control (int,           // message type
+  virtual void control (int,           // (ACE-)message type
                         bool = false); // high-priority ?
 
   // override (part of) ACE_Task_Base

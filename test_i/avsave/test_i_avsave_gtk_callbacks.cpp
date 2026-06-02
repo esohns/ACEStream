@@ -5279,13 +5279,11 @@ button_cut_clicked_cb (GtkButton* button_in,
 
   ACE_UNUSED_ARG (button_in);
 
+  // sanity check(s)
   struct Stream_AVSave_UI_CBData* ui_cb_data_base_p =
     static_cast<struct Stream_AVSave_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
-  //Stream_IStream_t* stream_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Stream_AVSave_DirectShow_UI_CBData* directshow_cb_data_p = NULL;
   struct Stream_AVSave_MediaFoundation_UI_CBData* mediafoundation_cb_data_p =
@@ -5297,7 +5295,8 @@ button_cut_clicked_cb (GtkButton* button_in,
       directshow_cb_data_p =
         static_cast<struct Stream_AVSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       directshow_cb_data_p->videoStream->control (STREAM_CONTROL_STEP,
-                                             false);
+                                                  false,
+                                                  true); // expedited ?
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -5305,7 +5304,8 @@ button_cut_clicked_cb (GtkButton* button_in,
       mediafoundation_cb_data_p =
         static_cast<struct Stream_AVSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       mediafoundation_cb_data_p->videoStream->control (STREAM_CONTROL_STEP,
-                                                  false);
+                                                       false,
+                                                       true); // expedited ?
       break;
     }
     default:
@@ -5320,7 +5320,8 @@ button_cut_clicked_cb (GtkButton* button_in,
   struct Stream_AVSave_ALSA_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_AVSave_ALSA_V4L_UI_CBData*> (ui_cb_data_base_p);
   cb_data_p->videoStream->control (STREAM_CONTROL_STEP,
-                              false);
+                                   false,
+                                   true); // expedited ?
 #endif
 } // button_cut_clicked_cb
 
@@ -7602,10 +7603,14 @@ drawingarea_audio_resize_end (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-      directshow_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+      directshow_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE,
+                                                  false,
+                                                  true); // expedited ?
       break;
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-      mediafoundation_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+      mediafoundation_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE,
+                                                       false,
+                                                       true); // expedited ?
       break;
     default:
     {
@@ -7617,7 +7622,9 @@ drawingarea_audio_resize_end (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ui_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE, false);
+  ui_cb_data_p->audioStream->control (STREAM_CONTROL_RESIZE,
+                                      false,
+                                      true); // expedited ?
 #endif // ACE_WIN32 || ACE_WIN64
 
   ACE_DEBUG ((LM_DEBUG,

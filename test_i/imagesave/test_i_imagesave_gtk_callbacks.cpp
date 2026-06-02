@@ -1301,7 +1301,7 @@ drawing_area_resize_end (gpointer userData_in)
 #endif // ACE_WIN32 || ACE_WIN64
 
   if (!cb_data_p->stream->isRunning ())
-    return FALSE;
+    return G_SOURCE_REMOVE;
 
    // *NOTE*: two things need doing:
    //         - drop inbound frames until the 'resize' session message is through
@@ -1321,14 +1321,17 @@ drawing_area_resize_end (gpointer userData_in)
   } catch (...) {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("caught exception in Stream_Visualization_IResize::resizing(), aborting\n")));
-    return FALSE;
+    return G_SOURCE_REMOVE;
   }
 
   // step2
-  cb_data_p->stream->control (STREAM_CONTROL_RESIZE, false);
+  cb_data_p->stream->control (STREAM_CONTROL_RESIZE,
+                              false,
+                              true); // expedited ?
 
-  return FALSE;
+  return G_SOURCE_REMOVE;
 } // drawing_area_resize_end
+
 void
 drawingarea_size_allocate_cb (GtkWidget* widget_in,
                               GdkRectangle* allocation_in,
@@ -1348,7 +1351,6 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   g_source_remove (timer_id);
   timer_id = g_timeout_add (300, drawing_area_resize_end, userData_in);
 } // drawingarea_size_allocate_cb
-
 
 void
 togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,

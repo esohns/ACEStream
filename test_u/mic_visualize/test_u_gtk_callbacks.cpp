@@ -7242,7 +7242,8 @@ button_cut_clicked_cb (GtkButton* button_in,
         dynamic_cast<Test_U_MicVisualize_DirectShow_IStreamControl_t*> (directshow_ui_cb_data_p->stream);
       ACE_ASSERT (istream_control_p);
       istream_control_p->control (STREAM_CONTROL_STEP,
-                                  false); // recurse upstream ?
+                                  false, // recurse upstream ?
+                                  true); // expedited ?
 
       break;
     }
@@ -7259,7 +7260,8 @@ button_cut_clicked_cb (GtkButton* button_in,
         dynamic_cast<Test_U_MicVisualize_MediaFoundation_IStreamControl_t*> (mediafoundation_ui_cb_data_p->stream);
       ACE_ASSERT (istream_control_p);
       istream_control_p->control (STREAM_CONTROL_STEP,
-                                  false); // recurse upstream ?
+                                  false, // recurse upstream ?
+                                  true); // expedited ?
 
       break;
     }
@@ -7284,7 +7286,8 @@ button_cut_clicked_cb (GtkButton* button_in,
     dynamic_cast<Test_U_MicVisualize_IStreamControl_t*> (data_p->stream);
   ACE_ASSERT (istream_control_p);
   istream_control_p->control (STREAM_CONTROL_STEP,
-                              false); // recurse upstream ?
+                              false, // recurse upstream ?
+                              true); // expedited ?
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 } // button_cut_clicked_cb

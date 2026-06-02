@@ -4683,7 +4683,8 @@ button_cut_clicked_cb (GtkButton* button_in,
       directshow_cb_data_p =
         static_cast<struct Stream_CamSave_DirectShow_UI_CBData*> (ui_cb_data_base_p);
       directshow_cb_data_p->stream->control (STREAM_CONTROL_STEP,
-                                             false);
+                                             false,
+                                             true); // expedited ?
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -4691,7 +4692,8 @@ button_cut_clicked_cb (GtkButton* button_in,
       mediafoundation_cb_data_p =
         static_cast<struct Stream_CamSave_MediaFoundation_UI_CBData*> (ui_cb_data_base_p);
       mediafoundation_cb_data_p->stream->control (STREAM_CONTROL_STEP,
-                                                  false);
+                                                  false,
+                                                  true); // expedited ?
       break;
     }
     default:
@@ -4706,7 +4708,8 @@ button_cut_clicked_cb (GtkButton* button_in,
   struct Stream_CamSave_V4L_UI_CBData* cb_data_p =
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   cb_data_p->stream->control (STREAM_CONTROL_STEP,
-                              false);
+                              false,
+                              true); // expedited ?
 #endif // ACE_WIN32 || ACE_WIN64
 } // button_cut_clicked_cb
 

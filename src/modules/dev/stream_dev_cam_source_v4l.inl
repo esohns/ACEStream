@@ -669,7 +669,8 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           if (likely (!inherited::abortSent_))
             inherited::control (STREAM_CONTROL_ABORT,
-                                false); // forward upstream ?
+                                false, // forward upstream ?
+                                true);  // expedite ?
         } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),

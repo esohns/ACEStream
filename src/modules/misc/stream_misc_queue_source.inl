@@ -354,7 +354,8 @@ Stream_Module_QueueReader_T<ACE_SYNCH_USE,
         {
           if (likely (!inherited::abortSent_))
             this->control (STREAM_CONTROL_ABORT,
-                           false); // forward upstream ?
+                           false, // forward upstream ?
+                           true);  // expedite ?
         } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),

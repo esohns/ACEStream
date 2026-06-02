@@ -4114,7 +4114,8 @@ continue_3:
 
   // notify pipeline modules
   control (STREAM_CONTROL_LINK,
-           true); // forward upstream ?
+           true,   // forward upstream ?
+           false); // expedite ?
 
   return 0;
 
@@ -4245,7 +4246,8 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // notify any module(s)
   control (STREAM_CONTROL_UNLINK,
-           false);
+           false,
+           false); // expedite ?
 
   return 0;
 }

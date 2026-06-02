@@ -334,7 +334,8 @@ next:
           {
             if (likely (!inherited::abortSent_))
               inherited::control (STREAM_CONTROL_ABORT,
-                                  false); // forward upstream ?
+                                  false, // forward upstream ?
+                                  true); // expedite ?
           } // end IF
 
           bool finished_b = false;
@@ -462,7 +463,8 @@ continue_:
 
           // *NOTE*: send session message instead (see above)
           //inherited::control (STREAM_CONTROL_STEP,
-          //                    false); // forward upstream ?
+          //                    false,  // forward upstream ?
+          //                    false); // expedite ?
 
           goto next;
         } // end IF

@@ -167,7 +167,7 @@ class Stream_TaskBase_T
   // *WARNING*: this definition put()s messages, (potentially) ignoring
   //            expedition
   virtual void control (int,           // (ACE-)message type
-                        bool = false); // expedited ?
+                        bool = false); // high-priority ?
 
   // *TODO*: make this 'private' and use 'friend' access
   bool                                 aggregate_; // support multiple initializations ?

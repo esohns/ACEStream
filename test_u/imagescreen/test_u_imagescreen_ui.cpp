@@ -1094,8 +1094,8 @@ continue_:
 }
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_ImageScreen_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
+                                     Stream_ImageScreen_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
 
@@ -1106,28 +1106,30 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_ImageScreen_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.stream);
 
-  cbdata_r.stream->control (STREAM_CONTROL_STEP_2);
+  cbdata_r.stream->control (STREAM_CONTROL_STEP_2,
+                            false,
+                            true); // expedited ?
 }
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_ImageScreen_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
+                                     Stream_ImageScreen_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_ImageScreen_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
+                                     Stream_ImageScreen_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
 void
 Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
-                                 Stream_ImageScreen_WxWidgetsIApplication_t,
-                                 Stream_ImageScreen_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
+                                     Stream_ImageScreen_WxWidgetsIApplication_t,
+                                     Stream_ImageScreen_Stream>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_source_changed_cb"));
 

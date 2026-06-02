@@ -100,7 +100,8 @@ Stream_CachedMessageAllocator_T<ACE_SYNCH_USE,
     // allocated space
     ACE_NEW_MALLOC_NORETURN (message_p,
                              static_cast<ControlMessageType*> (controlMessageAllocator_.malloc (sizeof (ControlMessageType))),
-                             ControlMessageType (data_block_p, // use the data block just allocated
+                             ControlMessageType (0,            // session id
+                                                 data_block_p, // use the data block just allocated
                                                  this));       // remember allocator upon destruction
   }
   catch (...) {

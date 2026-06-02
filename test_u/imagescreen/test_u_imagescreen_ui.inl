@@ -271,19 +271,20 @@ template <typename WidgetBaseClassType,
           typename StreamType>
 void
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
+                                     InterfaceType,
+                                     StreamType>::togglebutton_record_toggled_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::togglebutton_record_toggled_cb"));
 
 }
+
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 void
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
+                                     InterfaceType,
+                                     StreamType>::button_snapshot_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_snapshot_clicked_cb"));
 
@@ -294,37 +295,42 @@ Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
     const_cast<typename InterfaceType::CONFIGURATION_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
-  cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.stream->control (STREAM_CONTROL_STEP_2,
+                             false,
+                             true); // expedited ?
 }
+
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 void
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::button_cut_clicked_cb (wxCommandEvent& event_in)
+                                     InterfaceType,
+                                     StreamType>::button_cut_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_cut_clicked_cb"));
 
 }
+
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 void
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::button_report_clicked_cb (wxCommandEvent& event_in)
+                                     InterfaceType,
+                                     StreamType>::button_report_clicked_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::button_report_clicked_cb"));
 
 }
+
 template <typename WidgetBaseClassType,
           typename InterfaceType,
           typename StreamType>
 void
 Stream_ImageScreen_WxWidgetsDialog_T<WidgetBaseClassType,
-                                 InterfaceType,
-                                 StreamType>::choice_source_changed_cb (wxCommandEvent& event_in)
+                                     InterfaceType,
+                                     StreamType>::choice_source_changed_cb (wxCommandEvent& event_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_WxWidgetsDialog_T::choice_source_changed_cb"));
 
@@ -1217,7 +1223,9 @@ Stream_ImageScreen_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_ImageScreen_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
-  cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.stream->control (STREAM_CONTROL_STEP_2,
+                             false,
+                             true); // expedited ?
 }
 
 void

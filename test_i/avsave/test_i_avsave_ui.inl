@@ -292,7 +292,9 @@ Stream_AVSave_WxWidgetsDialog_T<WidgetBaseClassType,
     const_cast<typename InterfaceType::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.stream);
 
-  cb_data_r.stream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.stream->control (STREAM_CONTROL_STEP_2,
+                             false,
+                             true); // expedited ?
 }
 template <typename WidgetBaseClassType,
           typename InterfaceType,
@@ -1221,7 +1223,9 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_AVSave_DirectShow_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cb_data_r.videoStream);
 
-  cb_data_r.videoStream->control (STREAM_CONTROL_STEP_2);
+  cb_data_r.videoStream->control (STREAM_CONTROL_STEP_2,
+                                  false,
+                                  true); // expedited ?
 }
 
 void

@@ -819,7 +819,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
         {
           if (likely (!abortSent_))
             control (STREAM_CONTROL_ABORT,
-                     false); // forward upstream ?
+                     false, // forward upstream ?
+                     true); // expedited ?
         } // end IF
 
         // *IMPORTANT NOTE*: when close()d manually (i.e. on a user abort),
@@ -1454,7 +1455,7 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unknown control (was: %d), continuing\n"),
+                  ACE_TEXT ("%s: invalid/unknown control type (was: %d), continuing\n"),
                   inherited::mod_->name (),
                   control_in));
       break;
@@ -2839,7 +2840,8 @@ Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
 
         try {
           istream_control_p->control (STREAM_CONTROL_END,
-                                      false); // recurse upstream ?
+                                      false,  // recurse upstream ?
+                                      false); // expedite ?
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("%s:%s: caught exception in Stream_IStreamControl_T::control(STREAM_CONTROL_END), aborting\n"),

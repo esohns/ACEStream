@@ -1356,7 +1356,9 @@ Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
     const_cast<Stream_AVSave_ALSA_V4L_WxWidgetsIApplication_t::CALLBACKDATA_T&> (application_->getR_2 ());
   ACE_ASSERT (cbdata_r.videoStream);
 
-  cbdata_r.videoStream->control (STREAM_CONTROL_STEP_2);
+  cbdata_r.videoStream->control (STREAM_CONTROL_STEP_2,
+                                 false,
+                                 true); // expedited ?
 }
 void
 Stream_AVSave_WxWidgetsDialog_T<wxDialog_main,
