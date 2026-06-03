@@ -87,6 +87,8 @@ extern "C"
 
 #include "common_image_tools.h"
 
+//#include "common_gl_tools.h"
+
 #include "common_timer_manager_common.h"
 
 #include "common_ui_gtk_common.h"
@@ -7216,80 +7218,86 @@ button_cut_clicked_cb (GtkButton* button_in,
 {
   STREAM_TRACE (ACE_TEXT ("::button_cut_clicked_cb"));
 
+  // sanity check(s)
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
-  Stream_IStreamControlBase* stream_p = NULL;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Test_U_MicVisualize_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
-  struct Test_U_MicVisualize_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
-    NULL;
-  switch (ui_cb_data_base_p->mediaFramework)
-  {
-    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    {
-      directshow_ui_cb_data_p =
-        static_cast<struct Test_U_MicVisualize_DirectShow_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+//  Stream_IStreamControlBase* stream_p = NULL;
+//#if defined (ACE_WIN32) || defined (ACE_WIN64)
+//  struct Test_U_MicVisualize_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
+//  struct Test_U_MicVisualize_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
+//    NULL;
+//  switch (ui_cb_data_base_p->mediaFramework)
+//  {
+//    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+//    {
+//      // sanity check(s)
+//      directshow_ui_cb_data_p =
+//        static_cast<struct Test_U_MicVisualize_DirectShow_UI_CBData*> (userData_in);
+//      ACE_ASSERT (directshow_ui_cb_data_p);
+//      ACE_ASSERT (directshow_ui_cb_data_p->stream);
+//
+//      stream_p = directshow_ui_cb_data_p->stream;
+//      Test_U_MicVisualize_DirectShow_IStreamControl_t* istream_control_p =
+//        dynamic_cast<Test_U_MicVisualize_DirectShow_IStreamControl_t*> (directshow_ui_cb_data_p->stream);
+//      ACE_ASSERT (istream_control_p);
+//      istream_control_p->control (STREAM_CONTROL_STEP,
+//                                  false, // recurse upstream ?
+//                                  true); // expedited ?
+//
+//      break;
+//    }
+//    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+//    {
+//      // sanity check(s)
+//      mediafoundation_ui_cb_data_p =
+//        static_cast<struct Test_U_MicVisualize_MediaFoundation_UI_CBData*> (userData_in);
+//      ACE_ASSERT (mediafoundation_ui_cb_data_p);
+//      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
+//
+//      stream_p = mediafoundation_ui_cb_data_p->stream;
+//      Test_U_MicVisualize_MediaFoundation_IStreamControl_t* istream_control_p =
+//        dynamic_cast<Test_U_MicVisualize_MediaFoundation_IStreamControl_t*> (mediafoundation_ui_cb_data_p->stream);
+//      ACE_ASSERT (istream_control_p);
+//      istream_control_p->control (STREAM_CONTROL_STEP,
+//                                  false, // recurse upstream ?
+//                                  true); // expedited ?
+//
+//      break;
+//    }
+//    default:
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
+//                  ui_cb_data_base_p->mediaFramework));
+//      return;
+//    }
+//  } // end SWITCH
+//#else
+//  // sanity check(s)
+//  struct Test_U_MicVisualize_UI_CBData* data_p =
+//    static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
+//  ACE_ASSERT (data_p);
+//  ACE_ASSERT (data_p->stream);
+//
+//  stream_p = data_p->stream;
+//  Test_U_MicVisualize_IStreamControl_t* istream_control_p =
+//    dynamic_cast<Test_U_MicVisualize_IStreamControl_t*> (data_p->stream);
+//  ACE_ASSERT (istream_control_p);
+//  istream_control_p->control (STREAM_CONTROL_STEP,
+//                              false, // recurse upstream ?
+//                              true); // expedited ?
+//#endif // ACE_WIN32 || ACE_WIN64
+//  ACE_ASSERT (stream_p);
 
-      stream_p = directshow_ui_cb_data_p->stream;
-      Test_U_MicVisualize_DirectShow_IStreamControl_t* istream_control_p =
-        dynamic_cast<Test_U_MicVisualize_DirectShow_IStreamControl_t*> (directshow_ui_cb_data_p->stream);
-      ACE_ASSERT (istream_control_p);
-      istream_control_p->control (STREAM_CONTROL_STEP,
-                                  false, // recurse upstream ?
-                                  true); // expedited ?
-
-      break;
-    }
-    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    {
-      mediafoundation_ui_cb_data_p =
-        static_cast<struct Test_U_MicVisualize_MediaFoundation_UI_CBData*> (userData_in);
-      // sanity check(s)
-      ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->stream);
-
-      stream_p = mediafoundation_ui_cb_data_p->stream;
-      Test_U_MicVisualize_MediaFoundation_IStreamControl_t* istream_control_p =
-        dynamic_cast<Test_U_MicVisualize_MediaFoundation_IStreamControl_t*> (mediafoundation_ui_cb_data_p->stream);
-      ACE_ASSERT (istream_control_p);
-      istream_control_p->control (STREAM_CONTROL_STEP,
-                                  false, // recurse upstream ?
-                                  true); // expedited ?
-
-      break;
-    }
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown media framework (was: %d), returning\n"),
-                  ui_cb_data_base_p->mediaFramework));
-      return;
-    }
-  } // end SWITCH
-#else
-  struct Test_U_MicVisualize_UI_CBData* data_p =
-    static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
-
-  // sanity check(s)
-  ACE_ASSERT (data_p);
-  ACE_ASSERT (data_p->stream);
-
-  stream_p = data_p->stream;
-  Test_U_MicVisualize_IStreamControl_t* istream_control_p =
-    dynamic_cast<Test_U_MicVisualize_IStreamControl_t*> (data_p->stream);
-  ACE_ASSERT (istream_control_p);
-  istream_control_p->control (STREAM_CONTROL_STEP,
-                              false, // recurse upstream ?
-                              true); // expedited ?
-#endif // ACE_WIN32 || ACE_WIN64
-  ACE_ASSERT (stream_p);
+  //std::string path = Common_File_Tools::getTempDirectory ();
+  //path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_SCREENSHOT_FILE);
+  //Common_GL_Tools::screenShot (path);
+#if defined (GLUT_SUPPORT)
+  ui_cb_data_base_p->GLUTCBData.screenshot = true;
+#endif // GLUT_SUPPORT
 } // button_cut_clicked_cb
 
 void

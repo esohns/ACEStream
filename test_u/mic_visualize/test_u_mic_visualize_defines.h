@@ -24,6 +24,7 @@
 #define TEST_U_NOISE_DEFAULT_TYPE           STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
 #define TEST_U_NOISE_DEFAULT_FREQUENCY_D    440.0 // Hz
 #define TEST_U_DEFAULT_OUTPUT_FILE          "output.wav"
+#define TEST_U_DEFAULT_SCREENSHOT_FILE      "output.jpg"
 
 #if defined (GTK_USE)
 #if defined (GTK2_USE)

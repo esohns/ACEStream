@@ -765,6 +765,7 @@ struct Test_U_GLUT_CBData
 
   // window
   int                                              windowId;
+  bool                                             screenshot;
 
   // menu
   bool                                             wireframe;

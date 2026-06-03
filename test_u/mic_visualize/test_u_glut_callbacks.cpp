@@ -19,6 +19,8 @@
 
 #include "common_image_tools.h"
 
+#include "common_gl_tools.h"
+
 #include "test_u_mic_visualize_common.h"
 #include "test_u_mic_visualize_defines.h"
 
@@ -186,6 +188,15 @@ test_u_glut_draw (void)
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
+
+  //if (unlikely (cb_data_p->screenshot))
+  //{ cb_data_p->screenshot = false;
+  //  std::string path = Common_File_Tools::getTempDirectory ();
+  //  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  //  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_SCREENSHOT_FILE);
+  //  Common_GL_Tools::screenShot (path);
+  //} // end IF
+
   { ACE_GUARD (ACE_Thread_Mutex, aGuard, cb_data_p->lock);
     if (likely (cb_data_p->fft))
     {
