@@ -600,7 +600,7 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   } // end ELSE IF
 
   if (unlikely (adjust_b))
-  { ACE_ASSERT (baseNumberOfTokens_);
+  {
     // recompute average tokens per interval with new factor
     inherited::configuration_->delayConfiguration->averageTokensPerInterval =
       static_cast<ACE_UINT64> (baseNumberOfTokens_ * new_factor);

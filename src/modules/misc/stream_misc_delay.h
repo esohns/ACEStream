@@ -127,7 +127,7 @@ class Stream_Module_Delay_T
 #endif // ACE_WIN32 || ACE_WIN64
   struct AdaptiveState
   {
-    float currentFactor;             // current multiplier
+    float currentFactor;             // current token factor
     ACE_UINT32 underrunCount;        // consecutive underruns
     ACE_UINT32 successCount;         // consecutive token-satisfactions
     ACE_UINT64 lastAdjustmentTickId; // prevent too-frequent adjustments
