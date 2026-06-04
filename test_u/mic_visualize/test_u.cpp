@@ -1920,8 +1920,8 @@ do_work (int argc_in,
     GLUT_CBData_p->wireframe = false;
 
     GLUT_CBData_p->camera.position_.x = 0.0f;
-    GLUT_CBData_p->camera.position_.y = 0.0f;
-    GLUT_CBData_p->camera.position_.z = 1000.0f;
+    GLUT_CBData_p->camera.position_.y = 800.0f;
+    GLUT_CBData_p->camera.position_.z = 500.0f;
     GLUT_CBData_p->camera.looking_at_.x = 0.0f;
     GLUT_CBData_p->camera.looking_at_.y = 0.0f;
     GLUT_CBData_p->camera.looking_at_.z = 0.0f;
@@ -1992,12 +1992,12 @@ do_work (int argc_in,
 #endif // GLUT_SUPPORT
 
     ACE_ASSERT (istream_control_p);
-    istream_control_p->stop (true,
-                             true,
-                             false);
+    istream_control_p->stop (true,  // wait ?
+                             false, // recurse upstream ?
+                             true); // high priority ?
 
-    itask_p->stop (true,
-                   false);
+    itask_p->stop (true,   // wait ?
+                   false); // N/A
   } // end IF
   else
   {

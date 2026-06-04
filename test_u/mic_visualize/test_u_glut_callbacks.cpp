@@ -99,13 +99,21 @@ test_u_glut_key_special (int key_in,
       break;
     }
     case GLUT_KEY_LEFT:
+      cb_data_p->camera.position_.x -= 100.0f;
       break;
     case GLUT_KEY_RIGHT:
+      cb_data_p->camera.position_.x += 100.0f;
       break;
     case GLUT_KEY_UP:
+      cb_data_p->camera.position_.y += 100.0f;
+      break;
+    case GLUT_KEY_DOWN:
+      cb_data_p->camera.position_.y -= 100.0f;
+      break;
+    case GLUT_KEY_HOME:
       cb_data_p->camera.position_.x = 0.0f;
-      cb_data_p->camera.position_.y = 0.0f;
-      cb_data_p->camera.position_.z = 1000.0f;
+      cb_data_p->camera.position_.y = 800.0f;
+      cb_data_p->camera.position_.z = 500.0f;
       break;
   } // end SWITCH
 }
@@ -144,6 +152,20 @@ test_u_glut_mouse_button (int button,
       cb_data_p->mouseLMBPressed = (state == GLUT_DOWN);
       break;
     }
+    case 3:
+    {
+      if (state == GLUT_DOWN)
+        cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::FORWARD,
+                                          0.25f);
+      break;
+    }
+    case 4:
+    {
+      if (state == GLUT_DOWN)
+        cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::BACKWARD,
+                                          0.25f);
+      break;
+    }
     default:
       break;
   } // end IF
@@ -167,10 +189,11 @@ test_u_glut_timer (int value_in)
   // sanity check(s)
   struct Test_U_GLUT_CBData* cb_data_p = NULL;
 #if defined (ACE_LINUX)
-  ACE_ASSERT (sizeof (unsigned int) == 4);
+  ACE_ASSERT (ACE_SIZEOF_INT == 4);
   uint64_t value_i = static_cast<unsigned int> (value_in) + 0x7FFF00000000;
   cb_data_p = reinterpret_cast<struct Test_U_GLUT_CBData*> (value_i);
 #else
+  ACE_ASSERT (timer_cb_data_p);
   cb_data_p =
     reinterpret_cast<struct Test_U_GLUT_CBData*> (timer_cb_data_p);
 #endif // ACE_LINUX
@@ -192,6 +215,9 @@ test_u_glut_draw (void)
   int i = 0;
   float r, g, b, a_increment_f;
   std::vector<float> spectrum_0, spectrum_1;
+  static float x_offset_f = 250.0f;
+  static float rad_to_deg_f = 180.0f / static_cast<float> (M_PI);
+  static float x_rot_f = -static_cast<float> (M_PI_4) * rad_to_deg_f;
 
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
@@ -228,24 +254,25 @@ continue_:
   glLoadIdentity ();
 
   // set the camera
+  if (cb_data_p->mouseLMBPressed)
+    cb_data_p->camera.mouseLook (cb_data_p->mouseX, cb_data_p->mouseY);
+
   gluLookAt (cb_data_p->camera.position_.x, cb_data_p->camera.position_.y, cb_data_p->camera.position_.z,
              cb_data_p->camera.looking_at_.x, cb_data_p->camera.looking_at_.y, cb_data_p->camera.looking_at_.z,
              cb_data_p->camera.up_.x, cb_data_p->camera.up_.y, cb_data_p->camera.up_.z);
 
   // draw a red x-axis, a green y-axis, and a blue z-axis. Each of the
   // axes are 100 units long
-  //glBegin (GL_LINES);
-  //glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
-  //glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
-  //glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
-  //glEnd ();
-
-  glTranslatef (0.0f, -315.0f, 0.0f);
+  glBegin (GL_LINES);
+  glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
+  glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
+  glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
+  glEnd ();
 
   glPushMatrix ();
-  glTranslatef (-250.0f, 0.0f, 0.0f);
-  glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
-  glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
+  //glRotatef (x_rot_f, 1.0f, 0.0f, 0.0f);
+  glTranslatef (-x_offset_f, 0.0f, 0.0f);
+  glRotatef (frame_count_i / 100.0f * rad_to_deg_f, 0.0f, 1.0f, 0.0f);
 
   for (int k = 0; k < TEST_U_GLUT_DEFAULT_LAYERS; k++)
   {
@@ -257,12 +284,12 @@ continue_:
 
     glBegin (GL_LINE_STRIP);
     a_increment_f =
-      1.0f / (TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR * static_cast<float> (k + 1));
+      1.0f / (TEST_U_GLUT_DEFAULT_XZ_AMP_FACTOR * static_cast<float> (k + 1));
     for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += a_increment_f)
     {
       x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
-      y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = -(spectrum_0[i++ % spectrum_0.size ()] * TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR);
+      y = (spectrum_0[i++ % spectrum_0.size ()] * TEST_U_GLUT_DEFAULT_Y_AMP_FACTOR);
+      z = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
 
       if (unlikely (a == 0.0f))
       {
@@ -281,10 +308,12 @@ continue_:
 
   i = 0;
 
+  //glTranslatef (x_offset_f, 0.0f, 0.0f);
+
   glPushMatrix ();
-  glTranslatef (250.0f, 0.0f, 0.0f);
-  glRotatef (static_cast<float> (M_PI_4) * (180.0f / static_cast<float> (M_PI)), 1.0f, 0.0f, 0.0f);
-  glRotatef (frame_count_i / 10.0f * (180.0f / static_cast<float> (M_PI)), 0.0f, 0.0f, 1.0f);
+  //glRotatef (x_rot_f, 1.0f, 0.0f, 0.0f);
+  glTranslatef (x_offset_f, 0.0f, 0.0f);
+  glRotatef (frame_count_i / 100.0f * rad_to_deg_f, 0.0f, 1.0f, 0.0f);
 
   for (int k = 0; k < TEST_U_GLUT_DEFAULT_LAYERS; k++)
   {
@@ -296,12 +325,12 @@ continue_:
 
     glBegin (GL_LINE_STRIP);
     a_increment_f =
-      1.0f / (TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR * static_cast<float> (k + 1));
+      1.0f / (TEST_U_GLUT_DEFAULT_XZ_AMP_FACTOR * static_cast<float> (k + 1));
     for (float a = 0.0f; a < 2.0f * static_cast<float> (M_PI); a += a_increment_f)
     {
       x = TEST_U_GLUT_DEFAULT_D * k * std::cos (a);
-      y = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
-      z = -(spectrum_1[i++ % spectrum_1.size ()] * TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR);
+      y = (spectrum_1[i++ % spectrum_1.size ()] * TEST_U_GLUT_DEFAULT_Y_AMP_FACTOR);
+      z = TEST_U_GLUT_DEFAULT_D * k * std::sin (a);
 
       if (unlikely (a == 0.0f))
       {
@@ -317,6 +346,8 @@ continue_:
   } // end FOR
 
   glPopMatrix ();
+
+  //glPopMatrix ();
 
   glutSwapBuffers ();
 
