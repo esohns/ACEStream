@@ -88,6 +88,9 @@ test_u_glut_key_special (int key_in,
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
 
+  int modifiers_i = glutGetModifiers ();
+  cb_data_p->shiftPressed = (modifiers_i & GLUT_ACTIVE_SHIFT) != 0;
+
   switch (key_in)
   {
     case GLUT_KEY_F12:
@@ -100,19 +103,27 @@ test_u_glut_key_special (int key_in,
     }
     case GLUT_KEY_LEFT:
       cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::LEFT,
-                                        0.25f);
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
       break;
     case GLUT_KEY_RIGHT:
       cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::RIGHT,
-                                        0.25f);
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
       break;
     case GLUT_KEY_UP:
       cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::UP,
-                                        0.25f);
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
       break;
     case GLUT_KEY_DOWN:
       cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::DOWN,
-                                        0.25f);
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
+      break;
+    case GLUT_KEY_PAGE_UP:
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::FORWARD,
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
+      break;
+    case GLUT_KEY_PAGE_DOWN:
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::BACKWARD,
+                                        cb_data_p->shiftPressed ? 0.03f : 0.25f);
       break;
     case GLUT_KEY_HOME:
       cb_data_p->camera.position_.x = 0.0f;
@@ -120,6 +131,8 @@ test_u_glut_key_special (int key_in,
       cb_data_p->camera.position_.z = 500.0f;
       break;
   } // end SWITCH
+
+  cb_data_p->shiftPressed = false;
 }
 
 void
@@ -258,7 +271,7 @@ continue_:
   glLoadIdentity ();
 
   // set the camera
-  if (cb_data_p->mouseLMBPressed)
+  if (unlikely (cb_data_p->mouseLMBPressed))
     cb_data_p->camera.mouseLook (cb_data_p->mouseX, cb_data_p->mouseY);
 
   gluLookAt (cb_data_p->camera.position_.x, cb_data_p->camera.position_.y, cb_data_p->camera.position_.z,
@@ -267,11 +280,14 @@ continue_:
 
   // draw a red x-axis, a green y-axis, and a blue z-axis. Each of the
   // axes are 100 units long
-  glBegin (GL_LINES);
-  glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
-  glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
-  glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
-  glEnd ();
+  if (cb_data_p->wireframe)
+  {
+    glBegin (GL_LINES);
+    glColor3f (1.0f, 0.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (100, 0, 0);
+    glColor3f (0.0f, 1.0f, 0.0f); glVertex3i (0, 0, 0); glVertex3i (0, 100, 0);
+    glColor3f (0.0f, 0.0f, 1.0f); glVertex3i (0, 0, 0); glVertex3i (0, 0, 100);
+    glEnd ();
+  } // end IF
 
   glPushMatrix ();
   //glRotatef (x_rot_f, 1.0f, 0.0f, 0.0f);

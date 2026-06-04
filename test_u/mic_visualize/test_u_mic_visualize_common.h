@@ -764,6 +764,7 @@ struct Test_U_GLUT_CBData
    , mouseX (0)
    , mouseY (0)
    , mouseLMBPressed (false)
+   , shiftPressed (false)
   {}
 
   // canvas
@@ -787,6 +788,9 @@ struct Test_U_GLUT_CBData
   int                                              mouseX;
   int                                              mouseY;
   bool                                             mouseLMBPressed;
+
+  // keyboard
+  bool                                             shiftPressed;
 };
 #endif // GLUT_SUPPORT
 
