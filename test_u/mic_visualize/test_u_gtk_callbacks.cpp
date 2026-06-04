@@ -87,7 +87,7 @@ extern "C"
 
 #include "common_image_tools.h"
 
-//#include "common_gl_tools.h"
+#include "common_input_tools.h"
 
 #include "common_timer_manager_common.h"
 
@@ -3965,6 +3965,7 @@ stream_processing_function (void* arg_in)
   Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft_p = NULL;
 #endif // FFTW_SUPPORT
   Common_IDispatch* dispatch_p = NULL;
+  ACE_Thread_Mutex* mutex_p = NULL;
   guint event_source_id = 0;
   struct Test_U_MicVisualize_UI_CBDataBase* ui_data_base_p = NULL;
 
@@ -4044,6 +4045,9 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
 #endif // FFTW_SUPPORT
   ACE_ASSERT (fft_p);
+  mutex_p =
+    &const_cast<ACE_Thread_Mutex&> (dynamic_cast<Common_IGetR_2_T<ACE_Thread_Mutex>*> (const_cast<Stream_Module_t*> (module_p)->writer ())->getR_2 ());
+  ACE_ASSERT (mutex_p);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (thread_data_base_p->mediaFramework)
   {
@@ -4052,7 +4056,8 @@ stream_processing_function (void* arg_in)
       directshow_ui_cb_data_p->resizeNotification = resize_notification_p;
       directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
 #if defined (GLUT_SUPPORT)
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, directshow_ui_cb_data_p->GLUTCBData.lock, 0);
+      directshow_ui_cb_data_p->GLUTCBData.lock = mutex_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *directshow_ui_cb_data_p->GLUTCBData.lock, 0);
         directshow_ui_cb_data_p->GLUTCBData.fft = fft_p;
       } // end lock scope
 #endif // GLUT_SUPPORT
@@ -4064,7 +4069,8 @@ stream_processing_function (void* arg_in)
       mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch =
         dispatch_p;
 #if defined (GLUT_SUPPORT)
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
+      mediafoundation_ui_cb_data_p->GLUTCBData.lock = mutex_p;
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
         mediafoundation_ui_cb_data_p->GLUTCBData.fft = fft_p;
       } // end lock scope
 #endif // GLUT_SUPPORT
@@ -4082,7 +4088,8 @@ stream_processing_function (void* arg_in)
   ui_cb_data_p->resizeNotification = resize_notification_p;
   ui_cb_data_p->spectrumAnalyzerCBData.dispatch = dispatch_p;
 #if defined (GLUT_SUPPORT)
-  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->GLUTCBData.lock, 0);
+  ui_cb_data_p->GLUTCBData.lock = mutex_p;
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *ui_cb_data_p->GLUTCBData.lock, 0);
     ui_cb_data_p->GLUTCBData.fft = fft_p;
   } // end lock scope
 #endif // GLUT_SUPPORT
@@ -4165,7 +4172,7 @@ stream_processing_function (void* arg_in)
       directshow_ui_cb_data_p->resizeNotification = NULL;
       directshow_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, directshow_ui_cb_data_p->GLUTCBData.lock, 0);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *directshow_ui_cb_data_p->GLUTCBData.lock, 0);
         directshow_ui_cb_data_p->GLUTCBData.fft = NULL;
       } // end lock scope
 #endif // GLUT_SUPPORT
@@ -4176,7 +4183,7 @@ stream_processing_function (void* arg_in)
       mediafoundation_ui_cb_data_p->resizeNotification = NULL;
       mediafoundation_ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *mediafoundation_ui_cb_data_p->GLUTCBData.lock, 0);
         mediafoundation_ui_cb_data_p->GLUTCBData.fft = NULL;
       } // end lock scope
 #endif // GLUT_SUPPORT
@@ -4194,7 +4201,7 @@ stream_processing_function (void* arg_in)
   ui_cb_data_p->resizeNotification = NULL;
   ui_cb_data_p->spectrumAnalyzerCBData.dispatch = NULL;
 #if defined (GLUT_SUPPORT)
-  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, ui_cb_data_p->GLUTCBData.lock, 0);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, *ui_cb_data_p->GLUTCBData.lock, 0);
     ui_cb_data_p->GLUTCBData.fft = NULL;
   } // end lock scope
 #endif // GLUT_SUPPORT
@@ -7296,8 +7303,25 @@ button_cut_clicked_cb (GtkButton* button_in,
   //path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_SCREENSHOT_FILE);
   //Common_GL_Tools::screenShot (path);
 #if defined (GLUT_SUPPORT)
-  ui_cb_data_base_p->GLUTCBData.screenshot = true;
+  // ui_cb_data_base_p->GLUTCBData.screenshot = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  HWND fg_hwnd = GetForegroundWindow ();
+  ACE_ASSERT (fg_hwnd);
+  HWND hwnd = FindWindow (NULL, ACE_TEXT (TEST_U_GLUT_DEFAULT_WINDOW_TITLE));
+  ACE_ASSERT (hwnd);
+  SetForegroundWindow (hwnd);
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GLUT_SUPPORT
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Common_Input_Tools::input (VK_F12,
+                             true); // virtual key ?
+#if defined (GLUT_SUPPORT)
+  SetForegroundWindow (fg_hwnd);
+#endif // GLUT_SUPPORT
+#else
+  ACE_ASSERT (false); // *TODO*: implement screenshot support
+  //Common_Input_Tools::input ();
+#endif // ACE_WIN32 || ACE_WIN64
 } // button_cut_clicked_cb
 
 void

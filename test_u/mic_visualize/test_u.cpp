@@ -1940,7 +1940,8 @@ do_work (int argc_in,
     glutInitDisplayMode (GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH);
     glutInitWindowSize (TEST_U_GLUT_DEFAULT_WIDTH, TEST_U_GLUT_DEFAULT_HEIGHT);
 
-    GLUT_CBData_p->windowId = glutCreateWindow ("MicVisualize");
+    GLUT_CBData_p->windowId =
+      glutCreateWindow (ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_DEFAULT_WINDOW_TITLE));
     glutSetWindow (GLUT_CBData_p->windowId);
     glutSetWindowData (GLUT_CBData_p);
 

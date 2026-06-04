@@ -755,17 +755,27 @@ typedef Common_ISubscribe_T<Test_U_MicVisualize_ISessionNotify_t> Test_U_MicVisu
 #if defined (GLUT_SUPPORT)
 struct Test_U_GLUT_CBData
 {
+  Test_U_GLUT_CBData ()
+   : fft (NULL)
+   , lock (NULL)
+   , windowId (0)
+   , wireframe (false)
+   , camera ()
+   , mouseX (0)
+   , mouseY (0)
+   , mouseLMBPressed (false)
+  {}
+
   // canvas
 #if defined (FFTW_SUPPORT)
   Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*    fft;
 #else
   Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft;
 #endif // FFTW_SUPPORT
-  ACE_Thread_Mutex                                 lock; // protect fft handle
+  ACE_Thread_Mutex*                                lock; // protect fft handle
 
   // window
   int                                              windowId;
-  bool                                             screenshot;
 
   // menu
   bool                                             wireframe;

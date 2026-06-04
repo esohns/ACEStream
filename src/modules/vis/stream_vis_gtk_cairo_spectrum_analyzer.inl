@@ -376,6 +376,7 @@ next:
   {
     samples_to_write = std::min (inherited2::slots_, number_of_samples);
 //    bufferedSamples_ += samples_to_write;
+    tail_slot = inherited2::slots_ - samples_to_write;
     sampleIterator_.buffer_ =
       reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()) + offset;
     for (unsigned int i = 0; i < inherited2::channels_; ++i)
@@ -384,9 +385,8 @@ next:
       // *TODO*: in principle, this step can be avoided by keeping track of the
       //         'current' slot (see also: Common_Math_FFT::CopyIn())
 
-      // make space for inbound samples at the end of the buffer,
-      // shifting previous samples towards the beginning
-      tail_slot = inherited2::slots_ - samples_to_write;
+      // make space for inbound samples at the end of the buffer, shifting
+      // previous samples towards the beginning
       ACE_OS::memmove (&(inherited2::buffer_[i][0]), &(inherited2::buffer_[i][samples_to_write]), tail_slot * sizeof (ValueType));
 
       // copy the sample data to the tail end of the buffer as ValueType

@@ -74,6 +74,7 @@ class Stream_TaskBase_T
  , public Common_IGetP_T<Stream_IStream_T<ACE_SYNCH_USE,
                                           TimePolicyType> >
  , public Common_IGetR_T<ConfigurationType>
+ , public Common_IGetR_2_T<ACE_Thread_Mutex>
 {
   typedef Common_TaskBase_T<ACE_SYNCH_USE,
                             TimePolicyType,
@@ -116,6 +117,7 @@ class Stream_TaskBase_T
   // implement Common_IGet_T
   virtual const ISTREAM_T* const getP () const;
   inline virtual const ConfigurationType& getR () const { ACE_ASSERT (configuration_);  return *configuration_; }
+  inline virtual const ACE_Thread_Mutex& getR_2 () const { return inherited::lock_; }
 
  protected:
   // convenient types

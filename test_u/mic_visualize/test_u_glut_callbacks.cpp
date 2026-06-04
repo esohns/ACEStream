@@ -90,6 +90,14 @@ test_u_glut_key_special (int key_in,
 
   switch (key_in)
   {
+    case GLUT_KEY_F12:
+    {
+      std::string path = Common_File_Tools::getTempDirectory ();
+      path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_SCREENSHOT_FILE);
+      Common_GL_Tools::screenShot (path);
+      break;
+    }
     case GLUT_KEY_LEFT:
       break;
     case GLUT_KEY_RIGHT:
@@ -188,16 +196,11 @@ test_u_glut_draw (void)
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
+  if (unlikely (!cb_data_p->lock))
+    goto draw_no_fft; // --> stream not running
 
-  //if (unlikely (cb_data_p->screenshot))
-  //{ cb_data_p->screenshot = false;
-  //  std::string path = Common_File_Tools::getTempDirectory ();
-  //  path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  //  path += ACE_TEXT_ALWAYS_CHAR (TEST_U_DEFAULT_SCREENSHOT_FILE);
-  //  Common_GL_Tools::screenShot (path);
-  //} // end IF
-
-  { ACE_GUARD (ACE_Thread_Mutex, aGuard, cb_data_p->lock);
+  //{ ACE_GUARD (ACE_Thread_Mutex, aGuard, *cb_data_p->lock);
+    cb_data_p->lock->acquire ();
     if (likely (cb_data_p->fft))
     {
       spectrum_0 = cb_data_p->fft->Spectrum (0, false); // normalize ?
@@ -205,15 +208,20 @@ test_u_glut_draw (void)
     } // end IF
     else
     {
+draw_no_fft:
       spectrum_0.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
       spectrum_1.resize ((STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS / 2) - 1, 0.0f);
+      if (likely (!cb_data_p->lock))
+        goto continue_;
     } // end ELSE
-  } // end lock scope
+    cb_data_p->lock->release ();
+  //} // end lock scope
 
+continue_:
   glPolygonMode (GL_FRONT_AND_BACK,
                  cb_data_p->wireframe ? GL_LINE : GL_FILL);
 
-  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear (GL_COLOR_BUFFER_BIT /* | GL_DEPTH_BUFFER_BIT*/);
 
   // reset transformations
   glMatrixMode (GL_MODELVIEW);

@@ -21,39 +21,40 @@
 #ifndef TEST_U_MICVISUALIZE_DEFINES_H
 #define TEST_U_MICVISUALIZE_DEFINES_H
 
-#define TEST_U_NOISE_DEFAULT_TYPE           STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
-#define TEST_U_NOISE_DEFAULT_FREQUENCY_D    440.0 // Hz
-#define TEST_U_DEFAULT_OUTPUT_FILE          "output.wav"
-#define TEST_U_DEFAULT_SCREENSHOT_FILE      "output.jpg"
+#define TEST_U_DEFAULT_OUTPUT_FILE                      "output.wav"
+#define TEST_U_DEFAULT_SCREENSHOT_FILE                  "output.jpg"
+
+#define TEST_U_NOISE_DEFAULT_TYPE                       STREAM_MEDIAFRAMEWORK_SOUNDGENERATOR_SINE
+#define TEST_U_NOISE_DEFAULT_FREQUENCY_D                440.0 // Hz
 
 #if defined (GTK_USE)
 #if defined (GTK2_USE)
-#define TEST_U_GLADE_FILE                   "test_u.gtk2"
+#define TEST_U_GLADE_FILE                               "test_u.gtk2"
 #elif defined (GTK3_USE)
-#define TEST_U_GLADE_FILE                   "test_u.gtk3"
+#define TEST_U_GLADE_FILE                               "test_u.gtk3"
 #endif // GTK2_USE || GTK3_USE
 #elif defined (WXWIDGETS_USE)
-#define TEST_U_WXWIDGETS_XRC_FILE           "test_u.xrc"
-#endif
+#define TEST_U_WXWIDGETS_XRC_FILE                       "test_u.xrc"
+#endif // GTK_USE || WXWIDGETS_USE
 
 // defaults
 // *TODO*: remove these ASAP
-#define TEST_U_OPENGL_DEFAULT_TEXTURE_FILE  "image.png"
-#define TEST_U_OPENGL_DEFAULT_FS_FILE       "fragment_shader.glsl"
-#define TEST_U_OPENGL_DEFAULT_VS_FILE       "vertex_shader.glsl"
+#define TEST_U_OPENGL_DEFAULT_TEXTURE_FILE              "image.png"
+#define TEST_U_OPENGL_DEFAULT_FS_FILE                   "fragment_shader.glsl"
+#define TEST_U_OPENGL_DEFAULT_VS_FILE                   "vertex_shader.glsl"
 
-#define TEST_U_OPENGL_CAMERA_DEFAULT_ZOOM_F 5.0f
+#define TEST_U_OPENGL_CAMERA_DEFAULT_ZOOM_F             5.0f
 // perspective(s)
-#define TEST_U_OPENGL_PERSPECTIVE_FOVY_D    60.0
-#define TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D   1.0
-#define TEST_U_OPENGL_PERSPECTIVE_ZFAR_D    100.0
-#define TEST_U_OPENGL_ORTHO_ZNEAR_D         -1.0
-#define TEST_U_OPENGL_ORTHO_ZFAR_D          1.0
+#define TEST_U_OPENGL_PERSPECTIVE_FOVY_D                60.0
+#define TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D               1.0
+#define TEST_U_OPENGL_PERSPECTIVE_ZFAR_D                100.0
+#define TEST_U_OPENGL_ORTHO_ZNEAR_D                     -1.0
+#define TEST_U_OPENGL_ORTHO_ZFAR_D                      1.0
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
-#define TEST_U_SOX_DEFAULT_EFFECT_NAME      "echo"
-#define TEST_U_SOX_HELP_SHELL_COMMAND       "sox -h"
+#define TEST_U_SOX_DEFAULT_EFFECT_NAME                  "echo"
+#define TEST_U_SOX_HELP_SHELL_COMMAND                   "sox -h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 //----------------------------------------
@@ -149,15 +150,14 @@
 
 //----------------------------------------
 
-#if defined (GLUT_SUPPORT)
-#define TEST_U_GLUT_DEFAULT_HEIGHT        834
-#define TEST_U_GLUT_DEFAULT_WIDTH         1112
-#define TEST_U_GLUT_DEFAULT_LAYERS        20
-#define TEST_U_GLUT_DEFAULT_D             12 // distance between layers
-#define TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR 0.75f
-//#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR  0.00005f // best for sine
-#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR  0.002f
-#define TEST_U_GLUT_DEFAULT_FPS           60
-#endif // GLUT_SUPPORT
+#define TEST_U_GLUT_DEFAULT_WINDOW_TITLE                "MicVisualize - GLUT"
+#define TEST_U_GLUT_DEFAULT_HEIGHT                      834
+#define TEST_U_GLUT_DEFAULT_WIDTH                       1112
+#define TEST_U_GLUT_DEFAULT_LAYERS                      20
+#define TEST_U_GLUT_DEFAULT_D                           12 // distance between layers
+#define TEST_U_GLUT_DEFAULT_XY_AMP_FACTOR               0.75f
+//#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR                0.00005f // best for sine
+#define TEST_U_GLUT_DEFAULT_Z_AMP_FACTOR                0.002f
+#define TEST_U_GLUT_DEFAULT_FPS                         60
 
 #endif

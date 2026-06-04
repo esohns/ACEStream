@@ -89,7 +89,7 @@ class Stream_Dev_Cam_Source_VfW_T
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public Common_UI_WindowTypeConverter_T<HWND>
  , public Common_IGet_2_T<HWND>
- , public Common_IGetR_2_T<struct tagCapDriverCaps>
+ , public Common_IGetR_3_T<struct tagCapDriverCaps>
 {
   typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -147,7 +147,7 @@ class Stream_Dev_Cam_Source_VfW_T
 
   // implement Common_IGet_T
   inline virtual const HWND get_2 () const { return window_; }
-  inline virtual const struct tagCapDriverCaps& getR_2 () const { return capabilities_; }
+  inline virtual const struct tagCapDriverCaps& getR_3 () const { return capabilities_; }
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Cam_Source_VfW_T ())

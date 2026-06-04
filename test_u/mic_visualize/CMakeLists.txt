@@ -207,24 +207,16 @@ if (UNIX)
   target_link_libraries (${EXECUTABLE} PUBLIC ${LIBPIPEWIRE_LIBRARIES})
  endif (LIBPIPEWIRE_SUPPORT)
 elseif (WIN32)
-# set (DIRECTX_SDK_DIRECTORY $ENV{DXSDK_DIR})
-
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Msdmo.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC strmiids.lib)
 
- #link_directories ("${DIRECTX_SDK_DIRECTORY}/Lib/x86")
-# target_link_libraries (${EXECUTABLE} PUBLIC "$ENV{LIB_ROOT}/DXSDK/Lib/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}/dxguid.lib")
-
  if (GTKGL_SUPPORT)
   target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
   target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
  endif (GTKGL_SUPPORT)
-
- # *WARNING*: linking BaseClasses(d) requires "/FORCE:MULTIPLE"
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 endif ()
 if (GLUT_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GLUT_LIBRARIES})
@@ -234,6 +226,7 @@ target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} PUBLIC Common)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonImage)
+target_link_libraries (${EXECUTABLE} PUBLIC CommonInput)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonLog)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonMath)
 target_link_libraries (${EXECUTABLE} PUBLIC CommonSignal)
