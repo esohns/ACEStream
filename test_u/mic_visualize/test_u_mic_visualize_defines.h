@@ -45,9 +45,9 @@
 
 #define TEST_U_OPENGL_CAMERA_DEFAULT_ZOOM_F             5.0f
 // perspective(s)
-#define TEST_U_OPENGL_PERSPECTIVE_FOVY_D                60.0
+#define TEST_U_OPENGL_PERSPECTIVE_FOVY_D                static_cast<GLdouble> (COMMON_GL_CAMERA_DEFAULT_FOV_DEG_F)
 #define TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D               1.0
-#define TEST_U_OPENGL_PERSPECTIVE_ZFAR_D                100.0
+#define TEST_U_OPENGL_PERSPECTIVE_ZFAR_D                -100.0
 #define TEST_U_OPENGL_ORTHO_ZNEAR_D                     -1.0
 #define TEST_U_OPENGL_ORTHO_ZFAR_D                      1.0
 

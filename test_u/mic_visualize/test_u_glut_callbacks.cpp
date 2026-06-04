@@ -53,9 +53,9 @@ test_u_glut_reshape (int width_in,
   glLoadIdentity ();
 
   ACE_ASSERT (height_in);
-  gluPerspective (45.0,
+  gluPerspective (TEST_U_OPENGL_PERSPECTIVE_FOVY_D,
                   width_in / static_cast<GLdouble> (height_in),
-                  -150.0, 150.0);
+                  TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D, TEST_U_OPENGL_PERSPECTIVE_ZFAR_D);
   //glOrtho (static_cast<GLdouble> (-width_in / 2.0), static_cast<GLdouble> (width_in / 2.0),
   //         static_cast<GLdouble> (height_in / 2.0), static_cast<GLdouble> (-height_in / 2.0), 150.0, -150.0);
 
@@ -99,16 +99,20 @@ test_u_glut_key_special (int key_in,
       break;
     }
     case GLUT_KEY_LEFT:
-      cb_data_p->camera.position_.x -= 100.0f;
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::LEFT,
+                                        0.25f);
       break;
     case GLUT_KEY_RIGHT:
-      cb_data_p->camera.position_.x += 100.0f;
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::RIGHT,
+                                        0.25f);
       break;
     case GLUT_KEY_UP:
-      cb_data_p->camera.position_.y += 100.0f;
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::UP,
+                                        0.25f);
       break;
     case GLUT_KEY_DOWN:
-      cb_data_p->camera.position_.y -= 100.0f;
+      cb_data_p->camera.updatePosition (Common_GL_Camera::Direction::DOWN,
+                                        0.25f);
       break;
     case GLUT_KEY_HOME:
       cb_data_p->camera.position_.x = 0.0f;
