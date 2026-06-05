@@ -114,13 +114,15 @@
 #define TEST_I_UI_GTK_SPINBUTTON_DATAMESSAGES_NAME      "spinbutton_data_messages"
 #define TEST_I_UI_GTK_SPINBUTTON_SESSIONMESSAGES_NAME   "spinbutton_session_messages"
 #define TEST_I_UI_GTK_SCROLLEDWINDOW_NAME               "scrolledwindow"
-#define TEST_I_UI_GTK_TEXTBUFFER_NAME                   "textbuffer"
+#define TEST_I_UI_GTK_TEXTBUFFER_LLM_NAME               "textbuffer_llm"
+#define TEST_I_UI_GTK_TEXTBUFFER_STT_NAME               "textbuffer_stt"
+#define TEST_I_UI_GTK_TEXTVIEW_LLM_NAME                 "textview_llm"
+#define TEST_I_UI_GTK_TEXTVIEW_STT_NAME                 "textview_stt"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_RECORD_NAME          "togglebutton_record"
 #define TEST_I_UI_GTK_TOGGLEBUTTON_SAVE_NAME            "togglebutton_save"
-#define TEST_I_UI_GTK_SCROLLMARK_NAME                   "insert"
+#define TEST_I_UI_GTK_SCROLLMARK_LLM_NAME               "insert_llm"
+#define TEST_I_UI_GTK_SCROLLMARK_STT_NAME               "insert_stt"
 #define TEST_I_UI_GTK_STATUSBAR_NAME                    "statusbar"
-#define TEST_I_UI_GTK_TEXTBUFFER_NAME                   "textbuffer"
-#define TEST_I_UI_GTK_TEXTVIEW_NAME                     "textview"
 #endif // GTK_SUPPORT
 
 #endif

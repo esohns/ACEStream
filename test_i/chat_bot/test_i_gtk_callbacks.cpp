@@ -1711,11 +1711,15 @@ idle_initialize_UI_cb (gpointer userData_in)
                 NULL);
 #endif // GTK_CHECK_VERSION (3,0,0) || GTK_CHECK_VERSION (2,12,0)
 
-  // step4: initialize text view, setup auto-scrolling
+  // step4: initialize text views, setup auto-scrolling
   GtkTextView* view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_STT_NAME)));
   ACE_ASSERT (view_p);
+  GtkTextView* view_2 =
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_LLM_NAME)));
+  ACE_ASSERT (view_2);
 
   PangoFontDescription* font_description_p =
     pango_font_description_from_string (ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_PANGO_LOG_FONT_DESCRIPTION));
@@ -1747,6 +1751,8 @@ idle_initialize_UI_cb (gpointer userData_in)
                              GTK_RC_TEXT);
   gtk_widget_modify_style (GTK_WIDGET (view_p),
                            rc_style_p);
+  gtk_widget_modify_style (GTK_WIDGET (view_2),
+                           rc_style_p);
   //gtk_rc_style_unref (rc_style_p);
   g_object_unref (rc_style_p);
 
@@ -1756,10 +1762,21 @@ idle_initialize_UI_cb (gpointer userData_in)
   gtk_text_buffer_get_end_iter (buffer_p,
                                 &iterator_3);
   gtk_text_buffer_create_mark (buffer_p,
-                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_NAME),
+                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_STT_NAME),
                                &iterator_3,
                                TRUE);
   g_object_unref (buffer_p);
+
+  GtkTextBuffer* buffer_2 = gtk_text_view_get_buffer (view_2);
+  ACE_ASSERT (buffer_2);
+  GtkTextIter iterator_4;
+  gtk_text_buffer_get_end_iter (buffer_2,
+                                &iterator_4);
+  gtk_text_buffer_create_mark (buffer_2,
+                               ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_LLM_NAME),
+                               &iterator_4,
+                               TRUE);
+  g_object_unref (buffer_2);
 
   GtkWidget* about_dialog_p =
     GTK_WIDGET (gtk_builder_get_object ((*iterator).second.second,
@@ -2154,15 +2171,22 @@ idle_update_info_display_cb (gpointer userData_in)
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
   GtkTextView* text_view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_STT_NAME)));
   ACE_ASSERT (text_view_p);
   GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
   ACE_ASSERT (text_buffer_p);
+  GtkTextView* text_view_2 =
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_LLM_NAME)));
+  ACE_ASSERT (text_view_2);
+  GtkTextBuffer* text_buffer_2 = gtk_text_view_get_buffer (text_view_2);
+  ACE_ASSERT (text_buffer_2);
 
   struct Test_I_ChatBot_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_I_ChatBot_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
   Stream_Decoder_STT_Result_t* result_p = NULL;
+  Stream_MachineLearning_LLM_Result_t* result_2 = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -2178,7 +2202,8 @@ idle_update_info_display_cb (gpointer userData_in)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      result_p = &directshow_ui_cb_data_p->progressData.words;
+      result_p = &directshow_ui_cb_data_p->progressData.STTResult;
+      result_2 = &directshow_ui_cb_data_p->progressData.LLMResult;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2187,7 +2212,8 @@ idle_update_info_display_cb (gpointer userData_in)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      result_p = &mediafoundation_ui_cb_data_p->progressData.words;
+      result_p = &mediafoundation_ui_cb_data_p->progressData.STTResult;
+      result_2 = &mediafoundation_ui_cb_data_p->progressData.LLMResult;
       break;
     }
     default:
@@ -2205,8 +2231,10 @@ idle_update_info_display_cb (gpointer userData_in)
   ACE_ASSERT (alsa_ui_cb_data_p);
   ACE_ASSERT (alsa_ui_cb_data_p->configuration);
   result_p = &alsa_ui_cb_data_p->progressData.words;
+  result_2 = &alsa_ui_cb_data_p->progressData.LLMResult;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (result_p);
+  ACE_ASSERT (result_2);
 
   GtkSpinButton* spin_button_p = NULL;
   bool is_session_message = false;
@@ -2297,16 +2325,35 @@ idle_update_info_display_cb (gpointer userData_in)
          ++iterator_2)
     {
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
-                                        (*iterator_2).c_str (),
-                                        static_cast<gint> ((*iterator_2).size ()));
+                                        (*iterator_2).first.c_str (),
+                                        static_cast<gint> ((*iterator_2).first.size ()));
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
                                         ACE_TEXT_ALWAYS_CHAR (" "),
                                         1);
     } // end FOR
+    bool scroll_stt_b = !result_p->empty ();
     result_p->clear ();
 
-    // scroll the view accordingly
-    GtkTextIter text_iterator;
+    for (Stream_MachineLearning_LLM_ResultIterator_t iterator_2 = result_2->begin ();
+         iterator_2 != result_2->end ();
+         ++iterator_2)
+    {
+      gtk_text_buffer_insert_at_cursor (text_buffer_2,
+                                        (*iterator_2).c_str (),
+                                        static_cast<gint> ((*iterator_2).size ()));
+      gtk_text_buffer_insert_at_cursor (text_buffer_2,
+                                        ACE_TEXT_ALWAYS_CHAR ("\n"),
+                                        1);
+    } // end FOR
+    bool scroll_llm_b = !result_2->empty ();
+    result_2->clear ();
+
+    // scroll the views ?
+    GtkTextIter text_iterator, text_iterator_2;
+    GtkTextMark* text_mark_p = NULL, *text_mark_2 = NULL;
+    if (!scroll_stt_b)
+      goto continue_;
+
     gtk_text_buffer_get_end_iter (text_buffer_p,
                                   &text_iterator);
     // move the iterator to the beginning of line, so it doesn't scroll
@@ -2314,17 +2361,41 @@ idle_update_info_display_cb (gpointer userData_in)
     gtk_text_iter_set_line_offset (&text_iterator, 0);
     // ...and place the mark at iter. The mark will stay there after insertion
     // because it has "right" gravity
-    GtkTextMark* text_mark_p =
-        gtk_text_buffer_get_mark (text_buffer_p,
-                                  ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_NAME));
-    //gtk_text_buffer_move_mark (text_buffer_p,
-    //                           text_mark_p,
-    //                           &text_iterator);
+    text_mark_p =
+      gtk_text_buffer_get_mark (text_buffer_p,
+                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_STT_NAME));
+    ACE_ASSERT (text_mark_p);
+    gtk_text_buffer_move_mark (text_buffer_p,
+                               text_mark_p,
+                               &text_iterator);
     // scroll the mark onscreen
     gtk_text_view_scroll_mark_onscreen (text_view_p,
                                         text_mark_p);
+
+continue_:
+    if (!scroll_llm_b)
+      goto continue_2;
+
+    gtk_text_buffer_get_end_iter (text_buffer_2,
+                                  &text_iterator_2);
+    // move the iterator to the beginning of line, so it doesn't scroll
+    // in horizontal direction
+    gtk_text_iter_set_line_offset (&text_iterator_2, 0);
+    // ...and place the mark at iter. The mark will stay there after insertion
+    // because it has "right" gravity
+    text_mark_2 =
+      gtk_text_buffer_get_mark (text_buffer_2,
+                                ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_SCROLLMARK_LLM_NAME));
+    ACE_ASSERT (text_mark_2);
+    gtk_text_buffer_move_mark (text_buffer_2,
+                               text_mark_2,
+                               &text_iterator_2);
+    // scroll the mark onscreen
+    gtk_text_view_scroll_mark_onscreen (text_view_2,
+                                        text_mark_2);
   } // end lock scope
 
+continue_2:
   return G_SOURCE_CONTINUE;
 }
 
@@ -4210,10 +4281,10 @@ button_about_clicked_cb (GtkWidget* widget_in,
 } // button_about_clicked_cb
 
 void
-button_clear_clicked_cb (GtkWidget* widget_in,
-                         gpointer userData_in)
+button_clear_stt_clicked_cb (GtkWidget* widget_in,
+                             gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::button_clear_clicked_cb"));
+  STREAM_TRACE (ACE_TEXT ("::button_clear_stt_clicked_cb"));
 
   ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (userData_in);
@@ -4229,13 +4300,41 @@ button_clear_clicked_cb (GtkWidget* widget_in,
 
   GtkTextView* text_view_p =
     GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
-                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_NAME)));
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_STT_NAME)));
   ACE_ASSERT (text_view_p);
   GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
   ACE_ASSERT (text_buffer_p);
   gtk_text_buffer_set_text (text_buffer_p,
                             ACE_TEXT_ALWAYS_CHAR (""), -1);
-} // button_clear_clicked_cb
+} // button_clear_stt_clicked_cb
+
+void
+button_clear_llm_clicked_cb (GtkWidget* widget_in,
+                             gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::button_clear_llm_clicked_cb"));
+
+  ACE_UNUSED_ARG (widget_in);
+  ACE_UNUSED_ARG (userData_in);
+
+  // sanity check(s)
+  Common_UI_GTK_Manager_t* gtk_manager_p =
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+  ACE_ASSERT (gtk_manager_p);
+  const Common_UI_GTK_State_t& state_r = gtk_manager_p->getR ();
+  Common_UI_GTK_BuildersConstIterator_t iterator =
+    state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
+  ACE_ASSERT (iterator != state_r.builders.end ());
+
+  GtkTextView* text_view_p =
+    GTK_TEXT_VIEW (gtk_builder_get_object ((*iterator).second.second,
+                                           ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_TEXTVIEW_LLM_NAME)));
+  ACE_ASSERT (text_view_p);
+  GtkTextBuffer* text_buffer_p = gtk_text_view_get_buffer (text_view_p);
+  ACE_ASSERT (text_buffer_p);
+  gtk_text_buffer_set_text (text_buffer_p,
+                            ACE_TEXT_ALWAYS_CHAR (""), -1);
+} // button_clear_llm_clicked_cb
 
 void
 button_settings_clicked_cb (GtkWidget* widget_in,

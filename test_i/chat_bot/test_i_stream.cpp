@@ -213,6 +213,13 @@ Test_I_DirectShow_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
 
+  ACE_NEW_RETURN (module_p,
+                  Test_I_DirectShow_Asynch_Module (this,
+                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING)),
+                  false);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+
 #if defined (LLAMACPP_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_I_DirectShow_LlamaCpp_Module (this,

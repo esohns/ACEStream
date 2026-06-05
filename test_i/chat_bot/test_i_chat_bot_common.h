@@ -69,6 +69,8 @@
 #include "stream_misc_input_manager.h"
 #include "stream_misc_input_stream.h"
 
+#include "stream_module_ml_common.h"
+
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 
 #include "test_i_common.h"
@@ -341,10 +343,12 @@ struct Test_I_ChatBot_UI_ProgressData
 {
   Test_I_ChatBot_UI_ProgressData ()
    : Test_I_UI_ProgressData ()
-   , words ()
+   , STTResult ()
+   , LLMResult ()
   {}
 
-  Stream_Decoder_STT_Result_t words;
+  Stream_Decoder_STT_Result_t         STTResult;
+  Stream_MachineLearning_LLM_Result_t LLMResult;
 };
 
 #if defined (GTK_SUPPORT)

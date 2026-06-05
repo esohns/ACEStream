@@ -68,6 +68,7 @@
 #include "stream_dev_target_pipewire.h"
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
+#include "stream_misc_asynch.h"
 #include "stream_misc_distributor.h"
 
 #include "stream_file_sink.h"
@@ -253,7 +254,7 @@ typedef Stream_Statistic_StatisticAnalysis_T<ACE_MT_SYNCH,
                                              Common_TimePolicy_t,
                                              struct Test_I_ChatBot_MediaFoundation_ModuleHandlerConfiguration,
                                              Stream_ControlMessage_t,
-                                             Test_I_DirectShow_Message,
+                                             Test_I_MediaFoundation_Message,
                                              Test_I_MediaFoundation_SessionMessage_t,
                                              struct Test_I_Statistic,
                                              Test_I_ChatBot_MediaFoundation_SessionData,
@@ -359,6 +360,13 @@ typedef Stream_MediaFramework_MediaFoundation_Source_T<ACE_MT_SYNCH,
                                                        struct Stream_UserData> Test_I_MediaFoundation_Source;
 
 //////////////////////////////////////////
+
+typedef Stream_Module_Asynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_I_DirectShow_Message,
+                               Test_I_DirectShow_SessionMessage_t> Test_I_DirectShow_Asynch;
 
 typedef Stream_Miscellaneous_Distributor_ReaderTask_T<ACE_MT_SYNCH,
                                                       Common_TimePolicy_t,
@@ -1007,6 +1015,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_MediaFoundation_SessionData,       
                               Test_I_MediaFoundation_Source);                                     // writer type
 
 //////////////////////////////////////////
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ChatBot_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_I_ChatBot_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_asynch_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_I_DirectShow_Asynch);                                   // writer type
 
 DATASTREAM_MODULE_DUPLEX (Test_I_ChatBot_DirectShow_SessionData,                            // session data type
                           enum Stream_SessionMessageType,                           // session event type

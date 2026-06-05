@@ -341,10 +341,10 @@ struct Test_I_SpeechCommand_UI_ProgressData
 {
   Test_I_SpeechCommand_UI_ProgressData ()
    : Test_I_UI_ProgressData ()
-   , words ()
+   , STTResult ()
   {}
 
-  Stream_Decoder_STT_Result_t words;
+  Stream_Decoder_STT_Result_t STTResult;
 };
 
 #if defined (GTK_SUPPORT)

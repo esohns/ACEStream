@@ -537,7 +537,7 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
 
             typename DataMessageType::DATA_T& data_r =
               const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-            data_r.words.push_back (text_string);
+            data_r.STTResult.push_back (std::make_pair (text_string, 0.0f));
  
             result = message_p->copy (text_string.c_str (),
                                       text_string.size ());

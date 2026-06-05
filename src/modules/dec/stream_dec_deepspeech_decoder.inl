@@ -267,7 +267,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     bufferedMs_ -= STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS;
     partial_p = DS_IntermediateDecode (context2_);
     decodedWords_ += processWords (partial_p,
-                                   data_r.words); // *TODO*: remove type inference
+                                   data_r.STTResult); // *TODO*: remove type inference
     if (likely (partial_p))
     {
       DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
@@ -276,7 +276,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       goto continue_;
     partial_p = DS_FinishStream (context2_);
     decodedWords_ += processWords (partial_p,
-                                   data_r.words); // *TODO*: remove type inference
+                                   data_r.STTResult); // *TODO*: remove type inference
     if (likely (partial_p))
     {
       DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
@@ -338,12 +338,12 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
                                  static_cast<std::streamsize> (ACE_OS::strlen (inputString_in)));
 #if 0
   while (std::getline (string_stream, token_string, ' '))
-    result_out.push_back (token_string);
+    result_out.push_back (std::make_pair (token_string, 0.0f));
 #else
   // step1: retrieve new words
   Stream_Decoder_STT_Result_t result;
   while (std::getline (string_stream, token_string, ' '))
-    result.push_back (token_string);
+    result.push_back (std::make_pair (token_string, 0.0f));
 
   // step2: crop any trailing/beginning duplicates
   if (!prev_size_i)

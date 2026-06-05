@@ -1006,22 +1006,24 @@
                         <property name="can_focus">False</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkScrolledWindow" id="scrolledwindow">
+                          <object class="GtkScrolledWindow" id="scrolledwindow_stt">
                             <property name="width_request">320</property>
                             <property name="height_request">240</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
-                            <property name="hadjustment">scrolledwindow_hadjustment</property>
-                            <property name="vadjustment">scrolledwindow_vadjustment</property>
+                            <property name="hadjustment">scrolledwindow_hadjustment_stt</property>
+                            <property name="vadjustment">scrolledwindow_vadjustment_stt</property>
                             <property name="shadow_type">etched-in</property>
                             <child>
-                              <object class="GtkTextView" id="textview">
+                              <object class="GtkTextView" id="textview_stt">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
+                                <property name="tooltip_markup" translatable="yes">STT</property>
+                                <property name="tooltip_text" translatable="yes">STT</property>
                                 <property name="editable">False</property>
                                 <property name="wrap_mode">word</property>
                                 <property name="cursor_visible">False</property>
-                                <property name="buffer">textbuffer</property>
+                                <property name="buffer">textbuffer_stt</property>
                                 <property name="accepts_tab">False</property>
                               </object>
                             </child>
@@ -1033,7 +1035,7 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkButton" id="button_clear">
+                          <object class="GtkButton" id="button_clear_stt">
                             <property name="label">gtk-clear</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
@@ -1043,7 +1045,7 @@
                             <property name="relief">half</property>
                             <property name="use_stock">True</property>
                             <property name="focus_on_click">False</property>
-                            <signal name="clicked" handler="button_clear_clicked_cb" swapped="no"/>
+                            <signal name="clicked" handler="button_clear_stt_clicked_cb" swapped="no"/>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -1056,6 +1058,66 @@
                         <property name="expand">True</property>
                         <property name="fill">True</property>
                         <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="box_display_3">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="orientation">vertical</property>
+                        <child>
+                          <object class="GtkScrolledWindow" id="scrolledwindow_llm">
+                            <property name="width_request">320</property>
+                            <property name="height_request">240</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="hadjustment">scrolledwindow_hadjustment_llm</property>
+                            <property name="vadjustment">scrolledwindow_vadjustment_llm</property>
+                            <property name="shadow_type">etched-in</property>
+                            <child>
+                              <object class="GtkTextView" id="textview_llm">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="tooltip_markup" translatable="yes">LLM</property>
+                                <property name="tooltip_text" translatable="yes">LLM</property>
+                                <property name="editable">False</property>
+                                <property name="wrap_mode">word</property>
+                                <property name="cursor_visible">False</property>
+                                <property name="buffer">textbuffer_llm</property>
+                                <property name="accepts_tab">False</property>
+                              </object>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="expand">True</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="button_clear_llm">
+                            <property name="label">gtk-clear</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="halign">start</property>
+                            <property name="valign">start</property>
+                            <property name="relief">half</property>
+                            <property name="use_stock">True</property>
+                            <property name="focus_on_click">False</property>
+                            <signal name="clicked" handler="button_clear_llm_clicked_cb" swapped="no"/>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">True</property>
+                        <property name="fill">True</property>
+                        <property name="position">1</property>
                       </packing>
                     </child>
                     <child>
@@ -1074,7 +1136,7 @@
                       <packing>
                         <property name="expand">True</property>
                         <property name="fill">True</property>
-                        <property name="position">1</property>
+                        <property name="position">2</property>
                       </packing>
                     </child>
                   </object>
@@ -1190,12 +1252,6 @@
       <action-widget response="0">about</action-widget>
       <action-widget response="0">quit</action-widget>
     </action-widgets>
-  </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_model">
-    <property name="text" translatable="yes">deepspeech-0.9.3-models.pbmm</property>
-  </object>
-  <object class="GtkEntryBuffer" id="entrybuffer_scorer">
-    <property name="text" translatable="yes">deepspeech-0.9.3-models.scorer</property>
   </object>
   <object class="GtkEntryBuffer" id="entrybuffer_stt_language">
     <property name="text" translatable="yes">en</property>
@@ -1353,15 +1409,26 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkAdjustment" id="scrolledwindow_hadjustment">
+  <object class="GtkAdjustment" id="scrolledwindow_hadjustment_stt">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="scrolledwindow_vadjustment">
+  <object class="GtkAdjustment" id="scrolledwindow_vadjustment_stt">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkTextBuffer" id="textbuffer"/>
+    <object class="GtkAdjustment" id="scrolledwindow_hadjustment_llm">
+        <property name="upper">100</property>
+        <property name="step_increment">1</property>
+        <property name="page_increment">10</property>
+    </object>
+    <object class="GtkAdjustment" id="scrolledwindow_vadjustment_llm">
+        <property name="upper">100</property>
+        <property name="step_increment">1</property>
+        <property name="page_increment">10</property>
+    </object>
+    <object class="GtkTextBuffer" id="textbuffer_llm"/>
+  <object class="GtkTextBuffer" id="textbuffer_stt"/>
 </interface>

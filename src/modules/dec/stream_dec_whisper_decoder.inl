@@ -319,6 +319,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   Stream_SessionId_t session_id_i = message_inout->sessionId ();
   message_inout = NULL;
   static whisper_token const EOT_token = whisper_token_eot (context_);
+  float token_probability_f;
 
   ACE_Message_Block* message_block_p = buffer_;
   Stream_Tools::crunch (message_block_p,
@@ -354,7 +355,11 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     {
       if (EOT_token <= whisper_full_get_token_id_from_state (state_, i, j))
         continue; // skip these tokens
-      data_p->words.push_back (whisper_full_get_token_text_from_state (context_, state_, i, j));
+      token_probability_f = whisper_full_get_token_p_from_state (state_, i, j);
+      if (token_probability_f < STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_TOKEN_P_THRESHOLD_F)
+        continue; // skip low confidence tokens
+      data_p->STTResult.push_back (std::make_pair (whisper_full_get_token_text_from_state (context_, state_, i, j),
+                                                   token_probability_f));
     } // end FOR
   } // end FOR
 
@@ -364,7 +369,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
   //                                     [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
   //                     data_p->words.end ());
-  if (data_p->words.empty ())
+  if (data_p->STTResult.empty ())
   {
     // nothing significant recognized; reset buffer and return
     buffer_->release (); buffer_ = NULL;
@@ -374,7 +379,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   // concatenate words
   buffer_string =
-    std::accumulate (data_p->words.begin (), data_p->words.end (), std::string ());
+    std::accumulate (data_p->STTResult.begin (), data_p->STTResult.end (), std::string (),
+                     [] (std::string& acc, const std::pair<std::string, float>& val) { return acc + val.first; });
 
   message_p =
     inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);

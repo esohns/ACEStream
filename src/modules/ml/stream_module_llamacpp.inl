@@ -200,6 +200,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   std::string prompt_string = message_inout->rd_ptr ();
   std::string prompt_string_2, response;
   int result, new_len;
+  typename DataMessageType::DATA_T* data_p;
 
   // add the user input to the message list and format it
   messages_.push_back ({ACE_TEXT_ALWAYS_CHAR ("user"), ACE_OS::strdup (prompt_string.c_str ())});
@@ -226,7 +227,7 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   // generate a response
   response = generate (prompt_string_2);
 
-  // add the response to the messages
+  // add the response to the message history
   messages_.push_back (ACE_TEXT_ALWAYS_CHAR ({"assistant"), ACE_OS::strdup (response.c_str ())});
   previousLength_ =
     llama_chat_apply_template (template_, messages_.data (), messages_.size (), false, NULL, 0);
@@ -238,6 +239,9 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
                 previousLength_));
     goto error;
   } // end IF
+
+  data_p = &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  data_p->LLMResult.push_back (response);
 
   message_inout->reset ();
   ACE_ASSERT (message_inout->space () >= response.size () + 1);

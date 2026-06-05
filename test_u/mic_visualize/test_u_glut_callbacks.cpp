@@ -278,8 +278,8 @@ continue_:
              cb_data_p->camera.looking_at_.x, cb_data_p->camera.looking_at_.y, cb_data_p->camera.looking_at_.z,
              cb_data_p->camera.up_.x, cb_data_p->camera.up_.y, cb_data_p->camera.up_.z);
 
-  // draw a red x-axis, a green y-axis, and a blue z-axis. Each of the
-  // axes are 100 units long
+  // draw a red x-axis, a green y-axis, and a blue z-axis. each axis has a
+  // length of 100 units
   if (cb_data_p->wireframe)
   {
     glBegin (GL_LINES);

@@ -257,18 +257,26 @@ Test_I_EventHandler_T<NotificationType,
       CBData_->progressData.statistic.bytes += message_in.total_length ();
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
 
-      CBData_->progressData.words.insert (CBData_->progressData.words.end (),
-                                          data_r.words.begin (), data_r.words.end ());
+      CBData_->progressData.STTResult.insert (CBData_->progressData.STTResult.end (),
+                                              data_r.STTResult.begin (), data_r.STTResult.end ());
+      CBData_->progressData.LLMResult.insert (CBData_->progressData.LLMResult.end (),
+                                              data_r.LLMResult.begin (), data_r.LLMResult.end ());
       goto continue_;
     } // end IF/lock scope
 #else
       goto continue_;
 #endif // GTK_USE || WXWIDGETS_USE
-    for (Stream_Decoder_STT_ResultConstIterator_t iterator = data_r.words.begin ();
-         iterator != data_r.words.end ();
+    for (Stream_Decoder_STT_ResultConstIterator_t iterator = data_r.STTResult.begin ();
+         iterator != data_r.STTResult.end ();
          ++iterator)
-      std::cout << *iterator << ACE_TEXT_ALWAYS_CHAR (" ");
-    if (!data_r.words.empty ())
+      std::cout << (*iterator).first << ACE_TEXT_ALWAYS_CHAR (" ");
+    if (!data_r.STTResult.empty ())
+      std::cout.flush ();
+    for (Stream_MachineLearning_LLM_ResultConstIterator_t iterator = data_r.LLMResult.begin ();
+         iterator != data_r.LLMResult.end ();
+         ++iterator)
+      std::cout << *iterator << ACE_TEXT_ALWAYS_CHAR ("\n");
+    if (!data_r.LLMResult.empty ())
       std::cout.flush ();
 
 continue_:

@@ -1881,7 +1881,7 @@ idle_update_info_display_cb (gpointer userData_in)
       directshow_ui_cb_data_p =
         static_cast<struct Test_I_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      result_p = &directshow_ui_cb_data_p->progressData.words;
+      result_p = &directshow_ui_cb_data_p->progressData.STTResult;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1890,7 +1890,7 @@ idle_update_info_display_cb (gpointer userData_in)
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_I_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      result_p = &mediafoundation_ui_cb_data_p->progressData.words;
+      result_p = &mediafoundation_ui_cb_data_p->progressData.STTResult;
       break;
     }
     default:
@@ -2000,8 +2000,8 @@ idle_update_info_display_cb (gpointer userData_in)
          ++iterator_2)
     {
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
-                                        (*iterator_2).c_str (),
-                                        static_cast<gint> ((*iterator_2).size ()));
+                                        (*iterator_2).first.c_str (),
+                                        static_cast<gint> ((*iterator_2).first.size ()));
       gtk_text_buffer_insert_at_cursor (text_buffer_p,
                                         ACE_TEXT_ALWAYS_CHAR (" "),
                                         1);
