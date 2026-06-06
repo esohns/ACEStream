@@ -650,7 +650,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   if (inherited::configuration_->concurrency == STREAM_HEADMODULECONCURRENCY_ACTIVE)
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0A00) // _WIN32_WINNT_WIN10
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
     Common_Error_Tools::setThreadName (inherited::threadName_,
                                        NULL);
 #else
@@ -679,7 +679,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   typename SessionMessageType::DATA_T::DATA_T* session_data_p =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   bool                           stop_processing          = false;
-  ACE_Time_Value                 no_wait                  = ACE_OS::gettimeofday ();
+  ACE_Time_Value                 no_wait                  = COMMON_TIME_NOW;
   DWORD                          result_3                 = 0;
   HRESULT                        result_4                 = E_FAIL;
   UINT32                         packet_length_i          = 0;

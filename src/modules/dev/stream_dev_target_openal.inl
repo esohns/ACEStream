@@ -152,9 +152,20 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+  alListener3f (AL_POSITION, 0.0f, 0.0f, 1.0f);
+  alListener3f (AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+  static ALfloat orientation_a[] = {0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f};
+  alListenerfv (AL_ORIENTATION, orientation_a);
+
   alGenSources (1, &source_);
   ALenum error_code_e = alGetError ();
   ACE_ASSERT ((error_code_e == AL_NO_ERROR) && source_);
+
+  alSourcef (source_, AL_PITCH, 1.0f);
+  alSourcef (source_, AL_GAIN, 1.0f);
+  alSource3f (source_, AL_POSITION, 0.0f, 0.0f, 0.0f);
+  alSource3f (source_, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
+  alSourcei (source_, AL_LOOPING, AL_FALSE);
 
   alGenBuffers (STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS, buffers_);
   error_code_e = alGetError ();
@@ -383,8 +394,16 @@ retry:
 
       if (likely (source_))
       {
-        alDeleteSources (1, &source_);
-        source_ = 0;
+        alDeleteSources (1, &source_); source_ = 0;
+      } // end IF
+
+      if (unlikely (context_))
+      {
+        alcDestroyContext (context_); context_ = NULL;
+      } // end IF
+      if (unlikely (device_))
+      {
+        alcCloseDevice (device_); device_ = NULL;
       } // end IF
 
       break;
@@ -541,13 +560,12 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   ALint buffers_processed_i;
   ALuint buffer_i = 0;
   ACE_Message_Block* message_block_p = NULL;
-  ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
+  ACE_Time_Value no_wait = COMMON_TIME_NOW;
   unsigned int i = 0;
 
   // process rendered buffers
   do
   {
-continue_:
     buffers_processed_i = 0;
     alGetSourcei (source_, AL_BUFFERS_PROCESSED, &buffers_processed_i);
     while (buffers_processed_i > 0)
@@ -585,7 +603,7 @@ continue_:
                     inherited::mod_->name ()));
         goto error;
       } // end IF
-      goto continue_; // OK
+      continue; // OK
     } // end IF
     ACE_ASSERT (message_block_p);
 
