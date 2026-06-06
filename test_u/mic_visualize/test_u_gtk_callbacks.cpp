@@ -7689,11 +7689,11 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
                   ACE_TEXT (STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING)));
       return;
     } // end IF
-    Common_IGetR_2_T<struct Stream_Device_Pipewire_Capture_CBData>* iget_p =
-      dynamic_cast<Common_IGetR_2_T<struct Stream_Device_Pipewire_Capture_CBData>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
+    Common_IGetR_3_T<struct Stream_Device_Pipewire_Capture_CBData>* iget_p =
+      dynamic_cast<Common_IGetR_3_T<struct Stream_Device_Pipewire_Capture_CBData>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
     ACE_ASSERT (iget_p);
     struct Stream_Device_Pipewire_Capture_CBData& cb_data_r =
-      const_cast<struct Stream_Device_Pipewire_Capture_CBData&> (iget_p->getR_2 ());
+      const_cast<struct Stream_Device_Pipewire_Capture_CBData&> (iget_p->getR_3 ());
     GtkAdjustment* adjustment_p = gtk_range_get_adjustment (range_in);
     ACE_ASSERT (adjustment_p);
     float volume_f =

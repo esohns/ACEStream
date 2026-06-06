@@ -601,7 +601,7 @@ Stream_Dev_Mic_Source_GStreamer_T<ACE_SYNCH_USE,
     Stream_Device_Tools::formatToString (media_type_s.format);
 #endif // ACE_WIN32 || ACE_WIN64
 
-  unsigned int sample_rate_i = inherited2::getSamplerate (mediaType_in);
+  unsigned int sample_rate_i = inherited2::getSampleRate (mediaType_in);
   unsigned int channels_i = inherited2::getChannels (mediaType_in);
   GstCaps* caps_p =
     gst_caps_new_simple (ACE_TEXT_ALWAYS_CHAR ("audio/x-raw"),

@@ -595,7 +595,7 @@ struct Test_U_AudioEffect_ALSA_StreamConfiguration
    , format ()
   {
     capturer = STREAM_DEVICE_CAPTURER_ALSA;
-    renderer = STREAM_DEVICE_RENDERER_ALSA;
+    renderer = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   }
 
   struct Stream_MediaFramework_ALSA_MediaType format;

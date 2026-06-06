@@ -480,6 +480,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               libacestream_default_dev_mic_source_openal_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
                               Test_U_Dev_Mic_Source_OpenAL);                                 // writer type
+
+typedef Stream_Dev_Target_OpenAL_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_U_AudioEffect_Message,
+                                   Test_U_AudioEffect_SessionMessage,
+                                   struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dev_Target_OpenAL;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_openal_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_U_Dev_Target_OpenAL);                                 // writer type
 #endif // OPENAL_SUPPORT
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,

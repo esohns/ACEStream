@@ -2318,12 +2318,12 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_ALSA_Stream::load"));
 
   // initialize return value(s)
-  delete_out = false;
+  delete_out = true;
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_3 =
     inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING));
@@ -2424,12 +2424,14 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
   ACE_ASSERT (module_p);
   layout_in->append (module_p, NULL, 0);
   module_p = NULL;
+
 //  ACE_NEW_RETURN (module_p,
 //                  Test_U_AudioEffect_StatisticReport_Module (this,
 //                                                             ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING)),
 //                  false);
 //  layout_in->append (module_p, NULL, 0);
 //  module_p = NULL;
+
   if (!(*iterator).second.second->effect.empty ())
   {
 #if defined (SOX_SUPPORT)
@@ -2482,10 +2484,35 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
       module_p = NULL;
     } // end IF
 
-    ACE_NEW_RETURN (module_p,
-                    Test_U_AudioEffect_Target_ALSA_Module (this,
-                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-                    false);
+    switch (inherited::configuration_->configuration_->renderer)
+    {
+      case STREAM_DEVICE_RENDERER_ALSA:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_AudioEffect_Target_ALSA_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_OPENAL:
+      {
+#if defined (OPENAL_SUPPORT)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_Dev_Target_OpenAL_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING)),
+                        false);
+#endif // OPENAL_SUPPORT
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->renderer));
+        return false;
+      }
+    } // end SWITCH
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
@@ -2531,8 +2558,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                         Test_U_AudioEffect_Vis_Console_Module (this,
                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_CONSOLE_AUDIO_DEFAULT_NAME_STRING)),
                         false);
-        layout_in->append (module_p, branch_p, index_i);
-        module_p = NULL;
         break;
       }
       case COMMON_UI_FRAMEWORK_GTK:
@@ -2542,8 +2567,6 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                         Test_U_AudioEffect_Vis_SpectrumAnalyzer_Module (this,
                                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_SPECTRUM_ANALYZER_DEFAULT_NAME_STRING)),
                         false);
-        layout_in->append (module_p, branch_p, index_i);
-        module_p = NULL;
 #endif // GTK_USE
         break;
       }
@@ -2556,9 +2579,9 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
         return false;
       }
     } // end SWITCH
+    layout_in->append (module_p, branch_p, index_i);
+    module_p = NULL;
   } // end IF
-
-  delete_out = true;
 
   return true;
 }

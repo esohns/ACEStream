@@ -18,13 +18,26 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#define ALSA_PCM_NEW_HW_PARAMS_API
+extern "C"
+{
+#include "alsa/asoundlib.h"
+}
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "ace/Log_Msg.h"
 
 #include "stream_defines.h"
 #include "stream_macros.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_directsound_tools.h"
+#else
+#include "stream_lib_alsa_common.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
@@ -311,7 +324,18 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                                                                               : AL_FORMAT_STEREO16);
       sampleRate_ = waveformatex_p->nSamplesPerSec;
 #else
-      ACE_ASSERT (false); // *TODO*
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_s);
+      unsigned int bits_per_sample_i =
+        snd_pcm_format_width (media_type_s.format);
+      format_ =
+        media_type_s.channels == 1 ? (bits_per_sample_i == 8 ? AL_FORMAT_MONO8
+                                                             : AL_FORMAT_MONO16)
+                                   : (bits_per_sample_i == 8 ? AL_FORMAT_STEREO8
+                                                             : AL_FORMAT_STEREO16);
+      sampleRate_ = media_type_s.rate;
 #endif // ACE_WIN32 || ACE_WIN64
 
       alSourcePlay (source_);
@@ -343,7 +367,7 @@ error:
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
-      notify (STREAM_SESSION_MESSAGE_ABORT);
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
       break;
     }
@@ -577,7 +601,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
       for (i = 0; i < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS; ++i)
         if (buffers_[i] == buffer_i)
           break;
-      ACE_ASSERT (i);
       result = bufferQueue_.enqueue (&buffers_[i],
                                      NULL);
       if (unlikely (result == -1))

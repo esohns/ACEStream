@@ -1728,8 +1728,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     &configuration_in.streamConfiguration;
   modulehandler_configuration.subscriber = &ui_event_handler;
   if (!sourceFilename_in.empty ())
-    modulehandler_configuration.fileIdentifier.identifier =
-      sourceFilename_in;
+    modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
   modulehandler_configuration.spectrumAnalyzerConfiguration =
     &spectrumanalyzer_configuration;
 
@@ -1737,7 +1736,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
                                                    modulehandler_configuration,
                                                    stream_configuration);
   modulehandler_iterator =
-      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR(""));
+    configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR(""));
   ACE_ASSERT(modulehandler_iterator != configuration_in.streamConfiguration.end());
 
   modulehandler_configuration_2 = modulehandler_configuration;
@@ -1751,8 +1750,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
   modulehandler_configuration_3 = modulehandler_configuration;
   modulehandler_configuration_3.fileIdentifier.clear ();
   if (!targetFilename_in.empty ())
-    modulehandler_configuration_3.fileIdentifier.identifier =
-      targetFilename_in;
+    modulehandler_configuration_3.fileIdentifier.identifier = targetFilename_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
@@ -1798,12 +1796,12 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
   stream_configuration.capturer = capturer_in;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
-      (!UIDefinitionFile_in.empty () ? &event_handler
-                                     : NULL);
+    (!UIDefinitionFile_in.empty () ? &event_handler : NULL);
 #if defined (GTK_USE)
   stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_GTK;
 #endif // GTK_USE
   stream_configuration.printFinalReport = true;
+  // stream_configuration.renderer = STREAM_DEVICE_RENDERER_OPENAL;
   switch (capturer_in)
   {
     case STREAM_DEVICE_CAPTURER_PIPEWIRE:
