@@ -4425,6 +4425,10 @@ idle_initialize_UI_cb (gpointer userData_in)
           renderer_modulename_string =
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
           break;
+        case STREAM_DEVICE_RENDERER_OPENAL:
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING);
+          break;
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -5109,6 +5113,7 @@ continue_:
       switch (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer)
       {
         case STREAM_DEVICE_RENDERER_WAVEOUT:
+        case STREAM_DEVICE_RENDERER_OPENAL:
         { ACE_ASSERT ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
           GUID_s =
             Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID ((*directshow_modulehandler_configuration_iterator_3).second.second->deviceIdentifier.identifier._id,

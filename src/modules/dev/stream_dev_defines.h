@@ -82,7 +82,7 @@
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
 
-#define STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS               15
+#define STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS               10
 #define STREAM_DEV_OPENAL_DEFAULT_BUFFER_SIZE                     16384 // bytes
 
 #endif

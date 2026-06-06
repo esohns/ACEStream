@@ -882,8 +882,8 @@ Stream_Dev_Target_WASAPI_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_WASAPI_T::stop"));
 
-  ACE_UNUSED_ARG (waitForCompletion_in);
-  ACE_UNUSED_ARG (highPriority_in);
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -1155,7 +1155,7 @@ continue_:
                     ACE_TEXT (Common_Error_Tools::errorToString (result_3, false, false).c_str ())));
       goto next_buffer;
     } // end IF
-    if (!message_block_p)
+    if (likely (!message_block_p))
       goto next_buffer_2;
     goto continue_;
   } while (true);

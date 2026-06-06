@@ -32,7 +32,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            TimePolicyType,
@@ -40,19 +39,23 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::Stream_Dev_Target_OpenAL_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , bufferQueue_ (ACE_Message_Queue_Base::DEFAULT_HWM,
+                 ACE_Message_Queue_Base::DEFAULT_LWM)
  , buffers_ ()
+ , context_ (NULL)
+ , device_ (NULL)
  , format_ (-1)
- , queue_ (ACE_Message_Queue_Base::DEFAULT_HWM,
-           ACE_Message_Queue_Base::DEFAULT_LWM)
+ , queue_ (0,    // max # slots; 0 --> unlimited
+           NULL) // notification handle
  , sampleRate_ (0)
  , source_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_OpenAL_T::Stream_Dev_Target_OpenAL_T"));
 
   ACE_OS::memset (&buffers_, 0, sizeof (ALuint) * STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS);
+  inherited::msg_queue (&queue_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -61,7 +64,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            TimePolicyType,
@@ -69,7 +71,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::~Stream_Dev_Target_OpenAL_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_OpenAL_T::~Stream_Dev_Target_OpenAL_T"));
@@ -77,6 +78,10 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   alDeleteBuffers (STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS, buffers_);
   if (unlikely (source_))
     alDeleteSources (1, &source_);
+  if (unlikely (context_))
+    alcDestroyContext (context_);
+  if (unlikely (device_))
+    alcCloseDevice (device_);
 }
 
 template <ACE_SYNCH_DECL,
@@ -85,7 +90,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 bool
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -94,7 +98,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::initialize (const ConfigurationType& configuration_in,
                                                    Stream_IAllocator* allocator_in)
 {
@@ -103,19 +106,59 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   if (inherited::isInitialized_)
   {
     alDeleteBuffers (STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS, buffers_);
+    ACE_OS::memset (&buffers_, 0, sizeof (ALuint) * STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS);
     format_ = -1;
     sampleRate_ = 0;
     if (unlikely (source_))
     {
-      alDeleteSources (1, &source_);
-      source_ = 0;
+      alDeleteSources (1, &source_); source_ = 0;
+    } // end IF
+    if (unlikely (context_))
+    {
+      alcDestroyContext (context_); context_ = NULL;
+    } // end IF
+    if (unlikely (device_))
+    {
+      alcCloseDevice (device_); device_ = NULL;
     } // end IF
   } // end IF
 
-  alGenBuffers (STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS, buffers_);
-  ACE_ASSERT (buffers_[0]);
+  alGetError ();
+
+  // *TODO*: support device selection via configuration
+  device_ = alcOpenDevice (NULL);
+  if (unlikely (!device_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to alcOpenDevice(NULL), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  alcGetError (device_);
+
+  context_ = alcCreateContext (device_, NULL);
+  if (unlikely (!context_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to alcCreateContext(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+  if (!alcMakeContextCurrent (context_))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to alcMakeContextCurrent(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
   alGenSources (1, &source_);
-  ACE_ASSERT (source_);
+  ALenum error_code_e = alGetError ();
+  ACE_ASSERT ((error_code_e == AL_NO_ERROR) && source_);
+
+  alGenBuffers (STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS, buffers_);
+  error_code_e = alGetError ();
+  ACE_ASSERT ((error_code_e == AL_NO_ERROR) && buffers_[0]);
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -127,7 +170,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -136,7 +178,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
                                                           bool& passMessageDownstream_out)
 {
@@ -151,30 +192,30 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
 
   ACE_Message_Block* message_block_p = message_inout;
   int result_2 = -1;
-  ALuint buffer_i = 0;
+  ALuint* buffer_p = NULL;
 
 continue_:
   // step1: get next free buffer
-  result_2 = queue_.dequeue (buffer_i,
-                             NULL);
-  if (unlikely (result_2 == -1))
+  result_2 = bufferQueue_.dequeue (buffer_p,
+                                   NULL);
+  if (unlikely (result_2 == -1) || !buffer_p)
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::dequeue(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
-  ACE_ASSERT (buffer_i);
+  ACE_ASSERT (buffer_p && *buffer_p);
 
   // step2: fill buffer
-  alBufferData (buffer_i,
+  alBufferData (*buffer_p,
                 format_,
                 message_block_p->rd_ptr (),
                 message_block_p->length (),
                 sampleRate_);
 
   // step3: queue buffer on source
-  alSourceQueueBuffers (source_, 1, &buffer_i);
+  alSourceQueueBuffers (source_, 1, buffer_p);
 
   message_block_p = message_block_p->cont ();
   if (unlikely (message_block_p))
@@ -186,10 +227,10 @@ continue_:
 
 error:
   message_inout->release (); message_inout = NULL;
-  if (buffer_i)
+  if (buffer_p)
   {
-    result_2 = queue_.enqueue (buffer_i,
-                               NULL);
+    result_2 = bufferQueue_.enqueue (buffer_p,
+                                     NULL);
     if (unlikely (result_2 == -1))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Message_Queue_Ex::enqueue(): \"%m\", aborting\n"),
@@ -205,7 +246,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -214,7 +254,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                              bool& passMessageDownstream_out)
 {
@@ -240,8 +279,8 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
-      SessionDataType& session_data_r =
-        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
@@ -253,6 +292,7 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
       struct tWAVEFORMATEX* waveformatex_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       ACE_ASSERT (waveformatex_p);
+      // *TODO*: support floating point formats (e.g. IEEE float) as well
       format_ =
         waveformatex_p->nChannels == 1 ? (waveformatex_p->wBitsPerSample == 8 ? AL_FORMAT_MONO8
                                                                               : AL_FORMAT_MONO16)
@@ -303,13 +343,13 @@ end:
       if (likely (inherited::thr_count_ > 0))
       {
         if (!high_priority_b && inherited::configuration_->waitForDataOnEnd)
-          while (queue_.count () < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS)
+          while (bufferQueue_.message_count () < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS)
             ACE_OS::sleep (ACE_Time_Value (1, 0));
         Common_ITask* itask_p = this;
         itask_p->stop (true,             // wait ?
                        high_priority_b); // high priority ?
       } // end IF
-      queue_.clear ();
+      bufferQueue_.flush ();
 
       if (likely (source_))
       {
@@ -360,7 +400,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 bool
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -369,7 +408,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::queueBuffers ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_OpenAL_T::queueBuffers"));
@@ -381,8 +419,8 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
        i < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS;
        ++i)
   { ACE_ASSERT (buffers_[i]);
-    result = queue_.enqueue (buffers_[i],
-                             NULL);
+    result = bufferQueue_.enqueue (&buffers_[i],
+                                   NULL);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -395,13 +433,13 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   return true;
 
 error:
-  ALuint buffer_i = 0;
+  ALuint* buffer_p = NULL;
   for (unsigned int j = 0;
        j < i;
        ++j)
   {
-    result = queue_.dequeue (buffer_i,
-                             NULL);
+    result = bufferQueue_.dequeue (buffer_p,
+                                   NULL);
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
@@ -409,7 +447,6 @@ error:
                   inherited::mod_->name ()));
       continue;
     } // end IF
-    ACE_ASSERT (buffer_i);
   } // end FOR
 
   return false;
@@ -421,7 +458,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 void
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -430,14 +466,13 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::stop (bool waitForCompletion_in,
                                              bool highPriority_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_OpenAL_T::stop"));
 
-  ACE_UNUSED_ARG (waitForCompletion_in);
-  ACE_UNUSED_ARG (highPriority_in);
+  // sanity check(s)
+  ACE_ASSERT (inherited::msg_queue_);
 
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
@@ -462,8 +497,9 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  result = (highPriority_in ? inherited::msg_queue_->enqueue_head (message_block_p, NULL) :
-                              inherited::msg_queue_->enqueue_tail (message_block_p, NULL));
+  result =
+    (highPriority_in ? inherited::msg_queue_->enqueue_head (message_block_p, NULL)
+                     : inherited::msg_queue_->enqueue_tail (message_block_p, NULL));
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
@@ -482,7 +518,6 @@ template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          typename SessionDataType,
           typename MediaType>
 int
 Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
@@ -491,7 +526,6 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
                            ControlMessageType,
                            DataMessageType,
                            SessionMessageType,
-                           SessionDataType,
                            MediaType>::svc (void)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dev_Target_OpenAL_T::svc"));
@@ -508,6 +542,7 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   ALuint buffer_i = 0;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
+  unsigned int i = 0;
 
   // process rendered buffers
   do
@@ -520,8 +555,13 @@ continue_:
       buffer_i = 0;
       alSourceUnqueueBuffers (source_, 1, &buffer_i);
 
-      result = queue_.enqueue (buffer_i,
-                               NULL);
+      // find index of buffer_i in buffers_ and return it to the buffer queue
+      for (i = 0; i < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS; ++i)
+        if (buffers_[i] == buffer_i)
+          break;
+      ACE_ASSERT (i);
+      result = bufferQueue_.enqueue (&buffers_[i],
+                                     NULL);
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -533,7 +573,8 @@ continue_:
       --buffers_processed_i;
     } // end WHILE
 
-    result = inherited::getq (message_block_p, &no_wait);
+    result = inherited::getq (message_block_p,
+                              &no_wait);
     if (unlikely (result == -1))
     {
       int error = ACE_OS::last_error ();

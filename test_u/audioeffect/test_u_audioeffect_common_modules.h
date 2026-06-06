@@ -67,6 +67,7 @@
 #endif // GSTREAMER_SUPPORT
 #if defined (OPENAL_SUPPORT)
 #include "stream_dev_mic_source_openal.h"
+#include "stream_dev_target_openal.h"
 #endif // OPENAL_SUPPORT
 
 #if defined (SOX_SUPPORT)
@@ -316,6 +317,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               libacestream_default_dev_mic_source_openal_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_OpenAL);                                   // writer type
+
+typedef Stream_Dev_Target_OpenAL_T<ACE_MT_SYNCH,
+                                   Common_TimePolicy_t,
+                                   struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                   Stream_ControlMessage_t,
+                                   Test_U_AudioEffect_DirectShow_Message,
+                                   Test_U_AudioEffect_DirectShow_SessionMessage,
+                                   struct _AMMediaType> Test_U_Dev_Target_OpenAL;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_target_openal_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Target_OpenAL);                                       // writer type
 #endif // OPENAL_SUPPORT
 #else
 typedef Stream_Session_Manager_T<ACE_MT_SYNCH,

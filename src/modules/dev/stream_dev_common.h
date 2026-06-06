@@ -119,9 +119,11 @@ enum Stream_Device_Renderer
   STREAM_DEVICE_RENDERER_ALSA = 0,
   // *** video ONLY (!) ***
   STREAM_DEVICE_RENDERER_V4L2,
+#endif // ACE_WIN32 || ACE_WIN64
+  // *** audio ONLY (!) ***
+  STREAM_DEVICE_RENDERER_OPENAL,
   // *** A/V ***
   STREAM_DEVICE_RENDERER_PIPEWIRE,
-#endif // ACE_WIN32 || ACE_WIN64
   ////////////////////////////////////////
   STREAM_DEVICE_RENDERER_MAX,
   STREAM_DEVICE_RENDERER_INVALID

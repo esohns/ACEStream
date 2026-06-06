@@ -93,10 +93,15 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
       renderer_modulename_string =
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
       break;
+    case STREAM_DEVICE_RENDERER_OPENAL:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING);
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   inherited::configuration_->configuration_->renderer));
       return false;
     }
@@ -240,6 +245,8 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_DEVICE_RENDERER_DIRECTSHOW:
       break;
+    case STREAM_DEVICE_RENDERER_OPENAL:
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -361,6 +368,16 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
       }
       case STREAM_DEVICE_RENDERER_DIRECTSHOW:
         break;
+      case STREAM_DEVICE_RENDERER_OPENAL:
+      {
+#if defined (OPENAL_SUPPORT)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_Dev_Target_OpenAL_Module (this,
+                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING)),
+                        false);
+#endif // OPENAL_SUPPORT
+        break;
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -541,10 +558,15 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
       renderer_modulename_string =
         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
       break;
+    case STREAM_DEVICE_RENDERER_OPENAL:
+      renderer_modulename_string =
+        ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING);
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   configuration_in.configuration_->renderer));
       return false;
     }
@@ -617,7 +639,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to CoCreateInstance(CLSID_FilterGraph): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, false).c_str ())));
       goto error;
     } // end IF
@@ -627,7 +650,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     if (!filter_2)
     {
       ACE_DEBUG ((LM_CRITICAL,
-                  ACE_TEXT ("failed to allocate memory, aborting\n")));
+                  ACE_TEXT ("%s: failed to allocate memory, aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
       goto error;
     } // end IF
 
@@ -643,7 +667,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     if (!filter_2->initialize (*(*iterator).second.second->filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n")));
+                  ACE_TEXT ("%s: failed to Stream_MediaFramework_DirectShow_Source_Filter_T::initialize(), aborting\n"),
+                  ACE_TEXT (stream_name_string_)));
       delete filter_2; filter_2 = NULL;
       goto error;
     } // end IF
@@ -651,7 +676,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       delete filter_2; filter_2 = NULL;
       goto error;
@@ -663,7 +689,8 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     if (FAILED (result_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to IGraphBuilder::AddFilter(): \"%s\", aborting\n"),
+                  ACE_TEXT (stream_name_string_),
                   ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
       filter_p->Release (); filter_p = NULL;
       delete filter_2; filter_2 = NULL;
@@ -683,6 +710,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
     switch (inherited::configuration_->configuration_->renderer)
     {
       case STREAM_DEVICE_RENDERER_WAVEOUT:
+      case STREAM_DEVICE_RENDERER_OPENAL:
       {
         //struct tWAVEFORMATEX waveformatex_s;
         //ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
@@ -726,6 +754,7 @@ Test_U_AudioEffect_DirectShow_Stream::initialize (const inherited::CONFIGURATION
   switch (inherited::configuration_->configuration_->renderer)
   {
     case STREAM_DEVICE_RENDERER_WAVEOUT:
+    case STREAM_DEVICE_RENDERER_OPENAL:
     { ACE_ASSERT ((*iterator_3).second.second->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::ID);
       render_device_id_i =
         (*iterator_3).second.second->deviceIdentifier.identifier._id;

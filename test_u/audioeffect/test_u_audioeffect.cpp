@@ -233,11 +233,11 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
 #endif // LIBPIPEWIRE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow|mediafoundation) capture : WASAPI|waveIn
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-x          : use framework source [") // ? (directshow|mediafoundation) capture : WASAPI
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use framework renderer [") // ? (directshow|mediafoundation) renderer : WASAPI|waveOut
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-y          : use framework renderer [") // ? (directshow|mediafoundation) renderer : WASAPI
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
@@ -281,8 +281,7 @@ do_processArguments (int argc_in,
                      bool& printVersionAndExit_out,
                      enum Stream_Device_Capturer& capturer_out
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                     ,bool& useFrameworkSource_out,
-                     bool& useFrameworkRenderer_out)
+                     ,bool& useFrameworkRenderer_out)
 #else
                      )
 #endif // ACE_WIN32 || ACE_WIN64
@@ -336,12 +335,10 @@ do_processArguments (int argc_in,
   traceInformation_out = false;
   mute_out = false;
   printVersionAndExit_out = false;
+  capturer_out = TEST_U_STREAM_AUDIOEFFECT_DEFAULT_CAPTURER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  capturer_out = STREAM_DEVICE_CAPTURER_WASAPI;
-  useFrameworkSource_out = false;
+  bool use_framework_source_b = false;
   useFrameworkRenderer_out = false;
-#else
-  capturer_out = STREAM_DEVICE_CAPTURER_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("a:flo::s:tuv");
@@ -542,7 +539,7 @@ do_processArguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       case 'x':
       {
-        useFrameworkSource_out = true;
+        use_framework_source_b = true;
         break;
       }
       case 'y':
@@ -588,6 +585,27 @@ do_processArguments (int argc_in,
       }
     } // end SWITCH
   } // end WHILE
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  if (!use_framework_source_b)
+    return true;
+  switch (mediaFramework_out)
+  {
+    case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
+      capturer_out = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
+      break;
+    case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
+      capturer_out = STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown media framework (was: %d), aborting\n"),
+                  mediaFramework_out));
+      return false;
+    } // end ELSE
+  } // end SWITCH
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }
@@ -1156,7 +1174,6 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
          bool mute_in,
          enum Stream_Device_Capturer capturer_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-         bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -1239,20 +1256,17 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
       istream_p = &directshow_stream;
       istream_control_p = &directshow_stream;
       directshow_stream_configuration.capturer = capturer_in;
-      directshow_stream_configuration.capturer =
-        (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_DIRECTSHOW
-                               : directshow_stream_configuration.capturer);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
-                                 : STREAM_DEVICE_RENDERER_WASAPI);
-                                 //: STREAM_DEVICE_RENDERER_WAVEOUT);
+                                 : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
+                                 //: STREAM_DEVICE_RENDERER_OPENAL);
 #if defined (GTK_USE)
       directshow_stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_GTK;
 #endif // GTK_USE
       if (showConsole_in)
       {
         directshow_stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
-        directshow_stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
+        //directshow_stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
       } // end IF
 
 #if defined (GTKGL_SUPPORT)
@@ -1267,9 +1281,6 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
       istream_p = &mediafoundation_stream;
       istream_control_p = &mediafoundation_stream;
       mediafoundation_stream_configuration.capturer = capturer_in;
-      mediafoundation_stream_configuration.capturer =
-        (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION
-                               : mediafoundation_stream_configuration.capturer);
       mediafoundation_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_MEDIAFOUNDATION
                                  : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
@@ -1498,6 +1509,16 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
             ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_TARGET_DEFAULT_NAME_STRING);
           break;
         }
+        case STREAM_DEVICE_RENDERER_OPENAL:
+        {
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING);
+          break;
+        }
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -1635,6 +1656,16 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
             (mute_in ? GUID_NULL
                      : Stream_MediaFramework_DirectSound_Tools::waveDeviceIdToDirectSoundGUID (0,
                                                                                                false)); // playback
+          break;
+        }
+        case STREAM_DEVICE_RENDERER_OPENAL:
+        {
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          mediafoundation_modulehandler_configuration_3.deviceIdentifier.identifier._id =
+            (mute_in ? -1 : 0); // *TODO*: -1 means WAVE_MAPPER
+          renderer_modulename_string =
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING);
           break;
         }
         default:
@@ -1811,7 +1842,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
                                   (*directshow_modulehandler_iterator).second.second->builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
-                                  useFrameworkSource_in, // use DirectShow source ? : WASAPI
+                                  directshow_stream_configuration.capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW, // use DirectShow source ? : WASAPI
                                   directshow_stream_configuration.renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW,
                                   mute_in);
       if (!result)
@@ -1820,7 +1851,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
                     ACE_TEXT ("failed to do_initialize_directshow(), returning\n")));
         goto error;
       } // end IF
-      if (useFrameworkSource_in) // use DirectShow source ?
+      if (directshow_stream_configuration.capturer == STREAM_DEVICE_CAPTURER_DIRECTSHOW) // use DirectShow source ?
       {
         ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
         ACE_ASSERT (directShowCBData_in.streamConfiguration);
@@ -1841,7 +1872,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
                                        (*mediafoundation_modulehandler_iterator).second.second->session,
                                        mediafoundation_stream_configuration.format,
                                        true, // initialize MediaFoundation framework ?
-                                       useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
+                                       mediafoundation_stream_configuration.capturer == STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION, // use MediaFoundation source ? : WASAPI
                                        mute_in,
                                        mediafoundation_stream,
                                        UIDefinitionFile_in.empty ()); // make session ?
@@ -2258,13 +2289,10 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool mute = false;
   bool print_version_and_exit = false;
-  enum Stream_Device_Capturer capturer_e;
+  enum Stream_Device_Capturer capturer_e =
+    TEST_U_STREAM_AUDIOEFFECT_DEFAULT_CAPTURER;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  capturer_e = STREAM_DEVICE_CAPTURER_WASAPI;
-  bool use_framework_source = false;
   bool use_framework_renderer = false;
-#else
-  capturer_e = STREAM_DEVICE_CAPTURER_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1b: parse/process/validate configuration
@@ -2298,8 +2326,7 @@ ACE_TMAIN (int argc_in,
                             print_version_and_exit,
                             capturer_e
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                            ,use_framework_source,
-                            use_framework_renderer))
+                            ,use_framework_renderer))
 #else
                             ))
 #endif // ACE_WIN32 || ACE_WIN64
@@ -2393,14 +2420,13 @@ ACE_TMAIN (int argc_in,
       directshow_configuration.GTKConfiguration.argv = argv_in;
       directshow_configuration.GTKConfiguration.CBData = &directshow_ui_cb_data;
       directshow_configuration.GTKConfiguration.eventHooks.finiHook =
-          idle_finalize_UI_cb;
+        idle_finalize_UI_cb;
       directshow_configuration.GTKConfiguration.eventHooks.initHook =
-          idle_initialize_UI_cb;
+        idle_initialize_UI_cb;
       directshow_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
-        directshow_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
-          NULL;
+        directshow_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION (3,0,0)
       gtk_configuration_p = &directshow_configuration.GTKConfiguration;
 #endif // GTK_SUPPORT
@@ -2419,14 +2445,13 @@ ACE_TMAIN (int argc_in,
       mediafoundation_configuration.GTKConfiguration.argv = argv_in;
       mediafoundation_configuration.GTKConfiguration.CBData = &mediafoundation_ui_cb_data;
       mediafoundation_configuration.GTKConfiguration.eventHooks.finiHook =
-          idle_finalize_UI_cb;
+        idle_finalize_UI_cb;
       mediafoundation_configuration.GTKConfiguration.eventHooks.initHook =
-          idle_initialize_UI_cb;
+        idle_initialize_UI_cb;
       mediafoundation_configuration.GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION (3,0,0)
       if (!UI_CSS_file.empty ())
-        mediafoundation_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] =
-          NULL;
+        mediafoundation_configuration.GTKConfiguration.CSSProviders[UI_CSS_file] = NULL;
 #endif // GTK_CHECK_VERSION (3,0,0)
       gtk_configuration_p = &mediafoundation_ui_cb_data.configuration->GTKConfiguration;
 #endif // GTK_SUPPORT
@@ -2623,7 +2648,6 @@ ACE_TMAIN (int argc_in,
            mute,
            capturer_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-           use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

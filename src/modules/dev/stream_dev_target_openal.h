@@ -40,10 +40,6 @@
 
 extern const char libacestream_default_dev_target_openal_module_name_string[];
 
-typedef ACE_Message_Queue_Ex<ALuint,
-                             ACE_MT_SYNCH,
-                             Common_TimePolicy_t> stream_dev_openal_queue_t;
-
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           ////////////////////////////////
@@ -53,7 +49,6 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           ////////////////////////////////
-          typename SessionDataType,
           typename MediaType>
 class Stream_Dev_Target_OpenAL_T
  : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
@@ -110,11 +105,14 @@ class Stream_Dev_Target_OpenAL_T
 
   bool queueBuffers ();
 
-	ALuint  buffers_[STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS];
-  ALenum  format_;
-  QUEUE_T queue_;
-  ALsizei sampleRate_;
-  ALuint  source_;
+  QUEUE_T                             bufferQueue_;
+	ALuint                              buffers_[STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS];
+  ALCcontext*                         context_;
+  ALCdevice*                          device_;
+  ALenum                              format_;
+  typename inherited::MESSAGE_QUEUE_T queue_;
+  ALsizei                             sampleRate_;
+  ALuint                              source_;
 };
 
 // include template definition
