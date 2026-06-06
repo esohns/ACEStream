@@ -33,6 +33,7 @@
 #define STREAM_DEV_MIC_SOURCE_PIPEWIRE_DEFAULT_NAME_STRING        "PipewireMicSource"
 #define STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING            "PipewirePlayback"
 #define STREAM_DEV_MIC_SOURCE_OPENAL_DEFAULT_NAME_STRING          "OpenALMicSource"
+#define STREAM_DEV_TARGET_OPENAL_DEFAULT_NAME_STRING              "OpenALPlayback"
 
 // GStreamer
 #define STREAM_DEV_CAM_SOURCE_GSTREAMER_PIPELINE_ID_STRING        "acestream_dev_cam_source"
@@ -81,6 +82,7 @@
 #define STREAM_DEV_MIC_DEFAULT_CHANNELS                           2 // i.e. stereo
 #define STREAM_DEV_MIC_DEFAULT_SAMPLE_RATE                        48000 // Hz
 
+#define STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS               15
 #define STREAM_DEV_OPENAL_DEFAULT_BUFFER_SIZE                     16384 // bytes
 
 #endif

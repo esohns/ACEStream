@@ -153,7 +153,10 @@ if (OPENAL_SUPPORT)
       ${source_files}
       stream_dev_mic_source_openal.cpp
       stream_dev_mic_source_openal.h
-      stream_dev_mic_source_openal.inl)
+      stream_dev_mic_source_openal.inl
+      stream_dev_target_openal.cpp
+      stream_dev_target_openal.h
+      stream_dev_target_openal.inl)
 endif (OPENAL_SUPPORT)
 if (WIN32)
  set (source_files
@@ -326,6 +329,8 @@ if (OPENAL_SUPPORT)
  install (FILES
           stream_dev_mic_source_openal.h
           stream_dev_mic_source_openal.inl
+          stream_dev_target_openal.h
+          stream_dev_target_openal.inl
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif (OPENAL_SUPPORT)
