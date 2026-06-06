@@ -14,6 +14,7 @@ endif (WIN32)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (pipewire)
 include (libcamera)
+include (openal)
 
 if (UNIX)
  include (FindPkgConfig)
@@ -59,6 +60,10 @@ if (LIBCAMERA_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${LIBCAMERA_INCLUDE_DIRS}>)
 endif (LIBCAMERA_SUPPORT)
+if (OPENAL_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Device PUBLIC
+                             "$<BUILD_INTERFACE:${OPENAL_INCLUDE_DIRS}>")
+endif (OPENAL_SUPPORT)
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Device PUBLIC
                              $<BUILD_INTERFACE:${PKG_ALSA_INCLUDE_DIRS}>)
@@ -143,6 +148,13 @@ if (LIBCAMERA_SUPPORT)
       stream_dev_cam_source_libcamera.h
       stream_dev_cam_source_libcamera.inl)
 endif (LIBCAMERA_SUPPORT)
+if (OPENAL_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dev_mic_source_openal.cpp
+      stream_dev_mic_source_openal.h
+      stream_dev_mic_source_openal.inl)
+endif (OPENAL_SUPPORT)
 if (WIN32)
  set (source_files
       ${source_files}
@@ -197,7 +209,7 @@ elseif (UNIX)
 endif ()
 
 # Include dir for installed targets
-set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
+#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
 
 unset (absolute_source_files)
 foreach (source_file ${source_files})
@@ -267,7 +279,9 @@ if (LIBCAMERA_SUPPORT)
  endif (UNIX)
  target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${LIBCAMERA_LIBRARIES})
 endif (LIBCAMERA_SUPPORT)
-
+if (OPENAL_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Device PUBLIC ${OPENAL_LIBRARIES})
+endif (OPENAL_SUPPORT)
 
 # add all targets to the build-tree export set
 export (TARGETS ${PROJECT_NAME}_Device
@@ -308,6 +322,13 @@ if (LIBCAMERA_SUPPORT)
           DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
           COMPONENT mod_include)
 endif (LIBCAMERA_SUPPORT)
+if (OPENAL_SUPPORT)
+ install (FILES
+          stream_dev_mic_source_openal.h
+          stream_dev_mic_source_openal.inl
+          DESTINATION "${INSTALL_INCLUDE_DIR}/${PROJECT_NAME}"
+          COMPONENT mod_include)
+endif (OPENAL_SUPPORT)
 if (UNIX)
  install (FILES
           stream_dev_cam_source_v4l.h

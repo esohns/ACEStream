@@ -65,6 +65,9 @@
 #if defined (GSTREAMER_SUPPORT)
 #include "stream_dev_mic_source_gstreamer.h"
 #endif // GSTREAMER_SUPPORT
+#if defined (OPENAL_SUPPORT)
+#include "stream_dev_mic_source_openal.h"
+#endif // OPENAL_SUPPORT
 
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_effect.h"
@@ -292,6 +295,28 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,   
                               libacestream_default_dev_mic_source_wavein_module_name_string,
                               Stream_INotify_t,                                                     // stream notification interface type
                               Test_U_Dev_Mic_Source_WaveIn2);                                       // writer type
+
+#if defined (OPENAL_SUPPORT)
+typedef Stream_Dev_Mic_Source_OpenAL_T<ACE_MT_SYNCH,
+                                       Stream_ControlMessage_t,
+                                       Test_U_AudioEffect_DirectShow_Message,
+                                       Test_U_AudioEffect_DirectShow_SessionMessage,
+                                       struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                       enum Stream_ControlType,
+                                       enum Stream_SessionMessageType,
+                                       struct Test_U_AudioEffect_DirectShow_StreamState,
+                                       struct Test_U_AudioEffect_Statistic,
+                                       Test_U_DirectShow_SessionManager_t,
+                                       Common_Timer_Manager_t,
+                                       struct Stream_UserData,
+                                       struct _AMMediaType> Test_U_Dev_Mic_Source_OpenAL;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dev_mic_source_openal_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Mic_Source_OpenAL);                                   // writer type
+#endif // OPENAL_SUPPORT
 #else
 typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  enum Stream_SessionMessageType,
@@ -397,6 +422,50 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                   
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dev_Mic_Source_GStreamer);                                // writer type
 #endif // GSTREAMER_SUPPORT
+
+#if defined (GSTREAMER_SUPPORT)
+typedef Stream_Dev_Mic_Source_GStreamer_T<ACE_MT_SYNCH,
+                                          Stream_ControlMessage_t,
+                                          Test_U_AudioEffect_Message,
+                                          Test_U_AudioEffect_SessionMessage,
+                                          struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                                          enum Stream_ControlType,
+                                          enum Stream_SessionMessageType,
+                                          struct Test_U_AudioEffect_StreamState,
+                                          struct Test_U_AudioEffect_Statistic,
+                                          Test_U_SessionManager_t,
+                                          Common_Timer_Manager_t,
+                                          struct Stream_UserData,
+                                          struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dev_Mic_Source_GStreamer;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                                  // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,       // module handler configuration type
+                              libacestream_default_dev_mic_source_gstreamer_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_U_Dev_Mic_Source_GStreamer);                                // writer type
+#endif // GSTREAMER_SUPPORT
+
+#if defined (OPENAL_SUPPORT)
+typedef Stream_Dev_Mic_Source_OpenAL_T<ACE_MT_SYNCH,
+                                       Stream_ControlMessage_t,
+                                       Test_U_AudioEffect_Message,
+                                       Test_U_AudioEffect_SessionMessage,
+                                       struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                                       enum Stream_ControlType,
+                                       enum Stream_SessionMessageType,
+                                       struct Test_U_AudioEffect_StreamState,
+                                       struct Test_U_AudioEffect_Statistic,
+                                       Test_U_SessionManager_t,
+                                       Common_Timer_Manager_t,
+                                       struct Stream_UserData,
+                                       struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dev_Mic_Source_OpenAL;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                                // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,     // module handler configuration type
+                              libacestream_default_dev_mic_source_openal_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_U_Dev_Mic_Source_OpenAL);                                 // writer type
+#endif // OPENAL_SUPPORT
 
 typedef Stream_Module_Delay_T<ACE_MT_SYNCH,
                               Common_TimePolicy_t,

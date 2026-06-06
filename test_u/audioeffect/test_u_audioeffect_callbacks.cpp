@@ -521,6 +521,9 @@ error_2:
 
       break;
     }
+    case STREAM_DEVICE_CAPTURER_OPENAL:
+      result = true;
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -7529,8 +7532,7 @@ continue_:
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
-        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
+        (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier = Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
         (*directshow_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
@@ -7547,8 +7549,7 @@ continue_:
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
 
       if (is_active)
-        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-          Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.identifier = Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
       else
         (*mediafoundation_modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
       break;
@@ -7571,8 +7572,7 @@ continue_:
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   if (is_active)
-    (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier =
-      Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
+    (*modulehandler_configuration_iterator).second.second->fileIdentifier.identifier = Common_UI_GTK_Tools::UTF8ToLocale ((filename_p ? filename_p : ACE_TEXT_ALWAYS_CHAR ("")), -1);
   else
     (*modulehandler_configuration_iterator).second.second->fileIdentifier.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -7602,6 +7602,7 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
     NULL;
   struct Test_U_AudioEffect_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p =
     NULL;
+  HRESULT result = S_OK;
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
@@ -7610,10 +7611,10 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
       directshow_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
-      ACE_ASSERT (directshow_ui_cb_data_p->captureVolumeControl);
-      HRESULT result =
-        directshow_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                                   NULL);
+      if (directshow_ui_cb_data_p->captureVolumeControl)
+        result =
+          directshow_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                     NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }
@@ -7623,10 +7624,10 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
       mediafoundation_ui_cb_data_p =
         static_cast<struct Test_U_AudioEffect_MediaFoundation_UI_CBData*> (userData_in);
       ACE_ASSERT (mediafoundation_ui_cb_data_p);
-      ACE_ASSERT (mediafoundation_ui_cb_data_p->captureVolumeControl);
-      HRESULT result =
-        mediafoundation_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
-                                                                                        NULL);
+      if (mediafoundation_ui_cb_data_p->captureVolumeControl)
+        result =
+          mediafoundation_ui_cb_data_p->captureVolumeControl->SetMasterVolumeLevelScalar (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
+                                                                                          NULL);
       ACE_ASSERT (SUCCEEDED (result));
       break;
     }

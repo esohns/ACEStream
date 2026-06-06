@@ -204,6 +204,12 @@ do_printUsage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (OPENAL_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-q          : use OpenAL [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // OPENAL_SUPPORT
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-s [VALUE]  : statistic reporting interval (second(s)) [")
             << STREAM_DEFAULT_STATISTIC_REPORTING_INTERVAL_S
             << ACE_TEXT_ALWAYS_CHAR ("] [0: off])")
@@ -272,19 +278,14 @@ do_processArguments (int argc_in,
                      unsigned int& statisticReportingInterval_out,
                      bool& traceInformation_out,
                      bool& mute_out,
-                     bool& printVersionAndExit_out
-#if defined (LIBPIPEWIRE_SUPPORT)
-                     ,bool& usePipewire_out
-#endif // LIBPIPEWIRE_SUPPORT
+                     bool& printVersionAndExit_out,
+                     enum Stream_Device_Capturer& capturer_out
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                      ,bool& useFrameworkSource_out,
-                     bool& useFrameworkRenderer_out
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-                     ,bool& useGStreamer_out)
+                     bool& useFrameworkRenderer_out)
 #else
                      )
-#endif // GSTREAMER_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
@@ -335,16 +336,13 @@ do_processArguments (int argc_in,
   traceInformation_out = false;
   mute_out = false;
   printVersionAndExit_out = false;
-#if defined (LIBPIPEWIRE_SUPPORT)
-  usePipewire_out = false;
-#endif // LIBPIPEWIRE_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  capturer_out = STREAM_DEVICE_CAPTURER_WASAPI;
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
+#else
+  capturer_out = STREAM_DEVICE_CAPTURER_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-  useGStreamer_out = false;
-#endif // GSTREAMER_SUPPORT
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("a:flo::s:tuv");
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
@@ -358,6 +356,9 @@ do_processArguments (int argc_in,
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::p:");
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (OPENAL_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("q");
+#endif // OPENAL_SUPPORT
 #if defined (LIBPIPEWIRE_SUPPORT)
   options_string += ACE_TEXT_ALWAYS_CHAR ("w");
 #endif // LIBPIPEWIRE_SUPPORT
@@ -501,6 +502,13 @@ do_processArguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (OPENAL_SUPPORT)
+      case 'q':
+      {
+        capturer_out = STREAM_DEVICE_CAPTURER_OPENAL;
+        break;
+      }
+#endif // OPENAL_SUPPORT
       case 's':
       {
         converter.clear ();
@@ -527,7 +535,7 @@ do_processArguments (int argc_in,
 #if defined (LIBPIPEWIRE_SUPPORT)
       case 'w':
       {
-        usePipewire_out = true;
+        capturer_out = STREAM_DEVICE_CAPTURER_PIPEWIRE;
         break;
       }
 #endif // LIBPIPEWIRE_SUPPORT
@@ -546,7 +554,7 @@ do_processArguments (int argc_in,
 #if defined (GSTREAMER_SUPPORT)
       case 'z':
       {
-        useGStreamer_out = true;
+        capturer_out = STREAM_DEVICE_CAPTURER_GSTREAMER;
         break;
       }
 #endif // GSTREAMER_SUPPORT
@@ -1146,16 +1154,11 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
          const std::string& targetFilename_in,
          unsigned int statisticReportingInterval_in,
          bool mute_in,
-#if defined (LIBPIPEWIRE_SUPPORT)
-         bool usePipewire_in,
-#endif // LIBPIPEWIRE_SUPPORT
+         enum Stream_Device_Capturer capturer_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-         bool useGStreamer_in,
-#endif // GSTREAMER_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_AudioEffect_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_U_AudioEffect_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
@@ -1235,10 +1238,10 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     {
       istream_p = &directshow_stream;
       istream_control_p = &directshow_stream;
+      directshow_stream_configuration.capturer = capturer_in;
       directshow_stream_configuration.capturer =
         (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_DIRECTSHOW
-                               : STREAM_DEVICE_CAPTURER_WASAPI);
-                               //: STREAM_DEVICE_CAPTURER_WAVEIN);
+                               : directshow_stream_configuration.capturer);
       directshow_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_DIRECTSHOW
                                  : STREAM_DEVICE_RENDERER_WASAPI);
@@ -1263,9 +1266,10 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     {
       istream_p = &mediafoundation_stream;
       istream_control_p = &mediafoundation_stream;
+      mediafoundation_stream_configuration.capturer = capturer_in;
       mediafoundation_stream_configuration.capturer =
         (useFrameworkSource_in ? STREAM_DEVICE_CAPTURER_MEDIAFOUNDATION
-                               : STREAM_DEVICE_CAPTURER_WASAPI);
+                               : mediafoundation_stream_configuration.capturer);
       mediafoundation_stream_configuration.renderer =
         (useFrameworkRenderer_in ? STREAM_DEVICE_RENDERER_MEDIAFOUNDATION
                                  : STREAM_DEV_AUDIO_DEFAULT_RENDERER);
@@ -1299,7 +1303,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
   ACE_Time_Value one_second (1, 0);
 #if defined (GTK_SUPPORT)
   Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   int result_2 = -1;
 #endif // GTK_SUPPORT
@@ -1394,6 +1398,14 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
           break;
         }
         case STREAM_DEVICE_CAPTURER_DIRECTSHOW:
+        {
+          directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          directshow_modulehandler_configuration.deviceIdentifier.identifier._id =
+            0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_OPENAL:
         {
           directshow_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
             Stream_Device_Identifier::ID;
@@ -1539,6 +1551,14 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
         {
           mediafoundation_modulehandler_configuration.deviceIdentifier =
             Stream_Device_MediaFoundation_Tools::getDefaultCaptureDevice (MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE_AUDCAP_GUID);
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_OPENAL:
+        {
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+            Stream_Device_Identifier::ID;
+          mediafoundation_modulehandler_configuration.deviceIdentifier.identifier._id =
+            0; // *TODO*: -1 means WAVE_MAPPER; 0 may not be the default device id
           break;
         }
         default:
@@ -1744,6 +1764,7 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
     }
   } // end SWITCH
 #else
+  stream_configuration.capturer = capturer_in;
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
       (!UIDefinitionFile_in.empty () ? &event_handler
@@ -1751,32 +1772,20 @@ do_work (enum Stream_Visualization_SpectrumAnalyzer_2DMode spectrumAnalyzer2DMod
 #if defined (GTK_USE)
   stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_GTK;
 #endif // GTK_USE
-#if defined (LIBPIPEWIRE_SUPPORT)
-  if (usePipewire_in)
-  {
-    modulehandler_configuration.concurrency =
-      STREAM_HEADMODULECONCURRENCY_ACTIVE;
-
-    stream_configuration.capturer = STREAM_DEVICE_CAPTURER_PIPEWIRE;
-    // stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
-    // stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
-    // stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
-  } // end IF
-#endif // LIBPIPEWIRE_SUPPORT
-#if defined (GSTREAMER_SUPPORT)
-  if (useGStreamer_in)
-  {
-    modulehandler_configuration.concurrency =
-      STREAM_HEADMODULECONCURRENCY_ACTIVE;
-
-    stream_configuration.capturer = STREAM_DEVICE_CAPTURER_GSTREAMER;
-    // stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
-    // stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
-    // stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
-  } // end IF
-#endif // GSTREAMER_SUPPORT
-  configuration_in.signalHandlerConfiguration.stream = &stream;
   stream_configuration.printFinalReport = true;
+  switch (capturer_in)
+  {
+    case STREAM_DEVICE_CAPTURER_PIPEWIRE:
+    case STREAM_DEVICE_CAPTURER_GSTREAMER:
+    {
+      modulehandler_configuration.concurrency =
+        STREAM_HEADMODULECONCURRENCY_ACTIVE;
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+  configuration_in.signalHandlerConfiguration.stream = &stream;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // intialize timers
@@ -2104,7 +2113,8 @@ error:
   if (!UIDefinitionFile_in.empty () && itask_p)
     itask_p->stop (true,  // wait ?
                    true); // high priority ?
-  timer_manager_p->stop ();
+  if (timer_manager_p)
+    timer_manager_p->stop ();
 }
 
 void
@@ -2248,16 +2258,14 @@ ACE_TMAIN (int argc_in,
   bool trace_information = false;
   bool mute = false;
   bool print_version_and_exit = false;
-#if defined (LIBPIPEWIRE_SUPPORT)
-  bool use_pipewire_b = false;
-#endif // LIBPIPEWIRE_SUPPORT
+  enum Stream_Device_Capturer capturer_e;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  capturer_e = STREAM_DEVICE_CAPTURER_WASAPI;
   bool use_framework_source = false;
   bool use_framework_renderer = false;
+#else
+  capturer_e = STREAM_DEVICE_CAPTURER_ALSA;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-  bool use_gstreamer_b = false;
-#endif // GSTREAMER_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_processArguments (argc_in,
@@ -2287,19 +2295,14 @@ ACE_TMAIN (int argc_in,
                             statistic_reporting_interval,
                             trace_information,
                             mute,
-                            print_version_and_exit
-#if defined (LIBPIPEWIRE_SUPPORT)
-                            ,use_pipewire_b
-#endif // LIBPIPEWIRE_SUPPORT
+                            print_version_and_exit,
+                            capturer_e
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                             ,use_framework_source,
-                            use_framework_renderer
-#endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-                           ,use_gstreamer_b))
+                            use_framework_renderer))
 #else
-                           ))
-#endif // GSTREAMER_SUPPORT
+                            ))
+#endif // ACE_WIN32 || ACE_WIN64
   {
     do_printUsage (Common_File_Tools::executable);
 
@@ -2466,9 +2469,9 @@ ACE_TMAIN (int argc_in,
   ui_cb_data.configuration->GTKConfiguration.argv = argv_in;
   ui_cb_data.configuration->GTKConfiguration.CBData = &ui_cb_data;
   ui_cb_data.configuration->GTKConfiguration.eventHooks.finiHook =
-      idle_finalize_UI_cb;
+    idle_finalize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.eventHooks.initHook =
-      idle_initialize_UI_cb;
+    idle_initialize_UI_cb;
   ui_cb_data.configuration->GTKConfiguration.definition = &gtk_ui_definition;
 #if GTK_CHECK_VERSION(3,0,0)
   if (!UI_CSS_file.empty ())
@@ -2618,16 +2621,11 @@ ACE_TMAIN (int argc_in,
            target_filename,
            statistic_reporting_interval,
            mute,
-#if defined (LIBPIPEWIRE_SUPPORT)
-           use_pipewire_b,
-#endif // LIBPIPEWIRE_SUPPORT
+           capturer_e,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GSTREAMER_SUPPORT)
-           use_gstreamer_b,
-#endif // GSTREAMER_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,

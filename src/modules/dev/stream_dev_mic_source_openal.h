@@ -18,12 +18,16 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DEV_MIC_SOURCE_PIPEWIRE_H
-#define STREAM_DEV_MIC_SOURCE_PIPEWIRE_H
+#ifndef STREAM_DEV_MIC_SOURCE_OPENAL_H
+#define STREAM_DEV_MIC_SOURCE_OPENAL_H
 
-#include "spa/param/audio/format-utils.h"
-
-#include "pipewire/pipewire.h"
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "al.h"
+#include "alc.h"
+#else
+#include "AL/al.h"
+#include "AL/alc.h"
+#endif // ACE_WIN32 || ACE_WIN64
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
@@ -33,39 +37,28 @@
 #include "stream_common.h"
 #include "stream_headmoduletask_base.h"
 
-#include "stream_lib_mediatype_converter.h"
-
 #include "stream_dev_common.h"
 
-void acestream_dev_mic_pw_on_client_event_info_cb (void*, const struct pw_client_info*);
+#include "stream_lib_mediatype_converter.h"
 
-void acestream_dev_mic_pw_on_device_event_info_cb (void*, const struct pw_device_info*);
-void acestream_dev_mic_pw_on_device_event_param_cb (void*, int, uint32_t, uint32_t, uint32_t, const struct spa_pod*);
-
-void acestream_dev_mic_pw_on_registry_event_global_cb (void*, uint32_t, uint32_t, const char*, uint32_t, const struct spa_dict*);
-
-void acestream_dev_mic_pw_on_stream_param_changed_cb (void* , uint32_t, const struct spa_pod*);
-void acestream_dev_mic_pw_on_process_cb (void*);
-
-extern const char libacestream_default_dev_mic_source_pipewire_module_name_string[];
+extern const char libacestream_default_dev_mic_source_openal_module_name_string[];
 
 template <ACE_SYNCH_DECL,
-          ////////////////////////////////
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
-          ////////////////////////////////
           typename ConfigurationType,
-          ////////////////////////////////
           typename StreamControlType,
           typename StreamNotificationType,
           typename StreamStateType,
-          ////////////////////////////////
           typename StatisticContainerType,
           typename SessionManagerType,
-          typename TimerManagerType>
-class Stream_Dev_Mic_Source_Pipewire_T
- : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+          typename TimerManagerType, // implements Common_ITimer
+          typename UserDataType,
+          ////////////////////////////////
+          typename MediaType>
+class Stream_Dev_Mic_Source_OpenAL_T
+ : public Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -77,11 +70,10 @@ class Stream_Dev_Mic_Source_Pipewire_T
                                       StatisticContainerType,
                                       SessionManagerType,
                                       TimerManagerType,
-                                      struct Stream_UserData>
- , public Stream_MediaFramework_MediaTypeConverter_T<struct spa_audio_info>
- , public Common_IGetR_3_T<struct Stream_Device_Pipewire_Capture_CBData>
+                                      UserDataType>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
 {
-  typedef Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
+  typedef Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
                                       DataMessageType,
@@ -93,31 +85,36 @@ class Stream_Dev_Mic_Source_Pipewire_T
                                       StatisticContainerType,
                                       SessionManagerType,
                                       TimerManagerType,
-                                      struct Stream_UserData> inherited;
-  typedef Stream_MediaFramework_MediaTypeConverter_T<struct spa_audio_info> inherited2;
+                                      UserDataType> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
   // convenient types
   typedef Stream_IStream_T<ACE_SYNCH_USE,
                            Common_TimePolicy_t> ISTREAM_T;
 
-  Stream_Dev_Mic_Source_Pipewire_T (ISTREAM_T* = NULL); // stream handle
-  virtual ~Stream_Dev_Mic_Source_Pipewire_T ();
+  Stream_Dev_Mic_Source_OpenAL_T (ISTREAM_T*); // stream handle
+  virtual ~Stream_Dev_Mic_Source_OpenAL_T ();
 
-  // implement Common_IGetR_3_T
-  inline virtual const struct Stream_Device_Pipewire_Capture_CBData& getR_3 () const { return CBData_; }
+  // *PORTABILITY*: for some reason, this base class member is not exposed
+  //                (MSVC/gcc)
+  using Stream_HeadModuleTaskBase_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
+                                    StreamStateType,
+                                    StatisticContainerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
+                                    UserDataType>::initialize;
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
-
-  // implement Common_IStatistic
-  // *NOTE*: implements regular (timer-based) statistic collection
-  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
-  //virtual void report () const;
-
-  // info
-  bool isInitialized () const;
 
   // implement (part of) Stream_ITaskBase
   virtual void handleDataMessage (DataMessageType*&, // message handle
@@ -125,24 +122,27 @@ class Stream_Dev_Mic_Source_Pipewire_T
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
- private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_Pipewire_T (const Stream_Dev_Mic_Source_Pipewire_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_Pipewire_T& operator= (const Stream_Dev_Mic_Source_Pipewire_T&))
+  // implement Common_IStatistic
+  // *NOTE*: implements regular (timer-based) statistic collection
+  virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
 
-  // override some task-based members
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_OpenAL_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_OpenAL_T (const Stream_Dev_Mic_Source_OpenAL_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Mic_Source_OpenAL_T& operator= (const Stream_Dev_Mic_Source_OpenAL_T&))
+
+  // helper methods
+  bool initialize_OpenAL (const struct Stream_Device_Identifier&, // device identifier
+                          const MediaType&);                      // (source) media type
+
   virtual int svc (void);
 
-  struct Stream_Device_Pipewire_Capture_CBData CBData_;
-  struct pw_context*                           context_;
-  bool                                         isPipewireMainLoopThread_;
-  struct pw_main_loop*                         loop_;
-  uint8_t                                      PODBuffer_[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE];
-  struct pw_registry_events                    registryEvents_;
-  struct spa_hook                              registryListener_;
-  struct pw_stream_events                      streamEvents_;
+  ALCdevice*         device_;
+  size_t             frameSize_;
+  Stream_SessionId_t sessionId_;
 };
 
 // include template definition
-#include "stream_dev_mic_source_pipewire.inl"
+#include "stream_dev_mic_source_openal.inl"
 
 #endif

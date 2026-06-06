@@ -124,6 +124,9 @@ class Stream_MediaFramework_MediaTypeConverter_T
 
   inline Common_Image_Resolution_t getResolution (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toResolution (mediaType_in); }
   inline float getFramerate (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in); }
+  inline unsigned int getBitsPerSample (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toFrameBits (mediaType_in); }
+  inline unsigned int getSampleRate (const struct _AMMediaType& mediaType_in) { return static_cast<unsigned int> (Stream_MediaFramework_DirectShow_Tools::toFramerate (mediaType_in)); }
+  inline unsigned int getChannels (const struct _AMMediaType& mediaType_in) { return Stream_MediaFramework_DirectShow_Tools::toChannels (mediaType_in); }
   inline Common_Image_Resolution_t getResolution (const IMFMediaType* mediaType_in) { return Stream_MediaFramework_MediaFoundation_Tools::toResolution (mediaType_in); }
 
   inline void set (struct _AMMediaType& mediaType_in, enum Stream_MediaType_Type, struct _AMMediaType& mediaType_out) { bool result = Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in, mediaType_out); ACE_ASSERT (result); }
@@ -172,7 +175,8 @@ class Stream_MediaFramework_MediaTypeConverter_T
   inline void getMediaType (const struct Stream_MediaFramework_ALSA_MediaType&, enum Stream_MediaType_Type, struct Stream_MediaFramework_FFMPEG_VideoMediaType&) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 #endif // FFMPEG_SUPPORT
 
-  inline unsigned int getSamplerate (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return mediaType_in.rate; }
+  inline unsigned int getBitsPerSample (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return snd_pcm_format_width (mediaType_in.format); }
+  inline unsigned int getSampleRate (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return mediaType_in.rate; }
   inline unsigned int getChannels (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { return mediaType_in.channels; }
   inline Common_Image_Resolution_t getResolution (const struct Stream_MediaFramework_ALSA_MediaType& mediaType_in) { Common_Image_Resolution_t result; return result; }
 

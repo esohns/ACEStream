@@ -156,6 +156,16 @@ Test_U_AudioEffect_DirectShow_Stream::load (Stream_ILayout* layout_in,
                           false);
           break;
         }
+        case STREAM_DEVICE_CAPTURER_OPENAL:
+        {
+#if defined (OPENAL_SUPPORT)
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_OpenAL_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_OPENAL_DEFAULT_NAME_STRING)),
+                          false);
+#endif // OPENAL_SUPPORT
+          break;
+        }
         default:
         {
           ACE_DEBUG ((LM_ERROR,
@@ -2332,6 +2342,16 @@ Test_U_AudioEffect_ALSA_Stream::load (Stream_ILayout* layout_in,
                                                                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_GSTREAMER_DEFAULT_NAME_STRING)),
                           false);
 #endif // GSTREAMER_SUPPORT
+          break;
+        }
+        case STREAM_DEVICE_CAPTURER_OPENAL:
+        {
+#if defined (OPENAL_SUPPORT)
+          ACE_NEW_RETURN (module_p,
+                          Test_U_Dev_Mic_Source_OpenAL_Module (this,
+                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_MIC_SOURCE_OPENAL_DEFAULT_NAME_STRING)),
+                          false);
+#endif // OPENAL_SUPPORT
           break;
         }
         default:

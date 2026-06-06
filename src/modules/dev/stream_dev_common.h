@@ -91,6 +91,8 @@ enum Stream_Device_Capturer
   // *** video ONLY (!) ***
   STREAM_DEVICE_CAPTURER_V4L2,
 #endif // ACE_WIN32 || ACE_WIN64
+  // *** audio ONLY (!) ***
+  STREAM_DEVICE_CAPTURER_OPENAL,
   // *** video ONLY (!) ***
   STREAM_DEVICE_CAPTURER_LIBCAMERA,
   // *** A/V ***
