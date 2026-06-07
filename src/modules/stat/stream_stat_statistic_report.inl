@@ -744,7 +744,7 @@ Stream_Statistic_StatisticReport_WriterTask_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Statistic_StatisticReport_WriterTask_T::putStatisticMessage"));
 
   typename SessionMessageType::DATA_T* session_data_container_p = NULL;
-  if (inherited::sessionData_)
+  if (likely (inherited::sessionData_))
   {
     inherited::sessionData_->increase ();
     session_data_container_p = inherited::sessionData_;

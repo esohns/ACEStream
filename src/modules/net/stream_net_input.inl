@@ -483,7 +483,20 @@ continue_3:
     case STREAM_SESSION_MESSAGE_UNLINK:
       break;
     case STREAM_SESSION_MESSAGE_CONNECT:
-    { ACE_ASSERT (inherited::sessionData_);
+    {
+      // sanity check(s)
+      if (unlikely (!inherited::sessionData_)) // out-of-session ?
+      { std::string type_string;
+        SessionMessageType::MessageTypeToString (message_inout->type (),
+                                                 type_string);
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: received out-of-session session message (type was: \"%s\"); cannot update session data, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (type_string.c_str ())));
+        manageSessionData_ = false;
+        break;
+      } // end IF
+
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ConnectionManagerType* connection_manager_p =
@@ -521,7 +534,7 @@ continue_3:
         if (likely (!session_data_r.connection && manageSessionData_))
           session_data_r.connection = connection_p;
         else
-        { ACE_ASSERT (session_data_r.connection == connection_p);
+        { ACE_ASSERT (session_data_r.connection == connection_p); // *TODO*
           ACE_DEBUG ((LM_WARNING,
                       ACE_TEXT ("%s: session data already contains connection handle (was: %@, is: %@), continuing\n"),
                       inherited::mod_->name (),
@@ -536,8 +549,21 @@ continue_3:
     }
     case STREAM_SESSION_MESSAGE_DISCONNECT:
     {
+      // sanity check(s)
+      if (unlikely (!inherited::sessionData_)) // out-of-session ?
+      { std::string type_string;
+        SessionMessageType::MessageTypeToString (message_inout->type (),
+                                                  type_string);
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: received out-of-session session message (type was: \"%s\"); cannot update session data, continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (type_string.c_str ())));
+        manageSessionData_ = false;
+        break;
+      } // end IF
+
       if (likely (manageSessionData_))
-      { ACE_ASSERT (inherited::sessionData_);
+      {
         typename SessionMessageType::DATA_T::DATA_T& session_data_r =
           const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
         { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
@@ -570,8 +596,8 @@ end:
       if (likely (inherited::timerId_ != -1))
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
-            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                                     : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
+          (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                   : inherited::TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (inherited::timerId_,

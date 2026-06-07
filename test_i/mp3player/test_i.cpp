@@ -370,7 +370,9 @@ do_work (ACE_UINT32 bufferSize_in,
   //delay_configuration.adaptiveTokenFactor = true;
   // *NOTE*: this token factor seems to compensate the processing overhead quite
   //         well (currently tested in Debug mode only)
+#if defined (_DEBUG)
   delay_configuration.tokenFactor = 1.35f;
+#endif // _DEBUG
 
   struct Stream_Visualization_SpectrumAnalyzer_Configuration analyzer_configuration;
 
