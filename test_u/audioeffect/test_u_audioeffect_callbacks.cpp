@@ -6837,17 +6837,17 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                     false,             // recurse upstream ?
                     is_file_source_b); // high priority ?
 
-    // step1: remove event sources
-    { ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
-      for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
-           iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
-           iterator++)
-        if (!g_source_remove (*iterator))
-          ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
-                      *iterator));
-      ui_cb_data_base_p->UIState->eventSourceIds.clear ();
-    } // end lock scope
+    //// step1: remove event sources
+    //{ ACE_GUARD (ACE_Thread_Mutex, aGuard, ui_cb_data_base_p->UIState->lock);
+    //  for (Common_UI_GTK_EventSourceIdsIterator_t iterator = ui_cb_data_base_p->UIState->eventSourceIds.begin ();
+    //       iterator != ui_cb_data_base_p->UIState->eventSourceIds.end ();
+    //       iterator++)
+    //    if (!g_source_remove (*iterator))
+    //      ACE_DEBUG ((LM_ERROR,
+    //                  ACE_TEXT ("failed to g_source_remove(%u), continuing\n"),
+    //                  *iterator));
+    //  ui_cb_data_base_p->UIState->eventSourceIds.clear ();
+    //} // end lock scope
 
     return;
   } // end IF

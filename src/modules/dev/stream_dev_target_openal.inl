@@ -217,6 +217,7 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = message_inout;
   int result_2 = -1;
   ALuint* buffer_p = NULL;
+  ALenum error_code_e;
 
 continue_:
   // step1: get next free buffer
@@ -237,9 +238,13 @@ continue_:
                 message_block_p->rd_ptr (),
                 message_block_p->length (),
                 sampleRate_);
+  error_code_e = alGetError ();
+  ACE_ASSERT ((error_code_e == AL_NO_ERROR));
 
   // step3: queue buffer on source
   alSourceQueueBuffers (source_, 1, buffer_p);
+  error_code_e = alGetError ();
+  ACE_ASSERT ((error_code_e == AL_NO_ERROR));
 
   message_block_p = message_block_p->cont ();
   if (unlikely (message_block_p))
@@ -581,7 +586,7 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
               inherited::mod_->name ()));
 
   int result = 0;
-  ALint buffers_processed_i;
+  ALint buffers_processed_i, state_i;
   ALuint buffer_i = 0;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
@@ -592,10 +597,17 @@ Stream_Dev_Target_OpenAL_T<ACE_SYNCH_USE,
   {
     buffers_processed_i = 0;
     alGetSourcei (source_, AL_BUFFERS_PROCESSED, &buffers_processed_i);
+    if (buffers_processed_i == 0)
+    {
+      alGetSourcei (source_, AL_SOURCE_STATE, &state_i);
+      if (state_i != AL_PLAYING)
+        alSourcePlay (source_);
+    } // end IF
     while (buffers_processed_i > 0)
     {
       buffer_i = 0;
       alSourceUnqueueBuffers (source_, 1, &buffer_i);
+      ACE_ASSERT (buffer_i);
 
       // find index of buffer_i in buffers_ and return it to the buffer queue
       for (i = 0; i < STREAM_DEV_OPENAL_DEFAULT_NUMBER_OF_BUFFERS; ++i)
