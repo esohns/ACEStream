@@ -58,10 +58,12 @@ struct HTTPGet_MessageData
 {
   HTTPGet_MessageData ()
    : HTTP_Record ()
-  {};
+  {}
   virtual ~HTTPGet_MessageData ()
-  {};
-  inline void operator+= (struct HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  {}
+
+  inline void operator= (const struct HTTP_Record& rhs_in) { *((struct HTTP_Record*)this) = rhs_in; }
+  inline void operator+= (const struct HTTPGet_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 };
 typedef Stream_DataBase_T<struct HTTPGet_MessageData> HTTPGet_MessageData_t;
 
@@ -92,7 +94,7 @@ struct HTTPGet_SessionData
    , connectionStates ()
    , format (STREAM_COMPRESSION_FORMAT_INVALID)
    , targetFileName ()
-  {};
+  {}
 
   HTTPGet_SessionData& operator+= (const struct HTTPGet_SessionData& rhs_in)
   {
@@ -149,7 +151,7 @@ struct HTTPGet_ModuleHandlerConfiguration
     closeAfterReception = true; // http get module closes the connection after data has arrived
     passive = false; // net source module maintains the connection
     stopOnUnlink = true; // (downstream) head modules stop the active session after connection closes and the stream is unlinked
-  };
+  }
 
   bool                             closeAfterReception;      // HTTP get module
   struct HTTPGet_Configuration*    configuration;
@@ -177,7 +179,7 @@ struct HTTPGet_StreamState
    : Stream_State ()
    , sessionData (NULL)
    //, userData (NULL)
-  {};
+  {}
 
   struct HTTPGet_SessionData* sessionData;
 

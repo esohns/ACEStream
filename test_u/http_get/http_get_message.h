@@ -51,7 +51,7 @@ template <ACE_SYNCH_DECL,
 
 class HTTPGet_MessageDataContainer
  : public Stream_DataBase_T<struct HTTPGet_MessageData>
- , public Common_ISetPR_T<struct HTTP_Record>
+ //, public Common_ISetPR_T<struct HTTP_Record>
 {
  public:
   HTTPGet_MessageDataContainer ();
@@ -61,7 +61,7 @@ class HTTPGet_MessageDataContainer
   inline virtual ~HTTPGet_MessageDataContainer () {};
 
   // implement Common_ISetPR_T
-  virtual void setPR (struct HTTP_Record*&);
+  //virtual void setPR (struct HTTP_Record*&);
 
  private:
   typedef Stream_DataBase_T<struct HTTPGet_MessageData> inherited;

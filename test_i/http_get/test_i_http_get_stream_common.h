@@ -78,7 +78,9 @@ struct Test_I_HTTPGet_MessageData
     if (HTMLDocument)
       xmlFreeDoc (HTMLDocument);
   }
- inline void operator+= (struct Test_I_HTTPGet_MessageData rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+
+  inline void operator= (const struct HTTP_Record& rhs_in) { *((struct HTTP_Record*)this) = rhs_in; }
+  inline void operator+= (const struct Test_I_HTTPGet_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   xmlDocPtr HTMLDocument;
 };
@@ -86,15 +88,15 @@ struct Test_I_HTTPGet_MessageData
 
 struct Test_I_DataItem
 {
- Test_I_DataItem ()
-  : description ()
-  , URI ()
- {}
+  Test_I_DataItem ()
+   : description ()
+   , URI ()
+  {}
 
- inline bool operator== (struct Test_I_DataItem rhs_in) { return URI == rhs_in.URI; }
+  inline bool operator== (struct Test_I_DataItem rhs_in) { return URI == rhs_in.URI; }
 
- std::string description;
- std::string URI;
+  std::string description;
+  std::string URI;
 };
 typedef std::list<struct Test_I_DataItem> Test_I_DataItems_t;
 typedef Test_I_DataItems_t::const_iterator Test_I_DataItemsIterator_t;

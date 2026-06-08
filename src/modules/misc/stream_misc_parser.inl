@@ -887,12 +887,17 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     int error = ACE_OS::last_error ();
     if (unlikely (error != ESHUTDOWN))
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to ACE_Message_Queue::enqueue_tail(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
     message_inout->release (); message_inout = NULL;
-    return;
+    goto error;
   } // end IF
   message_inout = NULL;
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

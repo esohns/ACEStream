@@ -48,32 +48,32 @@ HTTPGet_MessageDataContainer::HTTPGet_MessageDataContainer (struct HTTPGet_Messa
 
 }
 
-void
-HTTPGet_MessageDataContainer::setPR (struct HTTP_Record*& record_inout)
-{
-  STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::setPR"));
-
-  struct HTTPGet_MessageData* data_p = NULL;
-  ACE_NEW_NORETURN (data_p,
-                    struct HTTPGet_MessageData ());
-  if (!data_p)
-  {
-    ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate Test_I_MessageData: \"%m\", returning\n")));
-    return;
-  } // end IF
-  data_p->form = record_inout->form; // request
-  data_p->headers = record_inout->headers;
-  data_p->method = record_inout->method;
-  data_p->reason = record_inout->reason; // response
-  data_p->status = record_inout->status; // response
-  data_p->URI = record_inout->URI;
-  data_p->version = record_inout->version;
-
-  delete record_inout; record_inout= NULL;
-
-  inherited::setPR (data_p);
-}
+//void
+//HTTPGet_MessageDataContainer::setPR (struct HTTP_Record*& record_inout)
+//{
+//  STREAM_TRACE (ACE_TEXT ("HTTPGet_MessageDataContainer::setPR"));
+//
+//  struct HTTPGet_MessageData* data_p = NULL;
+//  ACE_NEW_NORETURN (data_p,
+//                    struct HTTPGet_MessageData ());
+//  if (!data_p)
+//  {
+//    ACE_DEBUG ((LM_CRITICAL,
+//                ACE_TEXT ("failed to allocate Test_I_MessageData: \"%m\", returning\n")));
+//    return;
+//  } // end IF
+//  data_p->form = record_inout->form; // request
+//  data_p->headers = record_inout->headers;
+//  data_p->method = record_inout->method;
+//  data_p->reason = record_inout->reason; // response
+//  data_p->status = record_inout->status; // response
+//  data_p->URI = record_inout->URI;
+//  data_p->version = record_inout->version;
+//
+//  delete record_inout; record_inout= NULL;
+//
+//  inherited::setPR (data_p);
+//}
 
 //////////////////////////////////////////
 

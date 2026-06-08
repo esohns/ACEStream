@@ -168,11 +168,16 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     message_inout->release (); message_inout = NULL;
-    return;
+    goto error;
   } // end IF
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
