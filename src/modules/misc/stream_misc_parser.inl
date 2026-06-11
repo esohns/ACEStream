@@ -972,8 +972,7 @@ end:
       } // end IF
 
       if (resetQueue_)
-      {
-        resetQueue_ = false;
+      { resetQueue_ = false;
         inherited::configuration_->parserConfiguration->messageQueue = NULL;
       } // end IF
 
@@ -1313,7 +1312,6 @@ Stream_Module_ParserH_T<ACE_SYNCH_USE,
 
   const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
     &(inherited::queue_);
-
   if (!inherited2::initialize (*configuration_in.parserConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,

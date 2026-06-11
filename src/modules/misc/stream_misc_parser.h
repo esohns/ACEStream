@@ -68,8 +68,9 @@ class Stream_Module_CppParser_T
                                  enum Stream_SessionMessageType,
                                  UserDataType>
  , public ParserInterfaceType
- , virtual public Common_ILexScanner_T<ScannerStateType,
-                                       ParserInterfaceType>
+ //, virtual public Common_ILexScanner_T<ScannerStateType,
+ //                                      ParserInterfaceType,
+ //                                      yy_buffer_state>
 {
   typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
                                  TimePolicyType,
@@ -80,6 +81,7 @@ class Stream_Module_CppParser_T
                                  enum Stream_ControlType,
                                  enum Stream_SessionMessageType,
                                  UserDataType> inherited;
+  typedef ParserInterfaceType inherited2;
 
  public:
   Stream_Module_CppParser_T (typename inherited::ISTREAM_T*); // stream handle

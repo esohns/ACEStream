@@ -42,6 +42,7 @@
 
 #include "http_module_parser.h"
 #include "http_module_streamer.h"
+#include "http_parser_driver.h"
 
 #include "http_get_network.h"
 #include "http_get_stream_common.h"
@@ -101,7 +102,10 @@ typedef HTTP_Module_ParserH_T<ACE_MT_SYNCH,
                               struct Stream_Statistic,
                               HTTPGet_SessionManager_t,
                               Common_Timer_Manager_t,
-                              struct Stream_UserData> HTTPGet_HTTPParser;
+                              struct Stream_UserData,
+                              HTTP_ParserDriver_T<ACE_MT_SYNCH,
+                                                  Common_TimePolicy_t,
+                                                  HTTPGet_SessionMessage> > HTTPGet_HTTPParser;
 DATASTREAM_MODULE_DUPLEX (struct HTTPGet_SessionData,                // session data type
                           enum Stream_SessionMessageType,            // session event type
                           struct HTTPGet_ModuleHandlerConfiguration, // module handler configuration type
