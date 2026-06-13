@@ -109,7 +109,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                              ACE_Data_Block (bytes_to_allocate_i,                      // size of data chunk
                                              (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),
                                              NULL,                                     // data --> use allocator !
-                                             (bytes_in ? dynamic_cast<ACE_Allocator*> (heapAllocator_) : NULL), // heap allocator
+                                             (bytes_in ? (heapAllocator_ ? dynamic_cast<ACE_Allocator*> (heapAllocator_) : this) : NULL), // heap allocator
                                              &OWN_TYPE_T::referenceCountLock_,         // reference count lock
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
