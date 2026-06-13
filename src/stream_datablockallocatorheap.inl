@@ -60,7 +60,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   ACE_Data_Block* data_block_p = NULL;
   try {
     ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (inherited::calloc (sizeof (ACE_Data_Block))),
+                             static_cast<ACE_Data_Block*> (heapAllocator_ ? heapAllocator_->calloc () : inherited::calloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (0,
                                              STREAM_MESSAGE_CONTROL,
                                              NULL,
@@ -105,11 +105,11 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   try {
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (inherited::malloc (sizeof (ACE_Data_Block))),
+                             static_cast<ACE_Data_Block*> (heapAllocator_ ? heapAllocator_->malloc (sizeof (ACE_Data_Block)) : inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_to_allocate_i,                      // size of data chunk
                                              (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),
                                              NULL,                                     // data --> use allocator !
-                                             (bytes_in ? heapAllocator_ : NULL),       // heap allocator
+                                             (bytes_in ? dynamic_cast<ACE_Allocator*> (heapAllocator_) : NULL), // heap allocator
                                              &OWN_TYPE_T::referenceCountLock_,         // reference count lock
                                              0,                                        // flags: release (heap) memory in dtor
                                              this));                                   // data block allocator
@@ -133,6 +133,8 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
     data_block_p->release ();
     return NULL;
   } // end IF
+  if (bytes_in && bytes_in != bytes_to_allocate_i)
+    data_block_p->size (bytes_in);
 
   // increment running counter
 //   poolSize_ += data_block->capacity ();
@@ -150,12 +152,10 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::free"));
 
   // delegate to base class
-  inherited::free (handle_in);
-
-  // *NOTE*: handle_in really is a ACE_Data_Block*
-//   ACE_Data_Block* data_block = NULL;
-//   data_block = static_cast<ACE_Data_Block*> (handle_in);
-//   ACE_ASSERT (data_block);
+  if (heapAllocator_)
+    heapAllocator_->free (handle_in);
+  else
+    inherited::free (handle_in);
 
   // update allocation counter
 //   poolSize_ -= data_block->capacity ();
@@ -188,7 +188,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataBlockAllocatorHeap_T::dump_state"));
 
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("total# of in-flight message(s): %Q\n"),
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("total# of in-flight data block(s): %Q\n"),
               poolSize_.value ()));
 }

@@ -46,6 +46,8 @@ class Stream_AllocatorBase_T
   // implement Common_IInitialize_T
   inline virtual bool initialize (const ConfigurationType& configuration_in) { configuration_ = &const_cast<ConfigurationType&> (configuration_in); return true; }
 
+  using Stream_IAllocator::calloc;
+
   ConfigurationType* configuration_;
 
  protected:

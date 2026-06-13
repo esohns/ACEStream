@@ -18,72 +18,55 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef STREAM_DATABLOCKALLOCATORHEAP_T_H
-#define STREAM_DATABLOCKALLOCATORHEAP_T_H
+#ifndef Stream_AllocatorAlignedHeap_T_H
+#define Stream_AllocatorAlignedHeap_T_H
+
+#include <limits>
 
 #include "ace/Atomic_Op.h"
-#include "ace/Lock_Adapter_T.h"
+#include "ace/Global_Macros.h"
 #include "ace/Malloc_Allocator.h"
 #include "ace/Synch_Traits.h"
 
-#include "common_idumpstate.h"
-
-#include "stream_allocatorheap.h"
-#include "stream_iallocator.h"
+#include "stream_allocatorbase.h"
 
 template <ACE_SYNCH_DECL,
-          typename ConfigurationType>
-class Stream_DataBlockAllocatorHeap_T
- : public ACE_New_Allocator
- , public Stream_IAllocator
- , public Common_IDumpState
+          typename ConfigurationType,
+          ACE_UINT64 alignment = 4096ULL>
+class Stream_AllocatorAlignedHeap_T
+ : public Stream_AllocatorBase_T<ConfigurationType>
+ , public ACE_Allocator
 {
-  typedef ACE_New_Allocator inherited;
+  typedef Stream_AllocatorBase_T<ConfigurationType> inherited;
+  typedef ACE_Allocator inherited2;
 
  public:
-  // convenient types
-  typedef Stream_AllocatorBase_T<ConfigurationType> HEAP_ALLOCATOR_T;
-  // *NOTE*: serialize access to ACE_Data_Block reference counts, which may
-  //         be modified concurrently by multiple threads
-  typedef ACE_Lock_Adapter<ACE_SYNCH_MUTEX> DATABLOCK_LOCK_T;
+  Stream_AllocatorAlignedHeap_T ();
+  inline virtual ~Stream_AllocatorAlignedHeap_T () {}
 
-  Stream_DataBlockAllocatorHeap_T (HEAP_ALLOCATOR_T*); // (heap) memory allocator
-  inline virtual ~Stream_DataBlockAllocatorHeap_T () {}
+  // override (part of) ACE_Allocator
+  virtual void* calloc (size_t,       // bytes
+                        char = '\0'); // initial value
+  virtual void* calloc (size_t,       // # elements
+                        size_t,       // bytes/element
+                        char = '\0'); // initial value
 
   // implement Stream_IAllocator
-  inline virtual bool block () { return true; };
+  inline virtual bool block () { return false; } // return value: block when full ?
   virtual void* calloc ();
-  // *NOTE*: returns a pointer to ACE_Data_Block
-  virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees an ACE_Data_Block
+  virtual void* malloc (size_t); // bytes (? data- : session message)
   virtual void free (void*); // element handle
-  virtual size_t cache_depth () const; // return value: #bytes allocated
-  inline virtual size_t cache_size () const { return poolSize_.value (); }; // return value: #inflight ACE_Data_Blocks
-
-  // implement (part of) ACE_Allocator
-  inline virtual void* calloc (size_t bytes_in,
-                               char = '\0') { return malloc (bytes_in); };
+  inline virtual size_t cache_depth () const { return std::numeric_limits<size_t>::max (); }
+  inline virtual size_t cache_size () const { return static_cast<size_t> (poolSize_.value ()); } // return value: #bytes allocated
 
   // implement Common_IDumpState
   virtual void dump_state () const;
 
-  // locking
-  // *NOTE*: currently, ALL data blocks use one static lock (OK for single-
-  //         streamed scenarios)
-  // *TODO*: consider using a lock-per-session strategy
-  static DATABLOCK_LOCK_T referenceCountLock_;
-
  private:
-  // convenient types
-  typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
-                                          ConfigurationType> OWN_TYPE_T;
-  typedef ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, ACE_UINT64> CACHE_SIZE_COUNTER_T;
-
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T (const Stream_DataBlockAllocatorHeap_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_DataBlockAllocatorHeap_T& operator= (const Stream_DataBlockAllocatorHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorAlignedHeap_T (const Stream_AllocatorAlignedHeap_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorAlignedHeap_T& operator= (const Stream_AllocatorAlignedHeap_T&))
 
   // stub (part of) ACE_Allocator
-  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
   inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
@@ -100,11 +83,10 @@ class Stream_DataBlockAllocatorHeap_T
 #endif /* ACE_HAS_MALLOC_STATS */
   inline virtual void dump (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  HEAP_ALLOCATOR_T*       heapAllocator_;
-  CACHE_SIZE_COUNTER_T    poolSize_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, ACE_UINT64> poolSize_;
 };
 
 // include template definition
-#include "stream_datablockallocatorheap.inl"
+#include "stream_allocatoralignedheap.inl"
 
 #endif

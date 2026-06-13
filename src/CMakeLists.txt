@@ -97,6 +97,9 @@ target_include_directories (${PROJECT_NAME} PUBLIC
 
 ############## next target ################
 set (source_files
+     stream_allocatoralignedheap.cpp
+     stream_allocatoralignedheap.h
+     stream_allocatoralignedheap.inl
      stream_allocatorbase.cpp
      stream_allocatorbase.h
      stream_allocatorbase.inl
@@ -248,18 +251,20 @@ export (TARGETS ${PROJECT_NAME}
 
 ############### install files ################
 install (FILES
+         stream_allocatoralignedheap.h
+         stream_allocatoralignedheap.inl
          stream_allocatorbase.h
          stream_allocatorbase.inl
          stream_allocatorheap.h
          stream_allocatorheap.inl
          stream_base.h
          stream_base.inl
-#         stream_cachedmessageallocator.h
-#         stream_cachedmessageallocator.inl
+         stream_cachedmessageallocator.h
+         stream_cachedmessageallocator.inl
          stream_cachedmessageallocatorheap_base.h
          stream_cachedmessageallocatorheap_base.inl
-         stream_cachedmessageallocatorheap.h
-         stream_cachedmessageallocatorheap.inl
+#         stream_cachedmessageallocatorheap.h
+#         stream_cachedmessageallocatorheap.inl
          stream_cacheddatablockallocatorheap.h
          stream_cacheddatablockallocatorheap.inl
          stream_cachedallocatorheap.h

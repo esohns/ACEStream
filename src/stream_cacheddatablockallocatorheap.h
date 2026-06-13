@@ -28,7 +28,6 @@
 #include "ace/Message_Block.h"
 #include "ace/Synch_Traits.h"
 
-//#include "stream_exports.h"
 #include "stream_iallocator.h"
 
 template <ACE_SYNCH_DECL>

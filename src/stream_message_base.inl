@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include <limits>
+#include <sstream>
 #include <utility>
 
 #include "ace/Log_Msg.h"
@@ -26,8 +27,11 @@
 
 #include "common_macros.h"
 
+#include "common_file_tools.h"
+
 #include "stream_iallocator.h"
 #include "stream_macros.h"
+#include "stream_tools.h"
 
 // initialize statics
 template <typename DataType,
@@ -433,6 +437,17 @@ Stream_MessageBase_T<DataType,
               inherited::total_length (),
               fragments_i,
               ACE_TEXT (buffer_a)));
+#if defined (_DEBUG)
+  std::string filename_string = Common_File_Tools::getTempDirectory ();
+  filename_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+  filename_string += ACE_TEXT_ALWAYS_CHAR ("acestream_message_");
+  std::ostringstream converter;
+  converter << id_;
+  filename_string += converter.str ();
+  filename_string += ACE_TEXT_ALWAYS_CHAR (".bin");
+  Stream_Tools::dump (this,
+                      filename_string);
+#endif // _DEBUG
 }
 
 template <typename DataType,

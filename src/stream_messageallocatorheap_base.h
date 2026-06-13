@@ -51,8 +51,7 @@ class Stream_MessageAllocatorHeapBase_T
 
  public:
   // convenient types
-  typedef Stream_AllocatorHeap_T<ACE_SYNCH_USE,
-                                 ConfigurationType> HEAP_ALLOCATOR_T;
+  typedef Stream_AllocatorBase_T<ConfigurationType> HEAP_ALLOCATOR_T;
   typedef Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                           ConfigurationType> DATABLOCK_ALLOCATOR_T;
 
@@ -104,10 +103,11 @@ class Stream_MessageAllocatorHeapBase_T
 #endif /* ACE_HAS_MALLOC_STATS */
   inline virtual void dump (void) const { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  bool                                                 block_;
-  DATABLOCK_ALLOCATOR_T                                dataBlockAllocator_;
-  ACE_SYNCH_SEMAPHORE_T                                freeMessageCounter_;
-  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, unsigned long long> poolSize_;
+  bool                                         block_;
+  DATABLOCK_ALLOCATOR_T                        dataBlockAllocator_;
+  ACE_SYNCH_SEMAPHORE_T                        freeMessageCounter_;
+  HEAP_ALLOCATOR_T*                            heapAllocator_;
+  ACE_Atomic_Op<ACE_SYNCH_MUTEX_T, ACE_UINT64> poolSize_;
 };
 
 // include template definition

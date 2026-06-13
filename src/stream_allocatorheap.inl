@@ -140,7 +140,7 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::dump_state"));
 
-  ACE_DEBUG ((LM_DEBUG,
+  ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("allocated heap space: %Q byte(s)\n"),
               poolSize_.value ()));
 }
