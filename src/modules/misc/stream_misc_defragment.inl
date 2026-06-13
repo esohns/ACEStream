@@ -111,19 +111,16 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
       if (!message_inout->cont ())
         return; // nothing to do
       ACE_ASSERT (inherited::configuration_->messageAllocator);
-      ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
+      //ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
 
       size_t total_length_i = message_inout->total_length ();
-      size_t allocated_bytes_i =
-        total_length_i + inherited::configuration_->allocatorConfiguration->paddingBytes;
       try {
-        message_p =
-          static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (allocated_bytes_i));
+        message_p = static_cast<DataMessageType*> (inherited::configuration_->messageAllocator->malloc (total_length_i));
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
                     inherited::mod_->name (),
-                    allocated_bytes_i));
+                    total_length_i));
         message_p = NULL;
       }
       ACE_ASSERT (message_p);
@@ -152,14 +149,10 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
         data_container_p =
           &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
         data_container_p->increase ();
-        message_p->initialize (data_container_p,
-                               message_inout->sessionId (),
-                               NULL);
       } // end IF
-      else
-        message_p->initialize (data_container_p,
-                               message_inout->sessionId (),
-                               NULL);
+      message_p->initialize (data_container_p,
+                             message_inout->sessionId (),
+                             NULL);
 
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))
