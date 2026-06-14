@@ -92,6 +92,9 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
       ACE_ASSERT (message_p);
       message_p->defragment ();
 
+      passMessageDownstream_out = false;
+      message_inout->release (); message_inout = NULL;
+
       int result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))
       {
@@ -102,8 +105,6 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      passMessageDownstream_out = false;
-      message_inout->release (); message_inout = NULL;
       break;
     }
     case STREAM_DEFRAGMENT_CONDENSE:
@@ -124,7 +125,7 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
         message_p = NULL;
       }
       ACE_ASSERT (message_p);
-      message_p->size (total_length_i);
+      //message_p->size (total_length_i);
 
       ACE_Message_Block* message_block_p = message_inout;
       int result = -1;
@@ -154,6 +155,9 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
                              message_inout->sessionId (),
                              NULL);
 
+      passMessageDownstream_out = false;
+      message_inout->release (); message_inout = NULL;
+
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))
       {
@@ -164,8 +168,6 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
         goto error;
       } // end IF
 
-      passMessageDownstream_out = false;
-      message_inout->release (); message_inout = NULL;
       break;
     }
     case STREAM_DEFRAGMENT_DEFRAGMENT:

@@ -121,9 +121,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   if (message_inout->isInitialized ())
   {
     const typename DataMessageType::DATA_T& data_container_r =
-        message_inout->getR ();
+      message_inout->getR ();
     typename DataMessageType::DATA_T::DATA_T& data_r =
-        const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
     record_p = &data_r;
   } // end IF
   else
@@ -146,7 +146,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       receivedBytes_ += message_inout->total_length ();
       // step1: got all data ? --> close connection ?
       iterator =
-          record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING));
+        record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_CONTENT_LENGTH_STRING));
       if (iterator != record_p->headers.end ())
       {
         std::istringstream converter ((*iterator).second);
@@ -205,7 +205,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
       // step1: redirected --> extract location
       iterator =
-          record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_LOCATION_STRING));
+        record_p->headers.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_LOCATION_STRING));
       if (iterator == record_p->headers.end ())
       {
         ACE_DEBUG ((LM_ERROR,
@@ -416,6 +416,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->connectionConfigurations);
+  ACE_ASSERT (inherited::sessionData_);
 
   Net_ConnectionConfigurationsIterator_t iterator =
     inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
@@ -439,6 +440,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return NULL;
   } // end IF
+
+  // step1a: populate HTTP GET/POST request
+  message_data_p->form = form_in;
+  message_data_p->headers = headers_in;
+  message_data_p->method = method_in;
+  message_data_p->URI = URI_in;
+  message_data_p->version = HTTP_Codes::HTTP_VERSION_1_1;
+
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_p)
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   ACE_NEW_NORETURN (message_data_container_p,
@@ -451,6 +460,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 inherited::mod_->name ()));
     return NULL;
   } // end IF
+
   // *TODO*: remove type inference
   DataMessageType* message_out =
     inherited::allocateMessage ((*iterator).second->allocatorConfiguration->defaultBufferSize);
@@ -462,21 +472,14 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 (*iterator).second->allocatorConfiguration->defaultBufferSize));
     return NULL;
   } // end IF
+
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+    
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
   message_out->initialize (message_data_container_p,
-                           message_out->sessionId (),
+                           session_data_r.sessionId,
                            NULL);
-
-  // step2: populate HTTP GET/POST request
-  const typename DataMessageType::DATA_T& message_data_container_r =
-      message_out->getR ();
-  typename DataMessageType::DATA_T::DATA_T& message_data_r =
-      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
-  message_data_r.form = form_in;
-  message_data_r.headers = headers_in;
-  message_data_r.method = method_in;
-  message_data_r.URI = URI_in;
-  message_data_r.version = HTTP_Codes::HTTP_VERSION_1_1;
 
   return message_out;
 }
