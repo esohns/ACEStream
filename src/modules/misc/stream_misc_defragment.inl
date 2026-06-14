@@ -171,7 +171,8 @@ Stream_Module_Defragment_T<ACE_SYNCH_USE,
       break;
     }
     case STREAM_DEFRAGMENT_DEFRAGMENT:
-      message_inout->defragment (); break;
+      message_inout->defragment ();
+      break;
     default:
     {
       ACE_DEBUG ((LM_ERROR,

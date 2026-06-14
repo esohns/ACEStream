@@ -163,7 +163,16 @@ Stream_AllocatorAlignedHeap_T<ACE_SYNCH_USE,
 
   // delegate to base class
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  _aligned_free (handle_in);
+  if ((reinterpret_cast<intptr_t> (handle_in) % alignment) == 0)
+  {
+    try {
+      _aligned_free (handle_in);
+    } catch (...) {
+      ACE_OS::free (handle_in);
+    }
+  } // end IF
+  else
+    ACE_OS::free (handle_in);
 #else
   _aligned_free (handle_in);
 #endif // ACE_WIN32 || ACE_WIN64

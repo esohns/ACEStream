@@ -125,7 +125,16 @@ Stream_AllocatorHeap_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorHeap_T::free"));
 
   // delegate to base class
-  return inherited2::free (handle_in);
+  ACE_SEH_TRY {
+    inherited2::free (handle_in);
+  }
+#if defined (ACE_HAS_WIN32_STRUCTURED_EXCEPTIONS)
+  ACE_SEH_EXCEPT (EXCEPTION_CONTINUE_EXECUTION) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("caught exception in delete[] @%@, continuing\n"),
+                handle_in));
+  }
+#endif // ACE_HAS_WIN32_STRUCTURED_EXCEPTIONS
 
   // *TODO*: how can this counter update ???
   // update allocation counter

@@ -80,9 +80,9 @@ enum Stream_HeadModuleConcurrency : int
 
 enum Stream_MessageDefragmentMode
 {
-  STREAM_DEFRAGMENT_CLONE = 0, // *NOTE*: includes defragmentation mode
-  STREAM_DEFRAGMENT_CONDENSE,
-  STREAM_DEFRAGMENT_DEFRAGMENT,
+  STREAM_DEFRAGMENT_CLONE = 0, // clone() & defragment()
+  STREAM_DEFRAGMENT_CONDENSE, // make a new message and copy the fragment chain into it
+  STREAM_DEFRAGMENT_DEFRAGMENT, // defragment() only
   ////////////////////////////////////////
   STREAM_DEFRAGMENT_INVALID,
   STREAM_DEFRAGMENT_MAX,
