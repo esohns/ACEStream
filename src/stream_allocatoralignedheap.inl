@@ -55,8 +55,11 @@ Stream_AllocatorAlignedHeap_T<ACE_SYNCH_USE,
   void* result = _aligned_malloc (bytes_in,
                                   alignment);
 #else
-  void* result = _aligned_malloc (bytes_in,
-                                  alignment);
+  void* result = NULL;
+  int result_2 = posix_memalign (&result,
+                                 alignment,
+                                 bytes_in);
+  ACE_ASSERT (result_2 == 0);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // update allocation counter
@@ -87,8 +90,11 @@ Stream_AllocatorAlignedHeap_T<ACE_SYNCH_USE,
   void* result = _aligned_malloc (numberOfElements_in * sizePerElement_in,
                                   alignment);
 #else
-  void* result = _aligned_malloc (numberOfElements_in * sizePerElement_in,
-                                  alignment);
+  void* result = NULL;
+  int result_2 = posix_memalign (&result,
+                                 alignment,
+                                 numberOfElements_in * sizePerElement_in);
+  ACE_ASSERT (result_2 == 0);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // update allocation counter
@@ -140,8 +146,11 @@ Stream_AllocatorAlignedHeap_T<ACE_SYNCH_USE,
   void* result = _aligned_malloc (bytes_in,
                                   alignment);
 #else
-  void* result = _aligned_malloc (bytes_in,
-                                  alignment);
+  void* result = NULL;
+  int result_2 = posix_memalign (&result,
+                                 alignment,
+                                 bytes_in);
+  ACE_ASSERT (result_2 == 0);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // update allocation counter
@@ -161,20 +170,14 @@ Stream_AllocatorAlignedHeap_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_AllocatorAlignedHeap_T::free"));
 
+  // sanity check(s)
+  ACE_ASSERT ((reinterpret_cast<intptr_t> (handle_in) % alignment) == 0);
+
   // delegate to base class
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  if ((reinterpret_cast<intptr_t> (handle_in) % alignment) == 0)
-  {
-    try {
-      _aligned_free (handle_in);
-    } catch (...) {
-      ACE_OS::free (handle_in);
-    }
-  } // end IF
-  else
-    ACE_OS::free (handle_in);
+    _aligned_free (handle_in);
 #else
-  _aligned_free (handle_in);
+  ACE_OS::free (handle_in);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // *TODO*: how can this counter update ???

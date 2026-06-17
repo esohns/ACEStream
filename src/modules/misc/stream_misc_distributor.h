@@ -224,7 +224,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   };
 
   // helper methods
-  void forward (ACE_Message_Block*, // message handle
+  bool forward (ACE_Message_Block*, // message handle
                 bool = false,       // dispose of original message ?
                 bool = false);      // high priority ?
 

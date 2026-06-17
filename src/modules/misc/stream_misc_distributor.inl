@@ -62,7 +62,7 @@ template <ACE_SYNCH_DECL,
           typename DataMessageType,
           typename SessionMessageType,
           typename SessionDataType>
-void
+bool
 Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
                                               TimePolicyType,
                                               ConfigurationType,
@@ -79,10 +79,11 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
   ACE_ASSERT (messageBlock_in);
 
   int result = -1;
+  bool result_2 = true;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Reverse_Lock<ACE_Thread_Mutex> reverse_lock (inherited::lock_);
 
-  { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
+  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, false);
     for (THREAD_TO_QUEUE_CONST_ITERATOR_T iterator = queues_.begin ();
          iterator != queues_.end ();
          ++iterator)
@@ -92,8 +93,9 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (!message_block_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Block::duplicate(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
+        result_2 = false;
         goto continue_;
       } // end IF
 
@@ -159,9 +161,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         default:
         {
           ACE_DEBUG ((LM_ERROR,
-                      ACE_TEXT ("%s: invalid/unknown message (type was: \"%s\"), returning\n"),
+                      ACE_TEXT ("%s: invalid/unknown message (type was: \"%s\"), aborting\n"),
                       inherited::mod_->name (),
                       ACE_TEXT (Stream_Tools::messageTypeToString (static_cast<enum Stream_MessageType> (messageBlock_in->msg_type ())).c_str ())));
+          result_2 = false;
           goto continue_;
         }
       } // end SWITCH
@@ -174,7 +177,7 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           modules_.find ((*iterator).second);
         ACE_ASSERT (iterator_2 != modules_.end ());
         ACE_ASSERT ((*iterator_2).second);
-        { ACE_GUARD (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock);
+        { ACE_GUARD_RETURN (ACE_Reverse_Lock<ACE_Thread_Mutex>, aGuard_2, reverse_lock, false);
           result =
             (*iterator_2).second->writer ()->put (message_block_p, NULL); // process inline
         } // end lock scope
@@ -185,9 +188,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::%s(): \"%m\", returning\n"),
+                    ACE_TEXT ("%s: failed to ACE_Message_Queue_Base::%s(): \"%m\", aborting\n"),
                     inherited::mod_->name (),
                     (highPriority_in ? ACE_TEXT ("enqueue_head") : ACE_TEXT ("enqueue_tail"))));
+        result_2 = false;
         message_block_p->release (); message_block_p = NULL;
         goto continue_;
       } // end IF
@@ -198,6 +202,8 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
 continue_:
   if (unlikely (dispose_in))
     messageBlock_in->release ();
+
+  return result_2;
 }
 
 template <ACE_SYNCH_DECL,
@@ -287,9 +293,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
       break;
   } // end SWITCH
 
-  forward (&message_in,
-           false,                    // dispose original ?
-           message_in.expedited ()); // high priority ?
+  if (unlikely (!forward (&message_in,
+                          false,                     // dispose original ?
+                          message_in.expedited ()))) // high priority ?
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -402,9 +409,10 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
         } // end FOR
       } // end lock scope
 
-      forward (message_inout,
-               false,         // dispose original ?
-               false);        // high priority ?
+      if (unlikely (!forward (message_inout,
+                              false,   // dispose original ?
+                              false))) // high priority ?
+        goto error;
 
       break;
 
@@ -517,9 +525,10 @@ end:
       } // end lock scope
 
 continue_:
-      forward (message_inout,
-               false,                        // dispose original ?
-               message_inout->expedited ()); // high priority ?
+      if (unlikely (!forward (message_inout,
+                              false,                         // dispose original ?
+                              message_inout->expedited ()))) // high priority ?
+        goto error_2;
 
       break;
 
@@ -530,9 +539,12 @@ error_2:
     }
     default:
     {
-      forward (message_inout,
-               false,                        // dispose original ?
-               message_inout->expedited ()); // high priority ?
+      if (unlikely (!forward (message_inout,
+                              false,                         // dispose original ?
+                              message_inout->expedited ()))) // high priority ?
+        inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
     }
   } // end SWITCH
 }

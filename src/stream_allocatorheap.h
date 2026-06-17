@@ -53,7 +53,7 @@ class Stream_AllocatorHeap_T
   // implement Stream_IAllocator
   inline virtual bool block () { return false; } // return value: block when full ?
   virtual void* calloc ();
-  virtual void* malloc (size_t); // bytes (? data- : session message)
+  virtual void* malloc (size_t); // bytes
   virtual void free (void*); // element handle
   inline virtual size_t cache_depth () const { return std::numeric_limits<size_t>::max (); }
   inline virtual size_t cache_size () const { return static_cast<size_t> (poolSize_.value ()); } // return value: #bytes allocated

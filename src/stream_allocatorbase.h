@@ -50,6 +50,9 @@ class Stream_AllocatorBase_T
 
   ConfigurationType* configuration_;
 
+  // stub (part of) ACE_Allocator
+  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+
  protected:
   Stream_AllocatorBase_T ();
 
@@ -58,7 +61,6 @@ class Stream_AllocatorBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_AllocatorBase_T& operator= (const Stream_AllocatorBase_T&))
 
   // stub (part of) ACE_Allocator
-  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
   inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }

@@ -62,18 +62,19 @@ class Stream_MessageAllocatorHeapBase_T
 
   // implement Stream_IAllocator
   inline virtual bool block () { return block_; }
+  // *NOTE*: this returns a (pointer to) ControlMessageType
   virtual void* calloc ();
-  // *NOTE*: if argument is > 0, this returns a (pointer to) <MessageType>, and
-  //         a (pointer to) <SessionMessageType> otherwise
+  // *NOTE*: if argument is > 0, this returns a (pointer to) DataMessageType, and
+  //         a (pointer to) SessionMessageType otherwise
   virtual void* malloc (size_t); // bytes
-  // *NOTE*: frees a <MessageType>/<SessionMessageType>
+  // *NOTE*: frees a message handle
   virtual void free (void*); // handle
   inline virtual size_t cache_depth () const { return dataBlockAllocator_.cache_depth (); } // return value: #bytes allocated
   inline virtual size_t cache_size () const { return poolSize_.value (); } // return value: #inflight ACE_Message_Blocks
 
   // implement (part of) ACE_Allocator
-  // *NOTE*: returns a pointer to raw memory (!) of size <MessageType>/
-  //         <SessionMessageType> --> see above
+  // *NOTE*: to be used by (Control||Data||Session)MessageType::ducplicate()||clone()
+  // *NOTE*: returns a pointer to raw memory of size (Control||Data||Session)MessageType
   // *NOTE*: no data block is allocated
   virtual void* calloc (size_t,       // bytes
                         char = '\0'); // initial value (not used)
@@ -86,7 +87,7 @@ class Stream_MessageAllocatorHeapBase_T
   ACE_UNIMPLEMENTED_FUNC (Stream_MessageAllocatorHeapBase_T& operator= (const Stream_MessageAllocatorHeapBase_T&))
 
   // stub (part of) ACE_Allocator
-  inline virtual void* calloc (size_t, size_t, char = '\0') { ACE_ASSERT (false); ACE_NOTSUP_RETURN (NULL); ACE_NOTREACHED (return NULL;) }
+  inline virtual void* calloc (size_t n_elem, size_t elem_size, char initial_value = '\0') { return heapAllocator_ ? heapAllocator_->calloc (n_elem, elem_size, initial_value) : inherited::calloc (n_elem, elem_size, initial_value); }
   inline virtual int remove (void) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int bind (const char*, void*, int = 0) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
   inline virtual int trybind (const char*, void*&) { ACE_ASSERT (false); ACE_NOTSUP_RETURN (-1); ACE_NOTREACHED (return -1;) }
