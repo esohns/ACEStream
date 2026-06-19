@@ -64,7 +64,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 
   try {
     ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (allocator_p->malloc (sizeof (ACE_Data_Block))),
+                             static_cast<ACE_Data_Block*> (heapAllocator_ ? allocator_p->malloc (sizeof (ACE_Data_Block)) : inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (0,
                                              STREAM_MESSAGE_CONTROL,
                                              NULL,
@@ -112,7 +112,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   try {
     // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
-                             static_cast<ACE_Data_Block*> (allocator_p->malloc (sizeof (ACE_Data_Block))),
+                             static_cast<ACE_Data_Block*> (heapAllocator_ ? allocator_p->malloc (sizeof (ACE_Data_Block)) : inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_to_allocate_i,              // size of data chunk
                                              (bytes_in ? STREAM_MESSAGE_DATA : STREAM_MESSAGE_SESSION),
                                              NULL,                             // data --> use allocator !
