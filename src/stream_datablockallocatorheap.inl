@@ -33,6 +33,8 @@ typename Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
                                 ConfigurationType>::referenceCountLock_;
 
+//////////////////////////////////////////
+
 template <ACE_SYNCH_DECL,
           typename ConfigurationType>
 Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
@@ -85,7 +87,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 
   // increment running counter
   //   poolSize_ += data_block->capacity ();
-  poolSize_++;
+  ++poolSize_;
 
   return data_block_p;
 }
@@ -110,7 +112,6 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
   ACE_ASSERT (allocator_p);
 
   try {
-    // *TODO*: use the heap allocator to allocate the instance
     ACE_NEW_MALLOC_NORETURN (data_block_p,
                              static_cast<ACE_Data_Block*> (heapAllocator_ ? allocator_p->malloc (sizeof (ACE_Data_Block)) : inherited::malloc (sizeof (ACE_Data_Block))),
                              ACE_Data_Block (bytes_to_allocate_i,              // size of data chunk
@@ -140,12 +141,12 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
     data_block_p->release ();
     return NULL;
   } // end IF
-  if (bytes_in && bytes_in != bytes_to_allocate_i)
+  if (bytes_in != bytes_to_allocate_i)
     data_block_p->size (bytes_in);
 
   // increment running counter
 //   poolSize_ += data_block->capacity ();
-  poolSize_++;
+  ++poolSize_;
 
   return data_block_p;
 }
@@ -166,7 +167,7 @@ Stream_DataBlockAllocatorHeap_T<ACE_SYNCH_USE,
 
   // update allocation counter
 //   poolSize_ -= data_block->capacity ();
-  poolSize_--;
+  --poolSize_;
 }
 
 template <ACE_SYNCH_DECL,

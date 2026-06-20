@@ -246,26 +246,17 @@ Stream_MessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MessageBase_T::defragment"));
 
-  int result = -1;
-
-  // sanity check(s)
-  // *NOTE*: assuming stream processing is indeed single-threaded (CHECK !!!),
-  //         then the reference count at this stage should be <=2: "this", and
-  //         (most probably), the next, trailing "message head" (of course, it
-  //         could be just "this")
-  // *IMPORTANT NOTE*: this check is NOT enough. Also, there may be trailing
-  //                   messages (in fact, that should be the norm), and/or
-  //                   (almost any) number(s) of fragments referencing the same
-  //                   buffer
-  // *TODO*: to be clarified
-  //ACE_ASSERT (inherited::reference_count () <= 2);
+  int result;
+  size_t size_i, total_length_i;
 
   ACE_ASSERT (inherited::data_block_);
-  //if (inherited::total_length () > inherited::data_block_->capacity ());
-  //  ACE_DEBUG ((LM_DEBUG,
-  //              ACE_TEXT ("not enough capacity to crunch message (had: %u, needed: %u, returning\n"),
-  //              inherited::data_block_->capacity (),
-  //              inherited::total_length ()));
+  size_i = inherited::data_block_->size ();
+  total_length_i = inherited::total_length ();
+  if (size_i < total_length_i)
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("not enough capacity to crunch message (had: %B, needed: %B, continuing\n"),
+                size_i,
+                total_length_i));
 
   // step1: shift head message data down to the base and adust the pointers
   result = inherited::crunch ();
@@ -277,9 +268,9 @@ Stream_MessageBase_T<DataType,
   } // end IF
 
   // step2: consecutively copy data from any continuations into the preceding
-  //        buffers
-  size_t free_space = 0;
-  size_t bytes_to_copy = 0;
+  //        buffer(s)
+  size_t free_space;
+  size_t bytes_to_copy;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Message_Block* message_block_2 = inherited::cont_;
   ACE_Message_Block* message_block_3 = this;
@@ -296,7 +287,7 @@ fill:
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Block::copy(%u): \"%m\", returning\n"),
+                  ACE_TEXT ("failed to ACE_Message_Block::copy(%B): \"%m\", returning\n"),
                   bytes_to_copy));
       return;
     } // end IF
