@@ -254,7 +254,7 @@ Stream_MessageBase_T<DataType,
   total_length_i = inherited::total_length ();
   if (size_i < total_length_i)
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("not enough capacity to crunch message (had: %B, needed: %B, continuing\n"),
+                ACE_TEXT ("not enough capacity to crunch message (had: %B, needed: %B byte(s)), continuing\n"),
                 size_i,
                 total_length_i));
 
