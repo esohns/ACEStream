@@ -143,7 +143,6 @@ if (FFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  add_link_options (${MAGICK_LD_FLAGS})
-
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)
@@ -153,14 +152,7 @@ if (UNIX)
 elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 
-# target_link_libraries (${EXECUTABLE} PUBLIC dxguid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
-
- if (CMAKE_BUILD_TYPE STREQUAL Debug)
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Debug/strmbasd.lib)
- else ()
-#  target_link_libraries (${EXECUTABLE} PUBLIC ${DIRECTSHOW_BASECLASSES_DIRECTORY}/cmake/baseclasses/Release/strmbase.lib)
- endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif ()
 target_link_libraries (${EXECUTABLE} PUBLIC ${ACE_LIBRARY})
 
