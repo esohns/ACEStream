@@ -43,13 +43,14 @@
 #include "common_timer_tools.h"
 
 #include "common_ui_tools.h"
-#if defined (GTK_USE)
+#if defined (GTK_SUPPORT)
 #include "common_ui_gtk_builder_definition.h"
 #include "common_ui_gtk_manager_common.h"
-#elif defined (WXWIDGETS_USE)
+#endif // GTK_SUPPORT
+#if defined (WXWIDGETS_SUPPORT)
 #include "common_ui_wxwidgets_application.h"
 #include "common_ui_wxwidgets_tools.h"
-#endif
+#endif // WXWIDGETS_SUPPORT
 
 #if defined (HAVE_CONFIG_H)
 #include "ACEStream_config.h"
