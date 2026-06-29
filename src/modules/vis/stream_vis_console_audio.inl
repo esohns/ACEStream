@@ -149,7 +149,7 @@ Stream_Module_Vis_Console_Audio_T<ACE_SYNCH_USE,
     {
       max = 0.0;
       for (i = 0; i < STREAM_VIS_CONSOLE_AUDIO_NUMBER_OF_SAMPLES_TO_AVERAGE && n < frames_i; ++i, ++n)
-        max = std::max (max, std::abs (iterator_.get (n, c)));
+        max = std::max (max, std::abs (iterator_.get (static_cast<unsigned int> (n), c)));
       abs_max = std::max (max, abs_max);
       max_a.push_back (max);
     } // end WHILE

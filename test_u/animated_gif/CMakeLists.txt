@@ -103,7 +103,6 @@ if (FFMPEG_SUPPORT)
 endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  add_link_options (${MAGICK_LD_FLAGS})
-
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
 endif (IMAGEMAGICK_SUPPORT)
 if (UNIX)

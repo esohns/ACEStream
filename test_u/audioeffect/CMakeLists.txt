@@ -202,6 +202,10 @@ endif (UNIX)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+if (IMAGEMAGICK_SUPPORT)
+ add_link_options (${MAGICK_LD_FLAGS})
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})
+endif (IMAGEMAGICK_SUPPORT)
 if (GSTREAMER_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${GSTREAMER_LIBRARIES})
 endif (GSTREAMER_SUPPORT)
