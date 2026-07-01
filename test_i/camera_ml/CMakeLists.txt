@@ -239,9 +239,12 @@ if (WIN32 AND NOT BUILD_TEST_I)
 endif (WIN32 AND NOT BUILD_TEST_I)
 
 if (TENSORFLOW_SUPPORT)
- target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_INCLUDE_DIRS})
+ if (NOT TENSORFLOW_CC_SUPPORT)
+  target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_INCLUDE_DIRS})
+ endif (NOT TENSORFLOW_CC_SUPPORT)
 endif (TENSORFLOW_SUPPORT)
 if (TENSORFLOW_CC_SUPPORT)
+#*WARNING*: the includes for Tensorflow C API conflict with the ones from the Tensorflow C++ API... :-(
  target_include_directories (${EXECUTABLE} PUBLIC ${tensorflow_cc_INCLUDE_DIRS})
 endif (TENSORFLOW_CC_SUPPORT)
 if (LIBTORCH_SUPPORT)

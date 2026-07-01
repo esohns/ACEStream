@@ -278,8 +278,7 @@ Test_I_CameraML_Module_Tensorflow_T<ConfigurationType,
   int num_detections_i = static_cast<int> (result_4[0]);
   if (num_detections_i <= 0)
     goto clean;
-  valid_indices_a =
-    scoresToValidIndices (result_2, num_detections_i);
+  valid_indices_a = scoresToValidIndices (result_2, num_detections_i);
   if (valid_indices_a.empty ())
     goto clean;
 
@@ -694,24 +693,33 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
     { ACE_TEXT_ALWAYS_CHAR ("detection_boxes:0"), ACE_TEXT_ALWAYS_CHAR ("detection_scores:0"), ACE_TEXT_ALWAYS_CHAR ("detection_classes:0"),
       ACE_TEXT_ALWAYS_CHAR ("num_detections:0") };
 
-  static int nFrames = 30;
-  static int iFrame = 0;
+  static ACE_INT64 nFrames = 30;
+  static ACE_INT64 iFrame = 0;
   static float fps = 0.0f;
-  static time_t start = ACE_OS::time (NULL);
-  static time_t end;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::steady_clock::time_point end;
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> start = std::chrono::high_resolution_clock::now ();
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> end;
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
 
   if (((iFrame + 1) % nFrames) == 0)
   {
-    ACE_OS::time (&end);
-    fps = nFrames / static_cast<float> (ACE_OS::difftime (end, start));
+    end = std::chrono::high_resolution_clock::now ();
+    std::chrono::duration<float> elapsed_time = end - start;
+    fps = nFrames / elapsed_time.count ();
     start = end;
   } // end IF
   ++iFrame;
 
   std::vector<tensorflow::Tensor> outputs;
   std::vector<size_t> good_indices_a;
+  std::ostringstream converter;
 
-//  tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_FLOAT, shape_);
+  //  tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_FLOAT, shape_);
   tensorflow::Tensor tensor = tensorflow::Tensor (tensorflow::DT_UINT8, shape_);
 
   // step0: convert image frame to matrix
@@ -787,14 +795,16 @@ Test_I_CameraML_Module_Tensorflow_2<ConfigurationType,
   drawBoundingBoxes (frame_matrix, scores, classes, boxes, good_indices_a);
 
   // draw fps
-  std::ostringstream converter;
-  converter << fps;
+  converter << std::fixed << std::setprecision (0) << fps;
   cv::putText (frame_matrix,
-               converter.str ().substr (0, 5),
-               cv::Point (3, frame_matrix.rows - 3),
-               cv::FONT_HERSHEY_SIMPLEX,
+               converter.str () + ACE_TEXT_ALWAYS_CHAR (" fps"),
+               cv::Point (3, frame_matrix.rows - 7),
+               cv::HersheyFonts::FONT_HERSHEY_SIMPLEX,
                0.5,
-               cv::Scalar (255, 255, 255));
+               cv::Scalar (255, 255, 255),
+               1,
+               cv::LineTypes::LINE_8,
+               false);
 }
 
 template <typename ConfigurationType,

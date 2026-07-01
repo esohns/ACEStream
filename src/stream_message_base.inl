@@ -254,7 +254,8 @@ Stream_MessageBase_T<DataType,
   total_length_i = inherited::total_length ();
   if (size_i < total_length_i)
     ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("not enough capacity to crunch message (had: %B, needed: %B byte(s)), continuing\n"),
+                ACE_TEXT ("%u: not enough capacity to crunch message (had: %B, needed: %B byte(s)), continuing\n"),
+                id_,
                 size_i,
                 total_length_i));
 
@@ -263,7 +264,8 @@ Stream_MessageBase_T<DataType,
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
+                ACE_TEXT ("%u: failed to ACE_Message_Block::crunch(): \"%m\", returning\n"),
+                id_));
     return;
   } // end IF
 
@@ -287,7 +289,8 @@ fill:
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to ACE_Message_Block::copy(%B): \"%m\", returning\n"),
+                  ACE_TEXT ("%u: failed to ACE_Message_Block::copy(%B): \"%m\", returning\n"),
+                  id_,
                   bytes_to_copy));
       return;
     } // end IF
@@ -306,7 +309,8 @@ fill:
       if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("failed to ACE_Message_Block::crunch(): \"%m\", returning\n")));
+                    ACE_TEXT ("%u: failed to ACE_Message_Block::crunch(): \"%m\", returning\n"),
+                    id_));
         return;
       } // end IF
     } // end IF
@@ -376,7 +380,8 @@ retry:
     if (allocator_p && !allocator_p->block ())
       goto retry;
     ACE_DEBUG ((LM_CRITICAL,
-                ACE_TEXT ("failed to allocate memory: \"%m\", aborting\n")));
+                ACE_TEXT ("%u: failed to allocate memory: \"%m\", aborting\n"),
+                id_));
     return NULL;
   } // end IF
 
@@ -387,7 +392,8 @@ retry:
     if (unlikely (!message_p->cont_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n")));
+                  ACE_TEXT ("%u: failed to Stream_MessageBase_T::duplicate(): \"%m\", aborting\n"),
+                  id_));
       message_p->release (); message_p = NULL;
       return NULL;
     } // end IF
@@ -487,10 +493,8 @@ Stream_MessageBase_T<DataType,
 
   OWN_TYPE_T::currentId = 0;
 
-#if defined (_DEBUG)
-  ACE_DEBUG ((LM_INFO,
+  ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("reset message ids\n")));
-#endif // _DEBUG
 }
 
 //////////////////////////////////////////
@@ -597,7 +601,8 @@ Stream_MessageBase_2<DataType,
   if (unlikely (inherited::total_length () < sizeof (HeaderType)))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("not enough data (needed: %u, had: %u), aborting\n"),
+                ACE_TEXT ("%u: not enough data (needed: %B, had: %B), aborting\n"),
+                id_,
                 sizeof (HeaderType),
                 inherited::total_length ()));
     return message_header;
