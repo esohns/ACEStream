@@ -602,7 +602,7 @@ Stream_MessageBase_2<DataType,
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%u: not enough data (needed: %B, had: %B), aborting\n"),
-                id_,
+                inherited::id_,
                 sizeof (HeaderType),
                 inherited::total_length ()));
     return message_header;
