@@ -38,6 +38,7 @@
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_guids.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 template <typename MessageType,
           typename ConfigurationType,
           typename PinConfigurationType>
@@ -91,6 +92,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
 
   delete instance_p;
 } // DeleteInstance
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 //template <typename MessageType,
 //          typename ConfigurationType,
@@ -158,9 +160,13 @@ template <typename MessageType,
 Stream_MediaFramework_DirectShow_Source_Filter_T<MessageType,
                                                  ConfigurationType,
                                                  PinConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_T ()
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  : inherited (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_DIRECTSHOW_FILTER_NAME_SOURCE), // name
               NULL,//this,                                                            // owner
               CLSID_ACEStream_MediaFramework_Source_Filter)                    // CLSID
+#else
+ : inherited ()
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , configuration_ (NULL)
  , outputPin_ (NULL)
 {
@@ -708,6 +714,7 @@ template <typename ConfigurationType>
 Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT* result_out,
                                                                                                                                            CSource* parentFilter_in,
                                                                                                                                            LPCWSTR pinName_in)
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #if defined (UNICODE)
  : inherited (pinName_in,
 #else
@@ -716,6 +723,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<ConfigurationType>::S
               result_out,      // OLE return code
               parentFilter_in, // owning filter
               pinName_in)      // pin name
+#else
+ : inherited ()
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , configuration_ (NULL)
  , isInitialized_ (false)
  , mediaType_ (NULL)

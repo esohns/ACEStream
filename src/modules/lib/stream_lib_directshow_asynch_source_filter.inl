@@ -32,6 +32,7 @@
 #include "stream_lib_common.h"
 #include "stream_lib_defines.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 template <typename MessageType,
           typename ConfigurationType,
           typename PinConfigurationType>
@@ -86,6 +87,7 @@ Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
 
   ::delete instance_p;
 } // DeleteInstance
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 // ------------------------------------
 
@@ -173,12 +175,16 @@ template <typename MessageType,
 Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T<MessageType,
                                                         ConfigurationType,
                                                         PinConfigurationType>::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T ()
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  : inherited (NAME (STREAM_LIB_DS_WIN32_FILTER_NAME_ASYNCH_SOURCE), // name
               NULL,                                                 // owner
               CLSID_ACEStream_MediaFramework_Asynch_Source_Filter,  // CLSID
               NULL)                                                 // result
+#else
+ : inherited ()
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , filterConfiguration_ (NULL)
-//, hasCOMReference_ (false)
+ //, hasCOMReference_ (false)
  , lock_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T::Stream_MediaFramework_DirectShow_Asynch_Source_Filter_T"));
@@ -378,6 +384,7 @@ template <typename ConfigurationType>
 Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT* result_out,
                                                                                                                                                        CSource* parentFilter_in,
                                                                                                                                                        LPCWSTR pinName_in)
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #if defined (UNICODE)
  : inherited (pinName_in,
 #else
@@ -388,6 +395,9 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
               result_out,                     // OLE return code
               pinName_in,                     // pin name
               PINDIR_OUTPUT)                  // pin direction
+#else
+ : inherited ()
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , configuration_ (NULL)
  , isInitialized_ (false)
  , mediaType_ (NULL)

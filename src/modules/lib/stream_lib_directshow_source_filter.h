@@ -22,28 +22,13 @@
 #define STREAM_LIB_DIRECTSHOW_SOURCE_FILTER_H
 
 #include "mmsystem.h"
+#include "strmif.h"
 #include "Unknwn.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #undef NANOSECONDS
 #include "streams.h"
-//#include "strmif.h"
-//#if _MSC_VER >= 1100
-//#define AM_NOVTABLE __declspec (novtable)
-//#else
-//#define AM_NOVTABLE
-//#endif
-//#include "wxdebug.h"
-//#include "combase.h"
-//#undef NANOSECONDS
-//#include "reftime.h"
-//#include "wxlist.h"
-//#include "wxutil.h"
-//#include "mtype.h"
-//#include "amfilter.h"
-//#include "source.h"
-
-// #undef NANOSECONDS
-// #include "streams.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "ace/Global_Macros.h"
 #include "ace/Message_Queue.h"
@@ -59,7 +44,11 @@ template <typename MessageType,
           typename ConfigurationType,
           typename PinConfigurationType>
 class Stream_MediaFramework_DirectShow_Source_Filter_T
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  : public CSource
+#else
+ : public IBaseFilter
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , public IAMFilterMiscFlags
  , public IMemAllocator
  //, virtual public IUnknown
@@ -69,7 +58,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   // friends
   friend class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T<PinConfigurationType>;
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   typedef CSource inherited;
+#else
+  typedef IBaseFilter inherited;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
  public:
   // convenient types
@@ -80,9 +73,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_T ();
 
   // --------------------------------------
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   static CUnknown* WINAPI CreateInstance (LPUNKNOWN, // aggregating IUnknown interface handle ('owner')
                                           HRESULT*); // return value: result
   static void WINAPI DeleteInstance (void*); // instance handle
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
   // *NOTE*: - allocation functions are always 'static'
   //         - "The call to the class - specific T::operator delete on a
@@ -156,7 +151,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
 
 template <typename ConfigurationType> // implements Stream_MediaFramework_DirectShow_FilterPinConfiguration
 class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
  : public CSourceStream
+#else
+ : public IPin
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
  , public IKsPropertySet
  , public IAMBufferNegotiation
  , public IAMStreamConfig
@@ -164,7 +163,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
  , public Common_IInitialize_T<ConfigurationType>
  , public Common_IInitialize_T<struct _AMMediaType>
 {
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   typedef CSourceStream inherited;
+#else
+  typedef IPin inherited;
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
  public:
   Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT*, // return value: result
