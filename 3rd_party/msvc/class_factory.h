@@ -21,14 +21,18 @@
 #ifndef CLASS_FACTORY_H
 #define CLASS_FACTORY_H
 
-#include <assert.h>
+#include "assert.h"
+#include "guiddef.h"
+#include "Unknwn.h"
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 //// *NOTE*: wxWidgets may have #defined __WXDEBUG__
 //#undef __WXDEBUG__
-#include <wxdebug.h>
-#include <combase.h>
-#include <Guiddef.h>
-#include <Unknwn.h>
+#include "wxdebug.h"
+#include "combase.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 class CClassFactory
  : public CBaseObject
  , public IClassFactory
@@ -53,6 +57,7 @@ class CClassFactory
 
   static int                    m_cLocked;
 };
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 //////////////////////////////////////////
 
@@ -104,14 +109,14 @@ class ClassFactory
       return E_POINTER;
 
     if (InlineIsEqualGUID (riid, __uuidof (IUnknown)))
-      *ppv = static_cast<IUnknown*>(this);
+      *ppv = static_cast<IUnknown*> (this);
     else if (InlineIsEqualGUID (riid, __uuidof (IClassFactory)))
-      *ppv = static_cast<IClassFactory*>(this);
+      *ppv = static_cast<IClassFactory*> (this);
     else
     {
       *ppv = NULL;
       return E_NOINTERFACE;
-    }
+    } // end ELSE
     AddRef ();
     return S_OK;
   }
