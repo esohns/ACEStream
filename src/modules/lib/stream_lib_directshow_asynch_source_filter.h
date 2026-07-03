@@ -163,9 +163,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
   // override / implement (part of) CBasePin
   //STDMETHODIMP Connect (IPin*,                       // receive (input) pin
   //                      const struct _AMMediaType*); // (optional) media type handle
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   virtual HRESULT CheckMediaType (const CMediaType*);
   virtual HRESULT GetMediaType (int, CMediaType*);
   virtual HRESULT SetMediaType (const CMediaType*);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   virtual HRESULT CheckConnect (IPin*);
   virtual HRESULT BreakConnect ();
   virtual HRESULT CompleteConnect (IPin*);

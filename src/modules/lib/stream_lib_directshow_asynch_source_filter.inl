@@ -793,6 +793,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
   return S_OK;
 }
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 //
 // CheckMediaType
 //
@@ -892,6 +893,7 @@ Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationTy
 
   return S_OK;
 } // SetMediaType
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 template <typename ConfigurationType>
 HRESULT

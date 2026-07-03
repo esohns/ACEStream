@@ -171,7 +171,11 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
  public:
   Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT*, // return value: result
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
                                                               CSource*, // (parent) filter
+#else
+                                                              IBaseFilter*, // (parent) filter
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
                                                               LPCWSTR); // name
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T ();
 
@@ -193,6 +197,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 
   // override / implement (part of) CBasePin
   // *NOTE*: called during connection negotiation, before SetMediaType()
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   virtual STDMETHODIMP CheckMediaType (const CMediaType*);
   virtual STDMETHODIMP GetMediaType (int, CMediaType*);
   // *NOTE*: "...Before calling this method, the pin calls the
@@ -200,6 +205,7 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   //         is acceptable. Therefore, the pmt parameter is assumed to be an
   //         acceptable media type. ..."
   virtual STDMETHODIMP SetMediaType (const CMediaType*);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   // *NOTE*: support "Handling Format Changes from the Video Renderer"
   virtual STDMETHODIMP QueryAccept (const struct _AMMediaType*);
 
