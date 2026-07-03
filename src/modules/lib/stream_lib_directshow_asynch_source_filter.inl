@@ -382,7 +382,11 @@ error:
 
 template <typename ConfigurationType>
 Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T<ConfigurationType>::Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT* result_out,
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
                                                                                                                                                        CSource* parentFilter_in,
+#else
+                                                                                                                                                       IBaseFilter* parentFilter_in,
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
                                                                                                                                                        LPCWSTR pinName_in)
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #if defined (UNICODE)

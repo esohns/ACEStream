@@ -187,10 +187,13 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
   // -------------------------------------
 
   // implement/overload IUnknown
-  //DECLARE_IUNKNOWN
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+  DECLARE_IUNKNOWN
+#else
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
   inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
   inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   // -------------------------------------

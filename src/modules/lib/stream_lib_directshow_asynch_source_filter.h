@@ -144,14 +144,24 @@ class Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T
 
  public:
   Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T (HRESULT*, // return value: result
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
                                                                     CSource*, // (parent) filter
+#else
+                                                                    IBaseFilter, // (parent) filter
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
                                                                     LPCWSTR); // name
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_AsynchOutputPin_T ();
 
   // ------------------------------------
 
   // implement/overload IUnknown
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   DECLARE_IUNKNOWN
+#else
+  inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
+  inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   // ------------------------------------
