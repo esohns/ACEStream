@@ -170,13 +170,13 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
  public:
-  Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT*, // return value: result
+  Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T (HRESULT*,     // return value: result
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-                                                              CSource*, // (parent) filter
+                                                              CSource*,     // (parent) filter
 #else
                                                               IBaseFilter*, // (parent) filter
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
-                                                              LPCWSTR); // name
+                                                              LPCWSTR);     // name
   virtual ~Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T ();
 
   // implement Common_IInitialize_T
