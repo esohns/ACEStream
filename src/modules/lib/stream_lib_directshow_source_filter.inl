@@ -23,7 +23,9 @@
 #include "amvideo.h"
 #include "vfwmsgs.h"
 
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
 #include "refclock.h"
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
 #include "ace/Log_Msg.h"
 #include "ace/Message_Block.h"
