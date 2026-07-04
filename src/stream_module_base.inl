@@ -317,7 +317,14 @@ Stream_Module_Base_T<ACE_SYNCH_USE,
   // notify unlink ?
   // *NOTE*: cannot reach inherited::next_
   MODULE_T* module_p = inherited::next ();
-  imodulelink_p = dynamic_cast<Stream_IModuleLinkCB*> (module_p);
+  try {
+    imodulelink_p = dynamic_cast<Stream_IModuleLinkCB*> (module_p);
+  } catch (...) {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: caught exception in dynamic_cast<Stream_IModuleLinkCB*>(0x%@), continuing\n"),
+                inherited::name (),
+                module_p));
+  }
   if (!module_p)
     goto continue_;
   try {

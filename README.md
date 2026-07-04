@@ -5,5 +5,5 @@ wrapper library of ACE streams (see: https://www.dre.vanderbilt.edu/Doxygen/Stab
 
 ## Architecture
 
-![ACEStream Architecture](ARCHITECTURE.svg)
+![ACEStream Architecture](doc/ARCHITECTURE.svg)
 
