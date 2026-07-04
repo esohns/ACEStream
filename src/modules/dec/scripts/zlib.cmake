@@ -14,7 +14,7 @@ elseif (WIN32)
   set (ZLIB_LIB_FILE "zlib${LIB_FILE_SUFFIX}.lib")
   find_library (ZLIB_LIBRARY ${ZLIB_LIB_FILE}
                 PATHS ${VCPKG_LIB_DIR}
-                PATH_SUFFIXES lib
+#                PATH_SUFFIXES lib
                 DOC "searching for ${ZLIB_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (ZLIB_LIBRARY)
