@@ -1,139 +1,139 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700">
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="800" viewBox="0 0 1400 800">
   <defs>
-    <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L10,5 L0,10 z" fill="#333" />
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L10,3 L0,6 z" fill="#333" />
     </marker>
     <style>
-      .group { fill:#f3f4f6; stroke:#333; stroke-width:1px; rx:8; }
-      .external { fill:#fff3cd; stroke:#333; stroke-width:1px; rx:8; }
-      .consumers { fill:#e6ffed; stroke:#333; stroke-width:1px; rx:8; }
-      .node { fill:#ffffff; stroke:#333; stroke-width:1px; rx:6; }
-      .label { font: bold 14px sans-serif; fill:#111; }
-      .small { font: 12px sans-serif; fill:#111; }
-      .title { font: bold 18px sans-serif; fill:#111; }
-      .muted { font: 12px sans-serif; fill:#444; }
-      .arrow { stroke:#333; stroke-width:1.5px; fill:none; marker-end:url(#arrow); }
+      .group-external { fill:#fff3cd; stroke:#333; stroke-width:2px; rx:10; }
+      .group-library { fill:#f3f4f6; stroke:#333; stroke-width:2px; rx:10; }
+      .group-consumers { fill:#e6ffed; stroke:#333; stroke-width:2px; rx:10; }
+      .node { fill:#ffffff; stroke:#333; stroke-width:2px; rx:6; }
+      .label-title { font: bold 16px sans-serif; fill:#111; }
+      .label-text { font: bold 13px sans-serif; fill:#111; }
+      .label-sub { font: 11px sans-serif; fill:#555; }
+      .arrow { stroke:#333; stroke-width:2px; fill:none; marker-end:url(#arrow); }
     </style>
   </defs>
 
-  <!-- Group backgrounds -->
-  <rect x="40" y="30" width="320" height="220" class="external" />
-  <text x="60" y="52" class="label">External Dependencies</text>
+  <!-- Background groups -->
+  <rect x="20" y="20" width="340" height="200" class="group-external" />
+  <text x="40" y="45" class="label-title">External Dependencies</text>
 
-  <rect x="400" y="20" width="420" height="540" class="group" />
-  <text x="420" y="42" class="label">ACEStream Library (src/)</text>
+  <rect x="400" y="10" width="580" height="770" class="group-library" />
+  <text x="420" y="40" class="label-title">ACEStream Library (src/)</text>
 
-  <rect x="860" y="30" width="300" height="220" class="consumers" />
-  <text x="880" y="52" class="label">Applications & Tests</text>
+  <rect x="1020" y="20" width="360" height="200" class="group-consumers" />
+  <text x="1040" y="45" class="label-title">Applications &amp; Tests</text>
 
   <!-- External nodes -->
-  <g id="external-nodes">
-    <rect x="60" y="80" width="280" height="60" class="node" rx="6"/>
-    <text x="70" y="100" class="small">ACE Framework</text>
-    <text x="70" y="118" class="muted">(ace/Stream, ACE_Module, ACE_Task)</text>
+  <rect x="40" y="70" width="300" height="80" class="node"/>
+  <text x="60" y="100" class="label-text">ACE Framework</text>
+  <text x="60" y="125" class="label-sub">(ace/Stream, ACE_Module, ACE_Task)</text>
 
-    <rect x="60" y="160" width="280" height="60" class="node" rx="6"/>
-    <text x="70" y="180" class="small">OS Sockets / File APIs</text>
-  </g>
+  <rect x="40" y="160" width="300" height="50" class="node"/>
+  <text x="60" y="190" class="label-text">OS Sockets / File APIs</text>
 
-  <!-- Library internal nodes -->
-  <g id="library-nodes">
-    <!-- Top row: API and Base -->
-    <rect x="440" y="60" width="240" height="70" class="node" rx="6"/>
-    <text x="460" y="85" class="small">Public API</text>
-    <text x="460" y="103" class="muted">(stream_base.h, stream_*.h)</text>
+  <!-- Library internal structure -->
+  <!-- Top level: Public API -->
+  <rect x="440" y="70" width="260" height="80" class="node"/>
+  <text x="460" y="100" class="label-text">Public API</text>
+  <text x="460" y="125" class="label-sub">(stream_base.h, stream_*.h)</text>
 
-    <rect x="720" y="60" width="140" height="70" class="node" rx="6"/>
-    <text x="732" y="85" class="small">Stream_Base_T</text>
-    <text x="732" y="103" class="muted">(stream_base.h/.inl)</text>
+  <!-- Stream_Base_T -->
+  <rect x="740" y="70" width="200" height="80" class="node"/>
+  <text x="760" y="100" class="label-text">Stream_Base_T</text>
+  <text x="760" y="125" class="label-sub">(stream_base.h/.inl)</text>
 
-    <!-- Middle row: modules -->
-    <rect x="440" y="170" width="180" height="60" class="node" rx="6"/>
-    <text x="452" y="192" class="small">Stream_StreamModule_T</text>
-    <text x="452" y="208" class="muted">(stream_streammodule_base.h)</text>
+  <!-- Middle layer: Module classes -->
+  <rect x="440" y="190" width="220" height="80" class="node"/>
+  <text x="460" y="215" class="label-text">Stream_StreamModule_T</text>
+  <text x="460" y="240" class="label-sub">(stream_streammodule_base.h)</text>
 
-    <rect x="640" y="170" width="180" height="60" class="node" rx="6"/>
-    <text x="652" y="192" class="small">Stream_Module_Base_T</text>
-    <text x="652" y="208" class="muted">(stream_module_base.h)</text>
+  <rect x="700" y="190" width="220" height="80" class="node"/>
+  <text x="720" y="215" class="label-text">Stream_Module_Base_T</text>
+  <text x="720" y="240" class="label-sub">(stream_module_base.h)</text>
 
-    <rect x="540" y="260" width="160" height="60" class="node" rx="6"/>
-    <text x="552" y="282" class="small">Stream_IModule_T</text>
-    <text x="552" y="298" class="muted">(stream_imodule.h)</text>
+  <rect x="950" y="190" width="180" height="80" class="node"/>
+  <text x="970" y="215" class="label-text">Stream_IModule_T</text>
+  <text x="970" y="240" class="label-sub">(stream_imodule.h)</text>
 
-    <!-- Right column: net modules, parser, tasks, data -->
-    <rect x="720" y="260" width="180" height="56" class="node" rx="6"/>
-    <text x="732" y="282" class="small">Net Source Writer</text>
-    <text x="732" y="298" class="muted">(modules/net/stream_net_source.h)</text>
+  <!-- Net modules -->
+  <rect x="440" y="320" width="220" height="80" class="node"/>
+  <text x="460" y="345" class="label-text">Net Source Writer</text>
+  <text x="460" y="370" class="label-sub">(modules/net/stream_net_source.h)</text>
 
-    <rect x="720" y="340" width="180" height="56" class="node" rx="6"/>
-    <text x="732" y="362" class="small">Net Listener</text>
-    <text x="732" y="378" class="muted">(modules/net/stream_net_listener.h)</text>
+  <rect x="700" y="320" width="220" height="80" class="node"/>
+  <text x="720" y="345" class="label-text">Net Listener</text>
+  <text x="720" y="370" class="label-sub">(modules/net/stream_net_listener.h)</text>
 
-    <rect x="520" y="350" width="180" height="56" class="node" rx="6"/>
-    <text x="532" y="372" class="small">Parser Head</text>
-    <text x="532" y="388" class="muted">(modules/misc/stream_misc_parser.inl)</text>
+  <!-- Parser and Tasks -->
+  <rect x="440" y="450" width="220" height="80" class="node"/>
+  <text x="460" y="475" class="label-text">Parser Head</text>
+  <text x="460" y="500" class="label-sub">(modules/misc/stream_misc_parser.inl)</text>
 
-    <rect x="440" y="440" width="180" height="56" class="node" rx="6"/>
-    <text x="452" y="462" class="small">Tasks / Executors</text>
-    <text x="452" y="478" class="muted">(ACE_Thru_Task, TaskBase)</text>
+  <rect x="700" y="450" width="220" height="80" class="node"/>
+  <text x="720" y="475" class="label-text">Tasks / Executors</text>
+  <text x="720" y="500" class="label-sub">(ACE_Thru_Task, TaskBase)</text>
 
-    <rect x="660" y="440" width="240" height="56" class="node" rx="6"/>
-    <text x="672" y="462" class="small">Layout / Message Queue / Data</text>
-    <text x="672" y="478" class="muted">(stream_layout.h, stream_messagequeue.h)</text>
+  <!-- Data and Utilities -->
+  <rect x="440" y="580" width="480" height="80" class="node"/>
+  <text x="460" y="605" class="label-text">Layout / MessageQueue / Data</text>
+  <text x="460" y="630" class="label-sub">(stream_layout.h, stream_messagequeue.h)</text>
 
-    <rect x="520" y="520" width="340" height="56" class="node" rx="6"/>
-    <text x="532" y="542" class="small">Utilities (Logging, Config, Errors)</text>
-  </g>
+  <rect x="440" y="710" width="480" height="50" class="node"/>
+  <text x="460" y="740" class="label-text">Utilities (Logging, Config, Errors)</text>
 
-  <!-- Consumers -->
-  <g id="consumers-nodes">
-    <rect x="880" y="100" width="260" height="70" class="node" rx="6"/>
-    <text x="900" y="125" class="small">Applications / Examples</text>
-    <text x="900" y="143" class="muted">(test_i/, examples)</text>
+  <!-- Consumer nodes -->
+  <rect x="1040" y="70" width="320" height="80" class="node"/>
+  <text x="1060" y="100" class="label-text">Applications / Examples</text>
+  <text x="1060" y="125" class="label-sub">(test_i/, examples)</text>
 
-    <rect x="880" y="190" width="260" height="70" class="node" rx="6"/>
-    <text x="900" y="215" class="small">Test Suite</text>
-    <text x="900" y="233" class="muted">(test_i/)</text>
-  </g>
+  <rect x="1040" y="160" width="320" height="50" class="node"/>
+  <text x="1060" y="190" class="label-text">Test Suite (test_i/)</text>
 
-  <!-- Arrows connecting nodes -->
-  <!-- ACE -> NetWriter -->
-  <path d="M340 110 L440 200" class="arrow" />
-  <!-- OS -> ACE (curved) -->
-  <path d="M200 220 C250 240 300 240 360 220" class="arrow" marker-end="url(#arrow)" />
+  <!-- Connecting arrows -->
+  <!-- External to Library -->
+  <path d="M340 110 L440 110" class="arrow" />
+  <path d="M340 185 Q390 150 440 130" class="arrow" />
 
-  <!-- ACE -> Tasks -->
-  <path d="M340 110 L560 470" class="arrow" />
-  <!-- NetWriter -> ModuleBase -->
-  <path d="M760 290 L720 200" class="arrow" />
-  <!-- NetListener -> ModuleBase -->
-  <path d="M760 360 L660 200" class="arrow" />
-  <!-- Parser -> ModuleBase -->
-  <path d="M600 372 L620 230" class="arrow" />
+  <!-- API to Consumers -->
+  <path d="M700 110 L1040 110" class="arrow" />
 
-  <!-- ModuleBase -> StreamModule -->
-  <path d="M700 200 L560 200" class="arrow" />
-  <!-- StreamModule -> Base -->
-  <path d="M560 200 L740 90" class="arrow" />
-  <!-- Base -> API -->
-  <path d="M750 90 L680 100" class="arrow" />
+  <!-- API to Stream_Base_T -->
+  <path d="M700 110 L740 110" class="arrow" />
 
-  <!-- Data -> Base -->
-  <path d="M780 470 L760 130" class="arrow" />
-  <!-- Tasks -> ModuleBase -->
-  <path d="M560 470 L640 200" class="arrow" />
-  <!-- Utils -> ModuleBase -->
-  <path d="M700 540 L660 220" class="arrow" />
+  <!-- Stream_Base_T to Stream_StreamModule_T -->
+  <path d="M740 150 Q680 170 660 190" class="arrow" />
 
-  <!-- API -> Consumers -->
-  <path d="M680 100 L880 135" class="arrow" />
-  <path d="M680 100 L880 225" class="arrow" />
+  <!-- Stream_StreamModule_T to Stream_Module_Base_T -->
+  <path d="M660 230 L700 230" class="arrow" />
 
-  <!-- Tests -> Base -->
-  <path d="M880 225 L740 120" class="arrow" />
+  <!-- Stream_Module_Base_T to Stream_IModule_T -->
+  <path d="M920 230 L950 230" class="arrow" />
 
-  <!-- Titles/Legend -->
-  <text x="60" y="280" class="muted">(This SVG was generated from the repository's ARCHITECTURE.mmd/ARCHITECTURE.md content.)</text>
+  <!-- Net Source to Module_Base -->
+  <path d="M550 320 L750 270" class="arrow" />
+
+  <!-- Net Listener to Module_Base -->
+  <path d="M750 320 L810 270" class="arrow" />
+
+  <!-- Parser to Module_Base -->
+  <path d="M550 450 L750 270" class="arrow" />
+
+  <!-- Tasks to Module_Base -->
+  <path d="M750 450 L810 270" class="arrow" />
+
+  <!-- Data to Stream_Base_T -->
+  <path d="M680 580 L800 150" class="arrow" />
+
+  <!-- Utilities to Module_Base -->
+  <path d="M680 710 L810 270" class="arrow" />
+
+  <!-- API to Tests -->
+  <path d="M700 110 Q870 110 1040 185" class="arrow" />
+
+  <!-- Tests to Stream_Base -->
+  <path d="M1040 185 Q900 150 740 150" class="arrow" />
 
 </svg>
