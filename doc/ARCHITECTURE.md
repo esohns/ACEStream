@@ -78,7 +78,8 @@ flowchart LR
   1. npm install -g @mermaid-js/mermaid-cli
   2. mmdc -i ARCHITECTURE.mmd -o ARCHITECTURE.svg
 
-Notes about rendering in this environment
+Notes about rendering in this environment:
+
 - I committed both ARCHITECTURE.md (with the Mermaid block) and ARCHITECTURE.mmd (pure Mermaid source) to the repository so you can render the diagram yourself (or with CI) into SVG/PNG.
 - I cannot reliably render Mermaid to a final SVG/PNG within this execution environment because there is no guaranteed mermaid rendering service available to call from here. If you want, I can:
   - Use an external rendering service (kroki, mermaid.live API) to generate an SVG and commit it, if you approve that I call such a service.
