@@ -2,9 +2,9 @@
 
 This document provides a high-level architecture overview of the ACEStream wrapper library and maps the Mermaid diagram to real classes and headers found in the repository.
 
-> Files added to the repository by this commit:
-> - ARCHITECTURE.md (this file)
-> - ARCHITECTURE.mmd (plain Mermaid source for easy rendering with CLI / online tools)
+Files in this commit:
+- `ARCHITECTURE.md` (this file)
+- `ARCHITECTURE.mmd` (plain Mermaid source for easy rendering with CLI / online tools)
 
 ## Diagram
 
