@@ -2,3 +2,8 @@
 
 # ACEStream
 wrapper library of ACE streams (see: https://www.dre.vanderbilt.edu/Doxygen/Stable/libace-doc/a07590.html)
+
+## Architecture
+
+![ACEStream Architecture](ARCHITECTURE.svg)
+
