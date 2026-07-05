@@ -34,7 +34,7 @@ elseif (WIN32)
   set (WHISPERCPP_LIB_FILE "whisper.lib")
   find_library (WHISPERCPP_LIBRARY ${WHISPERCPP_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/whisper.cpp/build/msvc/src
-#                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${WHISPERCPP_LIB_FILE}"
                 NO_DEFAULT_PATH)
   if (NOT WHISPERCPP_LIBRARY)
@@ -44,8 +44,7 @@ elseif (WIN32)
    set (WHISPERCPP_FOUND TRUE)
    set (WHISPERCPP_INCLUDE_DIRS "$ENV{LIB_ROOT}/whisper.cpp/ggml/include;$ENV{LIB_ROOT}/whisper.cpp/include")
    set (WHISPERCPP_LIBRARIES "${WHISPERCPP_LIBRARY}")
-#   set (WHISPERCPP_LIB_DIRS "$ENV{ROCM_PATH}/bin;$ENV{LIB_ROOT}/whisper.cpp/build/msvc/bin/${CMAKE_BUILD_TYPE}")
-   set (WHISPERCPP_LIB_DIRS "$ENV{ROCM_PATH}/bin;$ENV{LIB_ROOT}/whisper.cpp/build/msvc/bin")
+   set (WHISPERCPP_LIB_DIRS "$ENV{ROCM_PATH}/bin;$ENV{LIB_ROOT}/whisper.cpp/build/msvc/bin/${CMAKE_BUILD_TYPE}")
   endif (NOT WHISPERCPP_LIBRARY)
  endif (NOT WHISPERCPP_FOUND)
 endif ()
