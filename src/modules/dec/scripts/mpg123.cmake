@@ -22,11 +22,12 @@ elseif (WIN32)
 #  set (CMAKE_FIND_LIBRARY_SUFFIXES .lib .dll.a)
   set (MPG123_VERSION "1.29.4")
   set (MPG123_DIR "mpg123-${MPG123_VERSION}-x86-64")
+# *TODO*: find a way to disable garbage output to stderr when using the debug version
 #  if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR
 #      CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 #   set (MPG123_DIR "${MPG123_DIR}-debug")
 #  endif ()
-  set (MPG123_LIB_FILE "libmpg123-0")
+  set (MPG123_LIB_FILE "libmpg123-0.lib")
   find_library (MPG123_LIBRARY
                 NAMES ${MPG123_LIB_FILE}
 #               PATHS $ENV{LIB_ROOT}/mpg123/src/libmpg123
@@ -39,7 +40,7 @@ elseif (WIN32)
   else ()
    message (STATUS "Found mpg123 library \"${MPG123_LIBRARY}\"")
    set (MPG123_FOUND TRUE)
-   set (MPG123_INCLUDE_DIRS "$ENV{LIB_ROOT}/mpg123/src/libmpg123")
+   set (MPG123_INCLUDE_DIRS "$ENV{LIB_ROOT}/mpg123/src/include")
    set (MPG123_LIBRARIES "${MPG123_LIBRARY}")
 #   set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/src/libmpg123/.libs")
    set (MPG123_LIB_DIR "$ENV{LIB_ROOT}/mpg123/releases/${MPG123_DIR}")

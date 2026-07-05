@@ -171,21 +171,28 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // set parameter(s)
-  error_i = mpg123_param (handle_, MPG123_FLAGS, MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS, 0.0);
+  if (unlikely (configuration_in.debug))
+  {
+    error_i = mpg123_param (handle_, MPG123_VERBOSE, 2, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+  } // end IF
+  else
+  {
+    error_i = mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+    error_i = mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+  } // end IF
+  long value_i =
+    MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS;
+    //MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS | MPG123_NO_PEEK_END;
+  error_i = mpg123_param (handle_, MPG123_FLAGS, value_i, 0.0);
   ACE_ASSERT (error_i == MPG123_OK);
-  error_i = mpg123_param (handle_, MPG123_FORCE_SEEKABLE, 1, 0.0);
-  //ACE_ASSERT (error_i == MPG123_OK);
-  error_i = mpg123_param(handle_, MPG123_INDEX_SIZE, -1, 0);
+  error_i = mpg123_param (handle_, MPG123_RVA, MPG123_RVA_ALBUM, 0.0);
   ACE_ASSERT (error_i == MPG123_OK);
-#if defined (_DEBUG)
-  error_i = mpg123_param (handle_, MPG123_VERBOSE, 2, 0.0);
+  value_i = -1;//1000;
+  error_i = mpg123_param (handle_, MPG123_INDEX_SIZE, value_i, 0);
   ACE_ASSERT (error_i == MPG123_OK);
-#else
-  error_i = mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
-  ACE_ASSERT (error_i == MPG123_OK);
-  error_i = mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
-  ACE_ASSERT (error_i == MPG123_OK);
-#endif // _DEBUG
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.allocatorConfiguration);
@@ -346,7 +353,15 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   // print id3 tag(s)
   error_i = mpg123_scan (handle_);
-  ACE_ASSERT (error_i == MPG123_OK);
+  if (unlikely (error_i != MPG123_OK))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mpg123_scan(\"%s\"): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (file_path_string.c_str ()),
+                ACE_TEXT (mpg123_plain_strerror (error_i))));
+    goto continue_2;
+  } // end IF
   meta_i = mpg123_meta_check (handle_);
   if (meta_i & MPG123_ID3)
   {
@@ -375,6 +390,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
                   ACE_TEXT (v1_p->comment),
                   v1_p->genre));
   } // end IF
+continue_2:
 #endif // _DEBUG
 
   do
