@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #if defined (TENSORFLOW_CC_SUPPORT)
+#include "tensorflow/core/platform/env.h"
 #include "tensorflow/core/platform/status.h"
 #include "tensorflow/cc/saved_model/loader.h"
 #include "tensorflow/cc/saved_model/tag_constants.h"
@@ -120,7 +121,10 @@ Stream_Module_Tensorflow_T<ConfigurationType,
   ACE_ASSERT (graph_);
   TF_ImportGraphDefOptions* options_p = TF_NewImportGraphDefOptions ();
   ACE_ASSERT (options_p);
-  TF_GraphImportGraphDef (graph_, buffer_p, options_p, status_);
+  TF_GraphImportGraphDef (graph_,
+                          buffer_p,
+                          options_p,
+                          status_);
   TF_DeleteImportGraphDefOptions (options_p); options_p = NULL;
   if (unlikely (TF_GetCode (status_) != TF_OK))
   {
@@ -137,7 +141,9 @@ Stream_Module_Tensorflow_T<ConfigurationType,
   // create session
   TF_SessionOptions* options_2 = TF_NewSessionOptions ();
   ACE_ASSERT (options_2);
-  session_ = TF_NewSession (graph_, options_2, status_);
+  session_ = TF_NewSession (graph_,
+                            options_2,
+                            status_);
   TF_DeleteSessionOptions (options_2); options_2 = NULL;
   if (TF_GetCode (status_) != TF_OK)
   {
@@ -183,10 +189,10 @@ Stream_Module_Tensorflow_2<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Tensorflow_2::~Stream_Module_Tensorflow_2"));
 
-  if (session_)
+  if (unlikely (session_))
   {
     tensorflow::Status status = session_->Close ();
-    if (!status.ok ())
+    if (unlikely (!status.ok ()))
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to tensorflow::Session::Close(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
@@ -212,10 +218,10 @@ Stream_Module_Tensorflow_2<ConfigurationType,
 
   if (inherited::isInitialized_)
   {
-    if (session_)
+    if (unlikely (session_))
     {
       status = session_->Close ();
-      if (!status.ok ())
+      if (unlikely (!status.ok ()))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to tensorflow::Session::Close(): \"%s\", continuing\n"),
                     inherited::mod_->name (),

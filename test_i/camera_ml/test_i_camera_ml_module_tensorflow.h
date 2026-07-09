@@ -163,15 +163,15 @@ class Test_I_CameraML_Module_Tensorflow_2
 
   // helper methods
   bool loadLabels (const std::string&); // label file path
-  std::vector<size_t> filterBoxes (tensorflow::TTypes<float>::Flat&,     // scores
-                                   tensorflow::TTypes<float,3>::Tensor&, // boxes
-                                   double,                               // threshold IOU
-                                   double);                              // threshold (score)
-  void drawBoundingBoxes (cv::Mat&,                             // image
-                          tensorflow::TTypes<float>::Flat&,     // scores
-                          tensorflow::TTypes<float>::Flat&,     // classes
-                          tensorflow::TTypes<float,3>::Tensor&, // boxes
-                          std::vector<size_t>&);                // indices ("good")
+  std::vector<size_t> filterBoxes (const tensorflow::TTypes<float>::Flat&,     // scores
+                                   const tensorflow::TTypes<float,3>::Tensor&, // boxes
+                                   float,                                      // threshold (intersection area)
+                                   float);                                     // threshold (score)
+  void drawBoundingBoxes (cv::Mat&,                                   // image
+                          const tensorflow::TTypes<float>::Flat&,     // scores
+                          const tensorflow::TTypes<float>::Flat&,     // classes
+                          const tensorflow::TTypes<float,3>::Tensor&, // boxes
+                          const std::vector<size_t>&);                // indices ("good")
 
   std::map<int, std::string> labelMap_;
   Common_Image_Resolution_t  resolution_;

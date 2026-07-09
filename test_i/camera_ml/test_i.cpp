@@ -80,6 +80,7 @@
 
 #include "stream_misc_defines.h"
 
+#include "stream_module_ml_common.h"
 #include "stream_module_ml_defines.h"
 
 #include "stream_vis_tools.h"
