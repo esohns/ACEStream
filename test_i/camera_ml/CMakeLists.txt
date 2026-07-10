@@ -1,6 +1,10 @@
 include (ffmpeg)
 include (ImageMagick)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/math/scripts")
+include (PrePhysicsEngineImplementation)
+include (SetPhysicsEngineImplementation)
+
 if (UNIX)
 # include (CheckLibraryExists)
 # check_library_exists (pthread pthread_create "" HAVE_LIB_PTHREAD)
@@ -28,7 +32,6 @@ include (pge)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 include (mediapipe)
-include (box2d)
 
 if (WIN32)
 # set (CMAKE_CXX_STANDARD 17)
@@ -123,11 +126,6 @@ if (LIBTORCH_SUPPORT)
       test_i_camera_ml_module_libtorch.h
       test_i_camera_ml_module_libtorch.inl)
 endif (LIBTORCH_SUPPORT)
-#if (OLC_PGE_SUPPORT)
-# set (${EXECUTABLE}_EXE_SRCS
-#      ${${EXECUTABLE}_EXE_SRCS}
-#      test_i_olc_pge.cpp)
-#endif (OLC_PGE_SUPPORT)
 
 if (MEDIAPIPE_SUPPORT)
  if (UNIX)
@@ -186,8 +184,12 @@ if (MEDIAPIPE_SUPPORT)
        test_i_olc_pge.cpp)
  endif (OLC_PGE_SUPPORT)
 
- if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
-  include_directories (${BOX2D_INCLUDE_DIRS})
+ if ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
+  if (BOX2D_USE)
+   include_directories (${BOX2D_INCLUDE_DIRS})
+  elseif (LIQUIDFUN_USE)
+   include_directories (${LIQUIDFUN_INCLUDE_DIRS})
+  endif ()
   include_directories (${PGE_INCLUDE_DIR})
 
   set (EXECUTABLE_3 camera_ml_3)
@@ -198,9 +200,6 @@ if (MEDIAPIPE_SUPPORT)
        test_i_camera_ml_configuration.h
        test_i_camera_ml_defines.h
        test_i_camera_ml_stream_common.h
-       test_i_camera_ml_module_mediapipe_3.cpp
-       test_i_camera_ml_module_mediapipe_3.h
-       test_i_camera_ml_module_mediapipe_3.inl
        test_i_common_modules_2.h
        test_i_eventhandler.cpp
        test_i_eventhandler.h
@@ -214,7 +213,20 @@ if (MEDIAPIPE_SUPPORT)
        test_i_session_message.inl
        test_i_stream_3.cpp
        test_i_stream_3.h)
- endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  if (BOX2D_USE)
+   set (${EXECUTABLE_3}_EXE_SRCS
+        ${${EXECUTABLE_3}_EXE_SRCS}
+        test_i_camera_ml_module_mediapipe_3_box2d.cpp
+        test_i_camera_ml_module_mediapipe_3_box2d.h
+        test_i_camera_ml_module_mediapipe_3_box2d.inl)
+  elseif (LIQUIDFUN_USE)
+   set (${EXECUTABLE_3}_EXE_SRCS
+        ${${EXECUTABLE_3}_EXE_SRCS}
+        test_i_camera_ml_module_mediapipe_3_liquidfun.cpp
+        test_i_camera_ml_module_mediapipe_3_liquidfun.h
+        test_i_camera_ml_module_mediapipe_3_liquidfun.inl)
+   endif ()
+ endif ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 if (UNIX)
@@ -262,7 +274,7 @@ if (MEDIAPIPE_SUPPORT)
 
  target_include_directories (${EXECUTABLE_2} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
 
- if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+ if ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
   add_executable (${EXECUTABLE_3}
                   EXCLUDE_FROM_ALL
                   ${${EXECUTABLE_3}_EXE_SRCS})
@@ -272,7 +284,7 @@ if (MEDIAPIPE_SUPPORT)
   endif (WIN32 AND NOT BUILD_TEST_I)
 
   target_include_directories (${EXECUTABLE_3} PUBLIC ${MEDIAPIPE_INCLUDE_DIRS})
- endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+ endif ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 #add_dependencies (${EXECUTABLE} ACE)
@@ -394,7 +406,7 @@ if (MEDIAPIPE_SUPPORT)
 
  target_link_libraries (${EXECUTABLE_2} PUBLIC ${PROJECT_NAME}_Test_I)
 
- if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+ if ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
   if (FFMPEG_SUPPORT)
    target_link_libraries (${EXECUTABLE_3} PUBLIC ${ffmpeg_LIBRARIES})
   endif (FFMPEG_SUPPORT)
@@ -403,7 +415,13 @@ if (MEDIAPIPE_SUPPORT)
   endif (OPENCV_SUPPORT)
   target_link_libraries (${EXECUTABLE_3} PUBLIC MP_FORMATS)
   target_link_libraries (${EXECUTABLE_3} PUBLIC ${MEDIAPIPE_LIBRARIES})
-  target_link_libraries (${EXECUTABLE_3} PUBLIC ${BOX2D_LIBRARIES})
+
+  if (BOX2D_USE)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${BOX2D_LIBRARIES})
+  elseif (LIQUIDFUN_USE)
+   target_link_libraries (${EXECUTABLE_3} PUBLIC ${LIQUIDFUN_LIBRARIES})
+  endif ()
+
   if (UNIX)
    target_link_libraries (${EXECUTABLE_3} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
    target_link_libraries (${EXECUTABLE_3} PUBLIC ${PKG_V4L_LIBRARIES})
@@ -426,7 +444,7 @@ if (MEDIAPIPE_SUPPORT)
   target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Visualization)
 
   target_link_libraries (${EXECUTABLE_3} PUBLIC ${PROJECT_NAME}_Test_I)
- endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+ endif ((BOX2D_SUPPORT OR LIQUIDFUN_SUPPORT) AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 
 # add PCH

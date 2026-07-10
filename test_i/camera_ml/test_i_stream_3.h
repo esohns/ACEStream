@@ -109,7 +109,11 @@ class Stream_CameraML_DirectShow_Stream_3
   Stream_CameraML_DirectShow_LibAVResize_Module        resize_; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
   Stream_CameraML_DirectShow_HFlip_Module              flip_;
-  Stream_CameraML_DirectShow_MediaPipeBox2d_Module     mediaPipeBox2d_;
+#if defined (BOX2D_USE)
+  Stream_CameraML_DirectShow_MediaPipeBox2d_Module     mediaPipe_;
+#elif defined (LIQUIDFUN_USE)
+  Stream_CameraML_DirectShow_MediaPipeLiquidFun_Module mediaPipe_;
+#endif // BOX2D_USE || LIQUIDFUN_USE
   Stream_CameraML_DirectShow_LibAVConvert_Module       convert_2; // --> BGRA (Direct3D)
 #if defined (GTK_SUPPORT)
   Stream_CameraML_DirectShow_GTK_Display_Module        GTKDisplay_;

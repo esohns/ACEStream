@@ -61,8 +61,13 @@ Stream_CameraML_DirectShow_Stream_3::Stream_CameraML_DirectShow_Stream_3 ()
 #endif // FFMPEG_SUPPORT
  , flip_ (this,
           ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING))
- , mediaPipeBox2d_ (this,
-                    ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NAME_STRING))
+#if defined (BOX2D_USE)
+ , mediaPipe_ (this,
+               ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NAME_STRING))
+#elif defined (LIQUIDFUN_USE)
+ , mediaPipe_ (this,
+               ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_LIQUIDFUN_DEFAULT_NAME_STRING))
+#endif // BOX2D_USE || LIQUIDFUN_USE
  , convert_2 (this,
               ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
 #if defined (GTK_SUPPORT)
@@ -105,7 +110,7 @@ Stream_CameraML_DirectShow_Stream_3::load (Stream_ILayout* layout_in,
   //layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
 #endif // FFMPEG_SUPPORT
   layout_in->append (&flip_, NULL, 0);
-  layout_in->append (&mediaPipeBox2d_, NULL, 0);
+  layout_in->append (&mediaPipe_, NULL, 0);
 //  switch (inherited::configuration_->configuration_->renderer)
 //  {
 //#if defined (GTK_SUPPORT)

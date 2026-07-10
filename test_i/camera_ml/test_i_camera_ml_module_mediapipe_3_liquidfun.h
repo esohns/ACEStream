@@ -18,28 +18,14 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#ifndef TEST_I_CAMERA_ML_MODULE_MEDIAPIPE_3_H
-#define TEST_I_CAMERA_ML_MODULE_MEDIAPIPE_3_H
+#ifndef TEST_I_CAMERA_ML_MODULE_MEDIAPIPE_3_LIQUIDFUN_H
+#define TEST_I_CAMERA_ML_MODULE_MEDIAPIPE_3_LIQUIDFUN_H
 
 #include <vector>
 
 #include "Box2D/Box2D.h"
 
 #include "olcPixelGameEngine.h"
-// #if defined (ACE_WIN32) || defined (ACE_WIN64)
-// #else
-// // *IMPORTANT NOTE*: the olc PixelGameEngine includes X11 headers and puts these
-// //                   into a dedicated namespace (Nice !); since the X11 headers
-// //                   have already been included, circumvent the double header
-// //                   inclusion guard
-// #if defined (X_H)
-// #undef X_H
-// #endif // X_H
-// #if defined (_X11_XLIB_H_)
-// #undef _X11_XLIB_H_
-// #endif // _X11_XLIB_H_
-// #endif // ACE_WIN32 || ACE_WIN64
-// #undef Status
 
 #include "libmp.h"
 
@@ -58,7 +44,7 @@
 
 #include "test_i_camera_ml_defines.h"
 
-extern const char libacestream_default_ml_mediapipe_3_module_name_string[];
+extern const char libacestream_default_ml_mediapipe_3_liquidfun_module_name_string[];
 
 template <typename ConfigurationType,
           ////////////////////////////////
@@ -67,7 +53,7 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           ////////////////////////////////
           typename MediaType>
-class Test_I_CameraML_Module_MediaPipe_3
+class Test_I_CameraML_Module_MediaPipe_3_LiquidFun
  : public Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                   Common_TimePolicy_t,
                                   ConfigurationType,
@@ -141,11 +127,11 @@ class Test_I_CameraML_Module_MediaPipe_3
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   typedef typename inherited::ISTREAM_T ISTREAM_T;
-  Test_I_CameraML_Module_MediaPipe_3 (ISTREAM_T*); // stream handle
+  Test_I_CameraML_Module_MediaPipe_3_LiquidFun (ISTREAM_T*); // stream handle
 #else
-  Test_I_CameraML_Module_MediaPipe_3 (typename inherited::ISTREAM_T*); // stream handle
+  Test_I_CameraML_Module_MediaPipe_3_LiquidFun (typename inherited::ISTREAM_T*); // stream handle
 #endif // ACE_WIN32 || ACE_WIN64
-  virtual ~Test_I_CameraML_Module_MediaPipe_3 ();
+  virtual ~Test_I_CameraML_Module_MediaPipe_3_LiquidFun ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
@@ -172,9 +158,9 @@ class Test_I_CameraML_Module_MediaPipe_3
   virtual bool OnUserDestroy ();
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3 ())
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3 (const Test_I_CameraML_Module_MediaPipe_3&))
-  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3& operator= (const Test_I_CameraML_Module_MediaPipe_3&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3_LiquidFun ())
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3_LiquidFun (const Test_I_CameraML_Module_MediaPipe_3_LiquidFun&))
+  ACE_UNIMPLEMENTED_FUNC (Test_I_CameraML_Module_MediaPipe_3_LiquidFun& operator= (const Test_I_CameraML_Module_MediaPipe_3_LiquidFun&))
 
   // override (part of) ACE_Task_Base
   virtual int svc (void);
@@ -199,6 +185,6 @@ class Test_I_CameraML_Module_MediaPipe_3
 };
 
 // include template definition
-#include "test_i_camera_ml_module_mediapipe_3.inl"
+#include "test_i_camera_ml_module_mediapipe_3_liquidfun.inl"
 
 #endif

@@ -19,9 +19,9 @@
  ***************************************************************************/
 #include "stdafx.h"
 
-#include "test_i_camera_ml_module_mediapipe_3.h"
+#include "test_i_camera_ml_module_mediapipe_3_liquidfun.h"
 
 #include "test_i_camera_ml_defines.h"
 
-const char libacestream_default_ml_mediapipe_3_module_name_string[] =
-  ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NAME_STRING);
+const char libacestream_default_ml_mediapipe_3_liquidfun_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (TEST_I_CAMERA_ML_MEDIAPIPE_LIQUIDFUN_DEFAULT_NAME_STRING);

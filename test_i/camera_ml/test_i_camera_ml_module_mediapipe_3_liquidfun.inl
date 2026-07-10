@@ -55,14 +55,14 @@ template <typename ConfigurationType,
           typename DataMessageType,
           typename SessionMessageType,
           typename MediaType>
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                   MediaType>::Test_I_CameraML_Module_MediaPipe_3 (ISTREAM_T* stream_in)
+                                             MediaType>::Test_I_CameraML_Module_MediaPipe_3_LiquidFun (ISTREAM_T* stream_in)
 #else
-                                   MediaType>::Test_I_CameraML_Module_MediaPipe_3 (typename inherited::ISTREAM_T* stream_in)
+                                             MediaType>::Test_I_CameraML_Module_MediaPipe_3_LiquidFun (typename inherited::ISTREAM_T* stream_in)
 #endif // ACE_WIN32 || ACE_WIN64
  : inherited (stream_in)
  , inherited2 ()
@@ -78,10 +78,10 @@ Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
  , positionIndex_ (b2Vec2_zero)
  //, sprite_ ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::Test_I_CameraML_Module_MediaPipe_3"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::Test_I_CameraML_Module_MediaPipe_3_LiquidFun"));
 
   inherited3::sAppName =
-    ACE_TEXT_ALWAYS_CHAR ("Test_I_CameraML_Module_MediaPipe_3");
+    ACE_TEXT_ALWAYS_CHAR ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun");
 
   uint32 flags = 0;
   flags += b2Draw::e_shapeBit;
@@ -105,13 +105,13 @@ template <typename ConfigurationType,
           typename DataMessageType,
           typename SessionMessageType,
           typename MediaType>
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::~Test_I_CameraML_Module_MediaPipe_3 ()
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::~Test_I_CameraML_Module_MediaPipe_3_LiquidFun ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::~Test_I_CameraML_Module_MediaPipe_3"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::~Test_I_CameraML_Module_MediaPipe_3_LiquidFun"));
 
   delete graph_;
   delete world_;
@@ -123,14 +123,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                           Stream_IAllocator* allocator_in)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                                     Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::initialize"));
 
   if (inherited::isInitialized_)
   {
@@ -177,11 +177,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawPolygon (const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawPolygon (const b2Vec2* vertices,
+                                                                      int32 vertexCount,
+                                                                      const b2Color& color)
 {
   float x1, x2, y1, y2;
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
@@ -222,11 +224,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawSolidPolygon (const b2Vec2* vertices, int32 vertexCount, const b2Color& color)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawSolidPolygon (const b2Vec2* vertices,
+                                                                           int32 vertexCount,
+                                                                           const b2Color& color)
 {
   DrawPolygon (vertices, vertexCount, color);
   // *TODO*: flood-fill ?
@@ -238,11 +242,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawCircle (const b2Vec2& center, float32 radius, const b2Color& color)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawCircle (const b2Vec2& center,
+                                                                     float32 radius,
+                                                                     const b2Color& color)
 {
   float x, y;
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
@@ -264,11 +270,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawSolidCircle (const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawSolidCircle (const b2Vec2& center,
+                                                                          float32 radius,
+                                                                          const b2Vec2& axis,
+                                                                          const b2Color& color)
 {
   float x, y;
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
@@ -297,11 +306,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawParticles (const b2Vec2* centers, float32 radius, const b2ParticleColor* colors, int32 count)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawParticles (const b2Vec2* centers,
+                                                                        float32 radius,
+                                                                        const b2ParticleColor* colors,
+                                                                        int32 count)
 {
   float x, y;
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
@@ -326,11 +338,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawSegment (const b2Vec2& p1, const b2Vec2& p2, const b2Color& color)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawSegment (const b2Vec2& p1,
+                                                                      const b2Vec2& p2,
+                                                                      const b2Color& color)
 {
   float x1, y1, x2, y2;
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
@@ -356,11 +370,11 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::DrawTransform (const b2Transform& xf)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::DrawTransform (const b2Transform& xf)
 {
   b2Vec2 p1 = xf.p, p2;
   static float32 k_axisScale_x = 0.4f;
@@ -378,14 +392,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleDataMessage (DataMessageType*& message_inout,
-                                                                  bool& passMessageDownstream_out)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                            bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::handleDataMessage"));
 
   // static int nFrames = 30;
   // static int iFrame = 0;
@@ -509,14 +523,14 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                                     bool& passMessageDownstream_out)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                               bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -600,13 +614,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 std::vector<std::vector<std::array<float, 3>>>
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::getLandmarks (mediapipe::LibMP* graph_in)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::getLandmarks (mediapipe::LibMP* graph_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::getLandmarks"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::getLandmarks"));
 
   std::vector<std::vector<std::array<float, 3> > > normalized_landmarks;
 
@@ -654,13 +668,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::OnUserCreate ()
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::OnUserCreate ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::OnUserCreate"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::OnUserCreate"));
 
   halfDimension_ =
     std::min (olc::PixelGameEngine::ScreenWidth (), olc::PixelGameEngine::ScreenHeight ()) / 2.0f;
@@ -683,13 +697,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::OnUserUpdate (float fElapsedTime_in)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::OnUserUpdate (float fElapsedTime_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::OnUserUpdate"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::OnUserUpdate"));
 
   // process next message
   if (!processNextMessage ())
@@ -736,11 +750,11 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::OnUserDestroy ()
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::OnUserDestroy ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserDestroy"));
 
@@ -766,13 +780,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 int
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::svc (void)
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::svc"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
@@ -903,13 +917,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 bool
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::processNextMessage ()
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::processNextMessage ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::processNextMessage"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::processNextMessage"));
 
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = COMMON_TIME_NOW;
@@ -961,13 +975,13 @@ template <typename ConfigurationType,
           typename SessionMessageType,
           typename MediaType>
 void
-Test_I_CameraML_Module_MediaPipe_3<ConfigurationType,
-                                   ControlMessageType,
-                                   DataMessageType,
-                                   SessionMessageType,
-                                   MediaType>::initializeBox2d ()
+Test_I_CameraML_Module_MediaPipe_3_LiquidFun<ConfigurationType,
+                                             ControlMessageType,
+                                             DataMessageType,
+                                             SessionMessageType,
+                                             MediaType>::initializeBox2d ()
 {
-  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3::initializeBox2d"));
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_LiquidFun::initializeBox2d"));
 
   b2BodyDef bodyDef;
   //bodyDef.allowSleep = false;
