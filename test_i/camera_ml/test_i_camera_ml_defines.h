@@ -186,9 +186,26 @@
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NAME_STRING             "MediaPipe_Box2D"
 #define TEST_I_CAMERA_ML_MEDIAPIPE_LIQUIDFUN_DEFAULT_NAME_STRING         "MediaPipe_LiquidFun"
 
-#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY           -9.81f
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_GRAVITY           9.81f
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS          60
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_SUBSTEPS          15
+// *NOTE*: revolute joints are more 'rigid' than distance joints (nice), but
+//         objects tend to fall 'through' them; distance joints don't have this
+//         problem; weld joints seem to behave like revolute joints; rope joints
+//         behave like distance joints
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS
+//#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_DISTANCE_JOINTS
+// *NOTE*: when using revolute joints, higher vel/pos step counts are in order;
+//         otherwise objects fall 'through' the bridge (*TODO*: why ?)
+// *NOTE*: when using distance joints instead, the counts can be much lower
+//         (e.g. 16/12), without objects falling 'through' (*TODO*: again, why ?)
+#if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_VEL_PER_STEP 250
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_POS_PER_STEP 100
+#else
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_VEL_PER_STEP 8
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_ITER_POS_PER_STEP 3
+#endif // TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS
 
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_DENSITY            1.0f
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET   25.0f
@@ -206,6 +223,6 @@
 
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH     20.0f
 #define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO 0.0f
-#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ    250.0f
+#define TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ    60.0f
 
 #endif

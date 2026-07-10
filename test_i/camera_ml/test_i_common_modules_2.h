@@ -565,6 +565,11 @@ typedef Test_I_CameraML_Module_MediaPipe_3_LiquidFun<struct Stream_CameraML_Dire
                                                     Stream_CameraML_DirectShow_Message_t,
                                                     Stream_CameraML_DirectShow_SessionMessage_t,
                                                     struct _AMMediaType> Stream_CameraML_DirectShow_MediaPipeLiquidFun;
+typedef Test_I_CameraML_Module_MediaPipe_3_LiquidFun<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
+                                                     Stream_ControlMessage_t,
+                                                     Stream_CameraML_MediaFoundation_Message_t,
+                                                     Stream_CameraML_MediaFoundation_SessionMessage_t,
+                                                     IMFMediaType*> Stream_CameraML_MediaFoundation_MediaPipeLiquidFun;
 #endif // BOX2D_USE || LIQUIDFUN_USE
 #endif // (BOX2D_SUPPORT || LIQUIDFUN_SUPPORT) && OLC_PGE_SUPPORT
 #else

@@ -130,7 +130,6 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
 
   struct box2dCBData
   {
-    b2Vec2                axis; // *NOTE*: for visualizing angular velocity
     float                 halfDimension; // *NOTE*: box2d coords go from [-halfDimension_, halfDimension_]
     olc::PixelGameEngine* pge;
   };

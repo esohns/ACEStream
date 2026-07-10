@@ -205,30 +205,35 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   float x1, x2, y1, y2;
   static float max_x_f = static_cast<float> (cb_data_p->pge->ScreenWidth () - 1);
   static float max_y_f = static_cast<float> (cb_data_p->pge->ScreenHeight () - 1);
+  b2Vec2 p;
 
   for (int i = 0; i < vertexCount_in - 1; ++i)
   {
+    p = b2TransformPoint (transform_in, vertices_in[i]);
     x1 =
-      Common_GL_Tools::map (vertices_in[i].x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+      Common_GL_Tools::map (p.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
     y1 =
-      Common_GL_Tools::map (vertices_in[i].y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+      Common_GL_Tools::map (p.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+    p = b2TransformPoint (transform_in, vertices_in[i + 1]);
     x2 =
-      Common_GL_Tools::map (vertices_in[i + 1].x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+      Common_GL_Tools::map (p.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
     y2 =
-      Common_GL_Tools::map (vertices_in[i + 1].y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+      Common_GL_Tools::map (p.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
     cb_data_p->pge->DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                               static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                               {static_cast<uint8_t> ((color_in & 0xFF0000) >> 16), static_cast<uint8_t> ((color_in & 0xFF00) >> 8), static_cast<uint8_t> ((color_in & 0xFF) >> 0), 255},
                               0xFFFFFFFF);
   } // end FOR
+  p = b2TransformPoint (transform_in, vertices_in[vertexCount_in - 1]);
   x1 =
-    Common_GL_Tools::map (vertices_in[vertexCount_in - 1].x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+    Common_GL_Tools::map (p.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
   y1 =
-    Common_GL_Tools::map (vertices_in[vertexCount_in - 1].y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+    Common_GL_Tools::map (p.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+  p = b2TransformPoint (transform_in, vertices_in[0]);
   x2 =
-    Common_GL_Tools::map (vertices_in[0].x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+    Common_GL_Tools::map (p.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
   y2 =
-    Common_GL_Tools::map (vertices_in[0].y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+    Common_GL_Tools::map (p.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
   cb_data_p->pge->DrawLine (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
                             static_cast<int32_t> (x2), static_cast<int32_t> (y2),
                             {static_cast<uint8_t> ((color_in & 0xFF0000) >> 16), static_cast<uint8_t> ((color_in & 0xFF00) >> 8), static_cast<uint8_t> ((color_in & 0xFF) >> 0), 255},
@@ -308,11 +313,12 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   float x, y;
   static float max_x_f = static_cast<float> (cb_data_p->pge->ScreenWidth () - 1);
   static float max_y_f = static_cast<float> (cb_data_p->pge->ScreenHeight () - 1);
+  b2Vec2 p = b2TransformPoint (transform_in, center_in);
 
   x =
-    Common_GL_Tools::map (center_in.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+    Common_GL_Tools::map (p.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
   y =
-    Common_GL_Tools::map (center_in.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+    Common_GL_Tools::map (p.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
   cb_data_p->pge->FillCircle (static_cast<int32_t> (x), static_cast<int32_t> (y),
                               static_cast<int32_t> (radius_in),
                               {static_cast<uint8_t> ((color_in & 0xFF0000) >> 16), static_cast<uint8_t> ((color_in & 0xFF00) >> 8), static_cast<uint8_t> ((color_in & 0xFF) >> 0), 255});
@@ -320,7 +326,8 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   // draw line to see angular velocity
   //float a_deg_f = std::atan2 (axis.y, axis.x) * 180.0f / static_cast<float> (M_PI);
   olc::vf2d pos1 = {x, y};
-  olc::vf2d pos2 = {x + (cb_data_p->axis.x * radius_in), y + (cb_data_p->axis.y * radius_in)};
+  b2Vec2 axis = b2Rot_GetXAxis (transform_in.q);
+  olc::vf2d pos2 = {x + (axis.x * radius_in), y + (axis.y * radius_in)};
   cb_data_p->pge->DrawLine (pos1, pos2,
                             olc::BLACK,
                             0xFFFFFFFF);
@@ -1001,10 +1008,10 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RESTITUTION;
 
   b2DistanceJointDef jointDef = b2DefaultDistanceJointDef ();
-  jointDef.base.collideConnected = true;
+  //jointDef.base.collideConnected = true;
   //jointDef.dampingRatio =
   //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  jointDef.enableSpring = true;
+  jointDef.enableSpring = false;
   jointDef.hertz =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
   jointDef.length =
@@ -1015,7 +1022,6 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
   struct bridgeElement element_s;
   element_s.body = b2CreateBody (world_, &bodyDef);
-  b2Body_SetAwake (element_s.body, true);
   //ACE_ASSERT (element_s.body != b2_nullBodyId);
   element_s.shape = b2CreateCircleShape (element_s.body, &shape, &circle);
   //ACE_ASSERT (element_s.shape != b2_nullShapeId);
@@ -1035,7 +1041,6 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
       { static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f };
     element_s.body = b2CreateBody (world_, &bodyDef);
     //ACE_ASSERT (element_s.body != b2_nullBodyId);
-    b2Body_SetAwake (element_s.body, true);
     circle.center =
       { static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f };
     element_s.shape = b2CreateCircleShape (element_s.body, &shape, &circle);
