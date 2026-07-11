@@ -199,6 +199,7 @@ if (MEDIAPIPE_SUPPORT)
        test_i_camera_ml_common.h
        test_i_camera_ml_configuration.h
        test_i_camera_ml_defines.h
+       test_i_camera_ml_defines_3.h
        test_i_camera_ml_stream_common.h
        test_i_common_modules_2.h
        test_i_eventhandler.cpp

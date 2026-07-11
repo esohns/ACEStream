@@ -43,6 +43,7 @@
 #include "stream_lib_mediatype_converter.h"
 
 #include "test_i_camera_ml_defines.h"
+#include "test_i_camera_ml_defines_3.h"
 
 extern const char libacestream_default_ml_mediapipe_3_box2d_module_name_string[];
 
@@ -65,7 +66,6 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
                                   struct Stream_UserData>
  , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
  , public olc::PixelGameEngine
- , public b2DebugDraw
 {
   typedef Stream_TaskBaseAsynch_T<ACE_MT_SYNCH,
                                   Common_TimePolicy_t,
@@ -88,16 +88,16 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
      , shape_ (b2_nullShapeId)
     {
       b2BodyDef body_def = b2DefaultBodyDef ();
-      body_def.enableSleep = false;
-      //body_def.isBullet = true;
       body_def.type = b2_dynamicBody;
+      body_def.enableSleep = false;
+      //body_def.isBullet = false;
       body_def.position = { Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
-                            -halfDimension_in + 20.0f };
+                            -halfDimension_in - TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS };
       body_def.angularVelocity =
         Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL) * (static_cast<float> (M_PI) / 180.0f);
       body_def.linearVelocity =
-        { Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL),
-          Common_Tools::getRandomNumber ( TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, 6.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL) };
+        { 0.0f,
+          Common_Tools::getRandomNumber ( 5.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, 8.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL) };
       body_ = b2CreateBody (world_in, &body_def);
       //ACE_ASSERT (body_ != b2_nullBodyId);
 
@@ -130,7 +130,7 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
 
   struct box2dCBData
   {
-    float                 halfDimension; // *NOTE*: box2d coords go from [-halfDimension_, halfDimension_]
+    float                 halfDimension; // *NOTE*: box2d coords go from [-halfDimension, halfDimension]
     olc::PixelGameEngine* pge;
   };
 
@@ -183,7 +183,7 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
 
   // helper methods
   void initializeBox2d ();
-  bool processNextMessage (); // return value: stop PGE ?
+  bool processNextMessage (bool&); // return value: stop PGE ?
   std::vector<std::vector<std::array<float, 3> > > getLandmarks (mediapipe::LibMP*);
 
   Common_Image_Resolution_t         resolution_;
@@ -198,7 +198,8 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
   b2Pos                             positionThumb_;
   b2Pos                             positionIndex_;
 
-  //olc::Sprite               sprite_; // for rendering camera image
+  // *NOTE*: DrawSprite just calls Draw for every pixel...
+  // olc::Sprite*                      sprite_; // for rendering camera image
 };
 
 // include template definition

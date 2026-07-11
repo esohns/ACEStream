@@ -255,17 +255,21 @@ class Stream_CameraML_Stream_3
   ACE_UNIMPLEMENTED_FUNC (Stream_CameraML_Stream_3& operator= (const Stream_CameraML_Stream_3&))
 
   // modules
-  Stream_CameraML_V4L_Source_Module      source_;
+  Stream_CameraML_V4L_Source_Module         source_;
 //  Stream_CameraML_StatisticReport_Module statisticReport_;
-  Stream_CameraML_LibAVConvert_Module    convert_; // --> RGB24 (tensorflow)
-  Stream_CameraML_LibAVResize_Module     resize_; // --> window size/fullscreen
-  Stream_CameraML_V4L_HFlip_Module       flip_;
-  Stream_CameraML_MediaPipeBox2d_Module  mediaPipeBox2d_;
+  Stream_CameraML_LibAVConvert_Module       convert_; // --> RGB24 (tensorflow)
+  Stream_CameraML_LibAVResize_Module        resize_; // --> window size/fullscreen
+  Stream_CameraML_V4L_HFlip_Module          flip_;
+#if defined (BOX2D_USE)
+  Stream_CameraML_MediaPipeBox2d_Module     mediaPipe_;
+#elif defined (LIQUIDFUN_USE)
+  Stream_CameraML_MediaPipeLiquidFun_Module mediaPipe_;
+#endif // BOX2D_USE || LIQUIDFUN_USE
 #if defined (GTK_SUPPORT)
-  Stream_CameraML_GTK_Display_Module     GTKDisplay_;
+  Stream_CameraML_GTK_Display_Module        GTKDisplay_;
 #endif // GTK_SUPPORT
-  Stream_CameraML_LibAVConvert_Module    convert_2; // --> BGRA (X11|Wayland)
-  Stream_CameraML_Wayland_Display_Module WaylandDisplay_;
+  Stream_CameraML_LibAVConvert_Module       convert_2; // --> BGRA (X11|Wayland)
+  Stream_CameraML_Wayland_Display_Module    WaylandDisplay_;
   // Stream_CameraML_X11_Display_Module     X11Display_;
 };
 #endif // ACE_WIN32 || ACE_WIN64

@@ -43,6 +43,7 @@
 #include "stream_lib_mediatype_converter.h"
 
 #include "test_i_camera_ml_defines.h"
+#include "test_i_camera_ml_defines_3.h"
 
 extern const char libacestream_default_ml_mediapipe_3_liquidfun_module_name_string[];
 

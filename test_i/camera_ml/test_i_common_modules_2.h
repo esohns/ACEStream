@@ -573,18 +573,26 @@ typedef Test_I_CameraML_Module_MediaPipe_3_LiquidFun<struct Stream_CameraML_Medi
 #endif // BOX2D_USE || LIQUIDFUN_USE
 #endif // (BOX2D_SUPPORT || LIQUIDFUN_SUPPORT) && OLC_PGE_SUPPORT
 #else
-typedef Test_I_CameraML_Module_MediaPipe<struct Stream_CameraML_MediaFoundation_ModuleHandlerConfiguration,
-                                         Stream_ControlMessage_t,
-                                         Stream_CameraML_MediaFoundation_Message_t,
-                                         Stream_CameraML_SessionMessage_t,
-                                         struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipe;
-#if defined (BOX2D_SUPPORT) && defined (OLC_PGE_SUPPORT)
-typedef Test_I_CameraML_Module_MediaPipe_3<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+typedef Test_I_CameraML_Module_MediaPipe_T<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
                                            Stream_ControlMessage_t,
                                            Stream_CameraML_Message_t,
                                            Stream_CameraML_SessionMessage_t,
-                                           struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipeBox2d;
-#endif // BOX2D_SUPPORT && OLC_PGE_SUPPORT
+                                           struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipe;
+#if (defined (BOX2D_SUPPORT) || defined (LIQUIDFUN_SUPPORT)) && defined (OLC_PGE_SUPPORT)
+#if defined (BOX2D_USE)
+typedef Test_I_CameraML_Module_MediaPipe_3_Box2d<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+                                                 Stream_ControlMessage_t,
+                                                 Stream_CameraML_Message_t,
+                                                 Stream_CameraML_SessionMessage_t,
+                                                 struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipeBox2d;
+#elif defined (LIQUIDFUN_USE)
+typedef Test_I_CameraML_Module_MediaPipe_3_LiquidFun<struct Stream_CameraML_V4L_ModuleHandlerConfiguration,
+                                                     Stream_ControlMessage_t,
+                                                     Stream_CameraML_Message_t,
+                                                     Stream_CameraML_SessionMessage_t,
+                                                     struct Stream_MediaFramework_V4L_MediaType> Stream_CameraML_MediaPipeLiquidFun;
+#endif // BOX2D_USE || LIQUIDFUN_USE
+#endif // (BOX2D_SUPPORT || LIQUIDFUN_SUPPORT) && OLC_PGE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // MEDIAPIPE_SUPPORT
 
@@ -920,14 +928,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                  
                               libacestream_default_ml_mediapipe_module_name_string,
                               Stream_INotify_t,                                      // stream notification interface type
                               Stream_CameraML_MediaPipe);                            // writer type
-#if defined (BOX2D_SUPPORT) && defined (OLC_PGE_SUPPORT)
+#if (defined (BOX2D_SUPPORT) || defined (LIQUIDFUN_SUPPORT)) && defined (OLC_PGE_SUPPORT)
+#if defined (BOX2D_USE)
 DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                        // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Stream_CameraML_V4L_ModuleHandlerConfiguration,  // module handler configuration type
-                              libacestream_default_ml_mediapipe_3_module_name_string,
+                              libacestream_default_ml_mediapipe_3_box2d_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Stream_CameraML_MediaPipeBox2d);                        // writer type
-#endif // BOX2D_SUPPORT && OLC_PGE_SUPPORT
+#elif defined (LIQUIDFUN_USE)
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CameraML_V4L_SessionData,                                  // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Stream_CameraML_V4L_ModuleHandlerConfiguration,            // module handler configuration type
+                              libacestream_default_ml_mediapipe_3_liquidfun_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Stream_CameraML_MediaPipeLiquidFun);                              // writer type
+#endif // BOX2D_USE || LIQUIDFUN_USE
+#endif // (defined (BOX2D_SUPPORT) || defined (LIQUIDFUN_SUPPORT)) && defined (OLC_PGE_SUPPORT)
 #endif // ACE_WIN32 || ACE_WIN64
 #endif // MEDIAPIPE_SUPPORT
 

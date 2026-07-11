@@ -76,7 +76,7 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
  , balls_ ()
  , positionThumb_ (b2Pos_zero)
  , positionIndex_ (b2Pos_zero)
- //, sprite_ ()
+ // , sprite_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_Box2d::Test_I_CameraML_Module_MediaPipe_3_Box2d"));
 
@@ -114,7 +114,6 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   worldDef.enableSleep = false;
   //worldDef.enableContinuous = true;
   //worldDef.maximumLinearSpeed = 1000.0f;
-  //worldDef.workerCount = 1;
   world_ = b2CreateWorld (&worldDef);
   //ACE_ASSERT (world_ != b2_nullWorldId);
 }
@@ -585,11 +584,11 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   for (int y = 0; y < screen_height_i; y++)
     for (int x = 0; x < screen_width_i; x++)
     {
-      inherited3::Draw (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 255U));
-      //sprite_.SetPixel (x, y, olc::Pixel (data_p[0], data_p[1], data_p[2], 255U));
+      inherited3::Draw (x, y, {data_p[0], data_p[1], data_p[2], 255U});
+      // sprite_->SetPixel (x, y, {data_p[0], data_p[1], data_p[2], 255U});
       data_p += 3;
     } // end FOR
-  //inherited3::DrawSprite (0, 0, &sprite_, 1, olc::Sprite::NONE);
+  // inherited3::DrawSprite (0, 0, sprite_, 1, olc::Sprite::NONE);
 }
 
 template <typename ConfigurationType,
@@ -753,13 +752,11 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
   CBData_.halfDimension =
     std::min (olc::PixelGameEngine::ScreenWidth (), olc::PixelGameEngine::ScreenHeight ()) / 2.0f;
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//  sprite_.SetSize (resolution_.cx,
-//                   resolution_.cy);
-//#else
-//  sprite_.SetSize (resolution_.width,
-//                   resolution_.height);
-//#endif // ACE_WIN32 || ACE_WIN64
+
+  // ACE_NEW_NORETURN (sprite_,
+  //                   olc::Sprite (olc::PixelGameEngine::ScreenWidth (),
+  //                                olc::PixelGameEngine::ScreenHeight ()));
+  // ACE_ASSERT (sprite_);
 
   initializeBox2d ();
 
@@ -780,12 +777,15 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_Box2d::OnUserUpdate"));
 
+  b2BodyId body_id;
+
   // process next message
-  if (!processNextMessage ())
+  bool got_next_frame_b = false;
+  if (unlikely (!processNextMessage (got_next_frame_b)))
     return false; // done
 
   // handle bridge
-  b2BodyId body_id = bridgeBodies_.front ().body;
+  body_id = bridgeBodies_.front ().body;
   //b2WorldTransform transform = b2Body_GetTransform (body_id);
   b2Body_SetTransform (body_id, positionThumb_, b2Rot_identity);
   body_id = bridgeBodies_.back ().body;
@@ -793,13 +793,11 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   b2Body_SetTransform (body_id, positionIndex_, b2Rot_identity);
 
   // handle balls
-  if (Common_Tools::testRandomProbability (0.1f))
-    balls_.push_back (new ball (world_, CBData_.halfDimension));
   for (typename std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
        )
   {
-    if ((*iterator)->isGone (CBData_.halfDimension))
+    if (unlikely ((*iterator)->isGone (CBData_.halfDimension)))
     {
       delete *iterator;
       iterator = balls_.erase (iterator);
@@ -808,12 +806,17 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
     ++iterator;
   } // end FOR
+  if (likely (!got_next_frame_b))
+    goto continue_;
+  if (unlikely (Common_Tools::testRandomProbability (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_SPAWN_PROBABILITY)))
+    balls_.push_back (new ball (world_, CBData_.halfDimension));
 
   static float time_step_f =
     1.0f / TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS;
   b2World_Step (world_, time_step_f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_SUBSTEPS);
   b2World_Draw (world_, &draw_);
 
+continue_:
   return !inherited3::GetKey (olc::Key::ESCAPE).bPressed;
 }
 
@@ -831,7 +834,7 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserDestroy"));
 
-  for (std::vector<struct bridgeElement>::iterator iterator = bridgeBodies_.begin ();
+  for (typename std::vector<struct bridgeElement>::iterator iterator = bridgeBodies_.begin ();
        iterator != bridgeBodies_.end ();
        ++iterator)
   {
@@ -846,6 +849,8 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
        ++iterator)
     delete *iterator;
   balls_.clear ();
+
+  // delete sprite_; sprite_ = NULL;
 
   return true;
 }
@@ -997,9 +1002,12 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
                                          ControlMessageType,
                                          DataMessageType,
                                          SessionMessageType,
-                                         MediaType>::processNextMessage ()
+                                         MediaType>::processNextMessage (bool& gotNextFrame_out)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_Box2d::processNextMessage"));
+
+  // initialize return value(s)
+  gotNextFrame_out = false;
 
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = COMMON_TIME_NOW;
@@ -1032,6 +1040,7 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   } // end IF
 
   // process manually
+  gotNextFrame_out = true;
   bool stop_processing = false;
   inherited::handleMessage (message_block_p,
                             stop_processing);
@@ -1083,14 +1092,24 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   jointDefBase.dampingRatio =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
   jointDefBase.enableSpring = false;
-  jointDefBase.hertz = 0.0f;
+  // jointDefBase.hertz = 0.0f;
     //TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
   jointDefBase.length =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-  jointDefBase.minLength =
-    0.0f;
+  jointDefBase.minLength = 0.0f;
   jointDefBase.maxLength =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+
+  b2RevoluteJointDef jointDefBase_2 = b2DefaultRevoluteJointDef ();
+  jointDefBase_2.base.collideConnected = true;
+  jointDefBase_2.dampingRatio =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  jointDefBase_2.enableSpring = false;
+  jointDefBase_2.hertz = 0.0f;
+    //TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+  // jointDefBase_2.enableLimit = true;
+  // jointDefBase_2.lowerAngle = -0.25f * B2_PI; // -45 degrees
+  // jointDefBase_2.upperAngle = 0.25f * B2_PI;  //  45 degrees
 
   struct bridgeElement element_s, element_2;
   element_s.body = b2CreateBody (world_, &bodyDef);
@@ -1101,22 +1120,25 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
   element_2 = element_s;
   struct b2DistanceJointDef jointDef = b2DefaultDistanceJointDef ();
-  b2Pos pivotA =
+  struct b2RevoluteJointDef jointDef_2 = b2DefaultRevoluteJointDef ();
+  b2Pos offsetA =
     {  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f },
-        pivotB =
+        offsetB =
     { -TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f };
   b2WorldTransform localFrame = b2WorldTransform_identity;
   b2JointId joint_id = b2_nullJointId;
-  //struct b2RevoluteJointDef jointDef_2 = b2DefaultRevoluteJointDef ();
   b2Pos position = bodyDef.position;
   for (int i = 1; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS; ++i)
   {
     jointDef = jointDefBase;
+    jointDef_2 = jointDefBase_2;
+
+    // jointDef.base.bodyIdA = element_s.body;
     jointDef.base.bodyIdA = element_2.body;
-    //jointDef_2.base.bodyIdA = element_2.body;
+    jointDef_2.base.bodyIdA = element_2.body;
 
     position +=
-      { TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH + 2.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f };
+      { TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH + (2.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS), 0.0f };
     bodyDef.position = position;
     element_2.body = b2CreateBody (world_, &bodyDef);
     //ACE_ASSERT (element_s.body != b2_nullBodyId);
@@ -1125,29 +1147,30 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     // ACE_ASSERT (element_2.shape != b2_nullShapeId);
 
     jointDef.base.bodyIdB = element_2.body;
+    jointDef_2.base.bodyIdB = element_2.body;
+
     localFrame = b2Body_GetTransform (jointDef.base.bodyIdA);
-    localFrame.p += pivotA;
+    localFrame.p += offsetA;
     jointDef.base.localFrameA = localFrame;
     localFrame = b2Body_GetTransform (jointDef.base.bodyIdB);
-    localFrame.p += pivotB;
+    localFrame.p += offsetB;
     jointDef.base.localFrameB = localFrame;
-    //jointDef.length =
-    //  i * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-    //jointDef.maxLength =
-    //  i * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
     joint_id = b2CreateDistanceJoint (world_, &jointDef);
     //ACE_ASSERT (joint_id != b2_nullJointId);
+    bridgeJoints_.push_back (joint_id);
 
-    //jointDef_2.base.bodyIdB = element_2.body;
-    ////jointDef_2.base.localFrameA.q = b2MakeRot (0.5f * B2_PI);
-    //jointDef_2.base.localFrameA.p =
-    //  b2Body_GetLocalPoint (jointDef_2.base.bodyIdA, pivotA);
-    //jointDef_2.base.localFrameB.p =
-    //  b2Body_GetLocalPoint (jointDef_2.base.bodyIdB, pivotB);
-    //element_2.joint_2 = b2CreateRevoluteJoint (world_, &jointDef_2);
-    // ACE_ASSERT (element_2.joint_2 != b2_nullJointId);
+    localFrame = b2Body_GetTransform (jointDef_2.base.bodyIdA);
+    localFrame.p += offsetA;
+    jointDef_2.base.localFrameA = localFrame;
+    localFrame = b2Body_GetTransform (jointDef_2.base.bodyIdB);
+    localFrame.p += offsetB;
+    jointDef_2.base.localFrameB = localFrame;
+// #if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
+//     joint_id = b2CreateRevoluteJoint (world_, &jointDef_2);
+//     // ACE_ASSERT (joint_id != b2_nullJointId);
+//     bridgeJoints_.push_back (joint_id);
+// #endif // TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS
 
     bridgeBodies_.push_back (element_2);
-    bridgeJoints_.push_back (joint_id);
   } // end FOR
 }
