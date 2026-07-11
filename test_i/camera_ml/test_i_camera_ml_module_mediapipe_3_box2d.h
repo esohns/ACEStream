@@ -138,7 +138,6 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
   {
     b2BodyId  body;
     b2ShapeId shape;
-    b2JointId joint;
   };
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -166,6 +165,8 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
   static void DrawSolidCircle (b2WorldTransform, b2Pos, float, b2HexColor, void*);
   static void DrawLine (b2Pos, b2Pos, b2HexColor, void*);
   static void DrawTransform (b2WorldTransform, void*);
+  static void DrawPoint (b2Pos, float, b2HexColor, void*);
+  static void DrawBounds (b2AABB, b2HexColor, void*);
 
   // implement olc::PixelGameEngine
   virtual bool OnUserCreate ();
@@ -191,10 +192,11 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
   struct box2dCBData                CBData_;
   b2DebugDraw                       draw_;
   b2WorldId                         world_;
-  std::vector<struct bridgeElement> bridge_;
+  std::vector<struct bridgeElement> bridgeBodies_;
+  std::vector<b2JointId>            bridgeJoints_;
   std::vector<ball*>                balls_;
-  b2Vec2                            positionThumb_;
-  b2Vec2                            positionIndex_;
+  b2Pos                             positionThumb_;
+  b2Pos                             positionIndex_;
 
   //olc::Sprite               sprite_; // for rendering camera image
 };

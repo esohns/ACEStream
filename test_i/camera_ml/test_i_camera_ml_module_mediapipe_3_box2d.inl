@@ -71,10 +71,11 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
  , graph_ (NULL)
  , draw_ ()
  , world_ (b2_nullWorldId)
- , bridge_ ()
+ , bridgeBodies_ ()
+ , bridgeJoints_ ()
  , balls_ ()
- , positionThumb_ (b2Vec2_zero)
- , positionIndex_ (b2Vec2_zero)
+ , positionThumb_ (b2Pos_zero)
+ , positionIndex_ (b2Pos_zero)
  //, sprite_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_CameraML_Module_MediaPipe_3_Box2d::Test_I_CameraML_Module_MediaPipe_3_Box2d"));
@@ -98,6 +99,10 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   draw_.DrawLineFcn = &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawLine;
   draw_.DrawTransformFcn =
     &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawTransform;
+  draw_.DrawPointFcn =
+    &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawPoint;
+  draw_.DrawBoundsFcn =
+    &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawBounds;
 
   draw_.drawShapes = true;
   draw_.drawJoints = true;
@@ -324,7 +329,6 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
                               {static_cast<uint8_t> ((color_in & 0xFF0000) >> 16), static_cast<uint8_t> ((color_in & 0xFF00) >> 8), static_cast<uint8_t> ((color_in & 0xFF) >> 0), 255});
 
   // draw line to see angular velocity
-  //float a_deg_f = std::atan2 (axis.y, axis.x) * 180.0f / static_cast<float> (M_PI);
   olc::vf2d pos1 = {x, y};
   b2Vec2 axis = b2Rot_GetXAxis (transform_in.q);
   olc::vf2d pos2 = {x + (axis.x * radius_in), y + (axis.y * radius_in)};
@@ -391,6 +395,61 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   static float k_axisScale_y = 0.4f;
   p2 = p1 + k_axisScale_y * b2Rot_GetYAxis (transform_in.q);
   DrawLine (p1, p2, b2_colorGreen, userData_in);
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>::DrawPoint (b2Pos p_in,
+                                                                float size_in,
+                                                                b2HexColor color_in,
+                                                                void* userData_in)
+{
+  struct box2dCBData* cb_data_p = static_cast<struct box2dCBData*> (userData_in);
+
+  float x1, y1;
+  static float max_x_f = static_cast<float> (cb_data_p->pge->ScreenWidth () - 1);
+  static float max_y_f = static_cast<float> (cb_data_p->pge->ScreenHeight () - 1);
+
+  x1 =
+    Common_GL_Tools::map (p_in.x, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_x_f);
+  y1 =
+    Common_GL_Tools::map (p_in.y, -cb_data_p->halfDimension, cb_data_p->halfDimension, 0.0f, max_y_f);
+  cb_data_p->pge->Draw (static_cast<int32_t> (x1), static_cast<int32_t> (y1),
+                        {static_cast<uint8_t> ((color_in & 0xFF0000) >> 16), static_cast<uint8_t> ((color_in & 0xFF00) >> 8), static_cast<uint8_t> ((color_in & 0xFF) >> 0), 255});
+}
+
+template <typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
+                                         ControlMessageType,
+                                         DataMessageType,
+                                         SessionMessageType,
+                                         MediaType>::DrawBounds (b2AABB bounds_in,
+                                                                 b2HexColor color_in,
+                                                                 void* userData_in)
+{
+  struct box2dCBData* cb_data_p = static_cast<struct box2dCBData*> (userData_in);
+
+  b2Pos p1 = bounds_in.lowerBound, p2 = bounds_in.lowerBound;
+  p2.x = bounds_in.upperBound.x;
+  b2Pos p3 = bounds_in.lowerBound, p4 = bounds_in.upperBound;
+  p3.y = bounds_in.upperBound.y;
+  DrawLine (p1, p2, color_in, userData_in);
+  DrawLine (p1, p3, color_in, userData_in);
+  DrawLine (p2, p4, color_in, userData_in);
+  DrawLine (p3, p4, color_in, userData_in);
 }
 
 template <typename ConfigurationType,
@@ -473,27 +532,36 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
   static float max_x_f = static_cast<float> (olc::PixelGameEngine::ScreenWidth () - 1);
   static float max_y_f = static_cast<float> (olc::PixelGameEngine::ScreenHeight () - 1);
+
   size_t num_objs = normalized_landmarks.size ();
+  float x, y, x_translated_f, y_translated_f;
+  int j;
   for (int i = 0; i < static_cast<int> (num_objs); i++)
   {
-    float x_translated_f, y_translated_f;
-    int j = 0;
+    j = 0;
     for (const std::array<float, 3>& norm_xyz : normalized_landmarks[i])
     {
-      int x = static_cast<int> (norm_xyz[0] * frame_matrix.cols);
-      int y = static_cast<int> (norm_xyz[1] * frame_matrix.rows);
+      //x = norm_xyz[0] * frame_matrix.cols;
+      //y = norm_xyz[1] * frame_matrix.rows;
       //cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0));
 
       if (j == 4 || j == 8) // thumb 'n index finger
       {
+        x = norm_xyz[0] * frame_matrix.cols;
+        y = norm_xyz[1] * frame_matrix.rows;
+        //cv::circle (frame_matrix, cv::Point (x, y), 1, cv::Scalar (0, 255, 0));
+
         x_translated_f =
-          Common_GL_Tools::map (static_cast<float> (x), 0.0f, max_x_f, -CBData_.halfDimension, CBData_.halfDimension);
+          Common_GL_Tools::map (x, 0.0f, max_x_f, -CBData_.halfDimension, CBData_.halfDimension);
         y_translated_f =
-          Common_GL_Tools::map (static_cast<float> (y), 0.0f, max_y_f, -CBData_.halfDimension, CBData_.halfDimension);
+          Common_GL_Tools::map (y, 0.0f, max_y_f, -CBData_.halfDimension, CBData_.halfDimension);
         if (j == 4)
           positionThumb_ = { x_translated_f, y_translated_f };
         else
+        {
           positionIndex_ = { x_translated_f, y_translated_f };
+          break;
+        } // end ELSE
       } // end IF
 
       j++;
@@ -717,12 +785,12 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     return false; // done
 
   // handle bridge
-  b2BodyId body_id = bridge_.front ().body;
-  b2WorldTransform transform = b2Body_GetTransform (body_id);
-  b2Body_SetTransform (body_id, positionThumb_, transform.q);
-  body_id = bridge_.back ().body;
-  transform = b2Body_GetTransform (body_id);
-  b2Body_SetTransform (body_id, positionIndex_, transform.q);
+  b2BodyId body_id = bridgeBodies_.front ().body;
+  //b2WorldTransform transform = b2Body_GetTransform (body_id);
+  b2Body_SetTransform (body_id, positionThumb_, b2Rot_identity);
+  body_id = bridgeBodies_.back ().body;
+  //transform = b2Body_GetTransform (body_id);
+  b2Body_SetTransform (body_id, positionIndex_, b2Rot_identity);
 
   // handle balls
   if (Common_Tools::testRandomProbability (0.1f))
@@ -763,14 +831,15 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Module_PGE_T::OnUserDestroy"));
 
-  for (std::vector<struct bridgeElement>::iterator iterator = bridge_.begin ();
-        iterator != bridge_.end ();
-        ++iterator)
+  for (std::vector<struct bridgeElement>::iterator iterator = bridgeBodies_.begin ();
+       iterator != bridgeBodies_.end ();
+       ++iterator)
   {
     //b2DestroyJoint ((*iterator).joint, false);
     b2DestroyBody ((*iterator).body);
   } // end FOR
-  bridge_.clear ();
+  bridgeBodies_.clear ();
+  bridgeJoints_.clear ();
 
   for (typename std::vector<ball*>::iterator iterator = balls_.begin ();
        iterator != balls_.end ();
@@ -994,9 +1063,11 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   bodyDef.type = b2_dynamicBody;
   bodyDef.position = { 0.0f, 0.0f};
   bodyDef.enableSleep = false;
+  bodyDef.angularDamping =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_ANGULAR_DAMPING;
 
   b2Circle circle/* = b2DefaultCircle ()*/;
-  circle.center = {0.0f, 0.0f};
+  circle.center = bodyDef.position;
   circle.radius = TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS;
 
   b2ShapeDef shape = b2DefaultShapeDef ();
@@ -1007,50 +1078,76 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   shape.material.restitution =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RESTITUTION;
 
-  b2DistanceJointDef jointDef = b2DefaultDistanceJointDef ();
-  //jointDef.base.collideConnected = true;
-  //jointDef.dampingRatio =
-  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  jointDef.enableSpring = false;
-  jointDef.hertz =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
-  jointDef.length =
+  b2DistanceJointDef jointDefBase = b2DefaultDistanceJointDef ();
+  jointDefBase.base.collideConnected = true;
+  jointDefBase.dampingRatio =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  jointDefBase.enableSpring = false;
+  jointDefBase.hertz = 0.0f;
+    //TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
+  jointDefBase.length =
     TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-  //jointDef.maxLength =
-  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
-    //(TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1) * (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS * 2.0f);
+  jointDefBase.minLength =
+    0.0f;
+  jointDefBase.maxLength =
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
 
-  struct bridgeElement element_s;
+  struct bridgeElement element_s, element_2;
   element_s.body = b2CreateBody (world_, &bodyDef);
   //ACE_ASSERT (element_s.body != b2_nullBodyId);
   element_s.shape = b2CreateCircleShape (element_s.body, &shape, &circle);
   //ACE_ASSERT (element_s.shape != b2_nullShapeId);
-  element_s.joint = b2_nullJointId;
-  bridge_.push_back (element_s);
+  bridgeBodies_.push_back (element_s);
 
-  struct b2DistanceJointDef jointDef_2 = b2DefaultDistanceJointDef ();
-  for (int i = 0; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 1; i++)
+  element_2 = element_s;
+  struct b2DistanceJointDef jointDef = b2DefaultDistanceJointDef ();
+  b2Pos pivotA =
+    {  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f },
+        pivotB =
+    { -TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f };
+  b2WorldTransform localFrame = b2WorldTransform_identity;
+  b2JointId joint_id = b2_nullJointId;
+  //struct b2RevoluteJointDef jointDef_2 = b2DefaultRevoluteJointDef ();
+  b2Pos position = bodyDef.position;
+  for (int i = 1; i < TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS; ++i)
   {
-    //if (i == TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_NUMBER_OF_BRIDGE_LINKS - 2)
-    //  bodyDef.type = b2_staticBody;
+    jointDef = jointDefBase;
+    jointDef.base.bodyIdA = element_2.body;
+    //jointDef_2.base.bodyIdA = element_2.body;
 
-    jointDef_2 = jointDef;
-    jointDef_2.base.bodyIdA = element_s.body;
-
-    bodyDef.position =
-      { static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f };
-    element_s.body = b2CreateBody (world_, &bodyDef);
+    position +=
+      { TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH + 2.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f };
+    bodyDef.position = position;
+    element_2.body = b2CreateBody (world_, &bodyDef);
     //ACE_ASSERT (element_s.body != b2_nullBodyId);
-    circle.center =
-      { static_cast<float> (i + 1) * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH, 0.0f };
-    element_s.shape = b2CreateCircleShape (element_s.body, &shape, &circle);
-    // ACE_ASSERT (element_s.shape != b2_nullShapeId);
+    circle.center = bodyDef.position;
+    element_2.shape = b2CreateCircleShape (element_2.body, &shape, &circle);
+    // ACE_ASSERT (element_2.shape != b2_nullShapeId);
 
-    jointDef_2.base.bodyIdB = element_s.body;
+    jointDef.base.bodyIdB = element_2.body;
+    localFrame = b2Body_GetTransform (jointDef.base.bodyIdA);
+    localFrame.p += pivotA;
+    jointDef.base.localFrameA = localFrame;
+    localFrame = b2Body_GetTransform (jointDef.base.bodyIdB);
+    localFrame.p += pivotB;
+    jointDef.base.localFrameB = localFrame;
+    //jointDef.length =
+    //  i * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+    //jointDef.maxLength =
+    //  i * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+    joint_id = b2CreateDistanceJoint (world_, &jointDef);
+    //ACE_ASSERT (joint_id != b2_nullJointId);
 
-    element_s.joint = b2CreateDistanceJoint (world_, &jointDef_2);
-    //ACE_ASSERT (element_s.joint != b2_nullJointId);
+    //jointDef_2.base.bodyIdB = element_2.body;
+    ////jointDef_2.base.localFrameA.q = b2MakeRot (0.5f * B2_PI);
+    //jointDef_2.base.localFrameA.p =
+    //  b2Body_GetLocalPoint (jointDef_2.base.bodyIdA, pivotA);
+    //jointDef_2.base.localFrameB.p =
+    //  b2Body_GetLocalPoint (jointDef_2.base.bodyIdB, pivotB);
+    //element_2.joint_2 = b2CreateRevoluteJoint (world_, &jointDef_2);
+    // ACE_ASSERT (element_2.joint_2 != b2_nullJointId);
 
-    bridge_.push_back (element_s);
+    bridgeBodies_.push_back (element_2);
+    bridgeJoints_.push_back (joint_id);
   } // end FOR
 }
