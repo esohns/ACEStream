@@ -2535,10 +2535,10 @@ action_listen_activate_cb (GtkAction* action_in,
 //        ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->streamConfiguration.end ());
         if (ui_cb_data_p->configuration->dispatchConfiguration.numberOfReactorThreads > 0)
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_InboundUDPConnector_t (true));
+                            Test_I_InboundUDPConnector_t ());
         else
           ACE_NEW_NORETURN (connector_p,
-                            Test_I_InboundUDPAsynchConnector_t (true));
+                            Test_I_InboundUDPAsynchConnector_t ());
         if (!connector_p)
         {
           ACE_DEBUG ((LM_CRITICAL,

@@ -90,11 +90,14 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
       b2BodyDef body_def = b2DefaultBodyDef ();
       body_def.type = b2_dynamicBody;
       body_def.enableSleep = false;
-      //body_def.isBullet = false;
-      body_def.position = { Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
-                            -halfDimension_in - TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS };
+      body_def.position =
+        { Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_X_OFFSET),
+          -halfDimension_in - TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_RADIUS };
+      // *NOTE*: this makes the balls appear mid-screen; what gives ?
+      //body_def.rotation =
+      //  b2MakeRot (Common_Tools::getRandomNumber (-static_cast<float> (M_PI), static_cast<float> (M_PI)));
       body_def.angularVelocity =
-        Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL) * (static_cast<float> (M_PI) / 180.0f);
+        Common_Tools::getRandomNumber (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_ANG_VEL) * (static_cast<float> (M_PI) / 180.0f) / static_cast<float> (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS);
       body_def.linearVelocity =
         { 0.0f,
           Common_Tools::getRandomNumber ( 5.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL, 8.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_MAX_ABS_LIN_VEL) };
@@ -122,6 +125,7 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
       b2DestroyBody (body_);
     }
 
+    // *NOTE*: most balls disappear mid-screen; what gives ?
     inline bool isGone (float halfDimension_in) { return b2Body_GetPosition (body_).y > halfDimension_in; }
 
     b2BodyId  body_;
@@ -130,7 +134,7 @@ class Test_I_CameraML_Module_MediaPipe_3_Box2d
 
   struct box2dCBData
   {
-    float                 halfDimension; // *NOTE*: box2d coords go from [-halfDimension, halfDimension]
+    float                 halfDimension; // *NOTE*: box2d coordinates span is [-halfDimension, halfDimension]
     olc::PixelGameEngine* pge;
   };
 

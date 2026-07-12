@@ -765,12 +765,12 @@ do_work (unsigned int bufferSize_in,
         TEST_I_TARGET_UDP_CONNECTIONMANAGER_SINGLETON::instance ();;
       ACE_ASSERT (iconnection_manager_p);
       Test_I_Target_IUDPConnector_t* connector_p = NULL;
-//      if (useReactor_in)
-//        ACE_NEW_NORETURN (connector_p,
-//                          Test_I_InboundUDPConnector_t (true));
-//      else
+      if (useReactor_in)
         ACE_NEW_NORETURN (connector_p,
-                          Test_I_InboundUDPAsynchConnector_t (true));
+                          Test_I_InboundUDPConnector_t ());
+      else
+        ACE_NEW_NORETURN (connector_p,
+                          Test_I_InboundUDPAsynchConnector_t ());
       if (!connector_p)
       {
         ACE_DEBUG ((LM_CRITICAL,

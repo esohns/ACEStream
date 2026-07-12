@@ -56,7 +56,7 @@ Stream_Module_Net_Target_T<ACE_SYNCH_USE,
                                                                        bool isPassive_in)
  : inherited (stream_in)
  , connection_ (NULL)
- , connector_ (true)
+ , connector_ ()
  , sessionEndProcessed_ (false)
  /////////////////////////////////////////
  , address_ ()

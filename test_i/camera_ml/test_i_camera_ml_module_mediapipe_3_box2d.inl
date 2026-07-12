@@ -112,6 +112,7 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   b2WorldDef worldDef = b2DefaultWorldDef ();
   worldDef.gravity = gravity;
   worldDef.enableSleep = false;
+  worldDef.workerCount = Common_Tools::getNumberOfCPUs (false);
   //worldDef.enableContinuous = true;
   //worldDef.maximumLinearSpeed = 1000.0f;
   world_ = b2CreateWorld (&worldDef);
@@ -784,13 +785,17 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   if (unlikely (!processNextMessage (got_next_frame_b)))
     return false; // done
 
+  static float time_step_f =
+    1.0f / TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS;
+  b2World_Step (world_, time_step_f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_SUBSTEPS);
+
   // handle bridge
   body_id = bridgeBodies_.front ().body;
-  //b2WorldTransform transform = b2Body_GetTransform (body_id);
-  b2Body_SetTransform (body_id, positionThumb_, b2Rot_identity);
+  b2WorldTransform transform = b2Body_GetTransform (body_id);
+  b2Body_SetTransform (body_id, positionThumb_, /*transform.q*/b2Rot_identity);
   body_id = bridgeBodies_.back ().body;
-  //transform = b2Body_GetTransform (body_id);
-  b2Body_SetTransform (body_id, positionIndex_, b2Rot_identity);
+  transform = b2Body_GetTransform (body_id);
+  b2Body_SetTransform (body_id, positionIndex_, /*transform.q*/b2Rot_identity);
 
   // handle balls
   for (typename std::vector<ball*>::iterator iterator = balls_.begin ();
@@ -811,9 +816,6 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   if (unlikely (Common_Tools::testRandomProbability (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BALL_SPAWN_PROBABILITY)))
     balls_.push_back (new ball (world_, CBData_.halfDimension));
 
-  static float time_step_f =
-    1.0f / TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_STEP_FPS;
-  b2World_Step (world_, time_step_f, TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_WORLD_SUBSTEPS);
   b2World_Draw (world_, &draw_);
 
 continue_:
@@ -1089,23 +1091,22 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
 
   b2DistanceJointDef jointDefBase = b2DefaultDistanceJointDef ();
   jointDefBase.base.collideConnected = true;
-  jointDefBase.dampingRatio =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  jointDefBase.enableSpring = false;
+  //jointDefBase.dampingRatio =
+  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  //jointDefBase.enableSpring = false;
   // jointDefBase.hertz = 0.0f;
     //TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
   jointDefBase.length =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH/* + (2.0f * TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS)*/;
   jointDefBase.minLength = 0.0f;
-  jointDefBase.maxLength =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH;
+  jointDefBase.maxLength = jointDefBase.length;
 
   b2RevoluteJointDef jointDefBase_2 = b2DefaultRevoluteJointDef ();
   jointDefBase_2.base.collideConnected = true;
-  jointDefBase_2.dampingRatio =
-    TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
-  jointDefBase_2.enableSpring = false;
-  jointDefBase_2.hertz = 0.0f;
+  //jointDefBase_2.dampingRatio =
+  //  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_DAMP_RATIO;
+  //jointDefBase_2.enableSpring = false;
+  //jointDefBase_2.hertz = 0.0f;
     //TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_FREQ_HZ;
   // jointDefBase_2.enableLimit = true;
   // jointDefBase_2.lowerAngle = -0.25f * B2_PI; // -45 degrees
@@ -1125,6 +1126,10 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     {  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f },
         offsetB =
     { -TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS, 0.0f };
+  b2Pos offset_2_A =
+    {  TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS + ( TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH / 2.0f), 0.0f },
+        offset_2_B =
+    { -TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_BODY_RADIUS + (-TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_BRIDGE_JOINT_LENGTH / 2.0f), 0.0f };
   b2WorldTransform localFrame = b2WorldTransform_identity;
   b2JointId joint_id = b2_nullJointId;
   b2Pos position = bodyDef.position;
@@ -1160,16 +1165,16 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     bridgeJoints_.push_back (joint_id);
 
     localFrame = b2Body_GetTransform (jointDef_2.base.bodyIdA);
-    localFrame.p += offsetA;
+    localFrame.p += offset_2_A;
     jointDef_2.base.localFrameA = localFrame;
     localFrame = b2Body_GetTransform (jointDef_2.base.bodyIdB);
-    localFrame.p += offsetB;
+    localFrame.p += offset_2_B;
     jointDef_2.base.localFrameB = localFrame;
-// #if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
-//     joint_id = b2CreateRevoluteJoint (world_, &jointDef_2);
-//     // ACE_ASSERT (joint_id != b2_nullJointId);
-//     bridgeJoints_.push_back (joint_id);
-// #endif // TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS
+ //#if defined (TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS)
+ //   joint_id = b2CreateRevoluteJoint (world_, &jointDef_2);
+ //   // ACE_ASSERT (joint_id != b2_nullJointId);
+ //   bridgeJoints_.push_back (joint_id);
+ //#endif // TEST_I_CAMERA_ML_MEDIAPIPE_BOX2D_DEFAULT_USE_REVOLUTE_JOINTS
 
     bridgeBodies_.push_back (element_2);
   } // end FOR

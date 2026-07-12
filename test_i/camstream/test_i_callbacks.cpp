@@ -5757,10 +5757,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             Test_I_Target_DirectShow_IUDPConnector_t* iconnector_2 = NULL;
             if (use_reactor)
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_DirectShow_UDPConnector_t (true));
+                                Test_I_Target_DirectShow_UDPConnector_t ());
             else
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_DirectShow_UDPAsynchConnector_t (true));
+                                Test_I_Target_DirectShow_UDPAsynchConnector_t ());
             if (!iconnector_2)
             {
               ACE_DEBUG ((LM_CRITICAL,
@@ -5781,10 +5781,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
             Test_I_Target_MediaFoundation_IUDPConnector_t* iconnector_2 = NULL;
             if (use_reactor)
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_MediaFoundation_UDPConnector_t (true));
+                                Test_I_Target_MediaFoundation_UDPConnector_t ());
             else
               ACE_NEW_NORETURN (iconnector_2,
-                                Test_I_Target_MediaFoundation_UDPAsynchConnector_t (true));
+                                Test_I_Target_MediaFoundation_UDPAsynchConnector_t ());
             if (!iconnector_2)
             {
               ACE_DEBUG ((LM_CRITICAL,
@@ -5821,10 +5821,10 @@ toggleaction_listen_activate_cb (GtkToggleAction* toggleAction_in,
         Test_I_Target_IUDPConnector_t* iconnector_2 = NULL;
         if (use_reactor)
           ACE_NEW_NORETURN (iconnector_2,
-                            Test_I_Target_UDPConnector_t (true));
+                            Test_I_Target_UDPConnector_t ());
         else
           ACE_NEW_NORETURN (iconnector_2,
-                            Test_I_Target_UDPAsynchConnector_t (true));
+                            Test_I_Target_UDPAsynchConnector_t ());
         if (!iconnector_2)
         {
           ACE_DEBUG ((LM_CRITICAL,

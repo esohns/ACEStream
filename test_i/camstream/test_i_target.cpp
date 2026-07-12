@@ -1815,10 +1815,10 @@ do_work (unsigned int bufferSize_in,
         {
           if (useReactor_in)
             ACE_NEW_NORETURN (directshow_iconnector_p,
-                              Test_I_Target_DirectShow_UDPConnector_t (true));
+                              Test_I_Target_DirectShow_UDPConnector_t ());
           else
             ACE_NEW_NORETURN (directshow_iconnector_p,
-                              Test_I_Target_DirectShow_UDPAsynchConnector_t (true));
+                              Test_I_Target_DirectShow_UDPAsynchConnector_t ());
           result_2 =
             directshow_iconnector_p->initialize (directshow_udp_connection_configuration);
           break;
@@ -1827,10 +1827,10 @@ do_work (unsigned int bufferSize_in,
         {
           if (useReactor_in)
             ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-                              Test_I_Target_MediaFoundation_UDPConnector_t (true));
+                              Test_I_Target_MediaFoundation_UDPConnector_t ());
           else
             ACE_NEW_NORETURN (mediafoundation_iconnector_p,
-                              Test_I_Target_MediaFoundation_UDPAsynchConnector_t (true));
+                              Test_I_Target_MediaFoundation_UDPAsynchConnector_t ());
           result_2 =
             mediafoundation_iconnector_p->initialize (mediafoundation_udp_connection_configuration);
           break;
@@ -1848,10 +1848,10 @@ do_work (unsigned int bufferSize_in,
 #else
       if (useReactor_in)
         ACE_NEW_NORETURN (i_udp_connector_p,
-                          Test_I_Target_UDPConnector_t (true));
+                          Test_I_Target_UDPConnector_t ());
       else
         ACE_NEW_NORETURN (i_udp_connector_p,
-                          Test_I_Target_UDPAsynchConnector_t (true));
+                          Test_I_Target_UDPAsynchConnector_t ());
       ACE_ASSERT (i_udp_connector_p);
       result_2 =
         i_udp_connector_p->initialize (*static_cast<Test_I_Target_UDPConnectionConfiguration_t*> ((*iterator_2).second));

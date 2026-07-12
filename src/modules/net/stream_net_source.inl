@@ -113,7 +113,7 @@ Stream_Module_Net_Source_Writer_T<ACE_SYNCH_USE,
                                   SessionMessageType,
                                   ConnectorType>::Stream_Module_Net_Source_Writer_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
- , connector_ (true)
+ , connector_ ()
  , connection_ (NULL)
  , handles_ ()
  , isOpen_ (false)
@@ -698,7 +698,7 @@ Stream_Module_Net_SourceH_T<ACE_SYNCH_USE,
                             ConnectorType,
                             UserDataType>::Stream_Module_Net_SourceH_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
- , connector_ (true)
+ , connector_ ()
  , connection_ (NULL)
  , handles_ ()
  , isOpen_ (false)
