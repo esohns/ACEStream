@@ -84,8 +84,14 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
     ACE_TEXT_ALWAYS_CHAR ("Test_I_CameraML_Module_MediaPipe_3_Box2d");
 
   ACE_OS::memset (&CBData_, 0, sizeof (struct box2dCBData));
+  // CBData_.halfDimension = 0.0f;
   CBData_.pge = this;
-  //CBData_.halfDimension = 0.0f;
+
+  b2Version version = b2GetVersion ();
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("%s: Box2D version %d.%d.%d\n"),
+              inherited::mod_->name (),
+              version.major, version.minor, version.revision));
 
   draw_ = b2DefaultDebugDraw ();
   draw_.context = &CBData_;
