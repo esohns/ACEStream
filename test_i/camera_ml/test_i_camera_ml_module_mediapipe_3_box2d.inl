@@ -88,18 +88,22 @@ Test_I_CameraML_Module_MediaPipe_3_Box2d<ConfigurationType,
   CBData_.pge = this;
 
   b2Version version = b2GetVersion ();
+  // *WARNING*: cannot access inherited::mod_->name() here, because the
+  //            ACE_Module is not yet initialized
   ACE_DEBUG ((LM_INFO,
               ACE_TEXT ("%s: Box2D version %d.%d.%d\n"),
-              inherited::mod_->name (),
+              ACE_TEXT (inherited3::sAppName.c_str ()),
               version.major, version.minor, version.revision));
 
   draw_ = b2DefaultDebugDraw ();
   draw_.context = &CBData_;
 
-  draw_.DrawPolygonFcn = &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawPolygon;
+  draw_.DrawPolygonFcn =
+    &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawPolygon;
   draw_.DrawSolidPolygonFcn =
     &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawSolidPolygon;
-  draw_.DrawCircleFcn = &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawCircle;
+  draw_.DrawCircleFcn =
+    &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawCircle;
   draw_.DrawSolidCircleFcn =
     &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawSolidCircle;
   draw_.DrawLineFcn = &Test_I_CameraML_Module_MediaPipe_3_Box2d::DrawLine;
