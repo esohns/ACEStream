@@ -158,19 +158,19 @@ restart:
     iterator = inherited::parent (iterator_2);
     ACE_ASSERT (inherited::is_valid (iterator));
     idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
+      dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
     ACE_ASSERT (idistributor_p); // C has a distributor parent
     idistributor_p->pop (*iterator_2);
   } // end IF
   else
   { // C -x> A, i.e. C is a distributor
     idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> ((*iterator_2)->writer ());
+      dynamic_cast<Stream_IDistributorModule*> ((*iterator_2)->writer ());
     ACE_ASSERT (idistributor_p);
     idistributor_p->pop (module_p);
 #if defined (_DEBUG)
     idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
+      dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     if (!idistributor_p)
     { // A is a non-distributor leaf (c1)
       ACE_ASSERT (modules_a.size () == 1);
@@ -218,8 +218,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   STREAM_TRACE (ACE_TEXT ("Stream_Layout_T::find"));
 
   std::string module_name_string =
-      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in)
-                              : name_in);
+    (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (name_in)
+                            : name_in);
 
   std::string module_name_string_2;
   for (typename inherited::iterator iterator = inherited::begin ();
@@ -227,8 +227,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
        ++iterator)
   {
     module_name_string_2 =
-        (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()))
-                                : ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()));
+      (sanitizeModuleNames_in ? Stream_Tools::sanitizeUniqueName (ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()))
+                              : ACE_TEXT_ALWAYS_CHAR ((*iterator)->name ()));
     if (unlikely (!ACE_OS::strcmp (module_name_string_2.c_str (),
                                    name_in.c_str ())))
       return (*iterator);
@@ -289,6 +289,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
   Stream_ModuleList_t return_value;
 
   MODULE_T* module_p = NULL;
+  bool is_part_of_this_layout_b = false;
+  typename inherited::iterator_base iterator_base;
   for (typename inherited::iterator iterator = inherited::begin ();
        iterator != inherited::end ();
        ++iterator)
@@ -301,17 +303,24 @@ Stream_Layout_T<ACE_SYNCH_USE,
     if (unlikely (!module_p))
     { // --> module may be a distributor
       Stream_IDistributorModule* inext_p =
-          dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
+        dynamic_cast<Stream_IDistributorModule*> ((*iterator)->writer ());
       if (!inext_p)
         break; // --> module is an aggregator
       return_value = inext_p->next ();
       break;
     } // end IF
-    if (unlikely (ACE_OS::strcmp (module_p->name (),
-                                  ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
-                  ACE_OS::strcmp (module_p->name (),
-                                  ACE_TEXT ("ACE_Stream_Tail"))))
-      return_value.push_back (module_p); // --> module is not the tail
+    ACE_ASSERT (module_p);
+
+    // *NOTE*: if the next() module is not part of 'this' layout, skip it
+    is_part_of_this_layout_b =
+      //find (ACE_TEXT_ALWAYS_CHAR (module_p->name ()), false) != NULL;
+      find (module_p, iterator_base);
+    if (likely (is_part_of_this_layout_b &&                     // --> module is part of this layout
+                ACE_OS::strcmp (module_p->name (),
+                                ACE_TEXT (STREAM_MODULE_TAIL_NAME)) &&
+                ACE_OS::strcmp (module_p->name (),
+                                ACE_TEXT ("ACE_Stream_Tail")))) // --> module is not the tail
+      return_value.push_back (module_p); 
     break;
   } // end FOR
 
@@ -338,7 +347,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   if (unlikely (inherited::empty ()))
   { ACE_ASSERT (!distributorModule_in);
     typename inherited::pre_order_iterator iterator =
-        inherited::set_head (module_in);
+      inherited::set_head (module_in);
     return inherited::is_valid (iterator);
   } // end IF
 
@@ -590,7 +599,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   ACE_ASSERT (is_distributor (node_in.data));
 
   Stream_IDistributorModule* idistributor_p =
-      dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
+    dynamic_cast<Stream_IDistributorModule*> (node_in.data->writer ());
   ACE_ASSERT (idistributor_p);
 
   int result = -1;

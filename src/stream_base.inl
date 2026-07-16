@@ -4339,7 +4339,7 @@ Stream_Base_T<ACE_SYNCH_USE,
 
   // *IMPORTANT NOTE*: the module might be on several streams and thus removed
   //                   several times --> reset its' next pointer the first time
-  //                   around, otherwise it would point into void space
+  //                   around, otherwise it would point nowhere
   // *WARNING*: do not invoke the overload here
   module_in->MODULE_T::next (NULL);
 
