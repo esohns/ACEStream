@@ -971,10 +971,10 @@ end:
         headFragment_->release (); headFragment_ = NULL;
       } // end IF
 
-      if (resetQueue_)
-      { resetQueue_ = false;
-        inherited::configuration_->parserConfiguration->messageQueue = NULL;
-      } // end IF
+      //if (resetQueue_)
+      //{ resetQueue_ = false;
+      //  inherited::configuration_->parserConfiguration->messageQueue = NULL;
+      //} // end IF
 
       break;
     }
