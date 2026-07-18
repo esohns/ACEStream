@@ -91,13 +91,36 @@ class Stream_MediaFramework_DirectShow_Source_Filter_T
   //                             size_t); // number of bytes
 
   // --------------------------------------
+
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
+#else
+  // *TODO*: immplement IBaseFilter stubs
+  inline virtual STDMETHODIMP GetClassID (CLSID*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP Stop (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP Pause (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP Run (REFERENCE_TIME) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP GetState (DWORD, FILTER_STATE*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP SetSyncSource (IReferenceClock*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP GetSyncSource (IReferenceClock**) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP EnumPins (IEnumPins**) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP FindPin (LPCWSTR, IPin**) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryFilterInfo (FILTER_INFO*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP JoinFilterGraph (IFilterGraph*, LPCWSTR) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryVendorInfo (LPWSTR*) { return E_NOTIMPL; }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+
   // implement/overload IAMFilterMiscFlags
   inline virtual STDMETHODIMP_(ULONG) GetMiscFlags (void) { return AM_FILTER_MISC_FLAGS_IS_SOURCE; }
 
   // implement/overload IMemAllocator
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
   inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
+#else
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { ACE_ASSERT (false); return 1; }
+  inline virtual STDMETHODIMP_(ULONG) Release () { ACE_ASSERT (false); return 1; }
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 
   //inline virtual STDMETHODIMP_(LONG) GetPinVersion () { return 1; }
@@ -190,9 +213,25 @@ class Stream_MediaFramework_DirectShow_Source_Filter_OutputPin_T
 #if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
   DECLARE_IUNKNOWN
 #else
+  // *TODO*: immplement IPin stubs
+  inline virtual STDMETHODIMP Connect (IPin*, const AM_MEDIA_TYPE*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP ReceiveConnection (IPin*, const AM_MEDIA_TYPE*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP Disconnect (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP ConnectedTo (IPin**) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP ConnectionMediaType (AM_MEDIA_TYPE*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryPinInfo (PIN_INFO*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryDirection (PIN_DIRECTION*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryId (LPWSTR*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP EnumMediaTypes (IEnumMediaTypes**) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP QueryInternalConnections (IPin**, ULONG*) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP EndOfStream (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP BeginFlush (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP EndFlush (void) { return E_NOTIMPL; }
+  inline virtual STDMETHODIMP NewSegment (REFERENCE_TIME, REFERENCE_TIME, double) { return E_NOTIMPL; }
+
   inline virtual STDMETHODIMP QueryInterface (REFIID riid, __deref_out void** ppv) { return NonDelegatingQueryInterface (riid, ppv); }
-  inline virtual STDMETHODIMP_(ULONG) AddRef () { return inherited::NonDelegatingAddRef (); }
-  inline virtual STDMETHODIMP_(ULONG) Release () { return inherited::NonDelegatingRelease (); }
+  inline virtual STDMETHODIMP_(ULONG) AddRef () { ACE_ASSERT (false); return 1; }
+  inline virtual STDMETHODIMP_(ULONG) Release () { ACE_ASSERT (false); return 1; }
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
   virtual STDMETHODIMP NonDelegatingQueryInterface (REFIID, void**);
 

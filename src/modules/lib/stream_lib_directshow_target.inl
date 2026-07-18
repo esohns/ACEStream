@@ -577,7 +577,13 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
   } // end IF
   else
   {
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     CUnknown* unknown_p = FilterType::CreateInstance (NULL, &result);
+#else
+    IBaseFilter* unknown_p = NULL;
+    ACE_NEW_NORETURN (unknown_p,
+                      FilterType ());
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
     if (!unknown_p)
     {
       ACE_DEBUG ((LM_CRITICAL,
@@ -585,27 +591,47 @@ Stream_MediaFramework_DirectShow_Target_T<TaskType,
                   inherited::mod_->name ()));
       return false;
     } // end IF
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     result = unknown_p->NonDelegatingQueryInterface (IID_PPV_ARGS (&filter_p));
+#else
+    result = unknown_p->QueryInterface (IID_PPV_ARGS (&filter_p));
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
     if (FAILED (result))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to CUnknown::NonDelegatingQueryInterface(IID_IBaseFilter): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
       unknown_p->NonDelegatingRelease ();
+#else
+      unknown_p->Release ();
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
       return false;
     } // end IF
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     FilterType* filter_2 = static_cast<FilterType*> (unknown_p);
-    //ACE_ASSERT (filter_2);
+#else
+    FilterType* filter_2 = reinterpret_cast<FilterType*> (unknown_p);
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
+    // ACE_ASSERT (filter_2);
     if (!filter_2->initialize (*inherited::configuration_->filterConfiguration))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to FilterType::initialize(), aborting\n"),
                   inherited::mod_->name ()));
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
       unknown_p->NonDelegatingRelease ();
+#else
+      unknown_p->Release ();
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
       return false;
     } // end IF
+#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
     unknown_p->NonDelegatingRelease ();
+#else
+    unknown_p->Release ();
+#endif // DIRECTSHOW_BASECLASSES_SUPPORT
   } // end ELSE
   ACE_ASSERT (filter_p);
   IINITIALIZE_FILTER_T* iinitialize_p =
