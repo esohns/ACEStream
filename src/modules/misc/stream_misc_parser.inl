@@ -798,19 +798,19 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (configuration_in.parserConfiguration);
-  if (!configuration_in.parserConfiguration->messageQueue)
-  {
+  //if (!configuration_in.parserConfiguration->messageQueue)
+  //{
     resetQueue_ = true;
     const_cast<ConfigurationType&> (configuration_in).parserConfiguration->messageQueue =
       &parserQueue_;
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: updated parser configuration, continuing\n"),
                 inherited::mod_->name ()));
-  } // end IF
-  else
-    ACE_DEBUG ((LM_WARNING,
-                ACE_TEXT ("%s: parser uses external queue, continuing\n"),
-                inherited::mod_->name ()));
+  //} // end IF
+  //else
+  //  ACE_DEBUG ((LM_WARNING,
+  //              ACE_TEXT ("%s: parser uses external queue, continuing\n"),
+  //              inherited::mod_->name ()));
   if (!inherited2::initialize (*configuration_in.parserConfiguration))
   {
     ACE_DEBUG ((LM_ERROR,
