@@ -171,6 +171,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // set parameter(s)
+#if defined (_DEBUG)
   if (unlikely (configuration_in.debug))
   {
     error_i = mpg123_param (handle_, MPG123_VERBOSE, 2, 0.0);
@@ -178,11 +179,14 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   } // end IF
   else
   {
+#endif // _DEBUG
     error_i = mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
     ACE_ASSERT (error_i == MPG123_OK);
     error_i = mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
     ACE_ASSERT (error_i == MPG123_OK);
+#if defined (_DEBUG)
   } // end IF
+#endif // _DEBUG
   long value_i =
     MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS;
     //MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS | MPG123_NO_PEEK_END;
