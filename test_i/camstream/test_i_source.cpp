@@ -1478,8 +1478,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   ACE_ASSERT (connection_manager_p);
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
-                             &user_data_s);
+  // connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+  //                            &user_data_s);
   (*modulehandler_iterator).second.second->connectionManager =
     connection_manager_p;
   iconnection_manager_p = connection_manager_p;
@@ -1619,8 +1619,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second)->streamConfiguration =
       &stream_configuration_4;
 
-  connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
-                             &user_data_s);
+  // connection_manager_p->set (*static_cast<Test_I_Source_V4L_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+  //                            &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
   // ********************** module configuration data **************************
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

@@ -582,8 +582,8 @@ do_work (
   // initialize connection manager
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (connection_configuration,
-                             &user_data_s);
+  // connection_manager_p->set (connection_configuration,
+  //                            &user_data_s);
 
   // start event loop(s)
   if (!Common_Event_Tools::startEventDispatch (dispatch_state))

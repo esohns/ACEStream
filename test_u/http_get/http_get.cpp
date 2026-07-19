@@ -640,8 +640,8 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*static_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
-                             &user_data_s);
+  // connection_manager_p->set (*static_cast<HTTPGet_ConnectionConfiguration_t*> ((*iterator).second),
+  //                            &user_data_s);
 
   Common_Timer_Manager_t* timer_manager_p =
     COMMON_TIMERMANAGER_SINGLETON::instance ();

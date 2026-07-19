@@ -1464,8 +1464,8 @@ do_work (unsigned int bufferSize_in,
     configuration.connectionConfigurations.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator_2 != configuration.connectionConfigurations.end ());
 
-  tcp_connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second),
-                                 &user_data_s);
+  // tcp_connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator_2).second),
+  //                                &user_data_s);
 #endif // ACE_WIN32 || ACE_WIN64
 
   // **************************** stream data **********************************

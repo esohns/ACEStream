@@ -712,12 +712,12 @@ do_work (unsigned int bufferSize_in,
   struct Net_UserData user_data_s;
   connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (connection_configuration,
-                             &user_data_s);
+  // connection_manager_p->set (connection_configuration,
+  //                            &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
-      COMMON_TIMERMANAGER_SINGLETON::instance ();
+    COMMON_TIMERMANAGER_SINGLETON::instance ();
   ACE_ASSERT (timer_manager_p);
   Common_TimerConfiguration timer_configuration;
   timer_manager_p->initialize (timer_configuration);

@@ -612,8 +612,8 @@ do_work (unsigned int bufferSize_in,
   connection_manager_p->initialize ((maximumNumberOfConnections_in ? maximumNumberOfConnections_in
                                                                    : std::numeric_limits<unsigned int>::max ()),
                                     ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-  connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second),
-                             &user_data_s);
+  // connection_manager_p->set (*static_cast<Test_I_Target_TCPConnectionConfiguration_t*> ((*iterator).second),
+  //                            &user_data_s);
 
   // step0d: initialize regular (global) statistic reporting
   Common_Timer_Manager_t* timer_manager_p =
