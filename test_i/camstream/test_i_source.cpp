@@ -1429,8 +1429,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (directshow_tcp_connection_manager_p);
       directshow_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                                        ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
-                                                &user_data_s);
+      //directshow_tcp_connection_manager_p->set (*static_cast<Test_I_Source_DirectShow_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+      //                                          &user_data_s);
       directshow_modulehandler_configuration.connectionManager =
         directshow_tcp_connection_manager_p;
       iconnection_manager_p = directshow_tcp_connection_manager_p;
@@ -1448,8 +1448,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
       ACE_ASSERT (mediafoundation_tcp_connection_manager_p);
       mediafoundation_tcp_connection_manager_p->initialize (std::numeric_limits<unsigned int>::max (),
                                                             ACE_Time_Value (0, NET_STATISTIC_DEFAULT_VISIT_INTERVAL_MS * 1000));
-      mediafoundation_tcp_connection_manager_p->set (*static_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
-                                                     &user_data_s);
+      //mediafoundation_tcp_connection_manager_p->set (*static_cast<Test_I_Source_MediaFoundation_TCPConnectionConfiguration_t*> ((*connection_iterator).second),
+      //                                               &user_data_s);
 
       mediafoundation_modulehandler_iterator =
         (*mediafoundation_stream_iterator).second.find (ACE_TEXT_ALWAYS_CHAR (""));

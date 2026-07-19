@@ -1387,8 +1387,8 @@ do_work (unsigned int bufferSize_in,
       directshow_tcp_connection_configuration.streamConfiguration =
         &directshow_configuration.streamConfiguration;
 
-      directshow_tcp_connection_manager_p->set (directshow_tcp_connection_configuration,
-                                                &user_data_s);
+      //directshow_tcp_connection_manager_p->set (directshow_tcp_connection_configuration,
+      //                                          &user_data_s);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1421,8 +1421,8 @@ do_work (unsigned int bufferSize_in,
       mediafoundation_tcp_connection_configuration.streamConfiguration =
         &mediafoundation_configuration.streamConfiguration;
 
-      mediafoundation_tcp_connection_manager_p->set (mediafoundation_tcp_connection_configuration,
-                                                     &user_data_s);
+      //mediafoundation_tcp_connection_manager_p->set (mediafoundation_tcp_connection_configuration,
+      //                                               &user_data_s);
       break;
     } // end IF
     default:
