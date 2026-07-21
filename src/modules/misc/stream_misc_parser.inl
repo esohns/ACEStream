@@ -1157,7 +1157,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
                        ParserDriverType,
                        UserDataType>::stop ()
 {
-  COMMON_TRACE (ACE_TEXT ("Stream_Module_Parser_T::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_Parser_T::stop"));
 
   // sanity check(s)
   ACE_ASSERT (!parserQueue_.deactivated ());

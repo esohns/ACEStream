@@ -338,7 +338,10 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
       case AVMEDIA_TYPE_SUBTITLE:
       case AVMEDIA_TYPE_DATA:
       case AVMEDIA_TYPE_ATTACHMENT:
+      {
+        stream_ids_to_skip_a.push_back (i);
         break;
+      }
       default:
       {
         ACE_DEBUG ((LM_ERROR,
@@ -497,7 +500,7 @@ skip:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
                   inherited::mod_->name (),
-                  inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+                  packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes));
       av_packet_unref (&packet_s);
       inherited::stop (false,
                        false,

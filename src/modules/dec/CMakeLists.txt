@@ -283,6 +283,9 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_img_decoder.cpp
       stream_dec_libav_img_decoder.h
       stream_dec_libav_img_decoder.inl
+      stream_dec_libav_mpeg_ts_demuxer.cpp
+      stream_dec_libav_mpeg_ts_demuxer.h
+      stream_dec_libav_mpeg_ts_demuxer.inl
       stream_dec_libav_source.cpp
       stream_dec_libav_source.h
       stream_dec_libav_source.inl)
@@ -569,6 +572,8 @@ if (FFMPEG_SUPPORT)
       stream_dec_libav_hw_decoder.inl
       stream_dec_libav_img_decoder.h
       stream_dec_libav_img_decoder.inl
+      stream_dec_libav_mpeg_ts_demuxer.h
+      stream_dec_libav_mpeg_ts_demuxer.inl
       stream_dec_libav_source.h
       stream_dec_libav_source.inl)
  if (UNIX)

@@ -414,7 +414,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
                                 media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       formatHeight_ =
-          static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
+        static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       formatWidth_ = static_cast<unsigned int> (media_type_s.resolution.cx);
 #else
       formatHeight_ = media_type_s.resolution.height;
