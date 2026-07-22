@@ -71,9 +71,7 @@ acestream_libav_mpeg_ts_demuxer_read_cb (void* userData_in,
     if (likely (error == EWOULDBLOCK))
       error = EAGAIN;
     else if (error == ESHUTDOWN)
-    {
-      bytes_read = 0; // send EOF (again :-()
-    } // end ELSE IF
+      bytes_read = 0; // send EOF (again :()
     else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::dequeue(): \"%m\", aborting\n")));
