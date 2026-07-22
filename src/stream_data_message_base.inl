@@ -328,6 +328,8 @@ Stream_DataMessageBase_2<DataType,
   // ... and read/write pointers
   inherited::rd_ptr (message_in.rd_ptr ());
   inherited::wr_ptr (message_in.wr_ptr ());
+
+  inherited::isInitialized_ = inherited::isInitialized_ && (data_ != NULL);
 }
 
 template <typename DataType,
@@ -438,7 +440,8 @@ Stream_DataMessageBase_2<DataType,
 
   inherited::initialize (sesssionId_in,
                          dataBlock_in);
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  inherited::type_ =
+    static_cast<MessageType> (data_inout ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
 }
 
 template <typename DataType,

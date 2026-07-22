@@ -119,10 +119,12 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
     } // end IF
     if (IOContext_)
     {
+      // avio_close (IOContext_);
       // avio_context_free (&IOContext_);
       IOContext_ = NULL;
     } // end IF
 
+    queue_.activate ();
     queue_.flush (true);
 
     streamIndexToMessageMediaType_.clear ();
@@ -140,7 +142,7 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  IOBuffer_ = av_malloc (STREAM_DEC_DEFAULT_LIBAV_IO_BUFFER_SIZE);
+  IOBuffer_ = (uint8_t*)av_malloc (STREAM_DEC_DEFAULT_LIBAV_IO_BUFFER_SIZE);
   if (unlikely (!IOBuffer_))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -167,32 +169,8 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
     avformat_free_context (formatContext_); formatContext_ = NULL;
     return false;
   } // end IF
+  formatContext_->flags |= AVFMT_FLAG_CUSTOM_IO;
   formatContext_->pb = IOContext_;
-
-  const AVInputFormat* input_format_p =
-    av_find_input_format (ACE_TEXT_ALWAYS_CHAR ("mpegts"));
-  if (unlikely (!input_format_p))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: av_find_input_format(mpegts) failed, aborting\n"),
-                inherited::mod_->name ()));
-    avformat_close_input (&formatContext_);
-    return false;
-  } // end IF
-
-  int result = avformat_open_input (&formatContext_,
-                                    NULL,
-                                    input_format_p,
-                                    NULL);
-  if (unlikely (result < 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: avformat_open_input() failed: \"%s\", aborting\n"),
-                inherited::mod_->name (),
-                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-    avformat_close_input (&formatContext_);
-    return false;
-  } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -337,6 +315,52 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   std::vector<int> stream_ids_to_skip_a;
   static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
+  AVDictionary* opts_p = NULL;
+
+  const AVInputFormat* input_format_p =
+    av_find_input_format (ACE_TEXT_ALWAYS_CHAR ("mpegts"));
+  if (unlikely (!input_format_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: av_find_input_format(mpegts) failed, aborting\n"),
+                inherited::mod_->name ()));
+    avformat_close_input (&formatContext_);
+    goto error;
+  } // end IF
+
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("fix_teletext_pts"), ACE_TEXT_ALWAYS_CHAR ("1"),
+               0);
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("scan_all_pmts"), ACE_TEXT_ALWAYS_CHAR ("1"),
+               0);
+  // 1. Force the demuxer to instantly parse packets without scanning ahead
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("fflags"), ACE_TEXT_ALWAYS_CHAR ("nobuffer"),
+               0);
+  // 2. Lower the probing size (default is 5,000,000 bytes)
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("probesize"), ACE_TEXT_ALWAYS_CHAR ("32768"),
+               0);
+  // 3. Reduce the max analysis duration (default is 5,000,000 microseconds)
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("analyzeduration"), ACE_TEXT_ALWAYS_CHAR ("100000"),
+               0);
+  result = avformat_open_input (&formatContext_,
+                                NULL,
+                                input_format_p,
+                                &opts_p);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: avformat_open_input() failed: \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    av_dict_free (&opts_p);
+    avformat_close_input (&formatContext_);
+    goto error;
+  } // end IF
+  av_dict_free (&opts_p);
 
   result = avformat_find_stream_info (formatContext_, NULL);
   if (unlikely (result < 0))
@@ -451,7 +475,7 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
                     inherited::mod_->name (),
-                    context_->streams[i]->codecpar->codec_type));
+                    formatContext_->streams[i]->codecpar->codec_type));
         goto error;
       }
     } // end SWITCH
@@ -466,7 +490,10 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
     if (unlikely (result < 0))
     {
       if (likely (result == AVERROR_EOF))
+      {
+        result = 0;
         goto done; // EOF reached
+      } // end IF
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to av_read_frame(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
@@ -474,8 +501,7 @@ Stream_Decoder_LibAV_MPEG_TS_Demuxer_T<ACE_SYNCH_USE,
       goto error;
     } // end IF
 
-    if ((inherited::configuration_->streamIndex >= 0 && packet_s.stream_index != inherited::configuration_->streamIndex) ||
-        (std::find (stream_ids_to_skip_a.begin (), stream_ids_to_skip_a.end (), packet_s.stream_index) != stream_ids_to_skip_a.end ()))
+    if (std::find (stream_ids_to_skip_a.begin (), stream_ids_to_skip_a.end (), packet_s.stream_index) != stream_ids_to_skip_a.end ())
     {
       av_packet_unref (&packet_s);
       continue;

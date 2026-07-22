@@ -21,6 +21,10 @@
 
 #include "stream_dec_libav_mpeg_ts_demuxer.h"
 
+#include "ace/Time_Value.h"
+
+#include "common_time_common.h"
+
 #include "stream_dec_defines.h"
 
 const char libacestream_default_dec_libav_mpeg_ts_module_name_string[] =
@@ -39,10 +43,11 @@ acestream_libav_mpeg_ts_demuxer_read_cb (void* userData_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (buffer_in);
   ACE_ASSERT (bufferSize_in);
-    
+
   int bytes_read = 0;
   int result, error = 0, bytes_to_read, available_space_i = bufferSize_in, offset = 0;
   ACE_Message_Block *message_block_p = NULL, *head_p = cb_data_p->buffer;
+  static ACE_Time_Value no_wait = COMMON_TIME_NOW;
 
   if (cb_data_p->buffer)
   {
@@ -51,21 +56,27 @@ acestream_libav_mpeg_ts_demuxer_read_cb (void* userData_in,
     goto continue_;
   } // end IF
 
-deque:
+//deque:
   // sanity check(s)
   ACE_ASSERT (cb_data_p->queue);
   ACE_ASSERT (!message_block_p);
 
   result = cb_data_p->queue->dequeue (message_block_p,
-                                      NULL);
+                                      NULL/*&no_wait*/);
   if (unlikely (result == -1))
-  {
+  { ACE_ASSERT (!bytes_read); // *TODO*
+    bytes_read = -1;
+
     error = ACE_OS::last_error ();
-    if (error != EWOULDBLOCK) // Win32: 10035
+    if (likely (error == EWOULDBLOCK))
+      error = EAGAIN;
+    else if (error == ESHUTDOWN)
+    {
+      bytes_read = 0; // send EOF (again :-()
+    } // end ELSE IF
+    else
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to ACE_Message_Queue::dequeue(): \"%m\", aborting\n")));
-    ACE_ASSERT (!bytes_read); // *TODO*
-    bytes_read = -1;
     goto continue_2;
   } // end IF
   ACE_ASSERT (message_block_p);
@@ -74,9 +85,9 @@ deque:
   switch (message_block_p->msg_type ())
   {
     case ACE_Message_Block::MB_STOP:
-    {
+    { ACE_ASSERT (bytes_read == 0);
+      cb_data_p->queue->deactivate ();
       message_block_p->release ();
-
       goto continue_2;
     }
     default:
@@ -129,9 +140,9 @@ set_buffer:
 
 continue_2:
   if (bytes_read == 0)
-    return AVERROR_EOF; // Signal end of stream
+    return AVERROR_EOF; // signal end of stream
   else if (bytes_read < 0)
-    return AVERROR (error); // Pass system error back to FFmpeg
+    return AVERROR (error); // pass system error back to FFmpeg
 
   return bytes_read;
 }
