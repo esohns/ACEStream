@@ -297,8 +297,8 @@ do_process_arguments (int argc_in,
   showConsole_out = false;
 #else
   captureDeviceIdentifier_out =
-      Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
-                                                       SND_PCM_STREAM_CAPTURE);
+    Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
+                                                     SND_PCM_STREAM_CAPTURE);
   captureDeviceIdentifierSet_out = false;
   effect_out.clear ();
 #endif // ACE_WIN32 || ACE_WIN64
@@ -1485,6 +1485,9 @@ do_work (int argc_in,
 
       directshow_modulehandler_configuration_5 =
         directshow_modulehandler_configuration;
+      directshow_modulehandler_configuration_5.allocatorConfiguration =
+        &allocator_configuration_2;
+      directshow_modulehandler_configuration_5.manageSoX = true;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_5)));

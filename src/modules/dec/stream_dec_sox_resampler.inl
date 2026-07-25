@@ -236,7 +236,8 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
 
   if (likely (!buffer_))
   {
-    buffer_ = inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+    buffer_ =
+      inherited::allocateMessage (inherited::configuration_->allocatorConfiguration->defaultBufferSize);
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,

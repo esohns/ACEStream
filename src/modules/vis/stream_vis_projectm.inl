@@ -120,34 +120,42 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->projectMConfiguration);
   ACE_ASSERT (inherited::configuration_->projectMConfiguration->handle);
 
-  switch (sampleSize_)
+  ACE_Message_Block* message_block_p = message_inout;
+  do
   {
-    case 1:
-      projectm_pcm_add_uint8 (inherited::configuration_->projectMConfiguration->handle,
-                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
-                              message_inout->length () / sizeof (uint8_t),
-                              channels_); // #channels
-      break;
-    case 2:
-      projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
-                              reinterpret_cast<int16_t*> (message_inout->rd_ptr ()),
-                              message_inout->length () / sizeof (int16_t),
-                              channels_); // #channels
-      break;
-    case 4:
-       projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
-                               reinterpret_cast<float*> (message_inout->rd_ptr ()),
-                               message_inout->length () / sizeof (float),
-                               channels_); // #channels
-      break;
-    default:
+    switch (sampleSize_)
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: invalid/unsupported sample format, aborting\n"),
-                  inherited::mod_->name ()));
-      goto error;
-    }
-  } // end SWITCH
+      case 1:
+        projectm_pcm_add_uint8 (inherited::configuration_->projectMConfiguration->handle,
+                                reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                message_block_p->length () / sizeof (uint8_t),
+                                channels_); // #channels
+        break;
+      case 2:
+        projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
+                                reinterpret_cast<int16_t*> (message_block_p->rd_ptr ()),
+                                message_block_p->length () / sizeof (int16_t),
+                                channels_); // #channels
+        break;
+      case 4:
+         projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
+                                 reinterpret_cast<float*> (message_block_p->rd_ptr ()),
+                                 message_block_p->length () / sizeof (float),
+                                 channels_); // #channels
+        break;
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unsupported sample format, aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      }
+    } // end SWITCH
+
+    message_block_p = message_block_p->cont ();
+    if (likely (!message_block_p))
+      break;
+  } while (true);
 
   return;
 
