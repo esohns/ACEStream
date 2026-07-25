@@ -83,6 +83,9 @@ class Stream_Module_Vis_ProjectM_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_ProjectM_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_ProjectM_T (const Stream_Module_Vis_ProjectM_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Vis_ProjectM_T& operator= (const Stream_Module_Vis_ProjectM_T&))
+
+  projectm_channels channels_;
+  unsigned int      sampleSize_; // mono-
 };
 
 //////////////////////////////////////////

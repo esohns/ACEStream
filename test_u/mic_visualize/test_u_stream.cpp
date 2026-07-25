@@ -290,6 +290,9 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
     if (add_save_branch_b)
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
+#if defined (PROJECTM_SUPPORT)
+    branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DECODE_NAME));
+#endif // PROJECTM_SUPPORT
     Stream_IDistributorModule* idistributor_p =
       dynamic_cast<Stream_IDistributorModule*> (module_p->writer ());
     ACE_ASSERT (idistributor_p);
@@ -391,16 +394,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
 #endif // GTK_USE
-
-#if defined (PROJECTM_SUPPORT)
-    ACE_NEW_RETURN (module_p,
-                    Test_U_MicVisualize_DirectShow_Vis_ProjectM_Module (this,
-                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_PROJECTM_DEFAULT_NAME_STRING)),
-                    false);
-    ACE_ASSERT (module_p);
-    layout_in->append (module_p, branch_p, index_i);
-    module_p = NULL;
-#endif // PROJECTM_SUPPORT
   } // end IF
 
   if (add_save_branch_b)
@@ -423,6 +416,27 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF
+
+#if defined (PROJECTM_SUPPORT)
+  ++index_i;
+
+#if defined (SOX_SUPPORT)
+  ACE_NEW_RETURN (module_p,
+                  Test_U_MicVisualize_DirectShow_SoXResampler_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2")),
+                  false);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // SOX_SUPPORT
+
+  ACE_NEW_RETURN (module_p,
+                  Test_U_MicVisualize_DirectShow_Vis_ProjectM_Module (this,
+                                                                      ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_PROJECTM_DEFAULT_NAME_STRING)),
+                    false);
+  ACE_ASSERT (module_p);
+  layout_in->append (module_p, branch_p, index_i);
+  module_p = NULL;
+#endif // PROJECTM_SUPPORT
 
   return true;
 }

@@ -53,6 +53,8 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
                              MediaType>::Stream_Module_Vis_ProjectM_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , inherited2 ()
+ , channels_ (PROJECTM_STEREO)
+ , sampleSize_ (4)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_ProjectM_T::Stream_Module_Vis_ProjectM_T"));
 
@@ -81,6 +83,8 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    channels_ = PROJECTM_STEREO;
+    sampleSize_ = 4;
   } // end IF
 
   // sanity check(s)
@@ -116,14 +120,39 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->projectMConfiguration);
   ACE_ASSERT (inherited::configuration_->projectMConfiguration->handle);
 
-  // projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
-  //                         reinterpret_cast<float*> (message_inout->rd_ptr ()),
-  //                         message_inout->length () / sizeof (float),
-  //                         PROJECTM_STEREO); // #channels
-  projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
-                          reinterpret_cast<int16_t*> (message_inout->rd_ptr ()),
-                          message_inout->length () / sizeof (int16_t),
-                          PROJECTM_STEREO); // #channels
+  switch (sampleSize_)
+  {
+    case 1:
+      projectm_pcm_add_uint8 (inherited::configuration_->projectMConfiguration->handle,
+                              reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()),
+                              message_inout->length () / sizeof (uint8_t),
+                              channels_); // #channels
+      break;
+    case 2:
+      projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
+                              reinterpret_cast<int16_t*> (message_inout->rd_ptr ()),
+                              message_inout->length () / sizeof (int16_t),
+                              channels_); // #channels
+      break;
+    case 4:
+       projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
+                               reinterpret_cast<float*> (message_inout->rd_ptr ()),
+                               message_inout->length () / sizeof (float),
+                               channels_); // #channels
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: invalid/unsupported sample format, aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    }
+  } // end SWITCH
+
+  return;
+
+error:
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,
@@ -166,33 +195,24 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       unsigned int bytes_per_sample_i;
-      bool is_signed_sample_format_b, is_integral_sample_format_b;
       unsigned int channels_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
       struct tWAVEFORMATEX* audio_info_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
-      bytes_per_sample_i = audio_info_p->wBitsPerSample / 8;
-      is_signed_sample_format_b = audio_info_p->wBitsPerSample > 8; // signed if > 8 bit/sample
-      is_integral_sample_format_b =
-        !Stream_MediaFramework_DirectSound_Tools::isFloat (*audio_info_p);
-      channels_i = audio_info_p->nChannels;
+      sampleSize_ = audio_info_p->wBitsPerSample / 8;
+      channels_ = static_cast<projectm_channels> (audio_info_p->nChannels);
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #else
-      bytes_per_sample_i = snd_pcm_format_width (media_type_s.format) / 8;
-      is_signed_sample_format_b =
-        snd_pcm_format_signed (media_type_s.format) ? true : false;
-      is_integral_sample_format_b =
-        snd_pcm_format_float (media_type_s.format) ? false : true;
-      channels_i = media_type_s.channels;
+      sampleSize_ = snd_pcm_format_width (media_type_s.format) / 8;
+      channels_ = static_cast<projectm_channels> (media_type_s.channels);
 #endif // ACE_WIN32 || ACE_WIN64
-      if (unlikely ((bytes_per_sample_i != 2) ||
-                    (channels_i != 2        ) ||
-                    !is_integral_sample_format_b))
+      if (unlikely ((sampleSize_ > 4) ||
+                    (channels_ > 2)))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: unsupported audio format, aborting\n"),
+                    ACE_TEXT ("%s: unsupported inbound audio format, aborting\n"),
                     inherited::mod_->name ()));
         goto error;
       } // end IF

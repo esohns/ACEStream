@@ -620,6 +620,7 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
                           IGraphBuilder*& IGraphBuilder_out,
                           IAMStreamConfig*& IAMStreamConfig_out,
                           struct _AMMediaType& captureMediaType_out,
+                          struct _AMMediaType& analyzerMediaType_out,
                           bool useDirectShowSource_in,
                           bool useDirectShowDestination_in,
                           bool mute_in)
@@ -659,6 +660,22 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
   //waveformatex_s.cbSize = 0;
   if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
                                                                  captureMediaType_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
+    goto error;
+  } // end IF
+
+  // required by projectM
+  waveformatex_s.wFormatTag = WAVE_FORMAT_IEEE_FLOAT;
+  waveformatex_s.nSamplesPerSec = 44100;
+  waveformatex_s.wBitsPerSample = 32;
+  waveformatex_s.nBlockAlign =
+    (waveformatex_s.nChannels * (waveformatex_s.wBitsPerSample / 8));
+  waveformatex_s.nAvgBytesPerSec =
+    (waveformatex_s.nSamplesPerSec * waveformatex_s.nBlockAlign);
+  if (!Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx (waveformatex_s,
+                                                                 analyzerMediaType_out))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_DirectShow_Tools::fromWaveFormatEx(), aborting\n")));
@@ -1175,6 +1192,7 @@ do_work (int argc_in,
   struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_2; // directshow target module
   struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_3; // renderer module
   struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_4; // file writer module
+  struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration directshow_modulehandler_configuration_5; // resampler #2 module
   struct Test_U_MicVisualize_DirectShow_StreamConfiguration directshow_stream_configuration;
   struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration;
   struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration mediafoundation_modulehandler_configuration_2; // mediafoundation target target module
@@ -1278,8 +1296,8 @@ do_work (int argc_in,
                                                                        );
   Test_U_MediaFoundation_MessageHandler_Module mediafoundation_event_handler (istream_p,
                                                                               ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_U_MicVisualize_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
-  Test_U_MicVisualize_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
+  //Test_U_MicVisualize_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_iterator;
+  //Test_U_MicVisualize_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_iterator;
 #else
   Test_U_EventHandler ui_event_handler (
                                         &CBData_in
@@ -1389,9 +1407,9 @@ do_work (int argc_in,
                                                                  directshow_modulehandler_configuration,
                                                                  directshow_stream_configuration);
 
-      directshow_modulehandler_iterator =
-        directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
+      //directshow_modulehandler_iterator =
+      //  directShowConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (directshow_modulehandler_iterator != directShowConfiguration_in.streamConfiguration.end ());
 
       directshow_modulehandler_configuration_2 =
         directshow_modulehandler_configuration;
@@ -1457,11 +1475,17 @@ do_work (int argc_in,
         directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
-        directshow_modulehandler_configuration_4.fileIdentifier.identifier =
-          targetFilename_in;
+        directshow_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_4)));
+
+
+      directshow_modulehandler_configuration_5 =
+        directshow_modulehandler_configuration;
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
+                                                                             std::make_pair (&module_configuration,
+                                                                                             &directshow_modulehandler_configuration_5)));
 
       break;
     }
@@ -1532,9 +1556,9 @@ do_work (int argc_in,
       mediaFoundationConfiguration_in.streamConfiguration.initialize (module_configuration,
                                                                       mediafoundation_modulehandler_configuration,
                                                                       mediafoundation_stream_configuration);
-      mediafoundation_modulehandler_iterator =
-        mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-      ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
+      //mediafoundation_modulehandler_iterator =
+      //  mediaFoundationConfiguration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+      //ACE_ASSERT (mediafoundation_modulehandler_iterator != mediaFoundationConfiguration_in.streamConfiguration.end ());
 
       mediafoundation_modulehandler_configuration_2 =
         mediafoundation_modulehandler_configuration;
@@ -1749,11 +1773,12 @@ do_work (int argc_in,
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
     {
       result =
-        do_initialize_directshow ((*directshow_modulehandler_iterator).second.second->deviceIdentifier,
+        do_initialize_directshow (directshow_modulehandler_configuration.deviceIdentifier,
                                   *directShowCBData_in.configuration,
-                                  (*directshow_modulehandler_iterator).second.second->builder,
+                                  directshow_modulehandler_configuration.builder,
                                   directShowCBData_in.streamConfiguration,
                                   directshow_stream_configuration.format,
+                                  directshow_modulehandler_configuration_5.outputFormat,
                                   useFrameworkSource_in, // use DirectShow source ? : WASAPI
                                   directshow_stream_configuration.renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW,
                                   mute_in);
@@ -1765,32 +1790,32 @@ do_work (int argc_in,
       } // end IF
       if (useFrameworkSource_in) // use DirectShow source ?
       {
-        ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
+        ACE_ASSERT (directshow_modulehandler_configuration.builder);
         ACE_ASSERT (directShowCBData_in.streamConfiguration);
       } // end IF
       if (directshow_stream_configuration.renderer == STREAM_DEVICE_RENDERER_DIRECTSHOW)
       {
-        ACE_ASSERT ((*directshow_modulehandler_iterator).second.second->builder);
+        ACE_ASSERT (directshow_modulehandler_configuration.builder);
       } // end IF
       Stream_MediaFramework_DirectShow_Tools::copy (directshow_stream_configuration.format,
-                                                    (*directshow_modulehandler_iterator).second.second->outputFormat);
+                                                    directshow_modulehandler_configuration.outputFormat);
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
     {
       result =
-        do_initialize_mediafoundation ((*mediafoundation_modulehandler_iterator).second.second->deviceIdentifier,
+        do_initialize_mediafoundation (mediafoundation_modulehandler_configuration.deviceIdentifier,
                                        *mediaFoundationCBData_in.configuration,
-                                       (*mediafoundation_modulehandler_iterator).second.second->session,
+                                       mediafoundation_modulehandler_configuration.session,
                                        mediafoundation_stream_configuration.format,
                                        true, // initialize MediaFoundation framework ?
                                        useFrameworkSource_in, // use MediaFoundation source ? : WASAPI
                                        mute_in,
                                        mediafoundation_stream,
                                        UIDefinitionFile_in.empty ()); // make session ?
-      (*mediafoundation_modulehandler_iterator).second.second->outputFormat =
+      mediafoundation_modulehandler_configuration.outputFormat =
         Stream_MediaFramework_MediaFoundation_Tools::copy (mediafoundation_stream_configuration.format);
-      ACE_ASSERT ((*mediafoundation_modulehandler_iterator).second.second->outputFormat);
+      ACE_ASSERT (mediafoundation_modulehandler_configuration.outputFormat);
       break;
     }
     default:

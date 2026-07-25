@@ -43,7 +43,9 @@ acestream_projectm_preset_switch_cb (bool isHardCut_in,
 
   char* preset_name_p = projectm_playlist_item (cb_data_p->playlist, index_in);
   if (!preset_name_p) return;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("preset switch: ") << preset_name_p << std::endl;
+  ACE_DEBUG ((LM_INFO,
+              ACE_TEXT ("preset switch: %s\n"),
+              ACE_TEXT (preset_name_p)));
 
   // clean up
   projectm_playlist_free_string (preset_name_p);
@@ -139,7 +141,9 @@ test_u_projectm_glut_key_special (int key_in,
         projectm_playlist_item (cb_data_p->projectMConfiguration->playlist,
                                 cb_data_p->projectMConfiguration->current);
       if (!preset_name_p) break;
-      std::cout << ACE_TEXT_ALWAYS_CHAR ("current preset: ") << preset_name_p << std::endl;
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("current preset: %s\n"),
+                  ACE_TEXT (preset_name_p)));
 
       // clean up
       projectm_playlist_free_string (preset_name_p);
@@ -148,13 +152,15 @@ test_u_projectm_glut_key_special (int key_in,
     case GLUT_KEY_F2:
     {
       projectm_set_preset_locked (cb_data_p->projectMConfiguration->handle, true);
-      std::cout << ACE_TEXT_ALWAYS_CHAR ("current preset LOCKED") << std::endl;
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("current preset LOCKED\n")));
       break;
     }
     case GLUT_KEY_F3:
     {
       projectm_set_preset_locked (cb_data_p->projectMConfiguration->handle, false);
-      std::cout << ACE_TEXT_ALWAYS_CHAR ("current preset UNLOCKED") << std::endl;
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("current preset UNLOCKED\n")));
       break;
     }
     case GLUT_KEY_F12:
