@@ -1164,6 +1164,7 @@ do_work (int argc_in,
   // spectrumanalyzer_configuration.resolution = STREAM_VIS_SPECTRUMANALYZER_DEFAULT_NUMBER_OF_BINS;
   struct Stream_AllocatorConfiguration allocator_configuration;
   struct Common_AllocatorConfiguration* allocator_configuration_p = NULL;
+  struct Stream_AllocatorConfiguration allocator_configuration_2;
   Common_TimerConfiguration timer_configuration;
   Common_Timer_Manager_t* timer_manager_p = NULL;
   Common_IAsynchTask* itask_p = NULL;
@@ -1321,6 +1322,7 @@ do_work (int argc_in,
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
+  struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration_4; // sox resampler #2 module
   struct Test_U_MicVisualize_ALSA_StreamConfiguration stream_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -1617,8 +1619,7 @@ do_work (int argc_in,
         mediafoundation_modulehandler_configuration;
       mediafoundation_modulehandler_configuration_4.fileIdentifier.clear ();
       if (!targetFilename_in.empty ())
-        mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier =
-          targetFilename_in;
+        mediafoundation_modulehandler_configuration_4.fileIdentifier.identifier = targetFilename_in;
       mediaFoundationConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_FILE_SINK_DEFAULT_NAME_STRING),
                                                                                   std::make_pair (&module_configuration,
                                                                                                   &mediafoundation_modulehandler_configuration_4)));
@@ -1696,6 +1697,18 @@ do_work (int argc_in,
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
+
+  modulehandler_configuration_4 = modulehandler_configuration;
+  modulehandler_configuration_4.allocatorConfiguration =
+    &allocator_configuration_2;
+  modulehandler_configuration_4.manageSoX = true;
+
+  // required by projectM
+  modulehandler_configuration_4.outputFormat.format = SND_PCM_FORMAT_FLOAT;
+  modulehandler_configuration_4.outputFormat.rate = 44100;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_4)));
 #endif // ACE_WIN32 || ACE_WIN64
 
   // ********************** stream configuration data **************************
@@ -1737,8 +1750,7 @@ do_work (int argc_in,
 #else
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.module =
-      (!UIDefinitionFile_in.empty () ? &event_handler
-                                     : NULL);
+    (!UIDefinitionFile_in.empty () ? &event_handler : NULL);
   if (usePipewire_in)
   {
     modulehandler_configuration.concurrency =
@@ -2032,6 +2044,11 @@ do_work (int argc_in,
       } // end IF
       GLUT_CBData_p->projectMConfiguration = &projectm_configuration;
 
+      projectm_set_preset_duration (projectm_configuration.handle,
+                                    TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_DURATION_D);
+      projectm_set_soft_cut_duration (projectm_configuration.handle,
+                                      TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_TRANSITION_DURATION_D);
+
       projectm_configuration.playlist =
         projectm_playlist_create (projectm_configuration.handle);
       ACE_ASSERT (projectm_configuration.playlist);
@@ -2053,7 +2070,7 @@ do_work (int argc_in,
                                   true,
                                   false);
       projectm_playlist_set_shuffle (projectm_configuration.playlist, true);
-      // projectm_playlist_play_next (projectm_configuration.playlist, true);
+      projectm_playlist_play_next (projectm_configuration.playlist, true);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       directshow_modulehandler_configuration.projectMConfiguration =

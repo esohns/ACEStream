@@ -806,6 +806,20 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                  
                               libacestream_default_dec_sox_effect_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
                               Test_U_MicVisualize_SoXEffect);                          // writer type
+
+typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Test_U_Message,
+                                      Test_U_SessionMessage,
+                                      struct Stream_MediaFramework_ALSA_MediaType> Test_U_MicVisualize_SoXResampler;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_sox_resampler_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_U_MicVisualize_SoXResampler);                          // writer type
 #endif // SOX_SUPPORT
 
 typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,

@@ -194,8 +194,6 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
-      unsigned int bytes_per_sample_i;
-      unsigned int channels_i = 0;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
