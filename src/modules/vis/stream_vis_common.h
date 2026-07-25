@@ -21,6 +21,11 @@
 #ifndef STREAM_VISUALIZATION_COMMON_H
 #define STREAM_VISUALIZATION_COMMON_H
 
+#if defined (PROJECTM_SUPPORT)
+#include "projectM-4/projectM.h"
+#include "projectM-4/playlist.h"
+#endif // PROJECTM_SUPPORT
+
 #include "stream_vis_defines.h"
 
 enum Stream_Visualization_Framework
@@ -115,6 +120,21 @@ enum Stream_Visualization_WindowFunctionType
   STREAM_VISUALIZATION_WINDOWFUNCTION_MAX,
   STREAM_VISUALIZATION_WINDOWFUNCTION_INVALID
 };
+
+#if defined (PROJECTM_SUPPORT)
+struct Stream_Visualization_ProjectM_Configuration
+{
+  Stream_Visualization_ProjectM_Configuration ()
+   : handle (NULL)
+   , playlist (NULL)
+   , current (0)
+  {}
+
+  projectm_handle          handle;
+  projectm_playlist_handle playlist;
+  unsigned int             current; // -playlist index
+};
+#endif // PROJECTM_SUPPORT
 
 struct Stream_Visualization_SpectrumAnalyzer_Configuration
 {

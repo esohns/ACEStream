@@ -82,6 +82,10 @@ extern "C"
 #endif // GTKGL_SUPPORT
 #endif // GTK_SUPPORT
 
+#if defined (PROJECTM_SUPPORT)
+#include "projectM-4/projectM.h"
+#endif // PROJECTM_SUPPORT
+
 #include "ace/Singleton.h"
 #include "ace/Synch_Traits.h"
 
@@ -353,6 +357,9 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
    , manageSoX (false)
 #endif // SOX_SUPPORT
    , mute (false)
+#if defined (PROJECTM_SUPPORT)
+   , projectMConfiguration (NULL)
+#endif // PROJECTM_SUPPORT
    , spectrumAnalyzerConfiguration (NULL)
 #if defined (GTKGL_SUPPORT)
    , OpenGLTextureId (0)
@@ -365,27 +372,30 @@ struct Test_U_MicVisualize_ModuleHandlerConfiguration
    , window ()
   {}
 
-  unsigned int                                              bufferSize; // statistic analysis
-  struct Stream_Device_Identifier                           deviceIdentifier; // capture/render
-  struct Stream_Miscellaneous_DelayConfiguration*           delayConfiguration;
-  Stream_Statistic_IDispatch_t*                             dispatch;
-  //unsigned int                                              fps;
-  struct Stream_MediaFramework_SoundGeneratorConfiguration* generatorConfiguration;
+  unsigned int                                                          bufferSize; // statistic analysis
+  struct Stream_Device_Identifier                                       deviceIdentifier; // capture/render
+  struct Stream_Miscellaneous_DelayConfiguration*                       delayConfiguration;
+  Stream_Statistic_IDispatch_t*                                         dispatch;
+  struct Stream_MediaFramework_SoundGeneratorConfiguration*             generatorConfiguration;
 #if defined (SOX_SUPPORT)
-  bool                                                      manageSoX;
+  bool                                                                  manageSoX;
 #endif // SOX_SUPPORT
-  bool                                                      mute;
+  bool                                                                  mute;
+#if defined (PROJECTM_SUPPORT)
+  struct Stream_Visualization_ProjectM_Configuration*                   projectMConfiguration;
+#endif // PROJECTM_SUPPORT
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
 #if defined (GTKGL_SUPPORT)
-  GLuint                                                    OpenGLTextureId;
-  GLuint                                                    VAO;
-  GLuint                                                    VBO;
-  GLuint                                                    EBO;
-  Common_GL_Shader                                          shader;
-  enum Stream_Visualization_SpectrumAnalyzer_3DMode         spectrumAnalyzer3DMode;
+  GLuint                                                                OpenGLTextureId;
+  GLuint                                                                VAO;
+  GLuint                                                                VBO;
+  GLuint                                                                EBO;
+  Common_GL_Shader                                                      shader;
+  enum Stream_Visualization_SpectrumAnalyzer_3DMode                     spectrumAnalyzer3DMode;
 #endif /* GTKGL_SUPPORT */
-  struct Common_UI_Window                                   window;
+  struct Common_UI_Window                                               window;
 };
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 //extern const char stream_name_string_[];
 struct Test_U_MicVisualize_DirectShow_StreamConfiguration;
@@ -765,32 +775,39 @@ struct Test_U_GLUT_CBData
    , mouseY (0)
    , mouseLMBPressed (false)
    , shiftPressed (false)
+#if defined (PROJECTM_SUPPORT)
+   , projectMConfiguration (NULL)
+#endif // PROJECTM_SUPPORT
   {}
 
   // canvas
 #if defined (FFTW_SUPPORT)
-  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*    fft;
+  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*       fft;
 #else
-  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft;
+  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*    fft;
 #endif // FFTW_SUPPORT
-  ACE_Thread_Mutex*                                lock; // protect fft handle
+  ACE_Thread_Mutex*                                   lock; // protect fft handle
 
   // window
-  int                                              windowId;
+  int                                                 windowId;
 
   // menu
-  bool                                             wireframe;
+  bool                                                wireframe;
 
   // camera
-  Common_GL_Camera                                 camera;
+  Common_GL_Camera                                    camera;
 
   // mouse
-  int                                              mouseX;
-  int                                              mouseY;
-  bool                                             mouseLMBPressed;
+  int                                                 mouseX;
+  int                                                 mouseY;
+  bool                                                mouseLMBPressed;
 
   // keyboard
-  bool                                             shiftPressed;
+  bool                                                shiftPressed;
+
+#if defined (PROJECTM_SUPPORT)
+  struct Stream_Visualization_ProjectM_Configuration* projectMConfiguration;
+#endif // PROJECTM_SUPPORT
 };
 #endif // GLUT_SUPPORT
 

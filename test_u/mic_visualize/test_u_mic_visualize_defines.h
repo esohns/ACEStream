@@ -160,4 +160,7 @@
 #define TEST_U_GLUT_DEFAULT_Y_AMP_FACTOR                0.002f
 #define TEST_U_GLUT_DEFAULT_FPS                         60
 
+// *NOTE*: relative to ${LIB_ROOT}
+#define TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY  "presets-cream-of-the-crop"
+
 #endif

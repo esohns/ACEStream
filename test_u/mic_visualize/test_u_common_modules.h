@@ -80,6 +80,9 @@
 #if defined (GTK_SUPPORT)
 #include "stream_vis_gtk_cairo_spectrum_analyzer.h"
 #endif // GTK_SUPPORT
+#if defined (PROJECTM_SUPPORT)
+#include "stream_vis_projectm.h"
+#endif // PROJECTM_SUPPORT
 
 #include "test_u_mic_visualize_common.h"
 #include "test_u_message.h"
@@ -695,6 +698,35 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,  
                               Test_U_MicVisualize_MediaFoundation_Vis_SpectrumAnalyzer);             // writer type
 #endif // GTK_SUPPORT
 
+#if defined (PROJECTM_SUPPORT)
+typedef Stream_Module_Vis_ProjectM_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_DirectShow_Message,
+                                     Test_U_DirectShow_SessionMessage,
+                                     struct _AMMediaType> Test_U_MicVisualize_DirectShow_Vis_ProjectM;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_projectm_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Test_U_MicVisualize_DirectShow_Vis_ProjectM);                     // writer type
+typedef Stream_Module_Vis_ProjectM_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_MediaFoundation_Message,
+                                     Test_U_MediaFoundation_SessionMessage,
+                                     IMFMediaType*> Test_U_MicVisualize_MediaFoundation_Vis_ProjectM;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                        // session event type
+                              struct Test_U_MicVisualize_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_projectm_module_name_string,
+                              Stream_INotify_t,                                                      // stream notification interface type
+                              Test_U_MicVisualize_MediaFoundation_Vis_ProjectM);                     // writer type
+#endif // PROJECTM_SUPPORT
+
 #if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
@@ -806,13 +838,30 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 #else
                                                           FFT_ALGORITHM_UNKNOWN> Test_U_MicVisualize_Vis_SpectrumAnalyzer;
 #endif // FFTW_SUPPORT
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                                // session data type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                               // session data type
                               enum Stream_SessionMessageType,                                // session event type
-                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,     // module handler configuration type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_vis_spectrum_analyzer_module_name_string,
                               Stream_INotify_t,                                              // stream notification interface type
-                              Test_U_MicVisualize_Vis_SpectrumAnalyzer);                      // writer type
+                              Test_U_MicVisualize_Vis_SpectrumAnalyzer);                     // writer type
 #endif // GTK_SUPPORT
+
+#if defined (PROJECTM_SUPPORT)
+typedef Stream_Module_Vis_ProjectM_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_Message,
+                                     Test_U_SessionMessage,
+                                     struct Stream_MediaFramework_ALSA_MediaType> Test_U_MicVisualize_Vis_ProjectM;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_vis_projectm_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_U_MicVisualize_Vis_ProjectM);                          // writer type
+#endif // PROJECTM_SUPPORT
+
 typedef Stream_Decoder_WAVEncoder_T<ACE_MT_SYNCH,
                                     Common_TimePolicy_t,
                                     struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,

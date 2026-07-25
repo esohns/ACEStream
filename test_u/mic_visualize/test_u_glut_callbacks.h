@@ -34,6 +34,23 @@ void test_u_glut_draw (void);
 void test_u_glut_idle (void);
 void test_u_glut_visible (int);
 
+// projectM
+#if defined (PROJECTM_SUPPORT)
+void acestream_projectm_preset_switch_cb (bool, unsigned int, void*);
+
+void test_u_projectm_glut_close ();
+void test_u_projectm_glut_reshape (int, int);
+void test_u_projectm_glut_key (unsigned char, int, int);
+void test_u_projectm_glut_key_special (int, int, int);
+void test_u_projectm_glut_menu (int);
+void test_u_projectm_glut_mouse_button (int, int, int, int);
+void test_u_projectm_glut_mouse_move (int, int);
+void test_u_projectm_glut_timer (int);
+void test_u_projectm_glut_draw (void);
+void test_u_projectm_glut_idle (void);
+void test_u_projectm_glut_visible (int);
+#endif // PROJECTM_SUPPORT
+
 #if defined (ACE_LINUX)
 #else
 extern void* timer_cb_data_p;

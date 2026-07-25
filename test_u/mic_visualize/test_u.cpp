@@ -234,6 +234,12 @@ do_print_usage (const std::string& programName_in)
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-z          : use projectM visualizer [")
+            << false
+            << ACE_TEXT_ALWAYS_CHAR ("]")
+            << std::endl;
+#endif // PROJECTM_SUPPORT
 }
 
 bool
@@ -270,10 +276,14 @@ do_process_arguments (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                       ,bool& useFrameworkSource_out,
-                      bool& useFrameworkRenderer_out)
+                      bool& useFrameworkRenderer_out
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+                     ,bool& useProjectM_out)
 #else
                      )
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // PROJECTM_SUPPORT
+
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
@@ -327,6 +337,9 @@ do_process_arguments (int argc_in,
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+  useProjectM_out = false;
+#endif // PROJECTM_SUPPORT
 
   std::string options_string = ACE_TEXT_ALWAYS_CHAR ("flo::s:tuv");
 #if defined (GTK_USE) || defined (WXWIDGETS_USE)
@@ -340,6 +353,9 @@ do_process_arguments (int argc_in,
 #else
   options_string += ACE_TEXT_ALWAYS_CHAR ("d:e::p:w");
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+  options_string += ACE_TEXT_ALWAYS_CHAR ("z");
+#endif // PROJECTM_SUPPORT
   ACE_Get_Opt argument_parser (argc_in,
                                argv_in,
                                ACE_TEXT_CHAR_TO_TCHAR (options_string.c_str ()),
@@ -495,6 +511,13 @@ do_process_arguments (int argc_in,
         break;
       }
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+      case 'z':
+      {
+        useProjectM_out = true;
+        break;
+      }
+#endif // PROJECTM_SUPPORT
       // error handling
       case ':':
       {
@@ -1098,6 +1121,9 @@ do_work (int argc_in,
          bool useFrameworkSource_in,
          bool useFrameworkRenderer_in,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+         bool useProjectM_in,
+#endif // PROJECTM_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
          struct Test_U_MicVisualize_DirectShow_UI_CBData& directShowCBData_in,
          struct Test_U_MicVisualize_MediaFoundation_UI_CBData& mediaFoundationCBData_in,
@@ -1260,7 +1286,7 @@ do_work (int argc_in,
                                        );
   Test_U_ALSA_MessageHandler_Module event_handler (istream_p,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
+  // Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
@@ -1355,8 +1381,7 @@ do_work (int argc_in,
       directshow_modulehandler_configuration.subscriber =
         &directshow_ui_event_handler;
       if (!sourceFilename_in.empty ())
-        directshow_modulehandler_configuration.fileIdentifier.identifier =
-          sourceFilename_in;
+        directshow_modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
       directshow_modulehandler_configuration.spectrumAnalyzerConfiguration =
         &spectrumanalyzer_configuration;
 
@@ -1627,9 +1652,9 @@ do_work (int argc_in,
   configuration_in.streamConfiguration.initialize (module_configuration,
                                                    modulehandler_configuration,
                                                    stream_configuration);
-  modulehandler_iterator =
-      configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT(modulehandler_iterator != configuration_in.streamConfiguration.end());
+  // modulehandler_iterator =
+  //   configuration_in.streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  // ACE_ASSERT (modulehandler_iterator != configuration_in.streamConfiguration.end());
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
@@ -1643,8 +1668,7 @@ do_work (int argc_in,
   modulehandler_configuration_3 = modulehandler_configuration;
   modulehandler_configuration_3.fileIdentifier.clear ();
   if (!targetFilename_in.empty ())
-    modulehandler_configuration_3.fileIdentifier.identifier =
-      targetFilename_in;
+    modulehandler_configuration_3.fileIdentifier.identifier = targetFilename_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_ENCODER_WAV_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_3)));
@@ -1945,6 +1969,11 @@ do_work (int argc_in,
     glutSetWindow (GLUT_CBData_p->windowId);
     glutSetWindowData (GLUT_CBData_p);
 
+    int value_i = 0;
+#if defined (PROJECTM_SUPPORT)
+    struct Stream_Visualization_ProjectM_Configuration projectm_configuration;
+    std::string preset_path_string;
+#endif // PROJECTM_SUPPORT
 #if defined (GLEW_SUPPORT)
     // initialize GLEW
     GLenum err = glewInit ();
@@ -1966,6 +1995,80 @@ do_work (int argc_in,
 
     glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 
+#if defined (PROJECTM_SUPPORT)
+    if (useProjectM_in)
+    {
+      projectm_configuration.handle = projectm_create ();
+      if (unlikely (!projectm_configuration.handle))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to projectm_create(): \"%s\", aborting\n")));
+        goto error;
+      } // end IF
+      GLUT_CBData_p->projectMConfiguration = &projectm_configuration;
+
+      projectm_configuration.playlist =
+        projectm_playlist_create (projectm_configuration.handle);
+      ACE_ASSERT (projectm_configuration.playlist);
+
+      projectm_playlist_set_preset_switched_event_callback (projectm_configuration.playlist,
+                                                            acestream_projectm_preset_switch_cb,
+                                                            &projectm_configuration);
+
+      const char* lib_root_p =
+        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
+      ACE_ASSERT (lib_root_p);
+      preset_path_string = lib_root_p;
+      preset_path_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      preset_path_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY);
+
+      projectm_playlist_add_path (projectm_configuration.playlist,
+                                  preset_path_string.c_str (),
+                                  true,
+                                  false);
+      projectm_playlist_set_shuffle (projectm_configuration.playlist, true);
+      // projectm_playlist_play_next (projectm_configuration.playlist, true);
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      directshow_modulehandler_configuration.projectMConfiguration =
+        &projectm_configuration;
+      mediafoundation_modulehandler_configuration.projectMConfiguration =
+        &projectm_configuration;
+#else
+      modulehandler_configuration.projectMConfiguration =
+        &projectm_configuration;
+#endif // ACE_WIN32 || ACE_WIN64
+
+      projectm_set_window_size (projectm_configuration.handle,
+                                TEST_U_GLUT_DEFAULT_WIDTH,
+                                TEST_U_GLUT_DEFAULT_HEIGHT);
+
+      glutDisplayFunc (test_u_projectm_glut_draw);
+      glutReshapeFunc (test_u_projectm_glut_reshape);
+      glutVisibilityFunc (test_u_projectm_glut_visible);
+      glutCloseFunc (test_u_projectm_glut_close);
+
+      glutKeyboardFunc (test_u_projectm_glut_key);
+      glutSpecialFunc (test_u_projectm_glut_key_special);
+      glutMouseFunc (test_u_projectm_glut_mouse_button);
+      glutMotionFunc (test_u_projectm_glut_mouse_move);
+      glutPassiveMotionFunc (test_u_projectm_glut_mouse_move);
+  #if defined (ACE_LINUX)
+      value_i = static_cast<int> ((uint64_t)GLUT_CBData_p);
+  #else
+      timer_cb_data_p = GLUT_CBData_p;
+  #endif // ACE_LINUX
+      glutTimerFunc (1000 / TEST_U_GLUT_DEFAULT_FPS, test_u_glut_timer, value_i);
+
+      glutCreateMenu (test_u_projectm_glut_menu);
+      glutAddMenuEntry (ACE_TEXT_ALWAYS_CHAR ("wireframe"), 0);
+      glutAttachMenu (GLUT_RIGHT_BUTTON);
+
+      goto glut_loop;
+    } // end IF
+#endif // PROJECTM_SUPPORT
+
     glutDisplayFunc (test_u_glut_draw);
     glutReshapeFunc (test_u_glut_reshape);
     glutVisibilityFunc (test_u_glut_visible);
@@ -1976,7 +2079,6 @@ do_work (int argc_in,
     glutMouseFunc (test_u_glut_mouse_button);
     glutMotionFunc (test_u_glut_mouse_move);
     glutPassiveMotionFunc (test_u_glut_mouse_move);
-    int value_i = 0;
 #if defined (ACE_LINUX)
     value_i = static_cast<int> ((uint64_t)GLUT_CBData_p);
 #else
@@ -1988,7 +2090,19 @@ do_work (int argc_in,
     glutAddMenuEntry (ACE_TEXT_ALWAYS_CHAR ("wireframe"), 0);
     glutAttachMenu (GLUT_RIGHT_BUTTON);
 
+glut_loop:
     glutMainLoop ();
+
+#if defined (PROJECTM_SUPPORT)
+    if (projectm_configuration.playlist)
+    {
+      projectm_playlist_destroy (projectm_configuration.playlist); projectm_configuration.playlist = NULL;
+    } // end IF
+    if (projectm_configuration.handle)
+    {
+      projectm_destroy (projectm_configuration.handle); projectm_configuration.handle = NULL;
+    } // end IF
+#endif // PROJECTM_SUPPORT
 #endif // GLUT_SUPPORT
 
     ACE_ASSERT (istream_control_p);
@@ -2241,6 +2355,9 @@ ACE_TMAIN (int argc_in,
   bool use_framework_source = false;
   bool use_framework_renderer = false;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+  bool use_projectm_b = false;
+#endif // PROJECTM_SUPPORT
 
   // step1b: parse/process/validate configuration
   if (!do_process_arguments (argc_in,
@@ -2276,10 +2393,13 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
                              ,use_framework_source,
-                             use_framework_renderer))
+                             use_framework_renderer
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+                            ,use_projectm_b))
 #else
                             ))
-#endif // ACE_WIN32 || ACE_WIN64
+#endif // PROJECTM_SUPPORT
   {
     do_print_usage (Common_File_Tools::executable);
 
@@ -2472,9 +2592,8 @@ ACE_TMAIN (int argc_in,
 //                    &state_r.logQueueLock);
   std::string log_file_name;
   if (log_to_file)
-    log_file_name =
-      Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                        Common_File_Tools::executable);
+    log_file_name = Common_Log_Tools::getLogFilename (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      Common_File_Tools::executable);
   if (!Common_Log_Tools::initialize (Common_File_Tools::executable,            // program name
                                      log_file_name,                            // log file name
                                      false,                                    // log to syslog ?
@@ -2609,6 +2728,9 @@ ACE_TMAIN (int argc_in,
            use_framework_source,
            use_framework_renderer,
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (PROJECTM_SUPPORT)
+           use_projectm_b,
+#endif // PROJECTM_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
            directshow_ui_cb_data,
            mediafoundation_ui_cb_data,

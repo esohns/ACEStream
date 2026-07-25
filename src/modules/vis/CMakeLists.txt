@@ -34,10 +34,11 @@ endif (WIN32)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../dec/scripts")
 include (opencv)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
 if (WIN32)
- set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/scripts")
  include (directx)
 endif (WIN32)
+include (projectm)
 
 get_filename_component (BUILD_PATH ${CMAKE_CURRENT_BINARY_DIR}/../../.. REALPATH)
 get_filename_component (BUILD_PATH_SUFFIX ${BUILD_PATH} NAME)
@@ -125,6 +126,11 @@ if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
+
+if (PROJECTM_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
+                             "$<BUILD_INTERFACE:${PROJECTM_INCLUDE_DIRS}>")
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  if (X11_SUPPORT)
   target_include_directories (${PROJECT_NAME}_Visualization PUBLIC
@@ -275,6 +281,13 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
+if (PROJECTM_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_vis_projectm.cpp
+      stream_vis_projectm.h
+      stream_vis_projectm.inl)
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  if (WAYLAND_SUPPORT)
   set (source_files
@@ -398,6 +411,9 @@ endif (GTK_SUPPORT)
 if (OPENCV_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${OPENCV_LIBRARIES})
 endif (OPENCV_SUPPORT)
+if (PROJECTM_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${PROJECTM_LIBRARIES})
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  if (WAYLAND_SUPPORT)
   target_link_libraries (${PROJECT_NAME}_Visualization PUBLIC ${WAYLAND_LIBRARIES})
@@ -497,6 +513,12 @@ if (OPENCV_SUPPORT)
       stream_vis_opencv_classifier.h
       stream_vis_opencv_classifier.inl)
 endif (OPENCV_SUPPORT)
+if (PROJECTM_SUPPORT)
+ set (header_files
+      ${header_files}
+      stream_vis_projectm.h
+      stream_vis_projectm.inl)
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  if (WAYLAND_SUPPORT)
   set (header_files

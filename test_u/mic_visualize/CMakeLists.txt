@@ -23,6 +23,9 @@ if (WIN32)
 endif (WIN32)
 include (sox)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/vis/scripts")
+include (projectm)
+
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
 
@@ -42,6 +45,9 @@ endif (MPG123_SUPPORT)
 if (SOX_SUPPORT)
  include_directories (${SOX_INCLUDE_DIRS})
 endif (SOX_SUPPORT)
+if (PROJECTM_SUPPORT)
+ include_directories (${PROJECTM_INCLUDE_DIRS})
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
 
@@ -152,6 +158,11 @@ if (GLUT_SUPPORT)
       test_u_glut_callbacks.cpp
       test_u_glut_callbacks.h)
 endif (GLUT_SUPPORT)
+if (PROJECTM_SUPPORT)
+ set (${EXECUTABLE}_EXE_SRCS
+      ${${EXECUTABLE}_EXE_SRCS}
+      test_u_glut_projectm_callbacks.cpp)
+endif (PROJECTM_SUPPORT)
 
 add_executable (${EXECUTABLE}
                 EXCLUDE_FROM_ALL
@@ -159,7 +170,7 @@ add_executable (${EXECUTABLE}
                 etc/test_u.gtk2
                 etc/test_u.gtk3)
 set_property (TARGET ${EXECUTABLE} PROPERTY FOLDER "test_u")
-cmake_policy (SET CMP0012 NEW)
+#cmake_policy (SET CMP0012 NEW)
 if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif (WIN32 AND NOT BUILD_TEST_U)
@@ -200,6 +211,9 @@ endif (MPG123_SUPPORT)
 if (SOX_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 endif (SOX_SUPPORT)
+if (PROJECTM_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${PROJECTM_LIBRARIES})
+endif (PROJECTM_SUPPORT)
 if (UNIX)
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
 
@@ -375,11 +389,14 @@ elseif (WIN32)
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
  endif (SOX_SUPPORT)
+ if (PROJECTM_SUPPORT)
+  file (TO_CMAKE_PATH "${PROJECTM_LIB_DIRS}" PROJECTM_PATH)
+ endif (PROJECTM_SUPPORT)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
  if (ZLIB_SUPPORT)
   file (TO_CMAKE_PATH "${ZLIB_LIB_DIR}" ZLIB_PATH)
  endif (ZLIB_SUPPORT)
- file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_LIBRARY_PATH)
+ file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIR ${ASSIMP_PATH}
                           ${GLEW_PATH}
                           ${GLUT_PATH}
@@ -392,7 +409,7 @@ elseif (WIN32)
                           ${MPG123_PATH}
                           ${SOX_PATH}
                           ${ZLIB_PATH}
-                          ${ACE_LIBRARY_PATH})
+                          ${ACE_PATH})
  if (GTK_SUPPORT)
   set (RUNTIME_LIBRARY_DIR ${RUNTIME_LIBRARY_DIR}
                            ${GTK_PATH})
@@ -401,6 +418,10 @@ elseif (WIN32)
   set (RUNTIME_LIBRARY_DIR ${RUNTIME_LIBRARY_DIR}
                            ${WXWIDGETS_PATH})
  endif (WXWIDGETS_SUPPORT)
+ if (PROJECTM_SUPPORT)
+  set (RUNTIME_LIBRARY_DIR ${RUNTIME_LIBRARY_DIR}
+                           ${PROJECTM_PATH})
+ endif (PROJECTM_SUPPORT)
 endif ()
 create_target_launcher (${EXECUTABLE}
                         COMMAND ${COMMAND}

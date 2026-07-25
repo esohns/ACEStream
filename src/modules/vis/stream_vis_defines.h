@@ -54,6 +54,7 @@
 #define STREAM_VIS_OPENCV_CLASSIFIER_DEFAULT_NAME_STRING                  "OpenCV_Classifier"
 
 #define STREAM_VIS_OPENGL_GLUT_DEFAULT_NAME_STRING                        "OpenGL_GLUT"
+#define STREAM_VIS_PROJECTM_DEFAULT_NAME_STRING                           "ProjectM"
 
 #define STREAM_VIS_NULL_DEFAULT_NAME_STRING                               "Null"
 
