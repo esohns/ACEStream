@@ -112,6 +112,56 @@
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MicVisualizeStream");
 
+
+//////////////////////////////////////////
+
+#if defined (PROJECTM_SUPPORT)
+void
+acestream_projectm_log_callback (const char* message_in,
+                                 projectm_log_level logLevel_in,
+                                 void* userData_in)
+{
+  // sanity check(s)
+  ACE_ASSERT (message_in);
+
+  enum ACE_Log_Priority log_priority_e = LM_INFO;
+  switch (logLevel_in)
+  {
+    case PROJECTM_LOG_LEVEL_NOTSET:
+      break;
+    case PROJECTM_LOG_LEVEL_TRACE:
+      log_priority_e = LM_TRACE;
+      break;
+    case PROJECTM_LOG_LEVEL_DEBUG:
+      log_priority_e = LM_DEBUG;
+      break;
+    case PROJECTM_LOG_LEVEL_INFO:
+      break;
+    case PROJECTM_LOG_LEVEL_WARN:
+      log_priority_e = LM_WARNING;
+      break;
+    case PROJECTM_LOG_LEVEL_ERROR:
+      log_priority_e = LM_ERROR;
+      break;
+    case PROJECTM_LOG_LEVEL_FATAL:
+      log_priority_e = LM_CRITICAL;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("projectM: invalid/unknown log level (was: %d), returning\n"),
+                  logLevel_in));
+      return;
+    }
+  } // end SWITCH
+  ACE_DEBUG ((log_priority_e,
+              ACE_TEXT ("projectM: %s\n"),
+              ACE_TEXT (message_in)));
+}
+#endif // PROJECTM_SUPPORT
+
+//////////////////////////////////////////
+
 void
 do_print_usage (const std::string& programName_in)
 {
@@ -156,10 +206,10 @@ do_print_usage (const std::string& programName_in)
   UI_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
 #if defined (GTK_USE)
   UI_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_GLADE_FILE);
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_GLADE_FILE);
 #elif defined (WXWIDGETS_USE)
   UI_file +=
-      ACE_TEXT_ALWAYS_CHAR (TEST_U_WXWIDGETS_XRC_FILE);
+    ACE_TEXT_ALWAYS_CHAR (TEST_U_WXWIDGETS_XRC_FILE);
 #endif // GTK_USE || WXWIDGETS_USE
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-g[[STRING]]: UI file [\"")
             << UI_file
@@ -2012,7 +2062,7 @@ do_work (int argc_in,
     int value_i = 0;
 #if defined (PROJECTM_SUPPORT)
     struct Stream_Visualization_ProjectM_Configuration projectm_configuration;
-    std::string preset_path_string;
+    std::string textures_path_string, presets_path_string;
 #endif // PROJECTM_SUPPORT
 #if defined (GLEW_SUPPORT)
     // initialize GLEW
@@ -2038,6 +2088,19 @@ do_work (int argc_in,
 #if defined (PROJECTM_SUPPORT)
     if (useProjectM_in)
     {
+#if defined (_DEBUG)
+      projectm_set_log_callback (acestream_projectm_log_callback,
+                                 false,
+                                 NULL);
+      projectm_set_log_level (PROJECTM_LOG_LEVEL_NOTSET,
+                              false);
+#endif // _DEBUG
+      char* version_string_p = projectm_get_version_string ();
+      ACE_DEBUG ((LM_INFO,
+                  ACE_TEXT ("using projectM version: %s\n"),
+                  ACE_TEXT (version_string_p)));
+      projectm_free_string (version_string_p); version_string_p = NULL;
+
       projectm_configuration.handle = projectm_create ();
       if (unlikely (!projectm_configuration.handle))
       {
@@ -2045,12 +2108,15 @@ do_work (int argc_in,
                     ACE_TEXT ("failed to projectm_create(): \"%s\", aborting\n")));
         goto error;
       } // end IF
-      GLUT_CBData_p->projectMConfiguration = &projectm_configuration;
-
+      projectm_set_window_size (projectm_configuration.handle,
+                                TEST_U_GLUT_DEFAULT_WIDTH,
+                                TEST_U_GLUT_DEFAULT_HEIGHT);
       projectm_set_preset_duration (projectm_configuration.handle,
                                     TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_DURATION_D);
       projectm_set_soft_cut_duration (projectm_configuration.handle,
                                       TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_TRANSITION_DURATION_D);
+      projectm_set_texel_offset (projectm_configuration.handle,
+                                 0.5f, 0.5f);
 
       projectm_configuration.playlist =
         projectm_playlist_create (projectm_configuration.handle);
@@ -2063,17 +2129,31 @@ do_work (int argc_in,
       const char* lib_root_p =
         ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));
       ACE_ASSERT (lib_root_p);
-      preset_path_string = lib_root_p;
-      preset_path_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-      preset_path_string +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY);
 
+      textures_path_string = lib_root_p;
+      textures_path_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      textures_path_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_PROJECTM_DEFAULT_TEXTURES_DIRECTORY);
+      textures_path_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      textures_path_string += ACE_TEXT_ALWAYS_CHAR ("textures");
+      const char* texture_paths_a[1] = { textures_path_string.c_str () };
+      projectm_set_texture_search_paths (projectm_configuration.handle,
+                                         texture_paths_a,
+                                         1);
+
+      presets_path_string = lib_root_p;
+      presets_path_string += ACE_DIRECTORY_SEPARATOR_CHAR_A;
+      presets_path_string +=
+        ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY);
       projectm_playlist_add_path (projectm_configuration.playlist,
-                                  preset_path_string.c_str (),
+                                  presets_path_string.c_str (),
                                   true,
                                   false);
+
       projectm_playlist_set_shuffle (projectm_configuration.playlist, true);
-      projectm_playlist_play_next (projectm_configuration.playlist, true);
+      //projectm_playlist_play_next (projectm_configuration.playlist, true);
+
+      //projectm_reset_textures (projectm_configuration.handle);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       directshow_modulehandler_configuration.projectMConfiguration =
@@ -2084,10 +2164,7 @@ do_work (int argc_in,
       modulehandler_configuration.projectMConfiguration =
         &projectm_configuration;
 #endif // ACE_WIN32 || ACE_WIN64
-
-      projectm_set_window_size (projectm_configuration.handle,
-                                TEST_U_GLUT_DEFAULT_WIDTH,
-                                TEST_U_GLUT_DEFAULT_HEIGHT);
+      GLUT_CBData_p->projectMConfiguration = &projectm_configuration;
 
       glutDisplayFunc (test_u_projectm_glut_draw);
       glutReshapeFunc (test_u_projectm_glut_reshape);

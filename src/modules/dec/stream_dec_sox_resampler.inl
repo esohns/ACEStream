@@ -219,7 +219,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   if (unlikely (!input_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_open_mem_read(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_open_mem_read(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -228,7 +228,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   if (unlikely (result != SOX_SUCCESS))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
     goto error;
@@ -241,7 +241,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (!buffer_))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", aborting\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
@@ -258,7 +258,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   if (unlikely (!output_buffer_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -267,7 +267,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
   if (unlikely (result != SOX_SUCCESS))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
     goto error;
@@ -283,7 +283,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (result != SOX_EOF))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_flow_effects(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to sox_flow_effects(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
       goto error;
@@ -306,7 +306,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (!message_block_2))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", returning\n"),
+                  ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", aborting\n"),
                   inherited::mod_->name (),
                   inherited::configuration_->allocatorConfiguration->defaultBufferSize));
       goto error;
@@ -318,7 +318,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (result != SOX_SUCCESS))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to sox_close(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
       goto error;
@@ -334,7 +334,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (!output_buffer_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", returning\n"),
+                  ACE_TEXT ("%s: failed to sox_open_mem_write(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
       goto error;
     } // end IF
@@ -344,7 +344,7 @@ Stream_Decoder_SoXResampler_T<ACE_SYNCH_USE,
     if (unlikely (result != SOX_SUCCESS))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", returning\n"),
+                  ACE_TEXT ("%s: failed to sox_effect_options(): \"%s\", aborting\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (sox_strerror (result))));
       goto error;
@@ -367,7 +367,7 @@ continue_:
   if (unlikely (result != SOX_SUCCESS))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
     goto error;
@@ -376,7 +376,7 @@ continue_:
   if (unlikely (result != SOX_SUCCESS))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to sox_close(): \"%s\", returning\n"),
+                ACE_TEXT ("%s: failed to sox_close(): \"%s\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (sox_strerror (result))));
     goto error;
@@ -388,7 +388,7 @@ continue_:
   if (unlikely (result == -1))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                 inherited::mod_->name ()));
     goto error;
   } // end IF
@@ -427,6 +427,8 @@ error:
 
   // clean up
   message_inout->release (); message_inout = NULL;
+
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

@@ -597,40 +597,51 @@ if (MEDIAPIPE_SUPPORT)
                          WORKING_DIRECTORY ${WORKING_DIRECTORY_2}
                          ENVIRONMENT ${ENVIRONMENT})
 
- if (UNIX)
-  # Mediapipe Modules
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
-                      COMMENT "Copying mediapipe/modules")
-  # additional file(s)
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules/hand_landmark"
-                      COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
-  # Mediapipe Models
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
-                      COMMENT "Copying mediapipe/models")
- elseif (WIN32)
-  # Mediapipe Modules
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
-                      COMMENT "Copying mediapipe/modules")
-  # additional file(s)
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules/hand_landmark"
-                      COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
-  # Mediapipe Models
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
-                      COMMENT "Copying mediapipe/models")
- endif ()
+ if (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe")
+  if (UNIX)
+   # Mediapipe Modules
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
+                       COMMENT "Copying mediapipe/modules")
+   # additional file(s)
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules/hand_landmark"
+                       COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
+   # Mediapipe Models
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
+                       COMMENT "Copying mediapipe/models")
+  elseif (WIN32)
+   # Mediapipe Modules
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules"
+                       COMMENT "Copying mediapipe/modules")
+   # additional file(s)
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/modules/hand_landmark"
+                       COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
+   # Mediapipe Models
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe/models"
+                       COMMENT "Copying mediapipe/models")
+  endif ()
+ endif (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/mediapipe")
 
- if (WIN32)
-  file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/opencv/build" OPENCV_DIR)
-  add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>"
-                      COMMENT "Copying OpenCV DLL (Release)")
- endif (WIN32)
+ if (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/opencv_imgproc453.dll")
+  if (WIN32)
+   file (TO_CMAKE_PATH "$ENV{LIB_ROOT}/opencv/build" OPENCV_DIR)
+   add_custom_command (TARGET ${EXECUTABLE_2} POST_BUILD
+                       COMMAND ${CMAKE_COMMAND}
+                       ARGS -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_2}>"
+                       COMMENT "Copying OpenCV DLL (Release)")
+  endif (WIN32)
+ endif (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_2}>/opencv_imgproc453.dll")
 
  if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
   set (ARGS_3 "-l")
@@ -656,39 +667,50 @@ if (MEDIAPIPE_SUPPORT)
                           WORKING_DIRECTORY ${WORKING_DIRECTORY_3}
                           ENVIRONMENT ${ENVIRONMENT})
 
-  if (UNIX)
-   # Mediapipe Modules
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
-                       COMMENT "Copying mediapipe/modules")
-   # additional file(s)
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
-                       COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
-   # Mediapipe Models
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
-                       COMMENT "Copying mediapipe/models")
-  elseif (WIN32)
-   # Mediapipe Modules
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
-                       COMMENT "Copying mediapipe/modules")
-   # additional file(s)
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
-                       COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
-   # Mediapipe Models
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
-                       COMMENT "Copying mediapipe/models")
-  endif ()
+  if (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe")
+   if (UNIX)
+    # Mediapipe Modules
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
+                        COMMENT "Copying mediapipe/modules")
+    # additional file(s)
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
+                        COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
+    # Mediapipe Models
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy_directory "${MEDIAPIPE_ROOT}/bazel-bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
+                        COMMENT "Copying mediapipe/models")
+   elseif (WIN32)
+    # Mediapipe Modules
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/modules" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules"
+                        COMMENT "Copying mediapipe/modules")
+    # additional file(s)
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy "${MEDIAPIPE_ROOT}/mediapipe/modules/hand_landmark/handedness.txt" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/modules/hand_landmark"
+                        COMMENT "Copying mediapipe/modules/hand_landmark/handedness.txt")
+    # Mediapipe Models
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy_directory "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin/mediapipe/models" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe/models"
+                        COMMENT "Copying mediapipe/models")
+   endif ()
+  endif (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/mediapipe")
 
-  if (WIN32)
-   add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>"
-                       COMMENT "Copying OpenCV DLL (Release)")
-  endif (WIN32)
+  if (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/opencv_imgproc453.dll")
+   if (WIN32)
+    add_custom_command (TARGET ${EXECUTABLE_3} POST_BUILD
+                        COMMAND ${CMAKE_COMMAND}
+                        ARGS -E copy "${OPENCV_DIR}/bin/Release/opencv_imgproc453.dll" "$<TARGET_FILE_DIR:${EXECUTABLE_3}>"
+                        COMMENT "Copying OpenCV DLL (Release)")
+   endif (WIN32)
+  endif (NOT EXISTS "$<TARGET_FILE_DIR:${EXECUTABLE_3}>/opencv_imgproc453.dll")
  endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
 endif (MEDIAPIPE_SUPPORT)
 

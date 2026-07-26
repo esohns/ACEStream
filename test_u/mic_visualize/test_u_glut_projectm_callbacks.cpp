@@ -220,12 +220,21 @@ test_u_projectm_glut_mouse_button (int button,
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->projectMConfiguration);
+  ACE_ASSERT (cb_data_p->projectMConfiguration->handle);
 
   switch (button)
   {
     case GLUT_LEFT_BUTTON:
     {
       cb_data_p->mouseLMBPressed = (state == GLUT_DOWN);
+      if (cb_data_p->mouseLMBPressed)
+        projectm_touch (cb_data_p->projectMConfiguration->handle,
+                        static_cast<float> (x), static_cast<float> (y),
+                        1,
+                        PROJECTM_TOUCH_TYPE_RANDOM);
+      else
+        projectm_touch_destroy_all (cb_data_p->projectMConfiguration->handle);
       break;
     }
     case 3:
@@ -254,6 +263,13 @@ test_u_projectm_glut_mouse_move (int x,
   struct Test_U_GLUT_CBData* cb_data_p =
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->projectMConfiguration);
+  ACE_ASSERT (cb_data_p->projectMConfiguration->handle);
+
+  if (unlikely (cb_data_p->mouseLMBPressed))
+    projectm_touch_drag (cb_data_p->projectMConfiguration->handle,
+                         static_cast<float> (x), static_cast<float> (y),
+                         1);
 
   cb_data_p->mouseX = x;
   cb_data_p->mouseY = y;

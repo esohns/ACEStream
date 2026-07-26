@@ -6320,10 +6320,9 @@ idle_update_info_display_cb (gpointer userData_in)
 {
   STREAM_TRACE (ACE_TEXT ("::idle_update_info_display_cb"));
 
+  // sanity check(s)
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   Common_UI_GTK_Manager_t* gtk_manager_p =
@@ -6448,7 +6447,7 @@ idle_update_info_display_cb (gpointer userData_in)
     } // end WHILE
   } // end lock scope
 
-  // display renderer statistics
+  // display renderer statistics ?
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_U_MicVisualize_DirectShow_UI_CBData* directshow_ui_cb_data_p =
     NULL;
@@ -6465,18 +6464,18 @@ idle_update_info_display_cb (gpointer userData_in)
         static_cast<struct Test_U_MicVisualize_DirectShow_UI_CBData*> (userData_in);
       ACE_ASSERT (directshow_ui_cb_data_p);
       ACE_ASSERT (directshow_ui_cb_data_p->configuration);
-      ACE_ASSERT (directshow_ui_cb_data_p->stream);
-      ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
-      if ((directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) ||
-          !directshow_ui_cb_data_p->stream->isRunning ())
-        break;
       directshow_modulehandler_configuration_iterator =
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
-      Stream_MediaFrameWork_DirectSound_Statistics_t statistics_a;
-      Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics ((*directshow_modulehandler_configuration_iterator).second.second->builder,
-                                                                          statistics_a);
+      //ACE_ASSERT (directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_);
+      //ACE_ASSERT (directshow_ui_cb_data_p->stream);
+      //if ((directshow_ui_cb_data_p->configuration->streamConfiguration.configuration_->renderer != STREAM_DEVICE_RENDERER_DIRECTSHOW) ||
+      //    !directshow_ui_cb_data_p->stream->isRunning ())
+      //  break;
+      //ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->builder);
+      //Stream_MediaFrameWork_DirectSound_Statistics_t statistics_a;
+      //Stream_MediaFramework_DirectShow_Tools::getAudioRendererStatistics ((*directshow_modulehandler_configuration_iterator).second.second->builder,
+      //                                                                    statistics_a);
       //for (Stream_MediaFrameWork_DirectSound_StatisticsIterator_t iterator_2 = statistics_a.begin ();
       //     iterator_2 != statistics_a.end ();
       //     ++iterator_2)

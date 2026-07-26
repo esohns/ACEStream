@@ -119,28 +119,34 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->projectMConfiguration);
   ACE_ASSERT (inherited::configuration_->projectMConfiguration->handle);
+  ACE_ASSERT (channels_);
+  ACE_ASSERT (sampleSize_);
 
+  unsigned int max_samples_i = projectm_pcm_get_max_samples (), available_samples_i, samples_to_write_i;
   ACE_Message_Block* message_block_p = message_inout;
   do
   {
+    available_samples_i = (message_block_p->length () / sampleSize_) / channels_;
+    samples_to_write_i = std::min (max_samples_i, available_samples_i);
+
     switch (sampleSize_)
     {
       case 1:
         projectm_pcm_add_uint8 (inherited::configuration_->projectMConfiguration->handle,
                                 reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                                message_block_p->length () / sizeof (uint8_t),
+                                samples_to_write_i,
                                 channels_); // #channels
         break;
       case 2:
         projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
                                 reinterpret_cast<int16_t*> (message_block_p->rd_ptr ()),
-                                message_block_p->length () / sizeof (int16_t),
+                                samples_to_write_i,
                                 channels_); // #channels
         break;
       case 4:
          projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
                                  reinterpret_cast<float*> (message_block_p->rd_ptr ()),
-                                 message_block_p->length () / sizeof (float),
+                                 samples_to_write_i,
                                  channels_); // #channels
         break;
       default:
