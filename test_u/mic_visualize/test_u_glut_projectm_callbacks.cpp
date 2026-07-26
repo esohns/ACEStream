@@ -30,10 +30,56 @@
 //#endif // ACE_LINUX
 
 void
+acestream_projectm_log_cb (const char* message_in,
+                           projectm_log_level logLevel_in,
+                           void* userData_in)
+{
+  // sanity check(s)
+  ACE_ASSERT (message_in);
+
+  enum ACE_Log_Priority log_priority_e = LM_INFO;
+  switch (logLevel_in)
+  {
+    case PROJECTM_LOG_LEVEL_NOTSET:
+      break;
+    case PROJECTM_LOG_LEVEL_TRACE:
+      log_priority_e = LM_TRACE;
+      break;
+    case PROJECTM_LOG_LEVEL_DEBUG:
+      log_priority_e = LM_DEBUG;
+      break;
+    case PROJECTM_LOG_LEVEL_INFO:
+      break;
+    case PROJECTM_LOG_LEVEL_WARN:
+      log_priority_e = LM_WARNING;
+      break;
+    case PROJECTM_LOG_LEVEL_ERROR:
+      log_priority_e = LM_ERROR;
+      break;
+    case PROJECTM_LOG_LEVEL_FATAL:
+      log_priority_e = LM_CRITICAL;
+      break;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("projectM: invalid/unknown log level (was: %d), returning\n"),
+                  logLevel_in));
+      return;
+    }
+  } // end SWITCH
+  ACE_DEBUG ((log_priority_e,
+              ACE_TEXT ("projectM: %s\n"),
+              ACE_TEXT (message_in)));
+}
+
+void
 acestream_projectm_preset_switch_cb (bool isHardCut_in,
                                      unsigned int index_in,
                                      void* userData_in)
 {
+  ACE_UNUSED_ARG (isHardCut_in);
+
+  // sanity check(s)
   struct Stream_Visualization_ProjectM_Configuration* cb_data_p =
     static_cast<struct Stream_Visualization_ProjectM_Configuration*> (userData_in);
   ACE_ASSERT (cb_data_p);
@@ -49,6 +95,25 @@ acestream_projectm_preset_switch_cb (bool isHardCut_in,
 
   // clean up
   projectm_playlist_free_string (preset_name_p);
+}
+
+void
+acestream_projectm_preset_switch_failed_cb (const char* presetName_in,
+                                            const char* message_in,
+                                            void* userData_in)
+{
+  // sanity check(s)
+  ACE_ASSERT (presetName_in);
+  ACE_ASSERT (message_in);
+  struct Stream_Visualization_ProjectM_Configuration* cb_data_p =
+    static_cast<struct Stream_Visualization_ProjectM_Configuration*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+  ACE_ASSERT (cb_data_p->playlist);
+
+  ACE_DEBUG ((LM_ERROR,
+              ACE_TEXT ("%s: preset switch failed: \"%s\", continuing\n"),
+              ACE_TEXT (presetName_in),
+              ACE_TEXT (message_in)));
 }
 
 //////////////////////////////////////////

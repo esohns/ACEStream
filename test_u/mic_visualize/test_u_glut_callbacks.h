@@ -36,7 +36,9 @@ void test_u_glut_visible (int);
 
 // projectM
 #if defined (PROJECTM_SUPPORT)
+void acestream_projectm_log_cb (const char*, projectm_log_level, void*);
 void acestream_projectm_preset_switch_cb (bool, unsigned int, void*);
+void acestream_projectm_preset_switch_failed_cb (const char*, const char*, void*);
 
 void test_u_projectm_glut_close ();
 void test_u_projectm_glut_reshape (int, int);

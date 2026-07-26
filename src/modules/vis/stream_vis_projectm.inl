@@ -18,8 +18,6 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-#include "projectM-4/projectM.h"
-
 #include "ace/Log_Msg.h"
 
 #include "common_tools.h"

@@ -415,16 +415,15 @@ glarea_realize_cb (GtkWidget* widget_in,
   //glDepthFunc (GL_LESS);                              // The Type Of Depth Testing To Do
   //glDepthMask (GL_TRUE);
 
-  path_root = Common_File_Tools::getWorkingDirectory ();
+  path_root =
+    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+                                                      true); // configuration
   vertex_shader_file_path = path_root;
-  vertex_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  vertex_shader_file_path += COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY;
   vertex_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   vertex_shader_file_path +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_OPENGL_DEFAULT_VS_FILE);
   fragment_shader_file_path = path_root;
-  fragment_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  fragment_shader_file_path += COMMON_LOCATION_CONFIGURATION_SUBDIRECTORY;
   fragment_shader_file_path += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   fragment_shader_file_path +=
     ACE_TEXT_ALWAYS_CHAR (TEST_U_OPENGL_DEFAULT_FS_FILE);
@@ -1331,13 +1330,13 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
 #if defined (GLM_SUPPORT)
   glm::mat4 model_matrix = glm::mat4 (1.0f); // make sure to initialize matrix to identity matrix first
-  model_matrix = glm::translate (model_matrix,
-                                 glm::vec3 (0.0f, 0.0f, -3.0f));
+  //model_matrix = glm::translate (model_matrix,
+  //                               glm::vec3 (0.0f, 0.0f, -3.0f));
   model_matrix = glm::rotate (model_matrix,
                               glm::radians (ui_cb_data_base_p->objectRotation),
                               glm::vec3 (1.0f, 1.0f, 1.0f));
-  glm::mat4 view_matrix = glm::lookAt (glm::vec3 (0.0f, 0.0f, 0.0f),
-                                       glm::vec3 (0.0f, 0.0f, -1.0f),
+  glm::mat4 view_matrix = glm::lookAt (glm::vec3 (0.0f, 0.0f, 3.0f),
+                                       glm::vec3 (0.0f, 0.0f, 0.0f),
                                        glm::vec3 (0.0f, 1.0f, 0.0f));
   GtkAllocation allocation;
   gtk_widget_get_allocation (widget_in,

@@ -112,54 +112,6 @@
 
 const char stream_name_string_[] = ACE_TEXT_ALWAYS_CHAR ("MicVisualizeStream");
 
-
-//////////////////////////////////////////
-
-#if defined (PROJECTM_SUPPORT)
-void
-acestream_projectm_log_callback (const char* message_in,
-                                 projectm_log_level logLevel_in,
-                                 void* userData_in)
-{
-  // sanity check(s)
-  ACE_ASSERT (message_in);
-
-  enum ACE_Log_Priority log_priority_e = LM_INFO;
-  switch (logLevel_in)
-  {
-    case PROJECTM_LOG_LEVEL_NOTSET:
-      break;
-    case PROJECTM_LOG_LEVEL_TRACE:
-      log_priority_e = LM_TRACE;
-      break;
-    case PROJECTM_LOG_LEVEL_DEBUG:
-      log_priority_e = LM_DEBUG;
-      break;
-    case PROJECTM_LOG_LEVEL_INFO:
-      break;
-    case PROJECTM_LOG_LEVEL_WARN:
-      log_priority_e = LM_WARNING;
-      break;
-    case PROJECTM_LOG_LEVEL_ERROR:
-      log_priority_e = LM_ERROR;
-      break;
-    case PROJECTM_LOG_LEVEL_FATAL:
-      log_priority_e = LM_CRITICAL;
-      break;
-    default:
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("projectM: invalid/unknown log level (was: %d), returning\n"),
-                  logLevel_in));
-      return;
-    }
-  } // end SWITCH
-  ACE_DEBUG ((log_priority_e,
-              ACE_TEXT ("projectM: %s\n"),
-              ACE_TEXT (message_in)));
-}
-#endif // PROJECTM_SUPPORT
-
 //////////////////////////////////////////
 
 void
@@ -2089,7 +2041,7 @@ do_work (int argc_in,
     if (useProjectM_in)
     {
 #if defined (_DEBUG)
-      projectm_set_log_callback (acestream_projectm_log_callback,
+      projectm_set_log_callback (acestream_projectm_log_cb,
                                  false,
                                  NULL);
       projectm_set_log_level (PROJECTM_LOG_LEVEL_NOTSET,
@@ -2125,6 +2077,9 @@ do_work (int argc_in,
       projectm_playlist_set_preset_switched_event_callback (projectm_configuration.playlist,
                                                             acestream_projectm_preset_switch_cb,
                                                             &projectm_configuration);
+      projectm_playlist_set_preset_switch_failed_event_callback (projectm_configuration.playlist,
+                                                                 acestream_projectm_preset_switch_failed_cb,
+                                                                 &projectm_configuration);
 
       const char* lib_root_p =
         ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR (COMMON_ENVIRONMENT_DIRECTORY_ROOT_LIB));

@@ -21,6 +21,8 @@
 #ifndef STREAM_VIS_PROJECTM_H
 #define STREAM_VIS_PROJECTM_H
 
+#include "projectM-4/projectM.h"
+
 #include "ace/Global_Macros.h"
 
 #include "stream_common.h"
