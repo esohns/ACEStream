@@ -164,7 +164,7 @@
 #define TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_TRANSITION_DURATION_D  3.0
 // *NOTE*: relative to ${LIB_ROOT}
 #define TEST_U_GLUT_PROJECTM_DEFAULT_TEXTURES_DIRECTORY            "presets-milkdrop-texture-pack"
-//#define TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY             "presets-cream-of-the-crop"
-#define TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY             "presets-milkdrop-original"
+#define TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY             "presets-cream-of-the-crop"
+//#define TEST_U_GLUT_PROJECTM_DEFAULT_PRESETS_DIRECTORY             "presets-milkdrop-original"
 
 #endif

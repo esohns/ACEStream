@@ -1490,7 +1490,8 @@ do_work (int argc_in,
       directshow_modulehandler_configuration_5.allocatorConfiguration =
         &allocator_configuration_2;
       directshow_modulehandler_configuration_5.manageSoX = true;
-      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
+      //directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
+      directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
                                                                                              &directshow_modulehandler_configuration_5)));
 
@@ -2063,12 +2064,34 @@ do_work (int argc_in,
       projectm_set_window_size (projectm_configuration.handle,
                                 TEST_U_GLUT_DEFAULT_WIDTH,
                                 TEST_U_GLUT_DEFAULT_HEIGHT);
+      projectm_set_fps (projectm_configuration.handle,
+                        TEST_U_GLUT_DEFAULT_FPS);
+      projectm_set_mesh_size (projectm_configuration.handle,
+                              48, 32);
+      projectm_set_aspect_correction (projectm_configuration.handle,
+                                      true);
+      projectm_set_preset_locked (projectm_configuration.handle,
+                                  false);
+
       projectm_set_preset_duration (projectm_configuration.handle,
                                     TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_DURATION_D);
       projectm_set_soft_cut_duration (projectm_configuration.handle,
                                       TEST_U_GLUT_PROJECTM_DEFAULT_PRESET_TRANSITION_DURATION_D);
+      projectm_set_hard_cut_enabled (projectm_configuration.handle, 
+                                     false);
+      projectm_set_hard_cut_duration (projectm_configuration.handle,
+                                      20.0);
+      projectm_set_hard_cut_sensitivity (projectm_configuration.handle,
+                                         1.0f);
+      projectm_set_beat_sensitivity (projectm_configuration.handle,
+                                     1.0f);
+
       projectm_set_texel_offset (projectm_configuration.handle,
                                  0.5f, 0.5f);
+
+      projectm_set_texture_load_event_callback (projectm_configuration.handle,
+                                                acestream_projectm_texture_load_cb,
+                                                &projectm_configuration);
 
       projectm_configuration.playlist =
         projectm_playlist_create (projectm_configuration.handle);

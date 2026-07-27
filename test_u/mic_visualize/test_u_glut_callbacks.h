@@ -37,6 +37,7 @@ void test_u_glut_visible (int);
 // projectM
 #if defined (PROJECTM_SUPPORT)
 void acestream_projectm_log_cb (const char*, projectm_log_level, void*);
+void acestream_projectm_texture_load_cb (const char*, projectm_texture_load_data*, void*);
 void acestream_projectm_preset_switch_cb (bool, unsigned int, void*);
 void acestream_projectm_preset_switch_failed_cb (const char*, const char*, void*);
 

@@ -120,31 +120,38 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
   ACE_ASSERT (channels_);
   ACE_ASSERT (sampleSize_);
 
-  unsigned int max_samples_i = projectm_pcm_get_max_samples (), available_samples_i, samples_to_write_i;
-  ACE_Message_Block* message_block_p = message_inout;
+  //static unsigned int max_samples_i = projectm_pcm_get_max_samples ();
+  static unsigned int max_samples_i = 576; // *NOTE*: see: libprojectM::Audio::AudioBufferSamples;
+  unsigned int available_samples_i, samples_per_channel_to_write_i;
+  ACE_Message_Block* message_block_p = message_inout->duplicate ();
+  ACE_ASSERT (message_block_p);
+  ACE_Message_Block* head_p = message_block_p;
+
   do
-  {
-    available_samples_i = (message_block_p->length () / sampleSize_) / channels_;
-    samples_to_write_i = std::min (max_samples_i, available_samples_i);
+  { ACE_ASSERT ((message_block_p->length () % sampleSize_) == 0);
+    available_samples_i =
+      (message_block_p->length () / sampleSize_) / channels_;
+    samples_per_channel_to_write_i =
+      std::min (max_samples_i, available_samples_i);
 
     switch (sampleSize_)
     {
       case 1:
         projectm_pcm_add_uint8 (inherited::configuration_->projectMConfiguration->handle,
                                 reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                                samples_to_write_i,
+                                samples_per_channel_to_write_i,
                                 channels_); // #channels
         break;
       case 2:
         projectm_pcm_add_int16 (inherited::configuration_->projectMConfiguration->handle,
                                 reinterpret_cast<int16_t*> (message_block_p->rd_ptr ()),
-                                samples_to_write_i,
+                                samples_per_channel_to_write_i,
                                 channels_); // #channels
         break;
       case 4:
          projectm_pcm_add_float (inherited::configuration_->projectMConfiguration->handle,
                                  reinterpret_cast<float*> (message_block_p->rd_ptr ()),
-                                 samples_to_write_i,
+                                 samples_per_channel_to_write_i,
                                  channels_); // #channels
         break;
       default:
@@ -155,15 +162,20 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
         goto error;
       }
     } // end SWITCH
-
+    message_block_p->rd_ptr (samples_per_channel_to_write_i * sampleSize_ * channels_);
+    if (message_block_p->length ())
+      continue;
     message_block_p = message_block_p->cont ();
     if (likely (!message_block_p))
       break;
   } while (true);
+  head_p->release (); head_p = NULL;
 
   return;
 
 error:
+  head_p->release ();
+
   this->notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 

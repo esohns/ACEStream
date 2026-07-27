@@ -2,6 +2,8 @@
 
 #include "test_u_glut_callbacks.h"
 
+#include <iomanip>
+
 #include "GL/glew.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "gl/GL.h"
@@ -70,6 +72,24 @@ acestream_projectm_log_cb (const char* message_in,
   ACE_DEBUG ((log_priority_e,
               ACE_TEXT ("projectM: %s\n"),
               ACE_TEXT (message_in)));
+}
+
+void
+acestream_projectm_texture_load_cb (const char* textureName_in,
+                                    projectm_texture_load_data* data_in,
+                                    void* userData_in)
+{
+  ACE_UNUSED_ARG (data_in);
+
+  // sanity check(s)
+  ACE_ASSERT (textureName_in);
+  struct Stream_Visualization_ProjectM_Configuration* cb_data_p =
+    static_cast<struct Stream_Visualization_ProjectM_Configuration*> (userData_in);
+  ACE_ASSERT (cb_data_p);
+
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("loading texture: \"%s\"...\n"),
+              ACE_TEXT (textureName_in)));
 }
 
 void
@@ -294,10 +314,18 @@ test_u_projectm_glut_mouse_button (int button,
     {
       cb_data_p->mouseLMBPressed = (state == GLUT_DOWN);
       if (cb_data_p->mouseLMBPressed)
+      {
+        // libProjectM uses a scale of 0..1
+        size_t width, height;
+        projectm_get_window_size (cb_data_p->projectMConfiguration->handle,
+                                  &width, &height);
+        float scaledX = static_cast<float> (x) / static_cast<float> (width);
+        float scaledY = static_cast<float> (height - y) / static_cast<float> (height);
         projectm_touch (cb_data_p->projectMConfiguration->handle,
-                        static_cast<float> (x), static_cast<float> (y),
+                        scaledX, scaledY,
                         1,
                         PROJECTM_TOUCH_TYPE_RANDOM);
+      } // end IF
       else
         projectm_touch_destroy_all (cb_data_p->projectMConfiguration->handle);
       break;
@@ -332,9 +360,17 @@ test_u_projectm_glut_mouse_move (int x,
   ACE_ASSERT (cb_data_p->projectMConfiguration->handle);
 
   if (unlikely (cb_data_p->mouseLMBPressed))
+  {
+    // libProjectM uses a scale of 0..1
+    size_t width, height;
+    projectm_get_window_size (cb_data_p->projectMConfiguration->handle,
+                              &width, &height);
+    float scaledX = static_cast<float> (x) / static_cast<float> (width);
+    float scaledY = static_cast<float> (height - y) / static_cast<float> (height);
     projectm_touch_drag (cb_data_p->projectMConfiguration->handle,
-                         static_cast<float> (x), static_cast<float> (y),
+                         scaledX, scaledY,
                          1);
+  } // end IF
 
   cb_data_p->mouseX = x;
   cb_data_p->mouseY = y;
@@ -374,8 +410,50 @@ test_u_projectm_glut_draw (void)
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->projectMConfiguration);
   ACE_ASSERT (cb_data_p->projectMConfiguration->handle);
+  ACE_ASSERT (cb_data_p->projectMConfiguration->playlist);
 
-  glClear (GL_COLOR_BUFFER_BIT /* | GL_DEPTH_BUFFER_BIT*/);
+  // compute fps
+  static int last_frame_count_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  static std::chrono::steady_clock::time_point last_second = std::chrono::high_resolution_clock::now ();
+  std::chrono::steady_clock::time_point current_second = std::chrono::high_resolution_clock::now ();
+#elif defined (ACE_LINUX)
+  static std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> last_second = std::chrono::high_resolution_clock::now ();
+  std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> current_second = std::chrono::high_resolution_clock::now ();
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
+  std::chrono::duration<float> elapsed_seconds = current_second - last_second;
+  if (elapsed_seconds.count () > 1.0f)
+  {
+    float fps_f = last_frame_count_i / elapsed_seconds.count ();
+    std::string title_string = ACE_TEXT_ALWAYS_CHAR (TEST_U_GLUT_DEFAULT_WINDOW_TITLE);
+    title_string += ACE_TEXT_ALWAYS_CHAR (" [");
+    std::ostringstream converter;
+    converter << std::setprecision (2) << std::fixed << fps_f;
+    title_string += converter.str ();
+    title_string += ACE_TEXT_ALWAYS_CHAR (" fps]");
+
+    title_string += ACE_TEXT_ALWAYS_CHAR (" \"");
+    char* preset_name_p =
+      projectm_playlist_item (cb_data_p->projectMConfiguration->playlist,
+                              projectm_playlist_get_position (cb_data_p->projectMConfiguration->playlist));
+    ACE_ASSERT (preset_name_p);
+    title_string += preset_name_p;
+    title_string += ACE_TEXT_ALWAYS_CHAR ("\"");
+    projectm_playlist_free_string (preset_name_p); preset_name_p = NULL;
+
+    glutSetWindowTitle (title_string.c_str ());
+    
+    last_second = current_second;
+    last_frame_count_i = 0;
+
+    projectm_set_fps (cb_data_p->projectMConfiguration->handle, static_cast<int32_t> (fps_f));
+  } // end IF
+  else
+    ++last_frame_count_i;
+
+  glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   projectm_opengl_render_frame (cb_data_p->projectMConfiguration->handle);
 

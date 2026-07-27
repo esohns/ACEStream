@@ -420,14 +420,20 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (PROJECTM_SUPPORT)
   ++index_i;
 
-#if defined (SOX_SUPPORT)
+
+#if defined (FFMPEG_SUPPORT)
+  ACE_NEW_RETURN (module_p,
+                  Test_U_MicVisualize_DirectShow_LibAVResampler_Module (this,
+                                                                        ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING)),
+                  false);
+#elif defined (SOX_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_U_MicVisualize_DirectShow_SoXResampler_Module (this,
                                                                       ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2")),
                   false);
+#endif // FFMPEG_SUPPORT || SOX_SUPPORT
   layout_in->append (module_p, branch_p, index_i);
   module_p = NULL;
-#endif // SOX_SUPPORT
 
   ACE_NEW_RETURN (module_p,
                   Test_U_MicVisualize_DirectShow_Vis_ProjectM_Module (this,

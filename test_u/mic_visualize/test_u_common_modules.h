@@ -33,6 +33,9 @@
 
 #include "stream_dec_mp3_decoder.h"
 #include "stream_dec_noise_source.h"
+#if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_filter.h"
+#endif // FFMPEG_SUPPORT
 #if defined (SOX_SUPPORT)
 #include "stream_dec_sox_resampler.h"
 #endif // SOX_SUPPORT
@@ -726,6 +729,23 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_MediaFoundation_SessionData,  
                               Stream_INotify_t,                                                      // stream notification interface type
                               Test_U_MicVisualize_MediaFoundation_Vis_ProjectM);                     // writer type
 #endif // PROJECTM_SUPPORT
+
+#if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVFilter_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_DirectShow_Message,
+                                     Test_U_DirectShow_SessionMessage,
+                                     Test_U_MicVisualize_DirectShow_SessionData_t,
+                                     struct _AMMediaType> Test_U_MicVisualize_DirectShow_LibAVResampler;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                   // session event type
+                              struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_dec_libav_filter_module_name_string,
+                              Stream_INotify_t,                                                 // stream notification interface type
+                              Test_U_MicVisualize_DirectShow_LibAVResampler);                   // writer type
+#endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)
 typedef Stream_Decoder_SoXResampler_T<ACE_MT_SYNCH,
