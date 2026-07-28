@@ -17,6 +17,7 @@
 #include "ace/Assert.h"
 #include "ace/Log_Msg.h"
 
+#include "common_file_tools.h"
 #include "common_tools.h"
 
 #include "common_image_tools.h"
@@ -25,11 +26,6 @@
 
 #include "test_u_mic_visualize_common.h"
 #include "test_u_mic_visualize_defines.h"
-
-//#if defined (ACE_LINUX)
-//#else
-//void* timer_cb_data_p = NULL;
-//#endif // ACE_LINUX
 
 void
 acestream_projectm_log_cb (const char* message_in,
@@ -105,12 +101,10 @@ acestream_projectm_preset_switch_cb (bool isHardCut_in,
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->playlist);
 
-  cb_data_p->current = index_in;
-
   char* preset_name_p = projectm_playlist_item (cb_data_p->playlist, index_in);
   if (!preset_name_p) return;
-  ACE_DEBUG ((LM_INFO,
-              ACE_TEXT ("preset switch: %s\n"),
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("preset switch: \"%s\"\n"),
               ACE_TEXT (preset_name_p)));
 
   // clean up
@@ -125,13 +119,13 @@ acestream_projectm_preset_switch_failed_cb (const char* presetName_in,
   // sanity check(s)
   ACE_ASSERT (presetName_in);
   ACE_ASSERT (message_in);
-  struct Stream_Visualization_ProjectM_Configuration* cb_data_p =
-    static_cast<struct Stream_Visualization_ProjectM_Configuration*> (userData_in);
-  ACE_ASSERT (cb_data_p);
-  ACE_ASSERT (cb_data_p->playlist);
+  //struct Stream_Visualization_ProjectM_Configuration* cb_data_p =
+  //  static_cast<struct Stream_Visualization_ProjectM_Configuration*> (userData_in);
+  //ACE_ASSERT (cb_data_p);
+  //ACE_ASSERT (cb_data_p->playlist);
 
   ACE_DEBUG ((LM_ERROR,
-              ACE_TEXT ("%s: preset switch failed: \"%s\", continuing\n"),
+              ACE_TEXT ("\"%s\": preset switch failed: \"%s\", continuing\n"),
               ACE_TEXT (presetName_in),
               ACE_TEXT (message_in)));
 }
@@ -163,18 +157,18 @@ test_u_projectm_glut_reshape (int width_in,
 
   glViewport (0, 0, width_in, height_in);
 
-  glMatrixMode (GL_PROJECTION);
+  //glMatrixMode (GL_PROJECTION);
 
-  glLoadIdentity ();
+  //glLoadIdentity ();
 
-  ACE_ASSERT (height_in);
-  gluPerspective (TEST_U_OPENGL_PERSPECTIVE_FOVY_D,
-                  width_in / static_cast<GLdouble> (height_in),
-                  TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D, TEST_U_OPENGL_PERSPECTIVE_ZFAR_D);
-  //glOrtho (static_cast<GLdouble> (-width_in / 2.0), static_cast<GLdouble> (width_in / 2.0),
-  //         static_cast<GLdouble> (height_in / 2.0), static_cast<GLdouble> (-height_in / 2.0), 150.0, -150.0);
+  //ACE_ASSERT (height_in);
+  //gluPerspective (TEST_U_OPENGL_PERSPECTIVE_FOVY_D,
+  //                width_in / static_cast<GLdouble> (height_in),
+  //                TEST_U_OPENGL_PERSPECTIVE_ZNEAR_D, TEST_U_OPENGL_PERSPECTIVE_ZFAR_D);
+  ////glOrtho (static_cast<GLdouble> (-width_in / 2.0), static_cast<GLdouble> (width_in / 2.0),
+  ////         static_cast<GLdouble> (height_in / 2.0), static_cast<GLdouble> (-height_in / 2.0), 150.0, -150.0);
 
-  glMatrixMode (GL_MODELVIEW);
+  //glMatrixMode (GL_MODELVIEW);
 
   projectm_set_window_size (cb_data_p->projectMConfiguration->handle,
                             width_in, height_in);
@@ -189,6 +183,7 @@ test_u_projectm_glut_key (unsigned char key_in,
     static_cast<struct Test_U_GLUT_CBData*> (glutGetWindowData ());
   ACE_ASSERT (cb_data_p);
   ACE_ASSERT (cb_data_p->projectMConfiguration);
+  ACE_ASSERT (cb_data_p->projectMConfiguration->handle);
   ACE_ASSERT (cb_data_p->projectMConfiguration->playlist);
 
   switch (key_in)
@@ -197,8 +192,27 @@ test_u_projectm_glut_key (unsigned char key_in,
       glutLeaveMainLoop ();
       break;
     case ' ':
-      cb_data_p->projectMConfiguration->current =
-        projectm_playlist_play_next (cb_data_p->projectMConfiguration->playlist, false);
+      projectm_playlist_play_next (cb_data_p->projectMConfiguration->playlist, false);
+      break;
+    case 'l':
+    case 'L':
+    {
+      cb_data_p->projectMConfiguration->presetIsLocked =
+        !cb_data_p->projectMConfiguration->presetIsLocked;
+      projectm_set_preset_locked (cb_data_p->projectMConfiguration->handle,
+                                  cb_data_p->projectMConfiguration->presetIsLocked);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("current preset %s\n"),
+                  cb_data_p->projectMConfiguration->presetIsLocked ? ACE_TEXT ("LOCKED") : ACE_TEXT ("UNLOCKED")));
+      break;
+    }
+    case 'n':
+    case 'N':
+      projectm_playlist_play_next (cb_data_p->projectMConfiguration->playlist, false);
+      break;
+    case 'p':
+    case 'P':
+      projectm_playlist_play_previous (cb_data_p->projectMConfiguration->playlist, false);
       break;
   } // end SWITCH
 }
@@ -224,28 +238,14 @@ test_u_projectm_glut_key_special (int key_in,
     {
       char* preset_name_p =
         projectm_playlist_item (cb_data_p->projectMConfiguration->playlist,
-                                cb_data_p->projectMConfiguration->current);
+                                projectm_playlist_get_position (cb_data_p->projectMConfiguration->playlist));
       if (!preset_name_p) break;
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("current preset: %s\n"),
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("current preset: \"%s\"\n"),
                   ACE_TEXT (preset_name_p)));
 
       // clean up
       projectm_playlist_free_string (preset_name_p);
-      break;
-    }
-    case GLUT_KEY_F2:
-    {
-      projectm_set_preset_locked (cb_data_p->projectMConfiguration->handle, true);
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("current preset LOCKED\n")));
-      break;
-    }
-    case GLUT_KEY_F3:
-    {
-      projectm_set_preset_locked (cb_data_p->projectMConfiguration->handle, false);
-      ACE_DEBUG ((LM_INFO,
-                  ACE_TEXT ("current preset UNLOCKED\n")));
       break;
     }
     case GLUT_KEY_F12:
@@ -257,12 +257,10 @@ test_u_projectm_glut_key_special (int key_in,
       break;
     }
     case GLUT_KEY_LEFT:
-      cb_data_p->projectMConfiguration->current =
-        projectm_playlist_play_previous (cb_data_p->projectMConfiguration->playlist, false);
+      projectm_playlist_play_previous (cb_data_p->projectMConfiguration->playlist, false);
       break;
     case GLUT_KEY_RIGHT:
-      cb_data_p->projectMConfiguration->current =
-        projectm_playlist_play_next (cb_data_p->projectMConfiguration->playlist, false);
+      projectm_playlist_play_next (cb_data_p->projectMConfiguration->playlist, false);
       break;
     case GLUT_KEY_UP:
       break;
@@ -439,16 +437,18 @@ test_u_projectm_glut_draw (void)
       projectm_playlist_item (cb_data_p->projectMConfiguration->playlist,
                               projectm_playlist_get_position (cb_data_p->projectMConfiguration->playlist));
     ACE_ASSERT (preset_name_p);
-    title_string += preset_name_p;
+    title_string += Common_File_Tools::basename (preset_name_p, true);
+    projectm_playlist_free_string (preset_name_p);
+    preset_name_p = NULL;
     title_string += ACE_TEXT_ALWAYS_CHAR ("\"");
-    projectm_playlist_free_string (preset_name_p); preset_name_p = NULL;
-
+    if (cb_data_p->projectMConfiguration->presetIsLocked)
+      title_string += ACE_TEXT_ALWAYS_CHAR (" [LOCKED]");
     glutSetWindowTitle (title_string.c_str ());
     
     last_second = current_second;
     last_frame_count_i = 0;
 
-    projectm_set_fps (cb_data_p->projectMConfiguration->handle, static_cast<int32_t> (fps_f));
+    projectm_set_fps (cb_data_p->projectMConfiguration->handle, static_cast<int32_t> (std::round (fps_f)));
   } // end IF
   else
     ++last_frame_count_i;

@@ -420,7 +420,6 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (PROJECTM_SUPPORT)
   ++index_i;
 
-
 #if defined (FFMPEG_SUPPORT)
   ACE_NEW_RETURN (module_p,
                   Test_U_MicVisualize_DirectShow_LibAVResampler_Module (this,

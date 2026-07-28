@@ -127,12 +127,12 @@ struct Stream_Visualization_ProjectM_Configuration
   Stream_Visualization_ProjectM_Configuration ()
    : handle (NULL)
    , playlist (NULL)
-   , current (0)
+   , presetIsLocked (false)
   {}
 
   projectm_handle          handle;
   projectm_playlist_handle playlist;
-  unsigned int             current; // -playlist index
+  bool                     presetIsLocked;
 };
 #endif // PROJECTM_SUPPORT
 

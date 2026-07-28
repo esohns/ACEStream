@@ -122,17 +122,17 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
 
   //static unsigned int max_samples_i = projectm_pcm_get_max_samples ();
   static unsigned int max_samples_i = 576; // *NOTE*: see: libprojectM::Audio::AudioBufferSamples;
-  unsigned int available_samples_i, samples_per_channel_to_write_i;
+  unsigned int available_samples_per_channel_i, samples_per_channel_to_write_i;
   ACE_Message_Block* message_block_p = message_inout->duplicate ();
   ACE_ASSERT (message_block_p);
   ACE_Message_Block* head_p = message_block_p;
 
   do
-  { ACE_ASSERT ((message_block_p->length () % sampleSize_) == 0);
-    available_samples_i =
+  { //ACE_ASSERT ((message_block_p->length () % sampleSize_) == 0);
+    available_samples_per_channel_i =
       (message_block_p->length () / sampleSize_) / channels_;
     samples_per_channel_to_write_i =
-      std::min (max_samples_i, available_samples_i);
+      std::min (max_samples_i, available_samples_per_channel_i);
 
     switch (sampleSize_)
     {
@@ -169,7 +169,7 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
     if (likely (!message_block_p))
       break;
   } while (true);
-  head_p->release (); head_p = NULL;
+  head_p->release ();
 
   return;
 
