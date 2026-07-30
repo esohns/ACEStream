@@ -95,6 +95,7 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
  //, task_ (NULL)
 //#endif // ACE_WIN32 || ACE_WIN64
+ , sessionId_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::Stream_Dec_Noise_Source_T"));
 
@@ -231,10 +232,47 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 #else
     ACE_OS::memset (&mediaType_, 0, sizeof (struct Stream_MediaFramework_ALSA_MediaType));
 #endif // ACE_WIN32 || ACE_WIN64
+
+    sessionId_ = 0;
   } // end IF
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename StatisticContainerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
+          typename MediaType>
+void
+Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
+                          ControlMessageType,
+                          DataMessageType,
+                          SessionMessageType,
+                          ConfigurationType,
+                          StreamControlType,
+                          StreamNotificationType,
+                          StreamStateType,
+                          StatisticContainerType,
+                          SessionManagerType,
+                          TimerManagerType,
+                          MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                         bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Dec_Noise_Source_T::handleDataMessage"));
+
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+  
+  message_inout->initialize (sessionId_,
+                             NULL);
 }
 
 template <ACE_SYNCH_DECL,
@@ -552,6 +590,8 @@ Stream_Dec_Noise_Source_T<ACE_SYNCH_USE,
 //        goto error;
 //      } // end IF
 //#endif // ACE_WIN32 || ACE_WIN64
+
+      sessionId_ = session_data_r.sessionId;
 
       // start sample generator timer
       interval.set (0, buffer_time_us);

@@ -762,6 +762,12 @@ typedef Common_ISubscribe_T<Test_U_MicVisualize_ISessionNotify_t> Test_U_MicVisu
 
 //////////////////////////////////////////
 
+ #if defined (FFTW_SUPPORT)
+ typedef Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW> Common_Math_FFT_t;
+ #else
+ typedef Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN> Common_Math_FFT_t;
+ #endif // FFTW_SUPPORT
+
 #if defined (GLUT_SUPPORT)
 struct Test_U_GLUT_CBData
 {
@@ -781,11 +787,7 @@ struct Test_U_GLUT_CBData
   {}
 
   // canvas
-#if defined (FFTW_SUPPORT)
-  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*       fft;
-#else
-  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*    fft;
-#endif // FFTW_SUPPORT
+  Common_Math_FFT_t*                                  fft;
   ACE_Thread_Mutex*                                   lock; // protect fft handle
 
   // window

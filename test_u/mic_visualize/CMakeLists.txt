@@ -198,7 +198,9 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
  target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
-endif (UNIX)
+elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 

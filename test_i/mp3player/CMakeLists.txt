@@ -100,6 +100,11 @@ if (WIN32)
  endif (CMAKE_BUILD_TYPE STREQUAL Debug)
 endif (WIN32)
 
+if (UNIX)
+elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif ()
+
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
 if (FFMPEG_SUPPORT)

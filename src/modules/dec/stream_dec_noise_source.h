@@ -125,7 +125,9 @@ class Stream_Dec_Noise_Source_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
-//  // implement (part of) Stream_ITaskBase
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -187,6 +189,7 @@ class Stream_Dec_Noise_Source_T
 #else
   struct Stream_MediaFramework_ALSA_MediaType mediaType_;
 #endif // ACE_WIN32 || ACE_WIN64
+  Stream_SessionId_t                          sessionId_; // current-
 };
 
 // include template definition

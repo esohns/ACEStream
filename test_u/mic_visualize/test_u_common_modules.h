@@ -671,6 +671,7 @@ typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
 #else
                                                           FFT_ALGORITHM_UNKNOWN> Test_U_MicVisualize_DirectShow_Vis_SpectrumAnalyzer;
 #endif // FFTW_SUPPORT
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_MicVisualize_DirectShow_ModuleHandlerConfiguration, // module handler configuration type

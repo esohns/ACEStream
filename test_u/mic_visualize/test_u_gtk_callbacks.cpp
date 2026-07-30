@@ -3959,11 +3959,7 @@ stream_processing_function (void* arg_in)
   Stream_IStreamControlBase* istream_control_p = NULL;
   const Stream_Module_t* module_p = NULL;
   Test_U_Common_ISet_t* resize_notification_p = NULL;
-#if defined (FFTW_SUPPORT)
-  Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>* fft_p = NULL;
-#else
-  Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>* fft_p = NULL;
-#endif // FFTW_SUPPORT
+  Common_Math_FFT_t* fft_p = NULL;
   Common_IDispatch* dispatch_p = NULL;
   ACE_Thread_Mutex* mutex_p = NULL;
   guint event_source_id = 0;
@@ -4039,11 +4035,7 @@ stream_processing_function (void* arg_in)
     dynamic_cast<Common_IDispatch*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (dispatch_p);
   fft_p =
-#if defined (FFTW_SUPPORT)
-    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_FFTW>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-#else
-    dynamic_cast<Common_Math_FFT_T<float, FFT_ALGORITHM_UNKNOWN>*> (const_cast<Stream_Module_t*> (module_p)->writer ());
-#endif // FFTW_SUPPORT
+    dynamic_cast<Common_Math_FFT_t*> (const_cast<Stream_Module_t*> (module_p)->writer ());
   ACE_ASSERT (fft_p);
   mutex_p =
     &const_cast<ACE_Thread_Mutex&> (dynamic_cast<Common_IGetR_2_T<ACE_Thread_Mutex>*> (const_cast<Stream_Module_t*> (module_p)->writer ())->getR_2 ());

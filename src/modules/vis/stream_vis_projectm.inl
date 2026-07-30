@@ -128,7 +128,7 @@ Stream_Module_Vis_ProjectM_T<ACE_SYNCH_USE,
   ACE_Message_Block* head_p = message_block_p;
 
   do
-  { //ACE_ASSERT ((message_block_p->length () % sampleSize_) == 0);
+  { ACE_ASSERT ((message_block_p->length () % sampleSize_) == 0);
     available_samples_per_channel_i =
       (message_block_p->length () / sampleSize_) / channels_;
     samples_per_channel_to_write_i =

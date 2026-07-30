@@ -122,9 +122,9 @@ class Stream_Dev_Mic_Source_DirectShow_T
   virtual bool collect (StatisticContainerType&); // return value: (currently unused !)
   //virtual void report () const;
 
-//  // implement (part of) Stream_ITaskBase
-//  virtual void handleDataMessage (ProtocolMessageType*&, // data message handle
-//                                  bool&);                // return value: pass message downstream ?
+  // implement (part of) Stream_ITaskBase
+//  virtual void handleDataMessage (DataMessageType*&, // data message handle
+//                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
