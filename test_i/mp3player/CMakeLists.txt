@@ -101,6 +101,7 @@ if (WIN32)
 endif (WIN32)
 
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "LINKER:--allow-multiple-definition")
 elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 endif ()

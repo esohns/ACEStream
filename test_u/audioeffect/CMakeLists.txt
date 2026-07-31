@@ -225,6 +225,8 @@ if (SOX_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${SOX_LIBRARIES})
 endif (SOX_SUPPORT)
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "LINKER:--allow-multiple-definition")
+
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
 elseif (WIN32)
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)

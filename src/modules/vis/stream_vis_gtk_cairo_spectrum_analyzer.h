@@ -189,26 +189,26 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
 #endif // GTK_CHECK_VERSION (4,0,0)
                          cairo_t*&); // return value: cairo context
 
-  unsigned int                                       bufferedSamples_;
-  struct acestream_visualization_gtk_cairo_cbdata    CBData_;
-  double                                             channelFactor_;
+  unsigned int                                    bufferedSamples_;
+  struct acestream_visualization_gtk_cairo_cbdata CBData_;
+  double                                          channelFactor_;
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkCairoContext*                                   drawingContext_;
+  GdkCairoContext*                                drawingContext_;
 #endif // GTK_CHECK_VERSION (4,0,0)
 #if GTK_CHECK_VERSION (3,22,0)
-  cairo_region_t*                                    cairoRegion_;
+  cairo_region_t*                                 cairoRegion_;
 #endif // GTK_CHECK_VERSION (3,22,0)
-  guint                                              idleUpdate_;
+  guint                                           idleUpdate_;
 
-  double                                             scaleFactorX_;
-  double                                             scaleFactorX_2;
-  double                                             scaleFactorY_;
-  double                                             scaleFactorY_2;
-  int                                                halfHeight_;
-  int                                                height_;
-  int                                                width_;
+  double                                          scaleFactorX_;
+  double                                          scaleFactorX_2;
+  double                                          scaleFactorY_;
+  double                                          scaleFactorY_2;
+  int                                             halfHeight_;
+  int                                             height_;
+  int                                             width_;
 
-  Common_Math_FFT_SampleIterator_T<ValueType>        sampleIterator_;
+  Common_Math_FFT_SampleIterator_T<ValueType>     sampleIterator_;
 };
 
 // include template definition

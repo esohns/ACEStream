@@ -197,6 +197,7 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "LINKER:--allow-multiple-definition")
  target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
 elseif (WIN32)
  target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
