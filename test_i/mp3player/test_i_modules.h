@@ -150,22 +150,22 @@ DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // sessi
 #endif // FAAD_SUPPORT
 
 #if defined (MPG123_SUPPORT)
-typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_I_Stream_Message,
-                                    Test_I_Stream_SessionMessage,
-                                    struct Test_I_MP3Player_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Test_I_MP3Player_StreamState,
-                                    struct Stream_Statistic,
-                                    Test_I_SessionManager_t,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData,
+typedef Stream_Decoder_MP3DecoderH_T<ACE_MT_SYNCH,
+                                     Stream_ControlMessage_t,
+                                     Test_I_Stream_Message,
+                                     Test_I_Stream_SessionMessage,
+                                     struct Test_I_MP3Player_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_I_MP3Player_StreamState,
+                                     struct Stream_Statistic,
+                                     Test_I_SessionManager_t,
+                                     Common_Timer_Manager_t,
+                                     struct Stream_UserData,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                    struct _AMMediaType> Test_I_MP3Decoder;
+                                     struct _AMMediaType> Test_I_MP3Decoder;
 #else
-                                    struct Stream_MediaFramework_ALSA_MediaType> Test_I_MP3Decoder;
+                                     struct Stream_MediaFramework_ALSA_MediaType> Test_I_MP3Decoder;
 #endif // ACE_WIN32 || ACE_WIN64
 DATASTREAM_MODULE_INPUT_ONLY (struct Test_I_MP3Player_SessionData,      // session data type
                               enum Stream_SessionMessageType,           // session event type

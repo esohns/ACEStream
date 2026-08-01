@@ -107,19 +107,20 @@ typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  struct Test_U_AudioEffect_Statistic,
                                  struct Stream_UserData> Test_U_MediaFoundation_SessionManager_t;
 
-typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_U_AudioEffect_DirectShow_Message,
-                                    Test_U_AudioEffect_DirectShow_SessionMessage,
-                                    struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Test_U_AudioEffect_DirectShow_StreamState,
-                                    struct Test_U_AudioEffect_Statistic,
-                                    Test_U_DirectShow_SessionManager_t,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData,
-                                    struct _AMMediaType> Test_U_Dec_MP3Decoder_DirectShow;
+#if defined (MPG123_SUPPORT)
+typedef Stream_Decoder_MP3DecoderH_T<ACE_MT_SYNCH,
+                                     Stream_ControlMessage_t,
+                                     Test_U_AudioEffect_DirectShow_Message,
+                                     Test_U_AudioEffect_DirectShow_SessionMessage,
+                                     struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_U_AudioEffect_DirectShow_StreamState,
+                                     struct Test_U_AudioEffect_Statistic,
+                                     Test_U_DirectShow_SessionManager_t,
+                                     Common_Timer_Manager_t,
+                                     struct Stream_UserData,
+                                     struct _AMMediaType> Test_U_Dec_MP3Decoder_DirectShow;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,                       // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
@@ -127,25 +128,26 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_DirectShow_SessionData,        
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dec_MP3Decoder_DirectShow);                               // writer type
 
-typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_U_AudioEffect_MediaFoundation_Message,
-                                    Test_U_AudioEffect_MediaFoundation_SessionMessage,
-                                    struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Test_U_AudioEffect_MediaFoundation_StreamState,
-                                    struct Test_U_AudioEffect_Statistic,
-                                    Test_U_MediaFoundation_SessionManager_t,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData,
-                                    IMFMediaType*> Test_U_Dec_MP3Decoder_MediaFoundation;
+typedef Stream_Decoder_MP3DecoderH_T<ACE_MT_SYNCH,
+                                     Stream_ControlMessage_t,
+                                     Test_U_AudioEffect_MediaFoundation_Message,
+                                     Test_U_AudioEffect_MediaFoundation_SessionMessage,
+                                     struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_U_AudioEffect_MediaFoundation_StreamState,
+                                     struct Test_U_AudioEffect_Statistic,
+                                     Test_U_MediaFoundation_SessionManager_t,
+                                     Common_Timer_Manager_t,
+                                     struct Stream_UserData,
+                                     IMFMediaType*> Test_U_Dec_MP3Decoder_MediaFoundation;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_MediaFoundation_SessionData,                  // session data type
                               enum Stream_SessionMessageType,                                  // session event type
                               struct Test_U_AudioEffect_MediaFoundation_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_mp3_decoder_module_name_string,
                               Stream_INotify_t,                                                // stream notification interface type
                               Test_U_Dec_MP3Decoder_MediaFoundation);                          // writer type
+#endif // MPG123_SUPPORT
 
 typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   Stream_ControlMessage_t,
@@ -340,25 +342,27 @@ typedef Stream_Session_Manager_T<ACE_MT_SYNCH,
                                  struct Test_U_AudioEffect_Statistic,
                                  struct Stream_UserData> Test_U_SessionManager_t;
 
-typedef Stream_Decoder_MP3Decoder_T<ACE_MT_SYNCH,
-                                    Stream_ControlMessage_t,
-                                    Test_U_AudioEffect_Message,
-                                    Test_U_AudioEffect_SessionMessage,
-                                    struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
-                                    enum Stream_ControlType,
-                                    enum Stream_SessionMessageType,
-                                    struct Test_U_AudioEffect_StreamState,
-                                    struct Test_U_AudioEffect_Statistic,
-                                    Test_U_SessionManager_t,
-                                    Common_Timer_Manager_t,
-                                    struct Stream_UserData,
-                                    struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_MP3Decoder_ALSA;
+#if defined (MPG123_SUPPORT)
+typedef Stream_Decoder_MP3DecoderH_T<ACE_MT_SYNCH,
+                                     Stream_ControlMessage_t,
+                                     Test_U_AudioEffect_Message,
+                                     Test_U_AudioEffect_SessionMessage,
+                                     struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration,
+                                     enum Stream_ControlType,
+                                     enum Stream_SessionMessageType,
+                                     struct Test_U_AudioEffect_StreamState,
+                                     struct Test_U_AudioEffect_Statistic,
+                                     Test_U_SessionManager_t,
+                                     Common_Timer_Manager_t,
+                                     struct Stream_UserData,
+                                     struct Stream_MediaFramework_ALSA_MediaType> Test_U_Dec_MP3Decoder_ALSA;
 DATASTREAM_MODULE_INPUT_ONLY (Test_U_AudioEffect_SessionData,                            // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dec_mp3_decoder_module_name_string,
                               Stream_INotify_t,                                          // stream notification interface type
                               Test_U_Dec_MP3Decoder_ALSA);                               // writer type
+#endif // MPG123_SUPPORT
 
 typedef Stream_Dec_Noise_Source_T<ACE_MT_SYNCH,
                                   Stream_ControlMessage_t,

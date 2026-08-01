@@ -2069,7 +2069,8 @@ do_work (int argc_in,
       projectm_set_fps (projectm_configuration.handle,
                         TEST_U_GLUT_DEFAULT_FPS);
       projectm_set_mesh_size (projectm_configuration.handle,
-                              220, 125);
+                              TEST_U_GLUT_PROJECTM_DEFAULT_PER_VERTEX_MESH_RESOLUTION_X,
+                              TEST_U_GLUT_PROJECTM_DEFAULT_PER_VERTEX_MESH_RESOLUTION_Y);
       projectm_set_aspect_correction (projectm_configuration.handle,
                                       true);
       projectm_set_preset_locked (projectm_configuration.handle,
@@ -2088,8 +2089,9 @@ do_work (int argc_in,
       projectm_set_beat_sensitivity (projectm_configuration.handle,
                                      1.0f);
 
-      //projectm_set_texel_offset (projectm_configuration.handle,
-      //                           0.5f, 0.5f);
+      projectm_set_texel_offset (projectm_configuration.handle,
+                                 TEST_U_GLUT_PROJECTM_DEFAULT_TEXTEL_OFFSET_X,
+                                 TEST_U_GLUT_PROJECTM_DEFAULT_TEXTEL_OFFSET_Y);
 
       projectm_set_texture_load_event_callback (projectm_configuration.handle,
                                                 acestream_projectm_texture_load_cb,

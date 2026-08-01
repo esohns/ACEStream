@@ -273,7 +273,7 @@ Stream_Module_FileWriter_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_FileWriter_T::handleDataMessage"));
 
-  ssize_t bytes_written = -1;
+  ssize_t bytes_written;
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);

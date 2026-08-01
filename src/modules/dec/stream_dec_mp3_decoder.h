@@ -29,6 +29,7 @@
 #include "common_time_common.h"
 
 #include "stream_headmoduletask_base.h"
+#include "stream_task_base_synch.h"
 
 #include "stream_lib_mediatype_converter.h"
 
@@ -37,6 +38,64 @@ class ACE_Message_Block;
 class Stream_IAllocator;
 
 extern const char libacestream_default_dec_mp3_decoder_module_name_string[];
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          ////////////////////////////////
+          typename ConfigurationType,
+          ////////////////////////////////
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          ////////////////////////////////
+          typename MediaType>
+class Stream_Decoder_MP3Decoder_T
+ : public Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData>
+ , public Stream_MediaFramework_MediaTypeConverter_T<MediaType>
+{
+  typedef Stream_TaskBaseSynch_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 enum Stream_ControlType,
+                                 enum Stream_SessionMessageType,
+                                 struct Stream_UserData> inherited;
+  typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
+
+ public:
+  Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_MP3Decoder_T ();
+
+  // override (part of) Stream_IModuleHandler_T
+  virtual bool initialize (const ConfigurationType&,
+                           Stream_IAllocator*);
+
+  // implement (part of) Stream_ITaskBase
+  virtual void handleDataMessage (DataMessageType*&, // data message handle
+                                  bool&);            // return value: pass message downstream ?
+  virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                     bool&);               // return value: pass message downstream ?
+
+ private:
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T (const Stream_Decoder_MP3Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T& operator= (const Stream_Decoder_MP3Decoder_T&))
+
+  size_t         bufferSize_;
+  mpg123_handle* handle_;
+};
+
+//////////////////////////////////////////
 
 template <ACE_SYNCH_DECL,
           ////////////////////////////////
@@ -57,7 +116,7 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           ////////////////////////////////
           typename MediaType>
-class Stream_Decoder_MP3Decoder_T
+class Stream_Decoder_MP3DecoderH_T
  : public Stream_HeadModuleTaskBase_T<ACE_SYNCH_USE,
                                       Common_TimePolicy_t,
                                       ControlMessageType,
@@ -89,17 +148,17 @@ class Stream_Decoder_MP3Decoder_T
   typedef Stream_MediaFramework_MediaTypeConverter_T<MediaType> inherited2;
 
  public:
-  Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T*); // stream handle
-  virtual ~Stream_Decoder_MP3Decoder_T ();
+  Stream_Decoder_MP3DecoderH_T (typename inherited::ISTREAM_T*); // stream handle
+  virtual ~Stream_Decoder_MP3DecoderH_T ();
 
   // override (part of) Stream_IModuleHandler_T
   virtual bool initialize (const ConfigurationType&,
                            Stream_IAllocator* = NULL);
 
  private:
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T ())
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T (const Stream_Decoder_MP3Decoder_T&))
-  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3Decoder_T& operator= (const Stream_Decoder_MP3Decoder_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3DecoderH_T ())
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3DecoderH_T (const Stream_Decoder_MP3DecoderH_T&))
+  ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_MP3DecoderH_T& operator= (const Stream_Decoder_MP3DecoderH_T&))
 
   // helper methods
   virtual int svc (void);

@@ -30,6 +30,379 @@
 #endif // ACE_WIN32 || ACE_WIN64
 
 template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in)
+ : inherited (stream_in)
+ , bufferSize_ (0)
+ , handle_ (NULL)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::Stream_Decoder_MP3Decoder_T"));
+
+  int error_i = mpg123_init ();
+  if (error_i != MPG123_OK)
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mpg123_init(): \"%s\", continuing\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (mpg123_plain_strerror (error_i))));
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::~Stream_Decoder_MP3Decoder_T ()
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::~Stream_Decoder_MP3Decoder_T"));
+
+  if (handle_)
+  {
+    int error_i = mpg123_close (handle_);
+    if (error_i != MPG123_OK)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to mpg123_close(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (mpg123_plain_strerror (error_i))));
+    mpg123_delete (handle_);
+  } // end IF
+  mpg123_exit ();
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                    Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::initialize"));
+
+  int error_i = MPG123_ERR;
+
+  if (inherited::isInitialized_)
+  {
+    bufferSize_ = 0;
+    if (unlikely (handle_))
+    {
+      error_i = mpg123_close (handle_);
+      ACE_ASSERT (error_i == MPG123_OK);
+      mpg123_delete (handle_); handle_ = NULL;
+    } // end IF
+  } // end IF
+  ACE_ASSERT (!bufferSize_);
+  ACE_ASSERT (!handle_);
+
+  error_i = MPG123_ERR;
+  handle_ = mpg123_new (NULL,
+                        &error_i);
+  if (!handle_              ||
+      (error_i != MPG123_OK))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to mpg123_new(NULL): \"%s\", aborting\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (mpg123_plain_strerror (error_i))));
+    return false;
+  } // end IF
+
+  // set parameter(s)
+#if defined (_DEBUG)
+  if (unlikely (configuration_in.debug))
+  {
+    error_i = mpg123_param (handle_, MPG123_VERBOSE, 2, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+  } // end IF
+  else
+  {
+#endif // _DEBUG
+    error_i = mpg123_param (handle_, MPG123_VERBOSE, 0, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+    error_i = mpg123_param (handle_, MPG123_ADD_FLAGS, MPG123_QUIET, 0.0);
+    ACE_ASSERT (error_i == MPG123_OK);
+#if defined (_DEBUG)
+  } // end IF
+#endif // _DEBUG
+  long value_i =
+    MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS;
+    //MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS | MPG123_NO_PEEK_END;
+  error_i = mpg123_param (handle_, MPG123_FLAGS, value_i, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+  error_i = mpg123_param (handle_, MPG123_RVA, MPG123_RVA_ALBUM, 0.0);
+  ACE_ASSERT (error_i == MPG123_OK);
+  value_i = -1;//1000;
+  error_i = mpg123_param (handle_, MPG123_INDEX_SIZE, value_i, 0);
+  ACE_ASSERT (error_i == MPG123_OK);
+
+  // sanity check(s)
+  ACE_ASSERT (configuration_in.allocatorConfiguration);
+
+  bufferSize_ =
+    std::max (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
+              mpg123_outblock (handle_));
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::handleDataMessage (DataMessageType*& message_inout,
+                                                           bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::handleDataMessage"));
+
+  // initialize return value(s)
+  passMessageDownstream_out = false;
+
+  // sanity check(s)
+  ACE_ASSERT (handle_);
+
+  ACE_Message_Block* message_block_p = message_inout;
+  int error_i;
+  DataMessageType* message_p = NULL;
+  size_t done_i = 0;
+  int result;
+  bool done_b = false;
+
+  do
+  {
+    error_i = mpg123_feed (handle_,
+                           reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()),
+                           message_block_p->length ());
+    if (unlikely (error_i != MPG123_OK))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to mpg123_feed(0x%@,%B): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  handle_,
+                  message_block_p->length (),
+                  ACE_TEXT (mpg123_plain_strerror (error_i))));
+      goto error;
+    } // end IF
+    message_block_p = message_block_p->cont ();
+  } while (message_block_p);
+  message_inout->release (); message_inout = NULL;
+
+more:
+  ACE_ASSERT (!message_p);
+  message_p = inherited::allocateMessage (bufferSize_,
+                                          NULL);
+  if (unlikely (!message_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%B), aborting\n"),
+                inherited::mod_->name (),
+                bufferSize_));
+    goto error;
+  } // end IF
+
+  error_i = mpg123_read (handle_,
+                         message_p->wr_ptr (),
+                         message_p->size (),
+                         &done_i);
+  switch (error_i)
+  {
+    case MPG123_NEW_FORMAT:
+    {
+      long rate_i;
+      int channels_i, encoding_i;
+      mpg123_getformat (handle_,
+                        &rate_i,
+                        &channels_i,
+                        &encoding_i);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: new format %d Hz, %d channels, encoding: %d, continuing\n"),
+                  inherited::mod_->name (),
+                  rate_i,
+                  channels_i,
+                  encoding_i));
+      ACE_ASSERT (done_i == 0);
+      message_p->release (); message_p = NULL;
+      // *TODO*: notify new format to downstream modules
+      break;
+    }
+    case MPG123_NEED_MORE:
+    { done_b = true;
+      if (likely (done_i))
+        message_p->wr_ptr (done_i);
+      else
+      {
+        message_p->release (); message_p = NULL;
+      } // end ELSE
+
+      break;
+    }
+    //case MPG123_DONE:
+    //{
+    //  if (likely (done_i))
+    //    message_p->wr_ptr (done_i);
+    //  else
+    //  {
+    //    message_p->release (); message_p = NULL;
+    //  } // end ELSE
+
+    //  break;
+    //}
+    case MPG123_OK:
+    { ACE_ASSERT (done_i);
+      message_p->wr_ptr (done_i);
+
+      break;
+    }
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to mpg123_read(): \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (mpg123_plain_strerror (error_i))));
+      message_p->release (); message_p = NULL;
+      goto error;
+    }
+  } // end SWITCH
+  if (likely (message_p))
+  {
+    result = inherited::put_next (message_p, NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      message_p->release (); message_p = NULL;
+      goto error;
+    } // end IF
+    message_p = NULL;
+  } // end IF
+
+  if (unlikely (!done_b))
+    goto more;
+
+  return;
+
+error:
+  if (message_inout)
+  {
+    message_inout->release (); message_inout = NULL;
+  } // end IF
+
+  this->notify (STREAM_SESSION_MESSAGE_ABORT);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
+                            TimePolicyType,
+                            ConfigurationType,
+                            ControlMessageType,
+                            DataMessageType,
+                            SessionMessageType,
+                            MediaType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                              bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  int error_i;
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    { // sanity check(s)
+      ACE_ASSERT (handle_);
+
+      error_i = mpg123_open_feed (handle_);
+      if (unlikely (error_i != MPG123_OK))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to mpg123_open_feed(0x%@): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    handle_,
+                    ACE_TEXT (mpg123_plain_strerror (error_i))));
+        goto error;
+      } // end IF
+
+      goto continue_2;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+
+continue_2:
+      break;
+    }
+    case STREAM_SESSION_MESSAGE_END:
+    { // sanity check(s)
+      ACE_ASSERT (handle_);
+
+      error_i = mpg123_close (handle_);
+      if (unlikely (error_i != MPG123_OK))
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to mpg123_close(): \"%s\", continuing\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (mpg123_plain_strerror (error_i))));
+      mpg123_delete (handle_); handle_ = NULL;
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
           typename SessionMessageType,
@@ -42,24 +415,24 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
-  Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            StatisticContainerType,
-                            SessionManagerType,
-                            TimerManagerType,
-                            UserDataType,
-                            MediaType>::Stream_Decoder_MP3Decoder_T (typename inherited::ISTREAM_T* stream_in)
+  Stream_Decoder_MP3DecoderH_T<ACE_SYNCH_USE,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               ConfigurationType,
+                               StreamControlType,
+                               StreamNotificationType,
+                               StreamStateType,
+                               StatisticContainerType,
+                               SessionManagerType,
+                               TimerManagerType,
+                               UserDataType,
+                               MediaType>::Stream_Decoder_MP3DecoderH_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , bufferSize_ (0)
  , handle_ (NULL)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::Stream_Decoder_MP3Decoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3DecoderH_T::Stream_Decoder_MP3DecoderH_T"));
 
   int error_i = mpg123_init ();
   if (error_i != MPG123_OK)
@@ -82,21 +455,21 @@ template <ACE_SYNCH_DECL,
           typename TimerManagerType,
           typename UserDataType,
           typename MediaType>
-Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            StatisticContainerType,
-                            SessionManagerType,
-                            TimerManagerType,
-                            UserDataType,
-                            MediaType>::~Stream_Decoder_MP3Decoder_T ()
+Stream_Decoder_MP3DecoderH_T<ACE_SYNCH_USE,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
+                             StreamStateType,
+                             StatisticContainerType,
+                             SessionManagerType,
+                             TimerManagerType,
+                             UserDataType,
+                             MediaType>::~Stream_Decoder_MP3DecoderH_T ()
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::~Stream_Decoder_MP3Decoder_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3DecoderH_T::~Stream_Decoder_MP3DecoderH_T"));
 
   if (handle_)
   {
@@ -125,22 +498,22 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 bool
-Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            StatisticContainerType,
-                            SessionManagerType,
-                            TimerManagerType,
-                            UserDataType,
-                            MediaType>::initialize (const ConfigurationType& configuration_in,
-                                                    Stream_IAllocator* allocator_in)
+Stream_Decoder_MP3DecoderH_T<ACE_SYNCH_USE,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
+                             StreamStateType,
+                             StatisticContainerType,
+                             SessionManagerType,
+                             TimerManagerType,
+                             UserDataType,
+                             MediaType>::initialize (const ConfigurationType& configuration_in,
+                                                     Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3DecoderH_T::initialize"));
 
   int error_i = MPG123_ERR;
 
@@ -223,21 +596,21 @@ template <ACE_SYNCH_DECL,
           typename UserDataType,
           typename MediaType>
 int
-Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
-                            ControlMessageType,
-                            DataMessageType,
-                            SessionMessageType,
-                            ConfigurationType,
-                            StreamControlType,
-                            StreamNotificationType,
-                            StreamStateType,
-                            StatisticContainerType,
-                            SessionManagerType,
-                            TimerManagerType,
-                            UserDataType,
-                            MediaType>::svc (void)
+Stream_Decoder_MP3DecoderH_T<ACE_SYNCH_USE,
+                             ControlMessageType,
+                             DataMessageType,
+                             SessionMessageType,
+                             ConfigurationType,
+                             StreamControlType,
+                             StreamNotificationType,
+                             StreamStateType,
+                             StatisticContainerType,
+                             SessionManagerType,
+                             TimerManagerType,
+                             UserDataType,
+                             MediaType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3Decoder_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MP3DecoderH_T::svc"));
 
   int result = -1;
   int result_2 = -1;

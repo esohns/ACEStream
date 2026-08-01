@@ -2570,6 +2570,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
     static_cast <enum Test_I_STTBackend> (g_value_get_int (&value));
   g_value_unset (&value);
 
+  std::string model_file_string, scorer_file_string;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_DirectShow_UI_CBData* directshow_ui_cb_data_p = NULL;
   struct Test_I_MediaFoundation_UI_CBData* mediafoundation_ui_cb_data_p = NULL;
@@ -2592,6 +2593,11 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
         directshow_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (directshow_modulehandler_configuration_iterator != directshow_ui_cb_data_p->configuration->streamConfiguration.end ());
 
+      model_file_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->modelFile;
+      scorer_file_string =
+        (*directshow_modulehandler_configuration_iterator).second.second->scorerFile;
+
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2608,6 +2614,11 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
       mediafoundation_modulehandler_configuration_iterator =
         mediafoundation_ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
       ACE_ASSERT (mediafoundation_modulehandler_configuration_iterator != mediafoundation_ui_cb_data_p->configuration->streamConfiguration.end ());
+
+      model_file_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile;
+      scorer_file_string =
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile;
 
       break;
     }
@@ -2631,32 +2642,42 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
   Test_I_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
     ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  model_file_string =
+    (*modulehandler_configuration_iterator).second.second->modelFile;
+  scorer_file_string =
+    (*modulehandler_configuration_iterator).second.second->scorerFile;
 #endif // ACE_WIN32 || ACE_WIN64
 
-  std::string model_file_string, scorer_file_string;
   switch (STT_backend_e)
   {
     case STT_DEEPSPEECH:
     {
-      model_file_string =
-        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+      if (model_file_string.empty ())
+      {
+        model_file_string =
+          ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string +=
+          ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+      } // end IF
 
-      scorer_file_string = 
-        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
-      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      scorer_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
-      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      scorer_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
-      scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      scorer_file_string +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
+      if (scorer_file_string.empty ())
+      {
+        scorer_file_string =
+          ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+        scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        scorer_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+        scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        scorer_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+        scorer_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        scorer_file_string +=
+          ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_SCORER_FILE);
+      } // end IF
 
       // adjust resampler output format
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -2697,15 +2718,18 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
     case STT_WHISPERCPP:
     {
-      model_file_string =
-        ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
-      model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
-      model_file_string +=
-        ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_WHISPERCPP_MODEL_FILE);
+      if (model_file_string.empty ())
+      {
+        model_file_string =
+          ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string += COMMON_LOCATION_PARENT_SUBDIRECTORY;
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string += ACE_TEXT_ALWAYS_CHAR ("models");
+        model_file_string += ACE_DIRECTORY_SEPARATOR_STR_A;
+        model_file_string +=
+          ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_WHISPERCPP_MODEL_FILE);
+      } // end IF
 
       // adjust resampler output format
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

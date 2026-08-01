@@ -255,8 +255,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
 
       // forward the decoded frame
       if (is_first_b)
-      {
-        is_first_b = false;
+      { is_first_b = false;
         message_p->initialize (data_r,
                                message_inout->sessionId (),
                                NULL);
