@@ -229,6 +229,8 @@ if (UNIX)
 
  target_link_libraries (${EXECUTABLE} PUBLIC ${PKG_ALSA_LIBRARIES})
 elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+
  target_link_libraries (${EXECUTABLE} PUBLIC mfplat.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC mfuuid.lib)
  target_link_libraries (${EXECUTABLE} PUBLIC Dmoguids.lib)
@@ -239,9 +241,6 @@ elseif (WIN32)
   target_link_libraries (${EXECUTABLE} PUBLIC OpenGL32.lib)
   target_link_libraries (${EXECUTABLE} PUBLIC GlU32.lib)
  endif (GTKGL_SUPPORT)
-
- # *WARNING*: linking BaseClasses(d) requires "/FORCE:MULTIPLE"
- target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
 endif ()
 if (GTKGL_SUPPORT)
  if (GLUT_SUPPORT)

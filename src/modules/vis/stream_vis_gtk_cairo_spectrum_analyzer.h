@@ -42,25 +42,17 @@
 #include "stream_vis_gtk_common.h"
 #include "stream_vis_gtk_window.h"
 
-struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
- : Stream_Visualization_SpectrumAnalyzer_Configuration
-{
-  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
-   : Stream_Visualization_SpectrumAnalyzer_Configuration ()
-   , window (NULL)
-  {}
-
-#if GTK_CHECK_VERSION (4,0,0)
-  GdkSurface* window;
-#else
-  GdkWindow* window;
-#endif // GTK_CHECK_VERSION (4,0,0)
-};
-
 //////////////////////////////////////////
 
 struct acestream_visualization_gtk_cairo_cbdata
 {
+  acestream_visualization_gtk_cairo_cbdata ()
+   : context (NULL)
+   , dispatch (NULL)
+   , resizeNotification (NULL)
+   , window (NULL)
+  {}
+
   // *TODO*: in gtk4, use a GdkDrawingContext*
   cairo_t*                    context;
   Common_IDispatch*           dispatch;

@@ -111,7 +111,7 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
    , outputFormat ()
    , pushStatisticMessages (true)
    , spectrumAnalyzerConfiguration (NULL)
-   , window ()
+   //, window ()
   {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
     ACE_OS::memset (&outputFormat, 0, sizeof (struct _AMMediaType));
@@ -136,8 +136,12 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
   struct Stream_MediaFramework_ALSA_MediaType                 outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
   bool                                                        pushStatisticMessages;
+#if defined (GTK_SUPPORT)
+  struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
+#else
   struct Stream_Visualization_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;
-  struct Common_UI_Window                                     window;
+#endif // GTK_SUPPORT
+  //struct Common_UI_Window                                     window;
 };
 
 struct Test_I_MP3Player_StreamConfiguration

@@ -301,6 +301,11 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
       interval = ACE_Time_Value (0, STREAM_MISC_DEFAULT_DELAY_AUDIO_INTERVAL_US);
       inherited::configuration_->delayConfiguration->mode =
         STREAM_MISCELLANEOUS_DELAY_MODE_BYTES;
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: setting mode %d for audio (avg. #tokens/interval: %Q)...\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->delayConfiguration->mode,
+                  inherited::configuration_->delayConfiguration->averageTokensPerInterval));
 
       if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor)
       {

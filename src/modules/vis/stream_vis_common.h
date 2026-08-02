@@ -21,6 +21,10 @@
 #ifndef STREAM_VISUALIZATION_COMMON_H
 #define STREAM_VISUALIZATION_COMMON_H
 
+#if defined (GTK_SUPPORT)
+#include "gtk/gtk.h"
+#endif // GTK_SUPPORT
+
 #if defined (PROJECTM_SUPPORT)
 #include "projectM-4/projectM.h"
 #include "projectM-4/playlist.h"
@@ -148,5 +152,22 @@ struct Stream_Visualization_SpectrumAnalyzer_Configuration
   unsigned int                                      numberOfBins;
   enum Stream_Visualization_WindowFunctionType      windowFunction;
 };
+
+#if defined (GTK_SUPPORT)
+struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration
+ : Stream_Visualization_SpectrumAnalyzer_Configuration
+{
+  Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration ()
+   : Stream_Visualization_SpectrumAnalyzer_Configuration ()
+   , window (NULL)
+  {}
+
+#if GTK_CHECK_VERSION (4,0,0)
+  GdkSurface* window;
+#else
+  GdkWindow*  window;
+#endif // GTK_CHECK_VERSION (4,0,0)
+};
+#endif // GTK_SUPPORT
 
 #endif

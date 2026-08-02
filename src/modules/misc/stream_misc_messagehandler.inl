@@ -162,9 +162,8 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    {
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
+    { // sanity check(s)
+      //ACE_ASSERT (inherited::sessionData_);
 
       const typename SessionMessageType::DATA_T& session_data_container_r =
         message_inout->getR ();
@@ -185,7 +184,7 @@ Stream_Module_MessageHandler_T<ACE_SYNCH_USE,
           ++iterator;
           try {
             // *TODO*: remove type inference
-            subscriber_p->start (session_data_r.sessionId,
+            subscriber_p->start (message_inout->sessionId (),
                                  session_data_r);
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
@@ -203,13 +202,9 @@ error:
 
       return;
     }
+    case STREAM_SESSION_MESSAGE_ABORT:
     case STREAM_SESSION_MESSAGE_END:
     {
-      // sanity check(s)
-//      ACE_ASSERT (inherited::sessionData_);
-
-//      const SessionDataType& session_data_r = inherited::sessionData_->getR ();
-
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, lock_);
         // *WARNING* if callees unsubscribe() within the callback bad things
         //           happen, as the current iterator is invalidated
@@ -684,6 +679,7 @@ error:
 
       return;
     }
+    case STREAM_SESSION_MESSAGE_ABORT:
     case STREAM_SESSION_MESSAGE_END:
     {
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *lock_);
@@ -1157,6 +1153,7 @@ error:
 
       return;
     }
+    case STREAM_SESSION_MESSAGE_ABORT:
     case STREAM_SESSION_MESSAGE_END:
     {
       { ACE_GUARD (typename ACE_SYNCH_USE::RECURSIVE_MUTEX, aGuard, *subscribersLock_);

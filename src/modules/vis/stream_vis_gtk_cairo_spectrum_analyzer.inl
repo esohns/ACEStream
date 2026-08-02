@@ -208,12 +208,14 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   } // end IF
 
   // initialize cairo context
+  ACE_ASSERT (configuration_in.spectrumAnalyzerConfiguration);
   // *TODO*: remove type inferences
 #if GTK_CHECK_VERSION (4,0,0)
-  GdkSurface* window_h = inherited3::convert (configuration_in.window);
+  GdkSurface* window_h =
 #else
-  GdkWindow* window_h = inherited3::convert (configuration_in.window);
+  GdkWindow* window_h =
 #endif // GTK_CHECK_VERSION (4,0,0)
+    inherited3::convert (configuration_in.spectrumAnalyzerConfiguration->window);
   if (!window_h)
   {
     // sanity check(s)
@@ -693,6 +695,8 @@ error:
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
       // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
@@ -777,7 +781,8 @@ error:
         goto error_2;
       } // end IF
 
-      window_h = inherited3::convert (inherited::configuration_->window);
+      window_h =
+        inherited3::convert (inherited::configuration_->spectrumAnalyzerConfiguration->window);
       ACE_ASSERT (window_h);
       setP (window_h);
 
@@ -1361,7 +1366,9 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
           // *NOTE*: set 'normalize' (3rd parameter) to 'true' for more realism
           // magnitude_d = inherited2::Magnitude (j, i, false) / 5.0;
           //magnitude_d = inherited2::Magnitude2 (j, i, true) / 10.0; // *NOTE*: <-- tested with sine wave
-          magnitude_d = inherited2::Magnitude2 (j, i, false);
+          magnitude_d =
+            sampleIterator_.isFloatingPointFormat_ ? inherited2::Magnitude (j, i, false)
+                                                   : inherited2::Magnitude2 (j, i, false);
           y =
             sampleIterator_.isSignedSampleFormat_ ? magnitude_d * scaleFactorY_ : magnitude_d * scaleFactorY_2;
           cairo_line_to (context_p,

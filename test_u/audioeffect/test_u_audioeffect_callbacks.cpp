@@ -13769,7 +13769,7 @@ drawingarea_size_allocate_cb (GtkWidget* widget_in,
   } // end IF
 } // drawingarea_size_allocate_cb
 
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
 gboolean
 drawingarea_configure_event_cb (GtkWidget* widget_in,
                                 GdkEvent* event_in,
@@ -13968,7 +13968,7 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 
   return FALSE;
 } // drawingarea_expose_event_cb
-#endif // GTK_CHECK_VERSION(3,0,0)
+#endif // GTK_CHECK_VERSION (3,0,0)
 
 void
 filechooserbutton_file_file_set_cb (GtkFileChooserButton* button_in,
