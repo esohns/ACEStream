@@ -1489,7 +1489,9 @@ do_work (int argc_in,
         directshow_modulehandler_configuration;
       directshow_modulehandler_configuration_5.allocatorConfiguration =
         &allocator_configuration_2;
+#if defined (SOX_SUPPORT)
       directshow_modulehandler_configuration_5.manageSoX = true;
+#endif // SOX_SUPPORT
       //directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("SoX_Resampler_2"),
       directShowConfiguration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_FILTER_DEFAULT_NAME_STRING),
                                                                              std::make_pair (&module_configuration,
