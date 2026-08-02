@@ -4708,7 +4708,7 @@ continue_:
                                   NULL);
 
   if (desensitize_device_combobox_b)
-      gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
