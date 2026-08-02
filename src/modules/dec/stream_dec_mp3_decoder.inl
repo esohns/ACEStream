@@ -166,7 +166,7 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (configuration_in.allocatorConfiguration);
 
   bufferSize_ =
-    std::max (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
+    std::min (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
               mpg123_outblock (handle_));
 
   return inherited::initialize (configuration_in,
@@ -257,8 +257,12 @@ more:
                   rate_i,
                   channels_i,
                   encoding_i));
-      ACE_ASSERT (done_i == 0);
-      message_p->release (); message_p = NULL;
+      if (unlikely (done_i))
+        message_p->wr_ptr (done_i);
+      else
+      {
+        message_p->release (); message_p = NULL;
+      } // end ELSE
       // *TODO*: notify new format to downstream modules
       break;
     }

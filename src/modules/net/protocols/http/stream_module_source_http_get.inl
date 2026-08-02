@@ -132,11 +132,12 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     record_p = parse (*message_inout);
     delete_record = true;
   } // end IF
-  if (!record_p)
+  if (unlikely (!record_p))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve HTTP record, aborting\n"),
                 inherited::mod_->name ()));
+    delete_record = false;
     goto error;
   } // end IF
 

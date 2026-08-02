@@ -40,6 +40,8 @@
 #include "common_idumpstate.h"
 #include "common_iinitialize.h"
 
+//#include "common_parser_common.h"
+
 #include "common_timer_common.h"
 
 #include "common_signal_common.h"
@@ -91,7 +93,7 @@ struct Stream_AllocatorConfiguration
   }
 };
 
-struct Common_FlexBisonParserConfiguration;
+struct Common_ParserConfiguration;
 struct Stream_ModuleHandlerConfiguration
 {
   Stream_ModuleHandlerConfiguration ()
