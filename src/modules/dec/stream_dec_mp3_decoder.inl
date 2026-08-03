@@ -151,14 +151,12 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
 #if defined (_DEBUG)
   } // end IF
 #endif // _DEBUG
-  long value_i =
-    MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS;
-    //MPG123_FORCE_SEEKABLE | MPG123_FUZZY | MPG123_SEEKBUFFER | MPG123_GAPLESS | MPG123_NO_PEEK_END;
+  long value_i = MPG123_FUZZY | MPG123_GAPLESS | MPG123_NO_PEEK_END;
   error_i = mpg123_param (handle_, MPG123_FLAGS, value_i, 0.0);
   ACE_ASSERT (error_i == MPG123_OK);
   error_i = mpg123_param (handle_, MPG123_RVA, MPG123_RVA_ALBUM, 0.0);
   ACE_ASSERT (error_i == MPG123_OK);
-  value_i = -1;//1000;
+  value_i = 0;
   error_i = mpg123_param (handle_, MPG123_INDEX_SIZE, value_i, 0);
   ACE_ASSERT (error_i == MPG123_OK);
 
@@ -168,6 +166,11 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   bufferSize_ =
     std::min (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
               mpg123_outblock (handle_));
+  bufferSize_ /= 2;
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: set buffer size to %B byte(s)\n"),
+              inherited::mod_->name (),
+              bufferSize_));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
@@ -196,6 +199,8 @@ Stream_Decoder_MP3Decoder_T<ACE_SYNCH_USE,
   passMessageDownstream_out = false;
 
   // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (handle_);
 
   ACE_Message_Block* message_block_p = message_inout;
@@ -252,11 +257,19 @@ more:
                         &channels_i,
                         &encoding_i);
       ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: new format %d Hz, %d channels, encoding: %d, continuing\n"),
+                  ACE_TEXT ("%s: new format %d Hz, %d channels, encoding: %d\n"),
                   inherited::mod_->name (),
                   rate_i,
                   channels_i,
                   encoding_i));
+      bufferSize_ =
+        std::min (static_cast<size_t> (inherited::configuration_->allocatorConfiguration->defaultBufferSize),
+                  mpg123_outblock (handle_));
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: set buffer size to %B byte(s)\n"),
+                  inherited::mod_->name (),
+                  bufferSize_));
+
       if (unlikely (done_i))
         message_p->wr_ptr (done_i);
       else
@@ -306,7 +319,7 @@ more:
       {
         message_p->release (); message_p = NULL;
       } // end ELSE
-      bufferSize_ *= 2;
+      // bufferSize_ *= 2;
       break;
     }
     default:
@@ -601,6 +614,10 @@ Stream_Decoder_MP3DecoderH_T<ACE_SYNCH_USE,
   bufferSize_ =
     std::max (static_cast<size_t> (configuration_in.allocatorConfiguration->defaultBufferSize),
               mpg123_outblock (handle_));
+  ACE_DEBUG ((LM_DEBUG,
+              ACE_TEXT ("%s: set buffer size to %B byte(s)\n"),
+              inherited::mod_->name (),
+              bufferSize_));
 
   return inherited::initialize (configuration_in,
                                 allocator_in);
