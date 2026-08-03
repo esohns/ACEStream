@@ -294,14 +294,34 @@ more:
 
       break;
     }
+    case MPG123_NO_SPACE:
+    {
+      ACE_DEBUG ((LM_WARNING,
+                  ACE_TEXT ("%s: failed to mpg123_read(): \"%s\", continuing\n"),
+                  inherited::mod_->name (),
+                  ACE_TEXT (mpg123_plain_strerror (error_i))));
+      if (likely (done_i))
+        message_p->wr_ptr (done_i);
+      else
+      {
+        message_p->release (); message_p = NULL;
+      } // end ELSE
+      bufferSize_ *= 2;
+      break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to mpg123_read(): \"%s\", aborting\n"),
+                  ACE_TEXT ("%s: failed to mpg123_read(): \"%s\", continuing\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (mpg123_plain_strerror (error_i))));
-      message_p->release (); message_p = NULL;
-      goto error;
+      if (likely (done_i))
+        message_p->wr_ptr (done_i);
+      else
+      {
+        message_p->release (); message_p = NULL;
+      } // end ELSE
+      break;
     }
   } // end SWITCH
   if (likely (message_p))

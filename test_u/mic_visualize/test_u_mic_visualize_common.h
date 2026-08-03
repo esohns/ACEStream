@@ -84,6 +84,7 @@ extern "C"
 
 #if defined (PROJECTM_SUPPORT)
 #include "projectM-4/projectM.h"
+#include "projectM-4/playlist.h"
 #endif // PROJECTM_SUPPORT
 
 #include "ace/Singleton.h"
