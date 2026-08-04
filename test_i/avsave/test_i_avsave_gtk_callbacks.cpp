@@ -3568,10 +3568,10 @@ idle_initialize_UI_cb (gpointer userData_in)
         window_p;
       (*directshow_stream_iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
-      ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->window.gdk_window);
-      (*directshow_stream_iterator_2).second.second->window.gdk_window =
+      ACE_ASSERT (!(*directshow_stream_iterator_2).second.second->spectrumAnalyzerConfiguration->window);
+      (*directshow_stream_iterator_2).second.second->spectrumAnalyzerConfiguration->window =
         window_2;
-      (*directshow_stream_iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
+      //(*directshow_stream_iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
       Common_Image_Resolution_t resolution_s;
       resolution_s.cx = allocation.width;
@@ -3611,8 +3611,8 @@ idle_initialize_UI_cb (gpointer userData_in)
 #else
   (*iterator_2).second.second->window.gdk_window = window_p;
   (*iterator_2).second.second->window.type = Common_UI_Window::TYPE_GTK;
-  (*iterator_4).second.second->window.gdk_window = window_2;
-  (*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
+  (*iterator_4).second.second->spectrumAnalyzerConfiguration->window = window_2;
+  //(*iterator_4).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
   (*iterator_3).second.second->outputFormat.video.format.height =
     static_cast<__u32> (allocation.height);
