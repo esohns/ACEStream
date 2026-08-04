@@ -125,6 +125,7 @@ class Stream_Module_Vis_GTK_Window_T
 
  protected:
   // implement Common_INotify
+  using inherited::notify;
   inline virtual void notify () { inherited::notify (STREAM_SESSION_MESSAGE_ABORT); }
 
  private:

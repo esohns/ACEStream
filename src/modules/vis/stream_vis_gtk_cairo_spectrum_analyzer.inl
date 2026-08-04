@@ -496,17 +496,16 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
 
   int result = -1;
-  unsigned int data_sample_size = 0;
-  unsigned int sound_sample_size = 0;
-  unsigned int channels, sample_rate;
-  int sample_byte_order = ACE_BYTE_ORDER;
-  bool is_signed_format = false;
-  bool is_floating_point_format = false;
-  double max_value_d = 0.0;
-  bool result_2 = false;
+  unsigned int data_sample_size, sound_sample_size, channels, sample_rate;
+  int sample_byte_order;
+  bool is_signed_format, is_floating_point_format;
+  double max_value_d;
+  bool result_2;
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -514,7 +513,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::configuration_->spectrumAnalyzerConfiguration);
       ACE_ASSERT (inherited::sessionData_);
       SessionDataType& session_data_r =
-          const_cast<SessionDataType&> (inherited::sessionData_->getR ());
+        const_cast<SessionDataType&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
 
       typename TimerManagerType::INTERFACE_T* itimer_manager_p = NULL;
@@ -797,10 +796,10 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (idleUpdate_)
       {
-        g_source_remove (idleUpdate_);
-        idleUpdate_ = 0;
+        g_source_remove (idleUpdate_); idleUpdate_ = 0;
       } // end IF
 
       if (inherited::window_)
@@ -958,7 +957,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     setP (CBData_.window);
 
     gulong result_3 =
-#if GTK_CHECK_VERSION(3,0,0)
+#if GTK_CHECK_VERSION (3,0,0)
       g_signal_connect (G_OBJECT (widget_p),
                         ACE_TEXT_ALWAYS_CHAR ("draw"),
                         G_CALLBACK (acestream_visualization_gtk_cairo_draw_cb),

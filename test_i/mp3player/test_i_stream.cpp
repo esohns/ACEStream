@@ -169,24 +169,46 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
         ++index_i;
         layout_in->append (&delay_, branch_p, index_i);
 
-        switch (inherited::configuration_->configuration_->analyzerMode)
+        switch (inherited::configuration_->configuration_->visualizationRenderer)
         {
-          case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
+          case STREAM_VISUALIZATION_AUDIORENDERER_CONSOLE:
           {
-            layout_in->append (&consoleVUMeter_, branch_p, index_i);
+            switch (inherited::configuration_->configuration_->analyzerMode)
+            {
+              case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_OSCILLOSCOPE:
+              {
+                layout_in->append (&consoleVUMeter_, branch_p, index_i);
+                break;
+              }
+              case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
+              {
+                layout_in->append (&consoleVUMeter_2_, branch_p, index_i);
+                break;
+              }
+              default:
+              {
+                ACE_DEBUG ((LM_ERROR,
+                            ACE_TEXT ("%s: invalid/unknown analyzer mode (was: %d), aborting\n"),
+                            ACE_TEXT (stream_name_string_),
+                            inherited::configuration_->configuration_->analyzerMode));
+                return false;
+              }
+            } // end SWITCH
             break;
           }
-          case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
+#if defined (GTK_SUPPORT)
+          case STREAM_VISUALIZATION_AUDIORENDERER_GTK_CAIRO_SPECTRUMANALYZER:
           {
-            layout_in->append (&consoleVUMeter_2_, branch_p, index_i);
+            layout_in->append (&spectrumAnalyzer_, branch_p, index_i);
             break;
           }
+#endif // GTK_SUPPORT
           default:
           {
             ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: invalid/unknown analyzer mode (was: %d), aborting\n"),
-                        ACE_TEXT (stream_name_string_),
-                        inherited::configuration_->configuration_->analyzerMode));
+                       ACE_TEXT ("%s: invalid/unknown visualization framework (was: %d), aborting\n"),
+                       ACE_TEXT (stream_name_string_),
+                       inherited::configuration_->configuration_->visualizationRenderer));
             return false;
           }
         } // end SWITCH

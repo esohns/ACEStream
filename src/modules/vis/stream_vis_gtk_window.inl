@@ -527,9 +527,15 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
                                width_i, height_i);
 
   // *NOTE*: subscribe to more signals (realize, configure, expose, ...) in svc()
-  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("destroy"), G_CALLBACK (acestream_gtk_window_destroy_cb), NULL);
+  g_signal_connect (G_OBJECT (window_),
+                    ACE_TEXT_ALWAYS_CHAR ("destroy"),
+                    G_CALLBACK (acestream_gtk_window_destroy_cb),
+                    NULL);
   Common_INotify* inotify_p = this;
-  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("delete-event"), G_CALLBACK (acestream_gtk_window_delete_event_cb), (gpointer)inotify_p);
+  g_signal_connect (G_OBJECT (window_),
+                    ACE_TEXT_ALWAYS_CHAR ("delete-event"),
+                    G_CALLBACK (acestream_gtk_window_delete_event_cb),
+                    (gpointer)inotify_p);
 
   return true;
 }
@@ -606,7 +612,8 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   } // end IF
   ACE_ASSERT (gdk_pixbuf_get_colorspace (pixbuf_) == GDK_COLORSPACE_RGB);
   ACE_ASSERT (gdk_pixbuf_get_bits_per_sample (pixbuf_) == 8);
-  ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 4);
+  // *TODO*: 3 on Windows (current gtk 3.6.4); 4 on Linux (latest gtk3)
+  //ACE_ASSERT (gdk_pixbuf_get_n_channels (pixbuf_) == 4);
 
 #if GTK_CHECK_VERSION (3,22,0)
   // window_2_ = gtk_widget_get_window (GTK_WIDGET (window_));
@@ -626,12 +633,12 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   } // end IF
 #endif // GTK_CHECK_VERSION (3,22,0)
 
-#if GTK_CHECK_VERSION (3,22,0)
-  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("draw"), G_CALLBACK (acestream_gtk_window_draw_cb), pixbuf_);
-#elif GTK_CHECK_VERSION (3,0,0)
-#else
-  // g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("expose"), G_CALLBACK (acestream_gtk_window_expose_event_cb), pixbuf_);
-#endif // GTK_CHECK_VERSION (3,22,0)
+//#if GTK_CHECK_VERSION (3,22,0)
+//  //g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("draw"), G_CALLBACK (acestream_gtk_window_draw_cb), pixbuf_);
+//#elif GTK_CHECK_VERSION (3,0,0)
+//#else
+//  // g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("expose"), G_CALLBACK (acestream_gtk_window_expose_event_cb), pixbuf_);
+//#endif // GTK_CHECK_VERSION (3,22,0)
 
   gtk_main ();
 

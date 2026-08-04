@@ -142,10 +142,10 @@ do_processArguments (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
-  std::string path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
-                                                      true); // configuration-
+  //std::string path =
+  //  Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+  //                                                    true); // configuration-
 
   // initialize results
   bufferSize_out = TEST_I_DEFAULT_BUFFER_SIZE;
@@ -564,10 +564,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
   Common_File_Tools::initialize (ACE_TEXT_ALWAYS_CHAR (argv_in[0]));
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
-                                                      true); // configuration-
+  //std::string configuration_path =
+  //  Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_I_SUBDIRECTORY),
+  //                                                    true); // configuration-
 
   // step1a set defaults
   ACE_UINT32 buffer_size_i = TEST_I_DEFAULT_BUFFER_SIZE;

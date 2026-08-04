@@ -84,5 +84,5 @@ acestream_gtk_window_delete_event_cb (GtkWidget* widget_in,
 
   inotify_p->notify ();
 
-  return TRUE; // do NOT propagate event
+  return FALSE; // propagate event
 }

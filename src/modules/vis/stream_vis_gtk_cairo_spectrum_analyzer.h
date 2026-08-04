@@ -172,7 +172,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   virtual int svc (void);
 
   // override Common_INotify
-  inline virtual void notify () { /*inherited::notify (STREAM_SESSION_MESSAGE_ABORT);*/ }
+  inline virtual void notify () { inherited::notify (STREAM_SESSION_MESSAGE_ABORT); }
 
 #if GTK_CHECK_VERSION (4,0,0)
   bool initialize_Cairo (GdkSurface*, // target window
