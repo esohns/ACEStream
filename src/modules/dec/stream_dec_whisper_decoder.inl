@@ -99,7 +99,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //parameters2_.suppress_blank = true;
   parameters2_.suppress_nst = true;
 
-  //parameters2_.temperature = 0.0f;
+  parameters2_.temperature =
+    STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_TEMPERATURE_F;
   parameters2_.length_penalty =
     STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_LENGTH_PENALTY_F; // default: -1.0f
 

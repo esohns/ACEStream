@@ -79,7 +79,10 @@
 // *NOTE*: these values should reduce repetitions
 #define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_NO_CONTEXT             false
 #define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_MAX_TOKEN_CONTEXT      64
-#define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_AUDIO_CONTEXT          768
+#define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_AUDIO_CONTEXT          0 // default
+// *NOTE*: "...as T approaches 0, the probability of choosing the token with
+//         the highest log-prob tends towards 100%..."
+#define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_TEMPERATURE_F          0.1f // *NOTE*: 1.0f: "no" temperature
 #define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_LENGTH_PENALTY_F       0.6f
 #define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_ENTROPY_THRESHOLD_F    2.8f
 #define STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_BEAM_SIZE              5

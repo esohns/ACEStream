@@ -1582,19 +1582,19 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window =
+    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         window_p;
-      (*directshow_modulehandler_configuration_iterator).second.second->window.type =
-        Common_UI_Window::TYPE_GTK;
+      //(*directshow_modulehandler_configuration_iterator).second.second->window.type =
+      //  Common_UI_Window::TYPE_GTK;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window =
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         window_p;
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
-        Common_UI_Window::TYPE_GTK;
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
+      //  Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -1606,11 +1606,11 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
-  (*modulehandler_configuration_iterator).second.second->window.gdk_window =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
     window_p;
-  (*modulehandler_configuration_iterator).second.second->window.type =
-    Common_UI_Window::TYPE_GTK;
+  //(*modulehandler_configuration_iterator).second.second->window.type =
+  //  Common_UI_Window::TYPE_GTK;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step12: initialize updates
@@ -2317,8 +2317,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
   ACE_ASSERT (file_chooser_button_p);
   file_p =
     gtk_file_chooser_get_file (GTK_FILE_CHOOSER (file_chooser_button_p));
-  ACE_ASSERT (file_p);
-  char* filename_2 = g_file_get_path (file_p);
+  //ACE_ASSERT (file_p);
+  char* filename_2 = file_p ? g_file_get_path (file_p) : NULL;
   g_object_unref (file_p); file_p = NULL;
 
   GtkEntry* entry_p =
@@ -2334,8 +2334,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         gtk_entry_get_text (entry_p);
       (*directshow_modulehandler_configuration_iterator).second.second->modelFile =
         filename_p;
-      (*directshow_modulehandler_configuration_iterator).second.second->scorerFile =
-        filename_2;
+      if (filename_2)
+        (*directshow_modulehandler_configuration_iterator).second.second->scorerFile = filename_2;
+      else
+        (*directshow_modulehandler_configuration_iterator).second.second->scorerFile.clear ();
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -2344,8 +2346,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         gtk_entry_get_text (entry_p);
       (*mediafoundation_modulehandler_configuration_iterator).second.second->modelFile =
         filename_p;
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile =
-        filename_2;
+      if (filename_2)
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile = filename_2;
+      else
+        (*mediafoundation_modulehandler_configuration_iterator).second.second->scorerFile.clear ();
       break;
     }
     default:

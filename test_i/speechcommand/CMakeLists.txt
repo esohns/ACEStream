@@ -7,6 +7,9 @@ include (glew)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
 
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/math/scripts")
+include (fftw)
+
 if (UNIX)
  pkg_check_modules (PKG_ALSA REQUIRED alsa)
 
@@ -193,8 +196,11 @@ add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Visualization)
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_I)
 
 if (UNIX)
+ target_link_options (${EXECUTABLE} PUBLIC "LINKER:--allow-multiple-definition")
  target_link_options (${EXECUTABLE} PUBLIC "-rdynamic")
-endif (UNIX)
+elseif (WIN32)
+ target_link_options (${EXECUTABLE} PUBLIC "$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
@@ -375,21 +381,23 @@ elseif (WIN32)
   set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                             ${WXWIDGETS_PATH})
  endif (WXWIDGETS_SUPPORT)
- file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
+# file (TO_CMAKE_PATH "${GLEW_LIB_DIR}" GLEW_PATH)
  file (TO_CMAKE_PATH "${ASSIMP_LIB_DIR}" ASSIMP_PATH)
  file (TO_CMAKE_PATH "${PNG_LIB_DIR}" LIBPNG_PATH)
 # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
+ file (TO_CMAKE_PATH "${FFTW_LIB_DIR}" FFTW_PATH)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
-                           ${GLEW_PATH}
+#                           ${GLEW_PATH}
                            ${ASSIMP_PATH}
                            ${LIBPNG_PATH}
                            ${VCPKG_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
+                           ${FFTW_PATH}
                            ${ACE_PATH})
  if (SOX_SUPPORT)
   file (TO_CMAKE_PATH "${SOX_LIB_DIR}" SOX_PATH)
