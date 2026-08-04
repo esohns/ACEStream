@@ -174,9 +174,19 @@ class Stream_Decoder_VorbisDecoderH_T
   // helper methods
   virtual int svc (void);
 
-  size_t         bufferSize_;
-  vorbis_comment commont_;
-  vorbis_info    info_;
+  // OGG bits
+  ogg_sync_state   sync_;
+  ogg_page         page_; // current-
+  ogg_int64_t      packetNumber_;
+  int              serialNumber_;
+  ogg_stream_state stream_;
+  bool             streamInitialized_;
+
+  // Vorbis bits
+  vorbis_block     block_;
+  vorbis_comment   comment_;
+  vorbis_info      info_;
+  vorbis_dsp_state state_;
 };
 
 // include template definition
