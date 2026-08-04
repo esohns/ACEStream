@@ -246,14 +246,14 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
             }
             case 1:
             {
-              if (packet_s.packet[0] != 0x03)
+              if (unlikely (packet_s.packet[0] != 0x03))
               {
-                ACE_DEBUG ((LM_DEBUG,
+                ACE_DEBUG ((LM_WARNING,
                             ACE_TEXT ("%s: 2: invalid magic: 0x%02X, restarting\n"),
                             inherited::mod_->name (),
                             packet_s.packet[0]));
                 ogg_sync_reset (&sync_);
-                vorbis_synthesis_restart (&state_);
+                //vorbis_synthesis_restart (&state_);
                 continue_b = true;
                 break;
               } // end IF
@@ -359,17 +359,6 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
               for (int j = 0; j < info_.channels; j++)
                 data_p[i * info_.channels + j] = pcm_p[j][i];
             message_p->wr_ptr (samples_i * info_.channels * sizeof (float));
-            // result = message_p->copy (reinterpret_cast<char*> (pcm_p[0]),
-            //                           samples_i * info_.channels * sizeof (float));
-            // if (unlikely (result == -1))
-            // {
-            //   ACE_DEBUG ((LM_ERROR,
-            //               ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
-            //               inherited::mod_->name (),
-            //               samples_i * info_.channels * sizeof (float)));
-            //   message_p->release (); message_p = NULL;
-            //   goto error;
-            // } // end IF
 
             result = vorbis_synthesis_read (&state_, samples_i);
             if (unlikely (result < 0))
