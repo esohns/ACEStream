@@ -23,6 +23,7 @@ include (opencv)
 if (WIN32)
  include (ms_speech)
 endif (WIN32)
+include (vorbis)
 include (whisper_cpp)
 include (zlib)
 
@@ -114,6 +115,11 @@ if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
+
+if (VORBIS_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${VORBIS_INCLUDE_DIRS}>")
+endif (VORBIS_SUPPORT)
 
 if (WHISPERCPP_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -358,6 +364,14 @@ if (OPENCV_SUPPORT)
       stream_dec_opencv_qr_decoder.inl)
 endif (OPENCV_SUPPORT)
 
+if (VORBIS_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_vorbis_decoder.cpp
+      stream_dec_vorbis_decoder.h
+      stream_dec_vorbis_decoder.inl)
+endif (VORBIS_SUPPORT)
+
 if (WHISPERCPP_SUPPORT)
  set (source_files
       ${source_files}
@@ -456,6 +470,10 @@ endif (LIBNOISE_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
+
+if (VORBIS_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${VORBIS_LIBRARIES})
+endif (VORBIS_SUPPORT)
 
 if (WHISPERCPP_SUPPORT)
 # target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${WHISPERCPP_LIBRARIES})
@@ -633,6 +651,13 @@ if (SOX_SUPPORT)
       stream_dec_sox_resampler.h
       stream_dec_sox_resampler.inl)
 endif (SOX_SUPPORT)
+
+if (VORBIS_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_vorbis_decoder.h
+      stream_dec_vorbis_decoder.inl)
+endif (VORBIS_SUPPORT)
 
 if (WHISPERCPP_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
