@@ -1907,6 +1907,9 @@ idle_initialize_UI_cb (gpointer userData_in)
         window_p;
       (*directshow_modulehandler_configuration_iterator).second.second->window.type =
         Common_UI_Window::TYPE_GTK;
+      ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+        window_p;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -1915,6 +1918,9 @@ idle_initialize_UI_cb (gpointer userData_in)
         window_p;
       (*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
         Common_UI_Window::TYPE_GTK;
+      ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+        window_p;
       break;
     }
     default:
@@ -1931,6 +1937,9 @@ idle_initialize_UI_cb (gpointer userData_in)
     window_p;
   (*modulehandler_configuration_iterator).second.second->window.type =
     Common_UI_Window::TYPE_GTK;
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
+    window_p;
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step12: initialize updates
