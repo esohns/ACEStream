@@ -1,8 +1,8 @@
-include (OpenGL)
+#include (OpenGL)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/gl/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/gl/scripts")
 include (assimp)
-include (glew)
+#include (glew)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/image/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/image/scripts")
 include (png)
@@ -35,9 +35,9 @@ endif (WIN32)
 string (REPLACE ${CMAKE_SOURCE_DIR} "" BUILD_PATH_SUFFIX ${CMAKE_BINARY_DIR})
 string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 
-if (GLEW_SUPPORT)
- include_directories (${GLEW_INCLUDE_DIRS})
-endif (GLEW_SUPPORT)
+#if (GLEW_SUPPORT)
+# include_directories (${GLEW_INCLUDE_DIRS})
+#endif (GLEW_SUPPORT)
 if (UNIX)
  include_directories (${PKG_ALSA_INCLUDE_DIRS})
 
@@ -204,9 +204,9 @@ endif ()
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
-if (GLEW_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
-endif (GLEW_SUPPORT)
+#if (GLEW_SUPPORT)
+# target_link_libraries (${EXECUTABLE} PUBLIC ${GLEW_LIBRARIES})
+#endif (GLEW_SUPPORT)
 if (DEEPSPEECH_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${DEEPSPEECH_LIBRARIES})
 endif (DEEPSPEECH_SUPPORT)

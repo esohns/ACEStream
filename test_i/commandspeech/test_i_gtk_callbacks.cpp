@@ -1903,21 +1903,21 @@ idle_initialize_UI_cb (gpointer userData_in)
   switch (ui_cb_data_base_p->mediaFramework)
   {
     case STREAM_MEDIAFRAMEWORK_DIRECTSHOW:
-    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window =
+    { ACE_ASSERT (!(*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*directshow_modulehandler_configuration_iterator).second.second->window.type =
-        Common_UI_Window::TYPE_GTK;
+      ACE_ASSERT ((*directshow_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      //(*directshow_modulehandler_configuration_iterator).second.second->window.type =
+      //  Common_UI_Window::TYPE_GTK;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
-    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window =
+    { ACE_ASSERT (!(*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      (*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
         gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->window.gdk_window);
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
-        Common_UI_Window::TYPE_GTK;
+      ACE_ASSERT ((*mediafoundation_modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->window.type =
+      //  Common_UI_Window::TYPE_GTK;
       break;
     }
     default:
@@ -1929,12 +1929,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->window.gdk_window);
-  (*modulehandler_configuration_iterator).second.second->window.gdk_window =
+  ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+  (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window =
     gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
-  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
-  (*modulehandler_configuration_iterator).second.second->window.type =
-    Common_UI_Window::TYPE_GTK;
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->window);
+  //(*modulehandler_configuration_iterator).second.second->window.type =
+  //  Common_UI_Window::TYPE_GTK;
 #endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_REMOVE;
