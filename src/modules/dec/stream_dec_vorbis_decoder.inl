@@ -44,6 +44,10 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                MediaType>::Stream_Decoder_VorbisDecoder_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
+ , isFirstInput_ (true)
+ , isFirstOutput_ (true)
+ , messageData_ (NULL)
+ , sessionId_ (0)
  , sync_ ()
  , page_ ()
  , packetNumber_ (0)
@@ -75,6 +79,9 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
                                MediaType>::~Stream_Decoder_VorbisDecoder_T ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::~Stream_Decoder_VorbisDecoder_T"));
+
+  if (unlikely (messageData_))
+    messageData_->decrease ();
 
   // OGG bits
   ogg_stream_clear (&stream_);
@@ -108,6 +115,14 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    isFirstInput_ = true;
+    isFirstOutput_ = true;
+    if (unlikely (messageData_))
+    {
+      messageData_->decrease (); messageData_ = NULL;
+    } // end IF
+    sessionId_ = 0;
+
     ogg_sync_clear (&sync_);
     packetNumber_ = 0;
     serialNumber_ = 0;
@@ -151,14 +166,21 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
-
   ACE_Message_Block* message_block_p = message_inout;
   DataMessageType* message_p = NULL;
   int result;
   char* buffer_p = NULL;
+
+  // retain the initial message data
+  if (unlikely (isFirstInput_))
+  { isFirstInput_ = false;
+    ACE_ASSERT (!messageData_);
+    messageData_ =
+      &const_cast<DataMessageType::DATA_T&> (message_inout->getR ());
+    ACE_ASSERT (messageData_);
+    messageData_->increase ();
+    sessionId_ = message_inout->sessionId ();
+  } // end IF
 
   do
   { ACE_ASSERT (message_block_p);
@@ -368,6 +390,15 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
                           inherited::mod_->name ()));
               message_p->release (); message_p = NULL;
               goto error;
+            } // end IF
+
+            if (unlikely (isFirstOutput_))
+            { isFirstOutput_ = false;
+              ACE_ASSERT (messageData_);
+              message_p->initialize (messageData_,
+                                     sessionId_,
+                                     NULL);
+              ACE_ASSERT (!messageData_);
             } // end IF
 
             result = inherited::put_next (message_p, NULL);

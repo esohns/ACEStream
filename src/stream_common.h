@@ -174,6 +174,7 @@ enum Stream_SessionMessageType : int
   STREAM_SESSION_MESSAGE_ABORT, // *NOTE*: currently to be used by modules only
   STREAM_SESSION_MESSAGE_CONNECT,
   STREAM_SESSION_MESSAGE_DISCONNECT,
+  STREAM_SESSION_MESSAGE_FORMAT, // input format has changed (e.g. audio sample rate, video resolution, ...)
   STREAM_SESSION_MESSAGE_LINK,
   STREAM_SESSION_MESSAGE_RESIZE, // *TODO*: disambiguate between updated session data
                                  //         (i.e. input data) and updated configuration data

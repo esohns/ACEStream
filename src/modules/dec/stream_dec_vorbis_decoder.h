@@ -91,19 +91,24 @@ class Stream_Decoder_VorbisDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_VorbisDecoder_T (const Stream_Decoder_VorbisDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_VorbisDecoder_T& operator= (const Stream_Decoder_VorbisDecoder_T&))
 
+  bool                              isFirstInput_; // -message
+  bool                              isFirstOutput_; // -message
+  typename DataMessageType::DATA_T* messageData_;
+  Stream_SessionId_t                sessionId_; // current-
+
   // OGG bits
-  ogg_sync_state   sync_;
-  ogg_page         page_; // current-
-  ogg_int64_t      packetNumber_;
-  int              serialNumber_;
-  ogg_stream_state stream_;
-  bool             streamInitialized_;
+  ogg_sync_state                    sync_;
+  ogg_page                          page_; // current-
+  ogg_int64_t                       packetNumber_;
+  int                               serialNumber_;
+  ogg_stream_state                  stream_;
+  bool                              streamInitialized_;
 
   // Vorbis bits
-  vorbis_block     block_;
-  vorbis_comment   comment_;
-  vorbis_info      info_;
-  vorbis_dsp_state state_;
+  vorbis_block                      block_;
+  vorbis_comment                    comment_;
+  vorbis_info                       info_;
+  vorbis_dsp_state                  state_;
 };
 
 //////////////////////////////////////////

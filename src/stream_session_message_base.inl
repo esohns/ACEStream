@@ -363,6 +363,8 @@ Stream_SessionMessageBase_T<//AllocatorConfigurationType,
       string_out = ACE_TEXT_ALWAYS_CHAR ("CONNECT"); break;
     case STREAM_SESSION_MESSAGE_DISCONNECT:
       string_out = ACE_TEXT_ALWAYS_CHAR ("DISCONNECT"); break;
+    case STREAM_SESSION_MESSAGE_FORMAT:
+      string_out = ACE_TEXT_ALWAYS_CHAR ("FORMAT"); break;
     case STREAM_SESSION_MESSAGE_LINK:
       string_out = ACE_TEXT_ALWAYS_CHAR ("LINK"); break;
     case STREAM_SESSION_MESSAGE_RESIZE:
