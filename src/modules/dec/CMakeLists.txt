@@ -3,8 +3,10 @@ if (UNIX)
 elseif (WIN32)
  include (directxsdk)
 endif ()
+
 include (ffmpeg)
 include (ImageMagick)
+
 include (libnoise)
 
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../lib/scripts")
@@ -20,6 +22,7 @@ include (faad)
 include (festival)
 include (mpg123)
 include (opencv)
+include (opus)
 if (WIN32)
  include (ms_speech)
 endif (WIN32)
@@ -115,6 +118,11 @@ if (OPENCV_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${OPENCV_INCLUDE_DIRS}>")
 endif (OPENCV_SUPPORT)
+
+if (OPUS_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${OPUS_INCLUDE_DIRS}>")
+endif (OPUS_SUPPORT)
 
 if (VORBIS_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -364,6 +372,14 @@ if (OPENCV_SUPPORT)
       stream_dec_opencv_qr_decoder.inl)
 endif (OPENCV_SUPPORT)
 
+if (OPUS_SUPPORT)
+ set (source_files
+      ${source_files}
+      stream_dec_opus_decoder.cpp
+      stream_dec_opus_decoder.h
+      stream_dec_opus_decoder.inl)
+endif (OPUS_SUPPORT)
+
 if (VORBIS_SUPPORT)
  set (source_files
       ${source_files}
@@ -470,6 +486,10 @@ endif (LIBNOISE_SUPPORT)
 if (MPG123_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${MPG123_LIBRARIES})
 endif (MPG123_SUPPORT)
+
+if (OPUS_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${OPUS_LIBRARIES})
+endif (OPUS_SUPPORT)
 
 if (VORBIS_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${VORBIS_LIBRARIES})
@@ -651,6 +671,13 @@ if (SOX_SUPPORT)
       stream_dec_sox_resampler.h
       stream_dec_sox_resampler.inl)
 endif (SOX_SUPPORT)
+
+if (OPUS_SUPPORT)
+ set (${PROJECT_NAME}_Decoder_LIB_HDRS
+      ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+      stream_dec_opus_decoder.h
+      stream_dec_opus_decoder.inl)
+endif (OPUS_SUPPORT)
 
 if (VORBIS_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS

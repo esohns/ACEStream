@@ -328,11 +328,10 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   switch (message_inout->type ())
   {
     case STREAM_SESSION_MESSAGE_BEGIN:
-    { ACE_ASSERT (inherited::sessionData_);
+    { // sanity check(s)
+      ACE_ASSERT (inherited::sessionData_);
       typename SessionDataContainerType::DATA_T& session_data_r =
         const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
-
-      // sanity check(s)
       // *TODO*: remove type inference
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_s;
