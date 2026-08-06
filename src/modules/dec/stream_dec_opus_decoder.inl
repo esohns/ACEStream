@@ -313,7 +313,7 @@ Stream_Decoder_OpusDecoder_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
         message_p->wr_ptr (result * channels_ * (floatingPointOutput_ ? sizeof (float) : sizeof (opus_int16)));
-        ++packetNumber_;
+        //++packetNumber_;
 
         result = inherited::put_next (message_p, NULL);
         if (unlikely (result == -1))

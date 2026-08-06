@@ -129,9 +129,9 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
       xmlNodePtr list_node_p = NULL;
       xmlAttrPtr attribute_p = NULL;
       std::string URL_base =
-          Net_Common_Tools::URLToHostName (inherited::configuration_->URL,
-                                           true,
-                                           true);
+        Net_Common_Tools::URLToHostName (inherited::configuration_->URL,
+                                         true,  // return protocol (if any)
+                                         true); // return port (if any)
       std::string URL;
       for (Test_I_PageDataReverseConstIterator_t iterator = session_data_r.data.pageData.rbegin ();
            iterator != session_data_r.data.pageData.rend ();
@@ -142,40 +142,40 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << date.day () << '.' << date.month () << '.' << date.year ();
         node_p =
-            xmlNewChild (body_node_p,                            // parent
-                         NULL,                                   // namespace
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("h4")), // name
-                         BAD_CAST (converter.str ().c_str ()));  // content
+          xmlNewChild (body_node_p,                             // parent
+                        NULL,                                   // namespace
+                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("h4")), // name
+                        BAD_CAST (converter.str ().c_str ()));  // content
         ACE_ASSERT (node_p);
 
         list_node_p =
-            xmlNewChild (body_node_p,                            // parent
-                         NULL,                                   // namespace
-                         BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("ul")), // name
-                         NULL);                                  // content
+          xmlNewChild (body_node_p,                             // parent
+                        NULL,                                   // namespace
+                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("ul")), // name
+                        NULL);                                  // content
         ACE_ASSERT (list_node_p);
         for (Test_I_DataItemsIterator_t iterator2 = (*iterator).second.begin ();
              iterator2 != (*iterator).second.end ();
              ++iterator2)
         {
           node_p =
-              xmlNewChild (list_node_p,                            // parent
-                           NULL,                                   // namespace
-                           BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("li")), // name
-                           NULL);                                  // content
+            xmlNewChild (list_node_p,                             // parent
+                          NULL,                                   // namespace
+                          BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("li")), // name
+                          NULL);                                  // content
           ACE_ASSERT (node_p);
           node_p =
-              xmlNewChild (node_p,                                        // parent
-                           NULL,                                          // namespace
-                           BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("a")),         // name
-                           BAD_CAST ((*iterator2).description.c_str ())); // content
+            xmlNewChild (node_p,                                         // parent
+                          NULL,                                          // namespace
+                          BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("a")),         // name
+                          BAD_CAST ((*iterator2).description.c_str ())); // content
           ACE_ASSERT (node_p);
           URL = URL_base;
           URL += (*iterator2).URI;
           attribute_p =
-              xmlSetProp (node_p,                                   // node
-                          BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("href")), // name
-                          BAD_CAST (URL.c_str ()));    // value
+            xmlSetProp (node_p,                                   // node
+                        BAD_CAST (ACE_TEXT_ALWAYS_CHAR ("href")), // name
+                        BAD_CAST (URL.c_str ()));                 // value
           ACE_ASSERT (attribute_p);
           ACE_UNUSED_ARG (attribute_p);
         } // end FOR
@@ -193,14 +193,12 @@ Test_I_Stream_Module_HTMLWriter::handleSessionMessage (Test_I_Stream_SessionMess
         session_data_r.aborted = true;
         return;
       } // end IF
-#if defined (_DEBUG)
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: wrote \"%s\" (%d byte(s))\n"),
                     inherited::mod_->name (),
                     ACE_TEXT (inherited::configuration_->targetFileName.c_str ()),
                     result));
-#endif // _DEBUG
       fileWritten_ = true;
 
       // clean up

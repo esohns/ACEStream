@@ -122,27 +122,28 @@ const char libacestream_default_html_parser_module_name_string[] =
 
 void
 stream_html_parser_sax_default_error_cb (void* userData_in,
-                                         const char* message_in,
+                                         const char* format_in,
                                          ...)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_html_parser_sax_default_error_cb"));
 
   ACE_UNUSED_ARG (userData_in);
 
-  ACE_TCHAR buffer_a[BUFSIZ];
+  char buffer_a[BUFSIZ];
   va_list arguments_a;
 
-  va_start (arguments_a, message_in);
+  va_start (arguments_a,
+            format_in);
   int length = ACE_OS::vsnprintf (buffer_a,
-                                  sizeof (ACE_TCHAR[BUFSIZ]),
-//                                  sizeof (buffer) / sizeof (buffer[0]),
-                                  message_in, arguments_a);
+                                  sizeof (char[BUFSIZ]),
+                                  format_in,
+                                  arguments_a);
   ACE_UNUSED_ARG (length);
   va_end (arguments_a);
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("stream_html_parser_sax_default_error_cb: %s"),
-              buffer_a));
+              ACE_TEXT (buffer_a)));
 }
 
 void
@@ -152,6 +153,9 @@ stream_html_parser_sax_default_structured_error_cb (void* userData_in,
   STREAM_TRACE (ACE_TEXT ("::stream_html_parser_sax_default_structured_error_cb"));
 
   ACE_UNUSED_ARG (userData_in);
+
+  // sanity check(s)
+  ACE_ASSERT (error_in && error_in->message);
 
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("stream_html_parser_sax_default_structured_error_cb: %s"),

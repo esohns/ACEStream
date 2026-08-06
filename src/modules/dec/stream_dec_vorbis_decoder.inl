@@ -343,7 +343,7 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
                         inherited::mod_->name ()));
             goto error;
           } // end IF
-          ++packetNumber_;
+          //++packetNumber_;
 
           result = vorbis_synthesis_blockin (&state_, &block_);
           if (unlikely (result < 0))

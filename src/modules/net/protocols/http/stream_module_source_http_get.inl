@@ -526,10 +526,20 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   HTTP_HeadersConstIterator_t iterator =
     headers_in.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING));
   if (iterator == headers_in.end ())
+  {
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: adding \"%s\" header (value: \"%s\") to HTTP request...\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (HTTP_PRT_HEADER_HOST_STRING),
+                ACE_TEXT (hostname_string.c_str ())));
     headers.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
                                     hostname_string));
+  } // end IF
   else
   {
+    hostname_string = Net_Common_Tools::URLToHostName (URL_in,
+                                                       false,  // return hostname
+                                                       false); // do not return port#
     ACE_ASSERT ((*iterator).second == hostname_string);
   } // end ELSE
 

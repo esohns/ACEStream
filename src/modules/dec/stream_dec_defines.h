@@ -56,6 +56,7 @@
 
 #define STREAM_DEC_DECODER_OPUS_DEFAULT_NAME_STRING                  "Opus_Decoder"
 #define STREAM_DEC_DECODER_VORBIS_DEFAULT_NAME_STRING                "Vorbis_Decoder"
+#define STREAM_DEC_DECODER_WEBM_DEMUXER_DEFAULT_NAME_STRING          "WebM_Demuxer"
 
 #define STREAM_DEC_DECODER_RGB_HFLIP_DEFAULT_NAME_STRING             "RGB_HFlip"
 #define STREAM_DEC_DECODER_ZIP_DEFAULT_NAME_STRING                   "ZIP_Decoder"
