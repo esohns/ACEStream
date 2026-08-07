@@ -826,7 +826,7 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
                                                         std::uint64_t* bytesRemaining_inout)
 {
   // sanity check(s)
-  ACE_ASSERT (reader_in && bytesRemaining_inout && *bytesRemaining_inout == metadata_in.size);
+  ACE_ASSERT (reader_in && bytesRemaining_inout/* && *bytesRemaining_inout == metadata_in.size*/);
 
   std::uint64_t bytes_actually_read_this_time_i = 0, bytes_actually_read_i = 0;
   webm::Status status_s;
@@ -863,7 +863,7 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
     if (unlikely (bytes_actually_read_i < metadata_in.size))
     {
       { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, webm::Status (webm::Status::kEndOfFile));
-        if (unlikely (finished_));
+        if (unlikely (finished_))
         {
           message_p->wr_ptr (bytes_actually_read_i);
 
@@ -999,6 +999,14 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
 
   while (true)
   {
+    { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+      if (unlikely (finished_))
+      {
+        result = 0;
+        break; // stream has shut down; leave
+      } // end IF
+    } // end lock scope
+
     status_s = parser.Feed (this, this);
     if (status_s.code == webm::Status::kWouldBlock)
     {

@@ -33,6 +33,13 @@
 #include "stream_session_message_base.h"
 #include "stream_messageallocatorheap_base.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (FFMPEG_SUPPORT)
+#include "stream_lib_ffmpeg_common.h"
+#endif // FFMPEG_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "test_i_camstream_common.h"
 
 // forward declaration(s)
@@ -128,6 +135,7 @@ class Test_I_Target_MediaFoundation_SessionData
 };
 typedef Stream_SessionData_T<Test_I_Target_MediaFoundation_SessionData> Test_I_Target_MediaFoundation_SessionData_t;
 #else
+#if defined (FFMPEG_SUPPORT)
 class Test_I_Target_SessionData
  : public Stream_SessionDataMediaBase_T<struct Test_I_CamStream_V4L_SessionData,
                                         struct Stream_MediaFramework_FFMPEG_VideoMediaType,
@@ -166,6 +174,7 @@ class Test_I_Target_SessionData
 
   Net_IINETConnection_t*        connection;
   Stream_Net_ConnectionStates_t connectionStates;
+#endif // FFMPEG_SUPPORT
 };
 typedef Stream_SessionData_T<Test_I_Target_SessionData> Test_I_Target_SessionData_t;
 #endif // ACE_WIN32 || ACE_WIN64

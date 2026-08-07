@@ -179,14 +179,14 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
     // step1: retain the initial message data
     ACE_ASSERT (!messageData_);
     messageData_ =
-      &const_cast<DataMessageType::DATA_T&> (message_inout->getR ());
+      &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
     ACE_ASSERT (messageData_);
     messageData_->increase ();
     sessionId_ = message_inout->sessionId ();
 
     // step2: check for codec private data in session data
     ACE_ASSERT (inherited::sessionData_);
-    typename const SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
       inherited::sessionData_->getR ();
     Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator =
       session_data_r.codecConfiguration.find (86021); // AV_CODEC_ID_VORBIS

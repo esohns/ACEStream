@@ -24,17 +24,24 @@
 #include <string>
 
 #define ALSA_PCM_NEW_HW_PARAMS_API
+#ifdef __cplusplus
 extern "C"
 {
 #include "alsa/asoundlib.h"
 }
+#endif /* __cplusplus */
 
 #if defined (LIBPIPEWIRE_SUPPORT)
 #include "spa/param/audio/raw.h"
 #endif // LIBPIPEWIRE_SUPPORT
 
 #if defined (FFMPEG_SUPPORT)
+#ifdef __cplusplus
+extern "C"
+{
 #include "libavutil/samplefmt.h"
+}
+#endif /* __cplusplus */
 #endif // FFMPEG_SUPPORT
 
 #if defined (SOX_SUPPORT)

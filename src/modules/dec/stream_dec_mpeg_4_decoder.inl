@@ -18,6 +18,13 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
+#if defined (FFMPEG_SUPPORT)
+extern "C"
+{
+#include "libavcodec/defs.h"
+}
+#endif // FFMPEG_SUPPORT
+
 #include "ace/Log_Msg.h"
 
 #include "common_image_defines.h"
@@ -25,10 +32,6 @@
 #include "common_timer_tools.h"
 
 #include "stream_macros.h"
-
-#if defined (FFMPEG_SUPPORT)
-#include "libavcodec/defs.h"
-#endif // FFMPEG_SUPPORT
 
 #include "stream_lib_common.h"
 

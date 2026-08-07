@@ -21,6 +21,10 @@
 #ifndef STREAM_DEC_LIBWEBM_DEMUXER_2_T_H
 #define STREAM_DEC_LIBWEBM_DEMUXER_2_T_H
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#undef Status
+#endif // ACE_WIN32 || ACE_WIN64
 #include "webm/callback.h"
 #include "webm/reader.h"
 #include "webm/status.h"

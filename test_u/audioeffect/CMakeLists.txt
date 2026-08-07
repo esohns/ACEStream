@@ -202,6 +202,9 @@ endif (UNIX)
 
 target_link_libraries (${EXECUTABLE} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
 
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 if (IMAGEMAGICK_SUPPORT)
  add_link_options (${MAGICK_LD_FLAGS})
  target_link_libraries (${EXECUTABLE} PUBLIC ${ImageMagick_LIBRARIES})

@@ -31,6 +31,7 @@
 
 #include "stream_dec_common.h"
 
+#include "net_common_tools.h"
 #include "net_connection_configuration.h"
 
 #include "http_codes.h"
