@@ -384,6 +384,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+      ACE_ASSERT (bufferSourceContext_);
+      bufferSourceContext_->nb_threads = 1;
 
       /* format audio: make sure the output format is what is requested */
       av_channel_layout_default (&channel_layout_s,
@@ -408,6 +410,9 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+      ACE_ASSERT (bufferFormatContext_);
+      bufferFormatContext_->nb_threads = 1;
+
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: generating output format: \"%s\"\n"),
                   inherited::mod_->name (),
@@ -428,6 +433,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
         goto error;
       } // end IF
+      ACE_ASSERT (bufferSinkContext_);
+      bufferSinkContext_->nb_threads = 1;
 
       /* Connect the filters;
        * in this simple case the filters just form a linear chain. */

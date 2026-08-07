@@ -27,8 +27,10 @@
 #include "stream_macros.h"
 
 #if defined (FFMPEG_SUPPORT)
-#include "stream_lib_ffmpeg_common.h"
+#include "libavcodec/defs.h"
 #endif // FFMPEG_SUPPORT
+
+#include "stream_lib_common.h"
 
 #include "stream_dec_defines.h"
 #include "stream_dec_mpeg_4_common.h"
@@ -1459,12 +1461,11 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                       session_message_p->getR ();
                     typename SessionDataContainerType::DATA_T& session_data_r =
                       const_cast<typename SessionDataContainerType::DATA_T&> (session_data_container_r.getR ());
-#if defined (FFMPEG_SUPPORT)
-                    struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration codec_configuration_s;
+                    struct Stream_MediaFramework_SessionData_CodecConfiguration codec_configuration_s;
                     codec_configuration_s.size =
                       static_cast<ACE_UINT32> (value_5) - sizeof (struct Stream_Decoder_MPEG_4_BoxHeader);
                     ACE_NEW_NORETURN (codec_configuration_s.data,
-                                      ACE_UINT8[codec_configuration_s.size + AV_INPUT_BUFFER_PADDING_SIZE]);
+                                      ACE_UINT8[codec_configuration_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes]);
                     if (unlikely (!codec_configuration_s.data))
                     {
                       ACE_DEBUG ((LM_CRITICAL,
@@ -1472,13 +1473,12 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                                   inherited::mod_->name ()));
                       return -1;
                     } // end IF
-                    ACE_OS::memset (codec_configuration_s.data, 0, codec_configuration_s.size + AV_INPUT_BUFFER_PADDING_SIZE);
+                    ACE_OS::memset (codec_configuration_s.data, 0, codec_configuration_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes);
                     ACE_OS::memcpy (codec_configuration_s.data,
                                     data_2 + sizeof (struct Stream_Decoder_MPEG_4_BoxHeader),
                                     codec_configuration_s.size);
                     // *TODO*: retain codec information during parsing and convert to enum accordingly
                     session_data_r.codecConfiguration.insert (std::make_pair (AV_CODEC_ID_H264, codec_configuration_s));
-#endif // FFMPEG_SUPPORT
                     // step2: dispatch queued session message(s)
                     dispatchQueuedSessionMessages ();
                     queueSessionMessages_ = false;

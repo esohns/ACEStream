@@ -91,6 +91,15 @@ class Stream_Decoder_VorbisDecoder_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_VorbisDecoder_T (const Stream_Decoder_VorbisDecoder_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Decoder_VorbisDecoder_T& operator= (const Stream_Decoder_VorbisDecoder_T&))
 
+  // helper methods
+  void makeOggPacket (ogg_packet&,    // return value: packet handle
+                      unsigned char*, // buffer
+                      long,           // length
+                      long);          // packet#
+  bool synchWithoutOgg (const struct Stream_MediaFramework_SessionData_CodecConfiguration&);
+  bool dispatchWithoutOgg (ACE_Message_Block*); // data
+  bool process (ogg_packet&); // packet handle
+
   bool                              isFirstInput_; // -message
   bool                              isFirstOutput_; // -message
   typename DataMessageType::DATA_T* messageData_;
@@ -109,6 +118,8 @@ class Stream_Decoder_VorbisDecoder_T
   vorbis_comment                    comment_;
   vorbis_info                       info_;
   vorbis_dsp_state                  state_;
+
+  bool                              bypassOgg_;
 };
 
 //////////////////////////////////////////

@@ -197,4 +197,7 @@
 #define STREAM_DEC_SOX_FORMAT_WAV_STRING                             "waveaudio"
 #define STREAM_DEC_SOX_SAMPLE_BUFFERS                                8192
 
+// WebM
+#define STREAM_DEC_WEBM_MAX_BUFFER_SIZE                              5*1024*1024 // 5 Mb
+
 #endif

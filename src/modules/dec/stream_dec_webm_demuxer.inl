@@ -270,7 +270,7 @@ Stream_Decoder_WebM_Demuxer_T<ACE_SYNCH_USE,
                     acestream_webm_demuxer_io_seek_cb,
                     acestream_webm_demuxer_io_tell_cb,
                     &CBData_ };
-  int retries_i = 0;
+  int retries_i = 1;
   
 retry:
   result = nestegg_init (&context_,
@@ -338,6 +338,8 @@ retry:
     } // end SWITCH
   } // end FOR
 
+  retries_i = 10;
+read:
   do
   { ACE_ASSERT (!packet_p);
     result = nestegg_read_packet (context_, &packet_p);
@@ -345,9 +347,17 @@ retry:
     {
       if (likely (result == 0))
         goto done; // EOF reached
+      --retries_i;
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to nestegg_read_packet(), aborting\n"),
-                  inherited::mod_->name ()));
+                  ACE_TEXT ("%s: failed to nestegg_read_packet(), %s\n"),
+                  inherited::mod_->name (),
+                  retries_i ? ACE_TEXT ("retrying") : ACE_TEXT ("aborting")));
+      if (retries_i)
+      {
+        result = nestegg_read_reset (context_);
+        if (!result)
+          goto read;
+      } // end IF
       goto error;
     } // end IF
     ACE_ASSERT (packet_p);
@@ -424,6 +434,7 @@ error:
     nestegg_destroy (context_); context_ = NULL;
   } // end IF
 
+  // *WARNING*: could deadlock if all upstream modules are synchronous !
   inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 
   return -1;

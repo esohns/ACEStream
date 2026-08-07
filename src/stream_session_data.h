@@ -37,9 +37,7 @@
 
 #include "stream_common.h"
 
-#if defined (FFMPEG_SUPPORT)
-#include "stream_lib_ffmpeg_common.h"
-#endif // FFMPEG_SUPPORT
+#include "stream_lib_common.h"
 
 template <typename BaseType, // inherits Stream_SessionData
           typename MediaFormatType,
@@ -75,19 +73,17 @@ class Stream_SessionDataMediaBase_T
 
   virtual void clear ();
 
-#if defined (FFMPEG_SUPPORT)
-  Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t codecConfiguration;
-#endif // FFMPEG_SUPPORT
-  MEDIAFORMATS_T                                                   formats;
+  Stream_MediaFramework_SessionData_CodecConfigurationMap_t codecConfiguration;
+  MEDIAFORMATS_T                                            formats;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  enum Stream_MediaFramework_Type                                  mediaFramework;
+  enum Stream_MediaFramework_Type                           mediaFramework;
 #endif // ACE_WIN32 || ACE_WIN64
-  StreamStateType*                                                 state;
-  StatisticType                                                    statistic;
-  std::string                                                      sourceFileName;
-  std::string                                                      targetFileName;
+  StreamStateType*                                          state;
+  StatisticType                                             statistic;
+  std::string                                               sourceFileName;
+  std::string                                               targetFileName;
 
-  UserDataType*                                                    userData;
+  UserDataType*                                             userData;
 };
 
 //////////////////////////////////////////

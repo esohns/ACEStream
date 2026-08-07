@@ -213,7 +213,7 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
   struct Stream_MediaFramework_FFMPEG_MediaType media_type_s;
-  struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration codec_configuration_s;
+  struct Stream_MediaFramework_SessionData_CodecConfiguration codec_configuration_s;
   std::vector<int> stream_ids_to_skip_a;
 
   // read file

@@ -23,6 +23,7 @@
 
 #include "stream_macros.h"
 
+#include "stream_lib_common.h"
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_lib_alsa_common.h"
@@ -365,9 +366,7 @@ Stream_Decoder_FAAD_T<ACE_SYNCH_USE,
       ACE_ASSERT (context_);
       unsigned char faad_format = 0;
       unsigned char result_2 = 0;
-#if defined (FFMPEG_SUPPORT)
-      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
-#endif // FFMPEG_SUPPORT
+      Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));

@@ -22,7 +22,6 @@
 #define STREAM_LIB_COMMON_H
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-#include <map>
 #include <string>
 
 #include "guiddef.h"
@@ -30,7 +29,10 @@
 #include <deque>
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <map>
 #include <set>
+
+#include "ace/Basic_Types.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
@@ -184,5 +186,15 @@ struct Stream_MediaFramework_ALSA_V4L_Format
 typedef std::deque<struct Stream_MediaFramework_ALSA_V4L_Format> Stream_MediaFramework_ALSA_V4L_Formats_t;
 typedef Stream_MediaFramework_ALSA_V4L_Formats_t::iterator Stream_MediaFramework_ALSA_V4L_FormatsIterator_t;
 #endif // ACE_WIN32 || ACE_WIN64
+
+// *NOTE*: codec 'extra data' information
+struct Stream_MediaFramework_SessionData_CodecConfiguration
+{
+  ACE_UINT8* data;
+  ACE_UINT32 size;
+};
+typedef std::map<int, struct Stream_MediaFramework_SessionData_CodecConfiguration> Stream_MediaFramework_SessionData_CodecConfigurationMap_t;
+typedef Stream_MediaFramework_SessionData_CodecConfigurationMap_t::iterator Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t;
+typedef Stream_MediaFramework_SessionData_CodecConfigurationMap_t::const_iterator Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t;
 
 #endif

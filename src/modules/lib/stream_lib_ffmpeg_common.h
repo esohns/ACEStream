@@ -41,15 +41,6 @@ extern "C"
 
 #include "stream_configuration.h"
 
-// *NOTE*: codec 'extra data' information
-struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration
-{
-  ACE_UINT8* data;
-  ACE_UINT32 size;
-};
-typedef std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration> Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t;
-typedef Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMap_t::const_iterator Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t;
-
 //////////////////////////////////////////
 
 struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration

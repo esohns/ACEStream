@@ -46,9 +46,7 @@ Stream_SessionDataMediaBase_T<BaseType,
                               StatisticType,
                               UserDataType>::Stream_SessionDataMediaBase_T ()
  : inherited ()
-#if defined (FFMPEG_SUPPORT)
  , codecConfiguration ()
-#endif // FFMPEG_SUPPORT
  , formats ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
  , mediaFramework (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK)
@@ -104,12 +102,10 @@ Stream_SessionDataMediaBase_T<BaseType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::~Stream_SessionDataMediaBase_T"));
 
-#if defined (FFMPEG_SUPPORT)
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
     delete [] (*iterator).second.data;
-#endif // FFMPEG_SUPPORT
 }
 
 template <typename BaseType,
@@ -137,15 +133,14 @@ Stream_SessionDataMediaBase_T<BaseType,
   // *NOTE*: the idea is to 'merge' the data
   inherited::operator+= (rhs_in);
 
-#if defined (FFMPEG_SUPPORT)
   // *TODO*: the idea is to 'merge' the data
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
     delete[] (*iterator).second.data;
   codecConfiguration.clear ();
   codecConfiguration = rhs_in.codecConfiguration;
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
   {
@@ -159,7 +154,6 @@ Stream_SessionDataMediaBase_T<BaseType,
                     data_orig_p,
                     (*iterator).second.size);
   } // end FOR
-#endif // FFMPEG_SUPPORT
 
   // *NOTE*: the idea is to 'merge' the data
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -264,14 +258,13 @@ Stream_SessionDataMediaBase_T<BaseType,
 
   inherited::operator= (rhs_in);
 
-#if defined (FFMPEG_SUPPORT)
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
     delete[] (*iterator).second.data;
   codecConfiguration.clear ();
   codecConfiguration = rhs_in.codecConfiguration;
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
   {
@@ -285,7 +278,6 @@ Stream_SessionDataMediaBase_T<BaseType,
                     data_orig_p,
                     (*iterator).second.size);
   } // end FOR
-#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   bool clear_b = false;
@@ -425,13 +417,11 @@ Stream_SessionDataMediaBase_T<BaseType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_SessionDataMediaBase_T::clear"));
 
-#if defined (FFMPEG_SUPPORT)
-  for (std::map<enum AVCodecID, struct Stream_MediaFramework_FFMPEG_SessionData_CodecConfiguration>::const_iterator iterator = codecConfiguration.begin ();
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
     delete[] (*iterator).second.data;
   codecConfiguration.clear ();
-#endif // FFMPEG_SUPPORT
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // *CONSIDER*: use template specialization instead ?

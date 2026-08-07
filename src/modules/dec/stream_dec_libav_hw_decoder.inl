@@ -454,7 +454,7 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
-      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+      Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator;
 
       codec_p =
         avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);

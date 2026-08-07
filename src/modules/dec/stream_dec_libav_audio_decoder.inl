@@ -372,7 +372,7 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
       // int debug_i = FF_DEBUG_PICT_INFO | FF_DEBUG_RC | FF_DEBUG_BITSTREAM |
       //               FF_DEBUG_MB_TYPE | FF_DEBUG_QP;
       int debug_i = 0; // FF_DEBUG_PICT_INFO | FF_DEBUG_BUGS;
-      Stream_MediaFramework_FFMPEG_SessionData_CodecConfigurationMapIterator_t iterator;
+      Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator;
       enum AVCodecID codec_id_e;
       AVChannelLayout channel_layout_in_s;
       struct Stream_MediaFramework_FFMPEG_AudioMediaType media_type_s;

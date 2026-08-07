@@ -58,6 +58,7 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
  , comment_ ()
  , info_ ()
  , state_ ()
+ , bypassOgg_ (false)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::Stream_Decoder_VorbisDecoder_T"));
 
@@ -133,6 +134,8 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
     vorbis_comment_clear (&comment_);
     vorbis_info_clear (&info_);
     vorbis_dsp_clear (&state_);
+
+    bypassOgg_ = false;
   } // end IF
 
   ogg_sync_init (&sync_);
@@ -171,15 +174,68 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
   int result;
   char* buffer_p = NULL;
 
-  // retain the initial message data
   if (unlikely (isFirstInput_))
   { isFirstInput_ = false;
+    // step1: retain the initial message data
     ACE_ASSERT (!messageData_);
     messageData_ =
       &const_cast<DataMessageType::DATA_T&> (message_inout->getR ());
     ACE_ASSERT (messageData_);
     messageData_->increase ();
     sessionId_ = message_inout->sessionId ();
+
+    // step2: check for codec private data in session data
+    ACE_ASSERT (inherited::sessionData_);
+    typename const SessionMessageType::DATA_T::DATA_T& session_data_r =
+      inherited::sessionData_->getR ();
+    Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator =
+      session_data_r.codecConfiguration.find (86021); // AV_CODEC_ID_VORBIS
+    if (iterator != session_data_r.codecConfiguration.end ())
+    { bypassOgg_ = true;
+      // *NOTE*: the codec private data contains the 3 synchronization packets
+      if (unlikely (!synchWithoutOgg ((*iterator).second)))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: failed to synchWithoutOgg(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: initialized: %d channel(s) @ %d Hz\n"),
+                  inherited::mod_->name (),
+                  info_.channels,
+                  info_.rate));
+
+      result = vorbis_synthesis_init (&state_, &info_);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to vorbis_synthesis_init(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+
+      result = vorbis_block_init (&state_, &block_);
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to vorbis_block_init(), aborting\n"),
+                    inherited::mod_->name ()));
+        goto error;
+      } // end IF
+    } // end IF
+  } // end IF
+  if (bypassOgg_)
+  {
+    if (unlikely (!dispatchWithoutOgg (message_inout)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to dispatchWithoutOgg(), aborting\n"),
+                  inherited::mod_->name ()));
+      goto error;
+    } // end IF
+
+    goto continue_2;
   } // end IF
 
   do
@@ -202,10 +258,10 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
         break;
       else if (result < 0)
       {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ogg_sync_pageout(), aborting\n"),
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: failed to ogg_sync_pageout(), continuing\n"),
                     inherited::mod_->name ()));
-        goto error;
+        continue;
       } // end IF
       
       if (unlikely (!streamInitialized_))
@@ -333,92 +389,21 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
             } // end IF
           } // end IF
         } // end IF
-        else
+        else if (unlikely (!process (packet_s)))
         {
-          result = vorbis_synthesis (&block_, &packet_s);
-          if (unlikely (result < 0))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to vorbis_synthesis(), aborting\n"),
-                        inherited::mod_->name ()));
-            goto error;
-          } // end IF
-          //++packetNumber_;
-
-          result = vorbis_synthesis_blockin (&state_, &block_);
-          if (unlikely (result < 0))
-          {
-            ACE_DEBUG ((LM_ERROR,
-                        ACE_TEXT ("%s: failed to vorbis_synthesis_blockin(), aborting\n"),
-                        inherited::mod_->name ()));
-            goto error;
-          } // end IF
-
-          float** pcm_p;
-          int samples_i;
-          float* data_p;
-          do
-          {
-            samples_i = vorbis_synthesis_pcmout (&state_, &pcm_p);
-            if (samples_i <= 0)
-              break;
-
-            ACE_ASSERT (!message_p);
-            message_p = inherited::allocateMessage (samples_i * info_.channels * sizeof (float),
-                                                    NULL);
-            if (unlikely (!message_p))
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%B), aborting\n"),
-                          inherited::mod_->name (),
-                          samples_i * info_.channels * sizeof (float)));
-              goto error;
-            } // end IF
-
-            // need to interleave the samples :-(
-            data_p = reinterpret_cast<float*> (message_p->wr_ptr ());
-            for (int i = 0; i < samples_i; i++)
-              for (int j = 0; j < info_.channels; j++)
-                data_p[i * info_.channels + j] = pcm_p[j][i];
-            message_p->wr_ptr (samples_i * info_.channels * sizeof (float));
-
-            result = vorbis_synthesis_read (&state_, samples_i);
-            if (unlikely (result < 0))
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to vorbis_synthesis_read(), aborting\n"),
-                          inherited::mod_->name ()));
-              message_p->release (); message_p = NULL;
-              goto error;
-            } // end IF
-
-            if (unlikely (isFirstOutput_))
-            { isFirstOutput_ = false;
-              ACE_ASSERT (messageData_);
-              message_p->initialize (messageData_,
-                                     sessionId_,
-                                     NULL);
-              ACE_ASSERT (!messageData_);
-            } // end IF
-
-            result = inherited::put_next (message_p, NULL);
-            if (unlikely (result == -1))
-            {
-              ACE_DEBUG ((LM_ERROR,
-                          ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
-                          inherited::mod_->name ()));
-              message_p->release (); message_p = NULL;
-              goto error;
-            } // end IF
-            message_p = NULL;
-          } while (true);
-        } // end ELSE
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to process(), aborting\n"),
+                      inherited::mod_->name ()));
+          goto error;
+        } // end ELSE IF
       } while (true);
     } while (true);
     buffer_p = NULL;
 continue_:
     message_block_p = message_block_p->cont ();
   } while (message_block_p);
+
+continue_2:
   message_inout->release (); message_inout = NULL;
 
   return;
@@ -481,6 +466,274 @@ continue_2:
     default:
       break;
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+void
+Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType>::makeOggPacket (ogg_packet& packet_inout,
+                                                          unsigned char* buffer_in,
+                                                          long length_in,
+                                                          long packetNumber_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::makeOggPacket"));
+
+  packet_inout.packet = buffer_in;
+  packet_inout.bytes = length_in;
+  packet_inout.b_o_s = (packetNumber_in == 0) ? 1 : 0;
+  packet_inout.e_o_s = 0;
+  packet_inout.granulepos = 0;
+  packet_inout.packetno = packetNumber_in;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType>::synchWithoutOgg (const struct Stream_MediaFramework_SessionData_CodecConfiguration& codecConfiguration_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::synchWithoutOgg"));
+
+  // sanity check(s)
+  ACE_ASSERT (codecConfiguration_in.data && codecConfiguration_in.size);
+
+  int num_headers_i = codecConfiguration_in.data[0] + 1;
+  if (unlikely (num_headers_i != 3))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid number of headers in codec private data (was: %d, required: 3), aborting\n"),
+                inherited::mod_->name (),
+                num_headers_i));
+    return false;
+  } // end IF
+
+  size_t offset_i = 1;
+  size_t header_lengths_a[3] = {0};
+  for (int i = 0; i < 2; i++)
+  {
+    size_t length_i = 0;
+    while (offset_i < codecConfiguration_in.size)
+    {
+      unsigned char byte = codecConfiguration_in.data[offset_i++];
+      length_i += byte;
+      if (byte < 255)
+        break; // end of this header's length block
+    } // end WHILE
+    header_lengths_a[i] = length_i;
+  } // end FOR
+  header_lengths_a[2] = // the rest...
+    codecConfiguration_in.size - offset_i - header_lengths_a[0] - header_lengths_a[1];
+  if (offset_i + header_lengths_a[0] + header_lengths_a[1] + header_lengths_a[2] != codecConfiguration_in.size)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: header lengths do not match codec private data size (was: %B, required: %u), aborting\n"),
+                inherited::mod_->name (),
+                offset_i + header_lengths_a[0] + header_lengths_a[1] + header_lengths_a[2],
+                codecConfiguration_in.size));
+    return false;
+  } // end IF
+
+  unsigned char* h1_p = codecConfiguration_in.data + offset_i;
+  unsigned char* h2_p = h1_p + header_lengths_a[0];
+  unsigned char* h3_p = h2_p + header_lengths_a[1];
+  ogg_packet ogg_packet_s;
+  makeOggPacket (ogg_packet_s, h1_p, header_lengths_a[0], packetNumber_++);
+  int result = vorbis_synthesis_headerin (&info_, &comment_, &ogg_packet_s);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid identification header: %d, aborting\n"),
+                inherited::mod_->name (),
+                result));
+    return false;
+  } // end IF
+  makeOggPacket (ogg_packet_s, h2_p, header_lengths_a[1], packetNumber_++);
+  result = vorbis_synthesis_headerin (&info_, &comment_, &ogg_packet_s);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid comment header: %d, aborting\n"),
+                inherited::mod_->name (),
+                result));
+    return false;
+  } // end IF
+  makeOggPacket (ogg_packet_s, h3_p, header_lengths_a[2], packetNumber_++);
+  result = vorbis_synthesis_headerin (&info_, &comment_, &ogg_packet_s);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid setup header: %d, aborting\n"),
+                inherited::mod_->name (),
+                result));
+    return false;
+  } // end IF
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType>::dispatchWithoutOgg (ACE_Message_Block* messageBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::dispatchWithoutOgg"));
+
+  // sanity check(s)
+  ACE_ASSERT (messageBlock_in);
+
+  ACE_Message_Block* message_block_p = messageBlock_in;
+  ogg_packet ogg_packet_s;
+  do
+  { ACE_ASSERT (message_block_p);
+    if (unlikely (!message_block_p->length ()))
+      goto continue_;
+
+    makeOggPacket (ogg_packet_s, reinterpret_cast<unsigned char*> (message_block_p->rd_ptr ()), message_block_p->length (), packetNumber_++);
+    if (unlikely (!process (ogg_packet_s)))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to process(), aborting\n"),
+                  inherited::mod_->name ()));
+      return false;
+    } // end IF
+  
+continue_:
+    message_block_p = message_block_p->cont ();
+  } while (message_block_p);
+
+  return true;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType>
+bool
+Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType>::process (ogg_packet& packet_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_VorbisDecoder_T::process"));
+
+  int result = vorbis_synthesis (&block_, &packet_in);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to vorbis_synthesis(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  result = vorbis_synthesis_blockin (&state_, &block_);
+  if (unlikely (result < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to vorbis_synthesis_blockin(), aborting\n"),
+                inherited::mod_->name ()));
+    return false;
+  } // end IF
+
+  float** pcm_p;
+  int samples_i;
+  float* data_p;
+  DataMessageType* message_p = NULL;
+  do
+  { pcm_p = NULL;
+    samples_i = vorbis_synthesis_pcmout (&state_, &pcm_p);
+    if (samples_i <= 0)
+      break;
+    ACE_ASSERT (pcm_p);
+
+    ACE_ASSERT (!message_p);
+    message_p = inherited::allocateMessage (samples_i * info_.channels * sizeof (float),
+                                            NULL);
+    if (unlikely (!message_p))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%B), aborting\n"),
+                  inherited::mod_->name (),
+                  samples_i * info_.channels * sizeof (float)));
+      return false;
+    } // end IF
+
+    // need to interleave the samples :-(
+    data_p = reinterpret_cast<float*> (message_p->wr_ptr ());
+    for (int i = 0; i < samples_i; i++)
+      for (int j = 0; j < info_.channels; j++)
+        data_p[i * info_.channels + j] = pcm_p[j][i];
+    message_p->wr_ptr (samples_i * info_.channels * sizeof (float));
+
+    result = vorbis_synthesis_read (&state_, samples_i);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to vorbis_synthesis_read(), aborting\n"),
+                  inherited::mod_->name ()));
+      message_p->release (); message_p = NULL;
+      return false;
+    } // end IF
+
+    if (unlikely (isFirstOutput_))
+    { isFirstOutput_ = false;
+      ACE_ASSERT (messageData_);
+      message_p->initialize (messageData_,
+                             sessionId_,
+                             NULL);
+      ACE_ASSERT (!messageData_);
+    } // end IF
+
+    result = inherited::put_next (message_p, NULL);
+    if (unlikely (result == -1))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                  inherited::mod_->name ()));
+      message_p->release (); message_p = NULL;
+      return false;
+    } // end IF
+    message_p = NULL;
+  } while (true);
+
+  return true;
 }
 
 //////////////////////////////////////////
