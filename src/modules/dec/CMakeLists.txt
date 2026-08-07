@@ -399,7 +399,10 @@ if (WEBM_SUPPORT)
       ${source_files}
       stream_dec_libwebm_demuxer.cpp
       stream_dec_libwebm_demuxer.h
-      stream_dec_libwebm_demuxer.inl)
+      stream_dec_libwebm_demuxer.inl
+      stream_dec_libwebm_demuxer_2.cpp
+      stream_dec_libwebm_demuxer_2.h
+      stream_dec_libwebm_demuxer_2.inl)
 endif (WEBM_SUPPORT)
 
 if (WHISPERCPP_SUPPORT)
@@ -708,7 +711,9 @@ if (WEBM_SUPPORT)
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
       stream_dec_libwebm_demuxer.h
-      stream_dec_libwebm_demuxer.inl)
+      stream_dec_libwebm_demuxer.inl
+      stream_dec_libwebm_demuxer_2.h
+      stream_dec_libwebm_demuxer_2.inl)
 endif (WEBM_SUPPORT)
 
 if (WHISPERCPP_SUPPORT)

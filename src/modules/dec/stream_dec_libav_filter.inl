@@ -186,6 +186,7 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
 
   filterGraph_ = avfilter_graph_alloc ();
   ACE_ASSERT (filterGraph_);
+  filterGraph_->nb_threads = 3;
 
   return inherited::initialize (configuration_in,
                                 allocator_in);

@@ -262,10 +262,10 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
   ACE_ASSERT (position_in >= 0 && length_in >= 0);
 
   static ACE_Time_Value sleep_timeout_10ms (std::chrono::milliseconds (10));
-  ACE_Time_Value absolute_timeout;
+  //ACE_Time_Value absolute_timeout;
   size_t relative_offset_i;
 
-  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+  //{ ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
     // sanity check(s)
     if (unlikely (position_in < absoluteHeadOffset_))
     {
@@ -287,13 +287,14 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
     {
       if (unlikely (finished_))
         return -1;
-      absolute_timeout = COMMON_TIME_NOW + sleep_timeout_10ms;
-      condition_.wait (&absolute_timeout);
+      //absolute_timeout = COMMON_TIME_NOW + sleep_timeout_10ms;
+      //condition_.wait (&absolute_timeout);
+      ACE_OS::sleep (sleep_timeout_10ms);
     } // end WHILE
 
     relative_offset_i = static_cast<size_t> (position_in - absoluteHeadOffset_);
     ACE_OS::memcpy (buffer_in, &buffer_[relative_offset_i], length_in);
-  } // end lock scope
+  //} // end lock scope
 
   return 0;
 }
@@ -363,14 +364,14 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
 
   int result = -1;
   long long result_2;
-  long cluster_length_i = 0, result_3;
+  long result_3;
   DataMessageType* message_p = NULL;
   std::vector<long> track_numbers_to_skip_a;
-  static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
-  static ACE_Time_Value sleep_timeout_10ms (std::chrono::milliseconds (10));
-  static ACE_Time_Value sleep_timeout_50ms (std::chrono::milliseconds (50));
+  //static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
+  //static ACE_Time_Value sleep_timeout_10ms (std::chrono::milliseconds (10));
+  //static ACE_Time_Value sleep_timeout_50ms (std::chrono::milliseconds (50));
   long long position_i = 0;
-  mkvparser::EBMLHeader ebml_header;
+  //mkvparser::EBMLHeader ebml_header;
   mkvparser::Segment* segment_p = NULL;
   const mkvparser::Tracks* tracks_p = NULL; 
   const mkvparser::Cluster* cluster_p = NULL;
@@ -384,39 +385,39 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
-  result_2 = ebml_header.Parse (this, position_i);
-  while (result_2)
-  {
-    { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-      if (unlikely (finished_))
-      {
-        result = 0;
-        goto clean;
-      } // end IF
-    } // end lock scope
+  //result_2 = ebml_header.Parse (this, position_i);
+  //while (result_2)
+  //{
+  //  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+  //    if (unlikely (finished_))
+  //    {
+  //      result = 0;
+  //      goto clean;
+  //    } // end IF
+  //  } // end lock scope
 
-    ACE_OS::sleep (sleep_timeout_10ms);
-    result_2 = ebml_header.Parse (this, position_i);
-  } // end WHILE
-  if (unlikely (result_2 < 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to mkvparser::EBMLHeader(): %q, aborting\n"),
-                inherited::mod_->name (),
-                result_2));
-    goto error;
-  } // end IF
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("%s: successfully parsed EBML header...\n"),
-              inherited::mod_->name ()));
+  //  //ACE_OS::sleep (sleep_timeout_10ms);
+  //  result_2 = ebml_header.Parse (this, position_i);
+  //} // end WHILE
+  //if (unlikely (result_2 < 0))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("%s: failed to mkvparser::EBMLHeader(): %q, aborting\n"),
+  //              inherited::mod_->name (),
+  //              result_2));
+  //  goto error;
+  //} // end IF
+  //ACE_DEBUG ((LM_DEBUG,
+  //            ACE_TEXT ("%s: successfully parsed EBML header...\n"),
+  //            inherited::mod_->name ()));
 
-  { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
-    if (unlikely (finished_))
-    {
-      result = 0;
-      goto clean;
-    } // end IF
-  } // end lock scope
+  //{ ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+  //  if (unlikely (finished_))
+  //  {
+  //    result = 0;
+  //    goto clean;
+  //  } // end IF
+  //} // end lock scope
 
   ACE_ASSERT (!segment_p);
   result_2 = mkvparser::Segment::CreateInstance (this,
@@ -432,7 +433,7 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
       } // end IF
     } // end lock scope
 
-    ACE_OS::sleep (sleep_timeout_50ms);
+    //ACE_OS::sleep (sleep_timeout_50ms);
     result_2 = mkvparser::Segment::CreateInstance (this,
                                                    position_i,
                                                    segment_p);
@@ -594,7 +595,7 @@ Stream_Decoder_LibWebM_Demuxer_T<ACE_SYNCH_USE,
         const mkvparser::Block::Frame& frame_r = block_p->GetFrame (i);
         message_p =
           inherited::allocateMessage (frame_r.len + inherited::configuration_->allocatorConfiguration->paddingBytes,
-                                      &backoff_timeout);
+                                      NULL);
         if (unlikely (!message_p))
         {
           ACE_DEBUG ((LM_ERROR,

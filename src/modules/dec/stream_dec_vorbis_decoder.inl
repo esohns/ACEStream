@@ -528,6 +528,7 @@ Stream_Decoder_VorbisDecoder_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+  // parse Xiph Lacing Sizes
   size_t offset_i = 1;
   size_t header_lengths_a[3] = {0};
   for (int i = 0; i < 2; i++)
