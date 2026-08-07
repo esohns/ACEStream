@@ -845,21 +845,40 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
     return webm::Status (webm::Status::kNotEnoughMemory);
   } // end IF
   message_p->size (metadata_in.size);
+  message_p->setMediaType (trackNumberToMessageMediaType_[lastTrackNumber_]);
 
   do
   { bytes_actually_read_this_time_i = 0;
-    status_s = reader_in->Read (bytes_to_read_i,
-                                reinterpret_cast<uint8_t*> (message_p->wr_ptr () + offset_i),
-                                &bytes_actually_read_this_time_i);
-    if (bytes_actually_read_this_time_i)
+    status_s =
+      reader_in->Read (bytes_to_read_i,
+                       reinterpret_cast<uint8_t*> (message_p->wr_ptr () + offset_i),
+                       &bytes_actually_read_this_time_i);
+    if (likely (bytes_actually_read_this_time_i))
     {
       bytes_actually_read_i += bytes_actually_read_this_time_i;
       offset_i += bytes_actually_read_this_time_i;
       bytes_to_read_i -= bytes_actually_read_this_time_i;
       *bytesRemaining_inout -= bytes_actually_read_this_time_i;
     } // end IF
-    if (bytes_actually_read_i < metadata_in.size)
+    if (unlikely (bytes_actually_read_i < metadata_in.size))
     {
+      { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, webm::Status (webm::Status::kEndOfFile));
+        if (unlikely (finished_));
+        {
+          message_p->wr_ptr (bytes_actually_read_i);
+
+          result = inherited::put_next (message_p, NULL);
+          if (unlikely (result == -1))
+          {
+            ACE_DEBUG ((LM_ERROR,
+                        ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
+                        inherited::mod_->name ()));
+            message_p->release (); message_p = NULL;
+          } // end IF
+          return webm::Status (webm::Status::kEndOfFile);
+        } // end IF
+      } // end lock scope
+
       //ACE_DEBUG ((LM_DEBUG,
       //            ACE_TEXT ("%s: failed to webm::Reader::Read(%Q), retrying\n"),
       //            inherited::mod_->name (),
@@ -867,9 +886,8 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
       continue;
     } // end IF
   } while (*bytesRemaining_inout);
-  *bytesRemaining_inout = 0;
+  ACE_ASSERT (*bytesRemaining_inout == 0);
   message_p->wr_ptr (metadata_in.size);
-  message_p->setMediaType (trackNumberToMessageMediaType_[lastTrackNumber_]);
 
   result = inherited::put_next (message_p, NULL);
   if (unlikely (result == -1))
@@ -882,7 +900,7 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
   } // end IF
   message_p = NULL;
 
-  return webm::Status(webm::Status::kOkCompleted);
+  return webm::Status (webm::Status::kOkCompleted);
 }
 
 template <ACE_SYNCH_DECL,
