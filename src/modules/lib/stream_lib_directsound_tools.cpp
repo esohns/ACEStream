@@ -27,6 +27,7 @@
 #include "guiddef.h"
 #include "devicetopology.h"
 #include "endpointvolume.h"
+#include "functiondiscoverykeys_devpkey.h"
 #include "mmeapi.h"
 #include "mmreg.h"
 // *WARNING*: "...Note Header files ksproxy.h and dsound.h define similar but
@@ -1550,6 +1551,35 @@ Stream_MediaFramework_DirectSound_Tools::getDevice (REFGUID deviceIdentifier_in)
   } // end IF
 
   return result_p;
+}
+
+std::string
+Stream_MediaFramework_DirectSound_Tools::getDeviceFriendlyName (IMMDevice* device_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getDeviceFriendlyName"));
+
+  // sanity check(s)
+  ACE_ASSERT (device_in);
+
+  std::string result;
+
+  IPropertyStore* properties_p = NULL;
+  HRESULT result_2 = device_in->OpenPropertyStore (STGM_READ, &properties_p);
+  ACE_ASSERT (SUCCEEDED (result_2) && properties_p);
+
+  struct tagPROPVARIANT var_name_s;
+  PropVariantInit (&var_name_s);
+
+  result_2 = properties_p->GetValue (PKEY_Device_FriendlyName,
+                                     &var_name_s);
+  ACE_ASSERT (SUCCEEDED (result_2));
+  properties_p->Release (); properties_p = NULL;
+  if (var_name_s.vt != VT_EMPTY)
+    result = ACE_TEXT_ALWAYS_CHAR (ACE_TEXT_WCHAR_TO_TCHAR (var_name_s.pwszVal));
+  result_2 = PropVariantClear (&var_name_s);
+  ACE_ASSERT (SUCCEEDED (result_2));
+
+  return result;
 }
 
 IAudioVolumeLevel*

@@ -76,6 +76,7 @@ class Stream_MediaFramework_DirectSound_Tools
 
   // WASAPI
   static IMMDevice* getDevice (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
+  static std::string getDeviceFriendlyName (IMMDevice*); // device handle
   static bool canRender (REFGUID,                      // device identifier
                          enum _AUDCLNT_SHAREMODE,      // share mode
                          const struct tWAVEFORMATEX&); // format
