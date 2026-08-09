@@ -1014,7 +1014,7 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
       bool do_purge_b = false;
       { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
         // *NOTE*: there is currently no std::abs() for size_t... :-(
-        if (Common_Math_Tools::almost_equal (static_cast<int64_t> (buffer_.size ()), static_cast<int64_t> (maxBufferCapacity_), 0.1f) &&
+        if (Common_Math_Tools::almost_equal_percentage (static_cast<int64_t> (buffer_.size ()), static_cast<int64_t> (maxBufferCapacity_), 0.1f) &&
             (buffer_.size () == readPosition_))
           do_purge_b = true;
       } // end lock scope
