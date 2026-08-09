@@ -21,8 +21,6 @@
 #ifndef STREAM_LIB_ALSA_TOOLS_H
 #define STREAM_LIB_ALSA_TOOLS_H
 
-#include <string>
-
 #define ALSA_PCM_NEW_HW_PARAMS_API
 #ifdef __cplusplus
 extern "C"
@@ -47,6 +45,8 @@ extern "C"
 #if defined (SOX_SUPPORT)
 #include "sox.h"
 #endif // SOX_SUPPORT
+
+#include <string>
 
 #include "ace/Global_Macros.h"
 
@@ -82,6 +82,17 @@ class Stream_MediaFramework_ALSA_Tools
   static void listCards ();
 
   static enum _snd_pcm_state status (struct _snd_pcm*); // device handle
+
+  // mixer
+  static bool getVolumeControl (const std::string&,  // card name
+                                const std::string&,  // selem name
+                                bool,                // capture ? : playback
+                                long&,               // return value: min level
+                                long&,               // return value: max level
+                                long&,               // return value: current level
+                                snd_mixer_t*&,       // return value: mixer handle
+                                snd_mixer_elem_t*&); // return value: control handle
+  static void freeMixerHandle (snd_mixer_t*&); // mixer handle
 
   static bool getVolumeLevels (const std::string&, // card name
                                const std::string&, // selem name

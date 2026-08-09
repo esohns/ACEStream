@@ -1490,6 +1490,156 @@ error:
 }
 
 bool
+Stream_MediaFramework_ALSA_Tools::getVolumeControl (const std::string& cardName_in,
+                                                    const std::string& simpleElementName_in,
+                                                    bool isCapture_in,
+                                                    long& minLevel_out,
+                                                    long& maxLevel_out,
+                                                    long& currentLevel_out,
+                                                    snd_mixer_t*& mixerHandle_out,
+                                                    snd_mixer_elem_t*& controlHandle_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::getVolumeControl"));
+
+  // sanity check(s)
+  ACE_ASSERT (!mixerHandle_out && !controlHandle_out);
+
+  // initialize return value(s)
+  minLevel_out = 0;
+  maxLevel_out = 0;
+  currentLevel_out = 0;
+
+  snd_mixer_selem_id_t* simple_elem_id_p = NULL;
+  int result_2 = -1;
+  int mode = 0;
+
+  result_2 = snd_mixer_open (&mixerHandle_out, mode);
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_open(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  ACE_ASSERT (mixerHandle_out);
+  result_2 = snd_mixer_attach (mixerHandle_out, cardName_in.c_str ());
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_attach(0x%@,\"%s\"): \"%s\", aborting\n"),
+                mixerHandle_out, ACE_TEXT (cardName_in.c_str ()),
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  result_2 = snd_mixer_selem_register (mixerHandle_out,
+                                       NULL,  // options
+                                       NULL); // classp
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_selem_register(0x%@): \"%s\", aborting\n"),
+                mixerHandle_out,
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  result_2 = snd_mixer_load (mixerHandle_out);
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_load(0x%@): \"%s\", aborting\n"),
+                mixerHandle_out,
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+
+  result_2 = snd_mixer_selem_id_malloc (&simple_elem_id_p);
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("failed to snd_mixer_selem_id_malloc(): \"%s\", aborting\n"),
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  ACE_ASSERT (simple_elem_id_p);
+  snd_mixer_selem_id_set_index (simple_elem_id_p, 0);
+  snd_mixer_selem_id_set_name (simple_elem_id_p, simpleElementName_in.c_str ());
+  controlHandle_out = snd_mixer_find_selem (mixerHandle_out, simple_elem_id_p);
+  if (unlikely (!controlHandle_out))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_find_selem(%@,\"%s\"): \"%s\", aborting\n"),
+                mixerHandle_out,
+                ACE_TEXT (simpleElementName_in.c_str ()),
+                ACE_TEXT (snd_strerror (errno))));
+    goto error;
+  } // end IF
+  result_2 =
+    (isCapture_in ? snd_mixer_selem_get_capture_volume_range (controlHandle_out,
+                                                              &minLevel_out,
+                                                              &maxLevel_out)
+                  : snd_mixer_selem_get_playback_volume_range (controlHandle_out,
+                                                               &minLevel_out,
+                                                               &maxLevel_out));
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to %s(0x%@): \"%s\", aborting\n"),
+                (isCapture_in ? ACE_TEXT ("snd_mixer_selem_get_capture_volume_range") : ACE_TEXT ("snd_mixer_selem_get_playback_volume_range")),
+                controlHandle_out,
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  result_2 =
+    (isCapture_in ? snd_mixer_selem_get_capture_volume (controlHandle_out,
+                                                        SND_MIXER_SCHN_FRONT_LEFT,
+                                                        &currentLevel_out)
+                  : snd_mixer_selem_get_playback_volume (controlHandle_out,
+                                                         SND_MIXER_SCHN_FRONT_LEFT,
+                                                         &currentLevel_out));
+  if (unlikely (result_2 < 0))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to %s(0x%@,%d): \"%s\", aborting\n"),
+                (isCapture_in ? ACE_TEXT ("snd_mixer_selem_get_capture_volume") : ACE_TEXT ("snd_mixer_selem_get_playback_volume")),
+                controlHandle_out, SND_MIXER_SCHN_FRONT_LEFT,
+                ACE_TEXT (snd_strerror (result_2))));
+    goto error;
+  } // end IF
+  snd_mixer_selem_id_free (simple_elem_id_p); simple_elem_id_p = NULL;
+
+  return true;
+
+error:
+  if (simple_elem_id_p)
+    snd_mixer_selem_id_free (simple_elem_id_p);
+  if (mixerHandle_out)
+  {
+    snd_mixer_free (mixerHandle_out);
+    snd_mixer_close (mixerHandle_out); mixerHandle_out = NULL;
+  } // end IF
+  controlHandle_out = NULL;
+
+  return false;
+}
+
+void
+Stream_MediaFramework_ALSA_Tools::freeMixerHandle (snd_mixer_t*& mixerHandle_inout)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_ALSA_Tools::freeMixerHandle"));
+
+  int result;
+
+  snd_mixer_free (mixerHandle_inout);
+  result = snd_mixer_close (mixerHandle_inout);
+  if (unlikely (result < 0))
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to snd_mixer_close(0x%@): \"%s\", continuing\n"),
+                mixerHandle_inout,
+                ACE_TEXT (snd_strerror (result))));
+  mixerHandle_inout = NULL;
+}
+
+bool
 Stream_MediaFramework_ALSA_Tools::getVolumeLevels (const std::string& cardName_in,
                                                    const std::string& simpleElementName_in,
                                                    bool isCapture_in,
@@ -1597,6 +1747,8 @@ Stream_MediaFramework_ALSA_Tools::getVolumeLevels (const std::string& cardName_i
     goto error;
   } // end IF
   snd_mixer_selem_id_free (simple_elem_id_p); simple_elem_id_p = NULL;
+
+  snd_mixer_free (handle_p);
   result_2 = snd_mixer_close (handle_p);
   if (result_2 < 0)
   {
@@ -1614,7 +1766,10 @@ error:
   if (simple_elem_id_p)
     snd_mixer_selem_id_free (simple_elem_id_p);
   if (handle_p)
+  {
+    snd_mixer_free (handle_p);
     snd_mixer_close (handle_p);
+  } // end IF
   return result;
 }
 
