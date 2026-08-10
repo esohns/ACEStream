@@ -21,6 +21,8 @@
 #ifndef STREAM_VIS_WAYLAND_WINDOW_H
 #define STREAM_VIS_WAYLAND_WINDOW_H
 
+#include <vector>
+
 #include "wayland-client.h"
 #include "wayland-xdg-decoration-client-protocol.h"
 #include "wayland-xdg-shell-client-protocol.h"
@@ -49,6 +51,7 @@ struct libacestream_vis_wayland_cb_data
   struct wl_display*                  display;
   struct wl_keyboard*                 keyboard;
   struct wl_seat*                     seat;
+  std::vector<uint32_t>               formats;
   struct wl_shm*                      shm;
   void*                               shm_data;
   struct wl_surface*                  surface;

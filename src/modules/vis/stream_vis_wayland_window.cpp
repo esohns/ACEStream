@@ -253,6 +253,24 @@ struct wl_seat_listener libacestream_default_vis_wl_seat_listener = {
 };
 
 void
+libacestream_default_vis_wl_shm_format (void* data_in,
+                                        struct wl_shm* shm_in,
+                                        uint32_t format_in)
+{
+  struct libacestream_vis_wayland_cb_data* data_p =
+    static_cast<struct libacestream_vis_wayland_cb_data*> (data_in);
+  ACE_ASSERT (data_p);
+
+  fprintf (stderr, "supported format: \"0x%x\"\n", format_in);
+
+  data_p->formats.push_back (format_in);
+}
+
+struct wl_shm_listener libacestream_default_vis_wl_shm_listener = {
+  .format = libacestream_default_vis_wl_shm_format
+};
+
+void
 libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                   struct wl_registry* registry_in,
                                                   uint32_t id_in,
@@ -268,17 +286,20 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
   fprintf (stderr, "Got a registry event for %s id %d\n", interface_in, id_in);
 
   if (!ACE_OS::strcmp (interface_in, wl_compositor_interface.name))
+  {
     data_p->compositor =
       static_cast<struct wl_compositor*> (wl_registry_bind (registry_in,
                                                             id_in,
                                                             &wl_compositor_interface,
                                                             1));
+    ACE_ASSERT (data_p->compositor);
 //  else if (!ACE_OS::strcmp (interface_in, ACE_TEXT_ALWAYS_CHAR ("wl_shell")))
 //    data_p->shell =
 //      static_cast<struct wl_shell*> (wl_registry_bind (registry_in,
 //                                                       id_in,
 //                                                       &wl_shell_interface,
 //                                                       1));
+  } // end IF
   else if (!ACE_OS::strcmp (interface_in, wl_seat_interface.name))
   {
     data_p->seat =
@@ -286,16 +307,23 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                       id_in,
                                                       &wl_seat_interface,
                                                       1));
+    ACE_ASSERT (data_p->seat);
     wl_seat_add_listener (data_p->seat,
                           &libacestream_default_vis_wl_seat_listener,
                           data_in);
   } // end ELSE IF
   else if (!ACE_OS::strcmp (interface_in, wl_shm_interface.name))
+  {
     data_p->shm =
       static_cast<struct wl_shm*> (wl_registry_bind (registry_in,
                                                      id_in,
                                                      &wl_shm_interface,
                                                      1));
+    ACE_ASSERT (data_p->shm);
+    wl_shm_add_listener (data_p->shm,
+                         &libacestream_default_vis_wl_shm_listener,
+                         data_in);
+  } // end ELSE IF
   else if (!ACE_OS::strcmp (interface_in, xdg_wm_base_interface.name))
   {
     data_p->wm_base =
@@ -303,6 +331,7 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                           id_in,
                                                           &xdg_wm_base_interface,
                                                           1));
+    ACE_ASSERT (data_p->wm_base);
     xdg_wm_base_add_listener (data_p->wm_base,
                               &libacestream_default_vis_xdg_wm_base_listener,
                               data_in);
@@ -314,6 +343,7 @@ libacestream_vis_wayland_global_registry_handler (void* data_in,
                                                                          id_in,
                                                                          &zxdg_decoration_manager_v1_interface,
                                                                          1));
+    ACE_ASSERT (data_p->decoration_manager);
   } // end ELSE IF
 }
 

@@ -195,8 +195,11 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       const typename SessionDataContainerType::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
-      const MediaType& media_type_r = session_data_r.formats.back ();
-      cbData_.resolution = inherited2::getResolution (media_type_r);
+      MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      cbData_.resolution = inherited2::getResolution (media_type_s);
 
       if (unlikely (!initialize_2 (cbData_.resolution)))
       {
@@ -220,8 +223,11 @@ error:
       const typename SessionDataContainerType::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
-      const MediaType& media_type_r = session_data_r.formats.back ();
-      cbData_.resolution = inherited2::getResolution (media_type_r);
+      MediaType media_type_s;
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_VIDEO,
+                                media_type_s);
+      cbData_.resolution = inherited2::getResolution (media_type_s);
 
       if (unlikely (!initialize_2 (cbData_.resolution)))
       {
@@ -478,6 +484,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     } // end IF
     closeDisplay_ = false;
     cbData_.display = NULL;
+    cbData_.formats.clear ();
   } // end IF
 
 #if defined (_DEBUG)
@@ -723,11 +730,25 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                                    fd,
                                                    frameSize_);
   ACE_ASSERT (pool_p);
+  uint32_t format_i =
+    Stream_Visualization_Tools::depthToWaylandFormat (depth_i);
+  // sanity check: format supported at all ?
+  if (unlikely (std::find (cbData_.formats.begin (), cbData_.formats.end (), format_i) == cbData_.formats.end ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: input format (was: %u) not supported, aborting\n"),
+                inherited::mod_->name (),
+                format_i));
+    wl_shm_pool_destroy (pool_p);
+    ACE_OS::close (fd);
+    return false;
+  } // end IF
+
   cbData_.buffer =
     wl_shm_pool_create_buffer (pool_p,
                                0,                           // offset
                                width_i, height_i, stride_i,
-                               Stream_Visualization_Tools::depthToWaylandFormat (depth_i));
+                               format_i);
   if (unlikely (!cbData_.buffer))
   {
     ACE_DEBUG ((LM_ERROR,
