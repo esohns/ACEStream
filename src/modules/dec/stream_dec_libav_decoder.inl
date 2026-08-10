@@ -443,6 +443,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct AVCodecParameters* codec_parameters_p = NULL;
 #endif // ACE_WIN32 || ACE_WIN64
+      struct AVRational frame_rate_s;
 
       codec_p =
         avcodec_find_decoder (inherited::configuration_->codecConfiguration->codecId);
@@ -643,8 +644,15 @@ continue_:
                         (*iterator).second.size);
         context_->extradata_size = (*iterator).second.size;
       } // end IF
-      ACE_ASSERT (media_type_s.frameRate.num);
-      context_->time_base = {media_type_s.frameRate.den, media_type_s.frameRate.num};
+      frame_rate_s = media_type_s.frameRate;
+      if (unlikely (!frame_rate_s.num))
+      {
+        ACE_DEBUG ((LM_WARNING,
+                    ACE_TEXT ("%s: input frame rate not set, falling back to 30/1\n"),
+                    inherited::mod_->name ()));
+        frame_rate_s = {30, 1};
+      } // end IF
+      context_->time_base = {frame_rate_s.den, frame_rate_s.num};
       // context_->ticks_per_frame =
       //   (((inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_H264) ||
       //     (inherited::configuration_->codecConfiguration->codecId == AV_CODEC_ID_MPEG2VIDEO)) ? 2 : 1);

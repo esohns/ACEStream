@@ -39,7 +39,7 @@
 #include "stream_lib_directdraw_common.h"
 
 // initialize statics
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
 IDirect3D9Ex*
 #else
 IDirect3D9*
@@ -55,7 +55,7 @@ Stream_MediaFramework_DirectDraw_Tools::initialize ()
 
   if (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle)
     return true;
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
   result = Direct3DCreate9Ex (D3D_SDK_VERSION,
                               &Stream_MediaFramework_DirectDraw_Tools::direct3DHandle);
   if (unlikely (FAILED (result)))
@@ -63,9 +63,9 @@ Stream_MediaFramework_DirectDraw_Tools::initialize ()
   Stream_MediaFramework_DirectDraw_Tools::direct3DHandle =
     Direct3DCreate9 (D3D_SDK_VERSION);
   if (unlikely (!Stream_MediaFramework_DirectDraw_Tools::direct3DHandle))
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
   {
-#if COMMON_OS_WIN32_TARGET_PLATFORM(0x0600) // _WIN32_WINNT_VISTA
+#if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Direct3DCreate9Ex(%d): \"%s\", aborting\n"),
                 D3D_SDK_VERSION,
@@ -75,7 +75,7 @@ Stream_MediaFramework_DirectDraw_Tools::initialize ()
                 ACE_TEXT ("failed to Direct3DCreate9(%d): \"%s\", aborting\n"),
                 D3D_SDK_VERSION,
                 ACE_TEXT (Common_Error_Tools::errorToString (result).c_str ())));
-#endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
+#endif // COMMON_OS_WIN32_TARGET_PLATFORM (0x0600)
     return false;
   } // end IF
   ACE_ASSERT (Stream_MediaFramework_DirectDraw_Tools::direct3DHandle);

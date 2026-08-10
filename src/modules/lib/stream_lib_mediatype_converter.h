@@ -55,7 +55,6 @@ class Stream_MediaFramework_MediaTypeConverter_T
   Stream_MediaFramework_MediaTypeConverter_T ();
   inline virtual ~Stream_MediaFramework_MediaTypeConverter_T () {}
 
- protected:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   void setSampleRate (unsigned int, struct _AMMediaType&);
   void setChannels (unsigned int, struct _AMMediaType&);

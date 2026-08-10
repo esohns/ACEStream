@@ -796,15 +796,13 @@ Stream_Decoder_LibWebM_2_Demuxer_T<ACE_SYNCH_USE,
 {
   lastTrackNumber_ = block_in.track_number;
   if (std::find (trackNumbersToSkip_.begin (), trackNumbersToSkip_.end (), lastTrackNumber_) != trackNumbersToSkip_.end () ||
-                 lastTrackNumber_ != audioTrackNumber_) // *TODO*
-  {
+                 (lastTrackNumber_ != audioTrackNumber_                                                                    &&
+                  lastTrackNumber_ != videoTrackNumber_))
     *action_out = webm::Action::kSkip; // --> skip this block
+  else
+    *action_out = webm::Action::kRead; // parse block frame(s)
 
-    return webm::Status (webm::Status::kOkCompleted);
-  } // end IF
-  *action_out = webm::Action::kRead; // parse block frame(s)
-
-  return webm::Status(webm::Status::kOkCompleted);
+  return webm::Status (webm::Status::kOkCompleted);
 }
 
 template <ACE_SYNCH_DECL,

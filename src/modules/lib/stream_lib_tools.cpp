@@ -3875,6 +3875,41 @@ Stream_MediaFramework_Tools::libCameraFormatToffmpegFormat (const libcamera::Pix
 
 #if defined (FFMPEG_SUPPORT)
 bool
+Stream_MediaFramework_Tools::isFloat (enum AVSampleFormat sampleFormat_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_Tools::isFloat"));
+
+  switch (sampleFormat_in)
+  {
+    case AV_SAMPLE_FMT_NONE:
+      break;
+    case AV_SAMPLE_FMT_U8:
+    case AV_SAMPLE_FMT_U8P:
+      break;
+    case AV_SAMPLE_FMT_S16:
+    case AV_SAMPLE_FMT_S16P:
+    case AV_SAMPLE_FMT_S32:
+    case AV_SAMPLE_FMT_S32P:
+      break;
+    case AV_SAMPLE_FMT_FLT:
+    case AV_SAMPLE_FMT_FLTP:
+    case AV_SAMPLE_FMT_DBL:
+    case AV_SAMPLE_FMT_DBLP:
+      return true;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown sample format (was: %d \"%s\"), aborting\n"),
+                  sampleFormat_in,
+                  ACE_TEXT (av_get_sample_fmt_name (sampleFormat_in))));
+      break;
+    }
+  } // end SWITCH
+
+  return false;
+}
+
+bool
 Stream_MediaFramework_Tools::isAcceleratedFormat (enum AVPixelFormat format_in)
 {
   switch (format_in)

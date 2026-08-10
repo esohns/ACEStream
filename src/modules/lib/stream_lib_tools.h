@@ -168,6 +168,7 @@ class Stream_MediaFramework_Tools
 
 #if defined (FFMPEG_SUPPORT)
   // ffmpeg
+  static bool isFloat (enum AVSampleFormat);
   static bool isAcceleratedFormat (enum AVPixelFormat);
   static bool isAudioCodecId (enum AVCodecID); // codec ID
   static int AVPixelFormatToBitCount (enum AVPixelFormat, bool = false); // raw ? : coded
