@@ -27,8 +27,6 @@
 #include "stream_common.h"
 #include "stream_task_base_synch.h"
 
-//#include "stream_misc_exports.h"
-
 extern const char libacestream_default_misc_injector_module_name_string[];
 
 template <ACE_SYNCH_DECL,

@@ -31,6 +31,7 @@
 
 #include <map>
 #include <set>
+#include <unordered_map>
 
 #include "ace/Basic_Types.h"
 
@@ -193,7 +194,7 @@ struct Stream_MediaFramework_SessionData_CodecConfiguration
   ACE_UINT8* data;
   ACE_UINT32 size;
 };
-typedef std::map<int, struct Stream_MediaFramework_SessionData_CodecConfiguration> Stream_MediaFramework_SessionData_CodecConfigurationMap_t;
+typedef std::unordered_map<int, struct Stream_MediaFramework_SessionData_CodecConfiguration> Stream_MediaFramework_SessionData_CodecConfigurationMap_t;
 typedef Stream_MediaFramework_SessionData_CodecConfigurationMap_t::iterator Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t;
 typedef Stream_MediaFramework_SessionData_CodecConfigurationMap_t::const_iterator Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t;
 

@@ -150,7 +150,7 @@ Stream_SessionDataMediaBase_T<BaseType,
   for (Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator = codecConfiguration.begin ();
        iterator != codecConfiguration.end ();
        ++iterator)
-  {
+  { ACE_ASSERT ((*iterator).second.data);
     ACE_UINT8* data_orig_p = (*iterator).second.data;
     (*iterator).second.data = NULL;
 #if defined (FFMPEG_SUPPORT)
