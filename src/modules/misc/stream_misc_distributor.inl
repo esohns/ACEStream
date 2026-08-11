@@ -147,14 +147,18 @@ Stream_Miscellaneous_Distributor_WriterTask_T<ACE_SYNCH_USE,
           // update statistic (and other relevant-) session data
           typename SessionMessageType::DATA_T& session_data_container_r =
             const_cast<typename SessionMessageType::DATA_T&> (session_message_p->getR ());
+          session_data_container_r.increase ();
+          (*iterator_3).second->increase ();
+
           typename SessionMessageType::DATA_T::DATA_T& session_data_r =
             const_cast<typename SessionMessageType::DATA_T::DATA_T&> (session_data_container_r.getR ());
           typename SessionMessageType::DATA_T::DATA_T& session_data_2 =
             const_cast<typename SessionMessageType::DATA_T::DATA_T&> ((*iterator_3).second->getR ());
           session_data_2 += session_data_r;
 
-          (*iterator_3).second->increase ();
           session_message_p->setP ((*iterator_3).second);
+
+          session_data_container_r.decrease ();
 
           break;
         }

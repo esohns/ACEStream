@@ -146,25 +146,26 @@ Stream_SessionDataMediaBase_T<BaseType,
        ++iterator)
     delete[] (*iterator).second.data;
   codecConfiguration.clear ();
-  codecConfiguration = rhs_in.codecConfiguration;
-  for (Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator = codecConfiguration.begin ();
-       iterator != codecConfiguration.end ();
+  struct Stream_MediaFramework_SessionData_CodecConfiguration codec_configuration_s;
+  for (Stream_MediaFramework_SessionData_CodecConfigurationMapConstIterator_t iterator = rhs_in.codecConfiguration.begin ();
+       iterator != rhs_in.codecConfiguration.end ();
        ++iterator)
-  { ACE_ASSERT ((*iterator).second.data);
-    ACE_UINT8* data_orig_p = (*iterator).second.data;
-    (*iterator).second.data = NULL;
+  { ACE_ASSERT ((*iterator).second.data && (*iterator).second.size);
+    codec_configuration_s.data = NULL;
 #if defined (FFMPEG_SUPPORT)
-    ACE_NEW_NORETURN ((*iterator).second.data,
+    ACE_NEW_NORETURN (codec_configuration_s.data,
                       ACE_UINT8[(*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE]);
-    ACE_ASSERT ((*iterator).second.data);
-    ACE_OS::memset ((*iterator).second.data, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
+    ACE_ASSERT (codec_configuration_s.data);
+    ACE_OS::memset (codec_configuration_s.data, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
 #else
-    ACE_NEW_NORETURN ((*iterator).second.data,
+    ACE_NEW_NORETURN (codec_configuration_s.data,
                       ACE_UINT8[(*iterator).second.size]);
     ACE_ASSERT ((*iterator).second.data);
-    // ACE_OS::memset ((*iterator).second.data, 0, (*iterator).second.size);
+    // ACE_OS::memset (codec_configuration_s.data, 0, (*iterator).second.size);
 #endif //
-    ACE_OS::memcpy ((*iterator).second.data, data_orig_p, (*iterator).second.size);
+    ACE_OS::memcpy (codec_configuration_s.data, (*iterator).second.data, (*iterator).second.size);
+    codec_configuration_s.size = (*iterator).second.size;
+    codecConfiguration.insert (std::make_pair ((*iterator).first, codec_configuration_s));
   } // end FOR
 
   // *NOTE*: the idea is to 'merge' the data
