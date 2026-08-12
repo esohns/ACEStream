@@ -95,12 +95,12 @@ Stream_AVSave_DirectShow_Stream::load (Stream_ILayout* layout_in,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   inherited::CONFIGURATION_T::ITERATOR_T iterator, iterator_2;
-  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+  iterator = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_ENCODER_DEFAULT_NAME_STRING));
   iterator_2 = inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
   ACE_ASSERT (iterator_2 != inherited::configuration_->end ());
   bool display_b = !(*iterator_2).second.second->display.device.empty ();
-  bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
+  bool save_to_file_b = !(*iterator_2).second.second->targetFileName.empty ();
 
   // *NOTE*: this processing stream may have branches, depending on:
   //         - whether the output is displayed on a screen

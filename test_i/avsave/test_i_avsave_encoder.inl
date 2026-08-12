@@ -199,19 +199,27 @@ Test_I_AVSave_Encoder_T<ACE_SYNCH_USE,
       }
       case STREAM_MEDIATYPE_VIDEO:
       {
-        result =
-          av_image_fill_linesizes (frame_p->linesize,
-                                   static_cast<AVPixelFormat> (frame_p->format),
-                                   static_cast<int> (frame_p->width));
+        result = av_image_fill_arrays (frame_p->data,
+                                       frame_p->linesize,
+                                       reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+                                       static_cast<AVPixelFormat> (frame_p->format),
+                                       static_cast<int> (frame_p->width),
+                                       static_cast<int> (frame_p->height),
+                                       1);
         ACE_ASSERT (result >= 0);
+        //result =
+        //  av_image_fill_linesizes (frame_p->linesize,
+        //                           static_cast<AVPixelFormat> (frame_p->format),
+        //                           static_cast<int> (frame_p->width));
+        //ACE_ASSERT (result >= 0);
 
-        result =
-          av_image_fill_pointers (frame_p->data,
-                                  static_cast<AVPixelFormat> (frame_p->format),
-                                  static_cast<int> (frame_p->height),
-                                  reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
-                                  frame_p->linesize);
-        ACE_ASSERT (result >= 0);
+        //result =
+        //  av_image_fill_pointers (frame_p->data,
+        //                          static_cast<AVPixelFormat> (frame_p->format),
+        //                          static_cast<int> (frame_p->height),
+        //                          reinterpret_cast<uint8_t*> (message_block_p->rd_ptr ()),
+        //                          frame_p->linesize);
+        //ACE_ASSERT (result >= 0);
         break;
       }
       default:
@@ -548,8 +556,8 @@ video:
                                   inherited::videoFrame_->height,
                                   1); // *TODO*: linesize alignment
 
-      inherited::videoCodecContext_->bit_rate =
-        inherited::videoFrameSize_ * inherited::videoFrame_->time_base.den * 8;
+      //inherited::videoCodecContext_->bit_rate =
+      //  inherited::videoFrameSize_ * inherited::videoFrame_->time_base.den * 8;
       /* Resolution must be a multiple of two. */
       inherited::videoCodecContext_->width = inherited::videoFrame_->width;
       inherited::videoCodecContext_->height = inherited::videoFrame_->height;
