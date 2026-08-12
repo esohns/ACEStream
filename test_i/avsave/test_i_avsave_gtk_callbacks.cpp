@@ -7016,7 +7016,7 @@ combobox_save_format_changed_cb (GtkWidget* widget_in,
       } // end IF
       else // --> MP4
       {
-        (*directshow_stream_iterator_2).second.second->flipImage = false;
+        (*directshow_stream_iterator_2).second.second->flipImage = true;
         format_s = MEDIASUBTYPE_NV12;
       } // end ELSE
       Stream_MediaFramework_DirectShow_Tools::setFormat (format_s,
