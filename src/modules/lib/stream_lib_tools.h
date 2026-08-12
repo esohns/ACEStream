@@ -104,7 +104,6 @@ class Stream_MediaFramework_Tools
   static bool isChromaLuminance (REFGUID,                          // media subtype
                                  enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 
-
   // *NOTE*: as used in struct tagBITMAPINFOHEADER.biPlanes
   static WORD toPlanes (REFGUID, // media subtype
                         enum Stream_MediaFramework_Type = STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);

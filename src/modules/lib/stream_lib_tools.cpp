@@ -4540,6 +4540,8 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType ty
       return AV_PIX_FMT_MEDIACODEC;
     case AV_HWDEVICE_TYPE_VULKAN:
       return AV_PIX_FMT_VULKAN;
+    case AV_HWDEVICE_TYPE_D3D12VA:
+      return AV_PIX_FMT_D3D12;
     default:
     {
       ACE_DEBUG ((LM_ERROR,
@@ -4571,6 +4573,24 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
           return AV_PIX_FMT_NV12; // supported by H264 decoder
         case AV_CODEC_ID_HEVC:
           return AV_PIX_FMT_P010LE; // supported by HEVC decoder
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown codec id (was: %d: \"%s\") for hardware device type, aborting\n"),
+                      codecId_in,
+                      ACE_TEXT (avcodec_get_name (codecId_in))));
+          break;
+        }
+      } // end SWITCH
+
+      break;
+    }
+    case AV_HWDEVICE_TYPE_D3D11VA:
+    {
+      switch (codecId_in)
+      {
+        case AV_CODEC_ID_H264:
+          return AV_PIX_FMT_NV12; // supported by H264 decoder
         default:
         {
           ACE_DEBUG ((LM_ERROR,
