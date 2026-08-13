@@ -342,8 +342,8 @@ continue_:
       // update session data ?
 
       // sanity check(s)
-      ACE_ASSERT (configuration_);
-      if (!configuration_->handleResize)
+      // *NOTE*: reader-side module handlers do not have configuration_ ATM
+      if (!configuration_ || !configuration_->handleResize)
         break;
 
       if (likely (freeSessionData_ || isHead ()))

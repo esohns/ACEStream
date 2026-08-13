@@ -415,7 +415,7 @@ error:
                                STREAM_MEDIATYPE_VIDEO,
                                media_type_3);
 
-      // *NOTE*: make sure we can resize any time (see above)...
+      // *NOTE*: make sure a resize is possible any time (see above)...
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
         sourceResolution_ = media_type_2.resolution;
 

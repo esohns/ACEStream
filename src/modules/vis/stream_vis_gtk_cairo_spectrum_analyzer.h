@@ -191,6 +191,7 @@ class Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T
   cairo_region_t*                                 cairoRegion_;
 #endif // GTK_CHECK_VERSION (3,22,0)
   guint                                           idleUpdate_;
+  bool                                            inSession_;
 
   double                                          scaleFactorX_;
   double                                          scaleFactorX_2;

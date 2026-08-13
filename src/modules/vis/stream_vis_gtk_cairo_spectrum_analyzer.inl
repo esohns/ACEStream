@@ -83,6 +83,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
  , cairoRegion_ (NULL)
 #endif // GTK_CHECK_VERSION (3,22,0)
  , idleUpdate_ (0)
+ , inSession_ (false)
  , scaleFactorX_ (0.0)
  , scaleFactorX_2 (0.0)
  , scaleFactorY_ (0.0)
@@ -198,6 +199,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
     ACE_OS::memset (&CBData_, 0, sizeof (struct acestream_visualization_gtk_cairo_cbdata));
     channelFactor_ = 0.0;
     idleUpdate_ = 0;
+    inSession_ = false;
+
     scaleFactorX_ = 0.0;
     scaleFactorX_2 = 0.0;
     scaleFactorY_ = 0.0;
@@ -640,6 +643,8 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
       inherited::threadCount_ = 0;
       shutdown = true;
 
+      inSession_ = true;
+
       break;
 
 error:
@@ -797,6 +802,8 @@ error_2:
     case STREAM_SESSION_MESSAGE_END:
     {
 end:
+      inSession_ = false;
+
       if (idleUpdate_)
       {
         g_source_remove (idleUpdate_); idleUpdate_ = 0;
@@ -1264,7 +1271,7 @@ Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T::dispatch"));
 
-  if (unlikely (inherited::resizing_))
+  if (unlikely (inherited::resizing_ || !inSession_))
     return;
 
   // sanity check(s)
