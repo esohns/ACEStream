@@ -1,13 +1,25 @@
 set (OPUS_SUPPORT_DEFAULT ON)
 if (UNIX)
  include (FindPkgConfig)
- pkg_check_modules (PKG_OGG libogg)
- pkg_check_modules (PKG_OPUS libopus)
+ pkg_check_modules (PKG_OGG ogg)
+ pkg_check_modules (PKG_OPUS opus)
  if (PKG_OGG_FOUND AND PKG_OPUS_FOUND)
   set (OPUS_FOUND TRUE)
   set (OPUS_INCLUDE_DIRS "${PKG_OGG_INCLUDE_DIRS};${PKG_OPUS_INCLUDE_DIRS}")
   set (OPUS_LIBRARIES "${PKG_OGG_LIBRARIES};${PKG_OPUS_LIBRARIES}")
  endif (PKG_OGG_FOUND AND PKG_OPUS_FOUND)
+#set (OPUS_LIB_FILE "libopus.so")
+#find_library (OPUS_LIBRARY
+#              NAMES ${OPUS_LIB_FILE}
+#              PATHS $ENV{LIB_ROOT}/opus/build/gcc
+#              PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
+#              DOC "searching for ${OPUS_LIB_FILE}"
+#              NO_DEFAULT_PATH)
+#if (PKG_OGG_FOUND AND OPUS_LIBRARY)
+#  set (OPUS_FOUND TRUE)
+#  set (OPUS_INCLUDE_DIRS "${PKG_OGG_INCLUDE_DIRS};$ENV{LIB_ROOT}/opus/include")
+#  set (OPUS_LIBRARIES "${PKG_OGG_LIBRARIES};${OPUS_LIBRARY}")
+# endif (PKG_OGG_FOUND AND OPUS_LIBRARY)
 elseif (WIN32)
  if (VCPKG_USE)
   find_package (libogg CONFIG)

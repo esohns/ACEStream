@@ -2089,7 +2089,7 @@ do_work (int argc_in,
       projectm_set_hard_cut_sensitivity (projectm_configuration.handle,
                                          1.0f);
       projectm_set_beat_sensitivity (projectm_configuration.handle,
-                                     1.0f);
+                                     2.0f);
 
       projectm_set_texel_offset (projectm_configuration.handle,
                                  TEST_U_GLUT_PROJECTM_DEFAULT_TEXTEL_OFFSET_X,
