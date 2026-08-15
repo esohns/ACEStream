@@ -4540,8 +4540,10 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToPixelFormat (enum AVHWDeviceType ty
       return AV_PIX_FMT_MEDIACODEC;
     case AV_HWDEVICE_TYPE_VULKAN:
       return AV_PIX_FMT_VULKAN;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_HWDEVICE_TYPE_D3D12VA:
       return AV_PIX_FMT_D3D12;
+#endif // ACE_WIN32 || ACE_WIN64
     default:
     {
       ACE_DEBUG ((LM_ERROR,
