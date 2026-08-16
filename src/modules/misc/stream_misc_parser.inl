@@ -940,7 +940,7 @@ Stream_Module_Parser_T<ACE_SYNCH_USE,
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       result = inherited::activate ();
-      if (result == -1)
+      if (unlikely (result == -1))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Task_T::activate(): \"%m\", aborting\n"),

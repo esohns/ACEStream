@@ -50,7 +50,7 @@ class Stream_DataMessageBase_T
   typedef DataType DATA_T;
 
   // initialization-after-construction
-  using inherited::initialize;
+  inline virtual void initialize (Stream_SessionId_t sessionId_in, ACE_Data_Block* dataBlock_in) { inherited::initialize (sessionId_in, dataBlock_in); inherited::isInitialized_ = false;  }
   virtual void initialize (DataType&,          // data
                            Stream_SessionId_t, // session id
                            ACE_Data_Block*);   // data block to use
@@ -127,7 +127,7 @@ class Stream_DataMessageBase_2
   typedef DataType DATA_T;
 
   // initialization-after-construction
-  using inherited::initialize;
+  inline virtual void initialize (Stream_SessionId_t sessionId_in, ACE_Data_Block* dataBlock_in) { inherited::initialize (sessionId_in, dataBlock_in); inherited::isInitialized_ = false;  }
   inline virtual void initialize (DataType&, Stream_SessionId_t, ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
   // *IMPORTANT NOTE*: fire-and-forget API (first argument)
   virtual void initialize (DataType*&,         // data handle
@@ -174,8 +174,6 @@ class Stream_DataMessageBase_2
                             bool = true);       // increment running message counter ?
 
   virtual ~Stream_DataMessageBase_2 ();
-
-//  inline virtual void initialize (Stream_SessionId_t, ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
   DataType* data_;
 
