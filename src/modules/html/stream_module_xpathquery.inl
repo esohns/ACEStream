@@ -77,8 +77,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
-  if (inherited::configuration_->xPathQueryString.empty ())
-    return;
+  ACE_ASSERT (!inherited::configuration_->xPathQueryString.empty ());
   const typename DataMessageType::DATA_T& data_container_r =
     message_inout->getR ();
   typename DataMessageType::DATA_T::DATA_T& data_r =
