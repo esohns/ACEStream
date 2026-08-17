@@ -70,19 +70,19 @@ struct Test_I_HTTPGet_MessageData
 {
   Test_I_HTTPGet_MessageData ()
    : HTTP_Record ()
-   , HTMLDocument (NULL)
+   , document (NULL)
   {}
 
   virtual ~Test_I_HTTPGet_MessageData ()
   {
-    if (HTMLDocument)
-      xmlFreeDoc (HTMLDocument);
+    if (document)
+      xmlFreeDoc (document);
   }
 
   inline void operator= (const struct HTTP_Record& rhs_in) { *((struct HTTP_Record*)this) = rhs_in; }
   inline void operator+= (const struct Test_I_HTTPGet_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
 
-  xmlDocPtr HTMLDocument;
+  htmlDocPtr document;
 };
 //typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 

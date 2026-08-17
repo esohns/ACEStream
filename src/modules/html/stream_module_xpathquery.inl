@@ -120,21 +120,26 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 
   // step3: perform query
   ACE_ASSERT (!data_r.xPathObject);
-  data_r.xPathObject = 
+  data_r.xPathObject =
     xmlXPathEvalExpression (BAD_CAST (inherited::configuration_->xPathQueryString.c_str ()),
                             xpath_context_p);
   if (!data_r.xPathObject)
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to xmlXPathEvalExpression(\"%s\"); \"%m\", returning\n"),
+                ACE_TEXT ("%s: failed to xmlXPathEvalExpression(\"%s\"); \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (inherited::configuration_->xPathQueryString.c_str ())));
     xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
-    return;
+    goto error;
   } // end IF
 
   // step4: clean up
   xmlXPathFreeContext (xpath_context_p); xpath_context_p = NULL;
+
+  return;
+
+error:
+  inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
 }
 
 template <ACE_SYNCH_DECL,

@@ -127,12 +127,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   if (!headFragment_)
     headFragment_ = message_inout;
   else
-  { // append fragment
-    message_block_p = headFragment_;
-    while (message_block_p->cont ())
-      message_block_p = message_block_p->cont ();
-    message_block_p->cont (message_inout);
-  } // end ELSE
+    Stream_Tools::append (headFragment_,
+                          message_inout);
   message_block_p = message_inout;
 
   // sanity check(s)
@@ -262,8 +258,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
                   ACE_TEXT ("parsing HTML...DONE\n")));
 
       // *TODO*: remove type inference
-      ACE_ASSERT (!data_r.HTMLDocument);
-      data_r.HTMLDocument = parserContext_.parserContext->myDoc;
+      ACE_ASSERT (!data_r.document);
+      data_r.document = parserContext_.parserContext->myDoc;
       parserContext_.parserContext->myDoc = NULL;
 
       // reset parser
