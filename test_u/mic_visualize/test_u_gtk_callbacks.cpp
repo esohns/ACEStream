@@ -4396,7 +4396,7 @@ idle_initialize_UI_cb (gpointer userData_in)
   Test_U_MicVisualize_DirectShow_StreamConfiguration_t::ITERATOR_T directshow_modulehandler_configuration_iterator_3; // renderer
   Test_U_MicVisualize_MediaFoundation_StreamConfiguration_t::ITERATOR_T mediafoundation_modulehandler_configuration_iterator_3; // renderer
   struct _GUID GUID_s = GUID_NULL;
-  struct _GUID GUID_2 = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
+  struct _GUID GUID_2 = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession_Render;
   struct _GUID effect_id = GUID_NULL;
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -8825,6 +8825,11 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
 
       (*directshow_modulehandler_configuration_iterator).second.second->mute =
         is_active;
+
+      ACE_ASSERT (directshow_ui_cb_data_p->renderVolumeControl);
+      HRESULT result = directshow_ui_cb_data_p->renderVolumeControl->SetMute (is_active,
+                                                                              NULL);
+      ACE_ASSERT (SUCCEEDED (result));
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:

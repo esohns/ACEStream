@@ -273,6 +273,7 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       HANDLE task_h = NULL;
       DWORD task_index_i = 0;
       struct tWAVEFORMATEX* audio_info_2 = NULL;
+      struct _GUID GUID_s = GUID_NULL;
 
       if (InlineIsEqualGUID (inherited::configuration_->deviceIdentifier.identifier._guid, GUID_NULL))
       {
@@ -361,6 +362,7 @@ continue_:
 
       result_2 = audioClient_->GetDevicePeriod (&requested_duration_i, NULL);
       ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
+      GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession_Capture;
 retry:
       result_2 =
         audioClient_->Initialize (share_mode_e,//AUDCLNT_SHAREMODE_SHARED,
@@ -369,7 +371,7 @@ retry:
                                   ((share_mode_e == AUDCLNT_SHAREMODE_EXCLUSIVE) ? requested_duration_i 
                                                                                  : 0),
                                   audio_info_p,
-                                  NULL);
+                                  &GUID_s);
       if (unlikely (FAILED (result_2))) // AUDCLNT_E_UNSUPPORTED_FORMAT: 0x88890008
       {
         if (unlikely (result_2 == AUDCLNT_E_BUFFER_SIZE_NOT_ALIGNED))

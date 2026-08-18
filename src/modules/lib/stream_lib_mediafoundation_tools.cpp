@@ -2862,7 +2862,7 @@ Stream_MediaFramework_MediaFoundation_Tools::addRenderer (REFGUID majorMediaType
                                       MF_AUDIO_RENDERER_ATTRIBUTE_FLAGS_NOPERSIST);
     ACE_ASSERT (SUCCEEDED (result));
     result = attributes_p->SetGUID (MF_AUDIO_RENDERER_ATTRIBUTE_SESSION_ID,
-                                    CLSID_ACEStream_MediaFramework_WASAPI_AudioSession);
+                                    CLSID_ACEStream_MediaFramework_WASAPI_AudioSession_Render);
     ACE_ASSERT (SUCCEEDED (result));
     result = attributes_p->SetUINT32 (MF_AUDIO_RENDERER_ATTRIBUTE_STREAM_CATEGORY,
                                       AudioCategory_Media);

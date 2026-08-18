@@ -456,7 +456,7 @@ continue_:
       ACE_ASSERT (SUCCEEDED (result_2) && requested_duration_i);
       //requested_duration_i =
       //  (REFERENCE_TIME)((10000.0 * 1000 / audio_info_p->nSamplesPerSec * 160) + 0.5);
-      GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession;
+      GUID_s = CLSID_ACEStream_MediaFramework_WASAPI_AudioSession_Render;
 retry:
       result_2 =
         audioClient_->Initialize (share_mode_e,
