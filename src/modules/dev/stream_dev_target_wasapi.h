@@ -29,6 +29,7 @@
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"
 
+#include "common_inotify.h"
 #include "common_time_common.h"
 
 #include "stream_common.h"
@@ -124,6 +125,7 @@ class Stream_Dev_Target_WASAPI_T
                                      SessionEventType,
                                      UserDataType,
                                      MediaType> OWN_TYPE_T;
+  typedef Common_INotify_T<struct _GUID> INOTIFY_T; // audio session GUID
 
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Dev_Target_WASAPI_T (const Stream_Dev_Target_WASAPI_T&))

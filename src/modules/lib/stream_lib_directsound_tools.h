@@ -24,6 +24,7 @@
 #include <map>
 #include <string>
 
+#include "audiopolicy.h"
 #include "mmdeviceapi.h"
 
 #include "ace/Global_Macros.h"
@@ -89,6 +90,9 @@ class Stream_MediaFramework_DirectSound_Tools
   static ISimpleAudioVolume* getSessionVolumeControl (REFGUID,  // device identifier
                                                       REFGUID); // session identifier [GUID_NULL ? default session]
   static IAudioVolumeLevel* getMicrophoneBoostControl (REFGUID); // device identifier
+
+  // WASAPI sessions
+  static IAudioSessionControl* getDefaultSessionControl (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())
