@@ -1628,6 +1628,8 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
     DispatchMessage (&message_s);
   } // end WHILE
   DestroyWindow (inherited::window_); inherited::window_ = NULL;
+  inherited::configuration_->direct3DConfiguration->focusWindow = NULL;
+  inherited::configuration_->direct3DConfiguration->presentationParameters.hDeviceWindow = NULL;
 
   if (unlikely (inherited::notify_))
     inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
