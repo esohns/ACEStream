@@ -940,12 +940,22 @@ struct Test_U_MicVisualize_UI_CBData
    : Test_U_MicVisualize_UI_CBDataBase ()
    , configuration (NULL)
    , handle (NULL)
-   , subscribers ()
+   , captureMixerHandle (NULL)
+   , captureVolumeControl (NULL)
+   , captureMaxVolumeLevel (0)
+   , playbackMixerHandle (NULL)
+   , playbackVolumeControl (NULL)
+   , playbackMaxVolumeLevel (0)
   {}
 
   struct Test_U_MicVisualize_Configuration* configuration;
   struct _snd_pcm*                          handle; // (capture) device handle
-  Test_U_MicVisualize_Subscribers_t         subscribers;
+  snd_mixer_t*                              captureMixerHandle;
+  snd_mixer_elem_t*                         captureVolumeControl;
+  long                                      captureMaxVolumeLevel;
+  snd_mixer_t*                              playbackMixerHandle;
+  snd_mixer_elem_t*                         playbackVolumeControl;
+  long                                      playbackMaxVolumeLevel;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 

@@ -1629,6 +1629,11 @@ Stream_MediaFramework_ALSA_Tools::freeMixerHandle (snd_mixer_t*& mixerHandle_ino
 
   int result;
 
+  // sanity check(s)
+  if (unlikely (!mixerHandle_inout))
+    return;
+  ACE_ASSERT (mixerHandle_inout);
+
   snd_mixer_free (mixerHandle_inout);
   result = snd_mixer_close (mixerHandle_inout);
   if (unlikely (result < 0))

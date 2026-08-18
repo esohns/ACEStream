@@ -5195,22 +5195,34 @@ continue_:
   gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (volume_level_f) * 100.0);
 #else
-  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
-                                                          false, // playback
-                                                          min_level_i,
-                                                          max_level_i,
-                                                          current_level_i))
+  if (unlikely ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier.empty ()))
+  {
+    (*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier =
+      ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_DEFAULT_DEVICE_PREFIX);
+    ACE_DEBUG ((LM_WARNING,
+                ACE_TEXT ("invalid/unknown audio output device identifier, falling back to: \"%s\"\n"),
+                ACE_TEXT ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier.c_str ())));
+  } // end IF
+
+  if (!Stream_MediaFramework_ALSA_Tools::getVolumeControl ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
+                                                           false, // playback
+                                                           min_level_i,
+                                                           data_p->playbackMaxVolumeLevel,
+                                                           current_level_i,
+                                                           data_p->playbackMixerHandle,
+                                                           data_p->playbackVolumeControl))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), continuing\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeControl(\"%s\",\"%s\"), continuing\n"),
                 ACE_TEXT ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier.c_str ()),
                 ACE_TEXT (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME)));
     goto continue_2;
   } // end IF
+  ACE_ASSERT (data_p->playbackMaxVolumeLevel && data_p->playbackMixerHandle && data_p->playbackVolumeControl);
   gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
-                       static_cast<gdouble> (max_level_i));
+                       static_cast<gdouble> (data_p->playbackMaxVolumeLevel));
   gtk_range_set_increments (GTK_RANGE (scale_p),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
@@ -6147,14 +6159,9 @@ idle_finalize_UI_cb (gpointer userData_in)
   } // end SWITCH
 #else
   // sanity check(s)
-//  ACE_ASSERT (data_base_p->configuration);
-
   struct Test_U_MicVisualize_UI_CBData* data_p =
     static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (data_p);
-
   ACE_ASSERT (data_p->stream);
   stream_p = data_p->stream;
 
@@ -6177,7 +6184,14 @@ idle_finalize_UI_cb (gpointer userData_in)
   } // end IF
 #else
   // clean up
-  int result = -1;
+  int result;
+  Stream_MediaFramework_ALSA_Tools::freeMixerHandle (data_p->captureMixerHandle);
+  data_p->captureMixerHandle = NULL;
+  data_p->captureVolumeControl = NULL;
+  Stream_MediaFramework_ALSA_Tools::freeMixerHandle (data_p->playbackMixerHandle);
+  data_p->playbackMixerHandle = NULL;
+  data_p->playbackVolumeControl = NULL;
+
   if (data_p->handle)
   {
     result = snd_pcm_close (data_p->handle);
@@ -6507,9 +6521,17 @@ idle_update_info_display_cb (gpointer userData_in)
   struct Test_U_MicVisualize_UI_CBData* ui_cb_data_p =
     static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
   ACE_ASSERT (ui_cb_data_p);
-  Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-    ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+  // Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
+  //   ui_cb_data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+  // ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
+
+  if (!ui_cb_data_p->captureMixerHandle)
+    goto continue_;
+  snd_mixer_handle_events (ui_cb_data_p->captureMixerHandle);
+continue_:
+  if (!ui_cb_data_p->playbackMixerHandle)
+    return G_SOURCE_CONTINUE;
+  snd_mixer_handle_events (ui_cb_data_p->playbackMixerHandle);
 #endif // ACE_WIN32 || ACE_WIN64
 
   return G_SOURCE_CONTINUE;
@@ -7663,6 +7685,7 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
   bool use_pipewire_b =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_PIPEWIRE;
+  gdouble value_d = gtk_range_get_value (range_in);
 
   if (use_pipewire_b)
   {
@@ -7688,7 +7711,7 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
     GtkAdjustment* adjustment_p = gtk_range_get_adjustment (range_in);
     ACE_ASSERT (adjustment_p);
     float volume_f =
-      static_cast<float> (gtk_range_get_value (range_in) / gtk_adjustment_get_upper (adjustment_p));
+      static_cast<float> (value_d / gtk_adjustment_get_upper (adjustment_p));
     if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (pw_main_loop_get_loop (cb_data_r.loop),
                                                                // cb_data_r.node,
                                                                cb_data_r.stream,
@@ -7701,18 +7724,13 @@ hscale_device_volume_value_changed_cb (GtkRange* range_in,
       return;
     } // end IF
   } // end IF
-  else if (!Stream_MediaFramework_ALSA_Tools::setVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
-                                                              ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
-                                                              true, // capture
-                                                              static_cast<long> (gtk_range_get_value (range_in))))
+  else
   {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setVolumeLevel(\"%s\",\"%s\",%d), returning\n"),
-                ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
-                ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
-                static_cast<long> (gtk_range_get_value (range_in))));
-    return;
-  } // end ELSE IF
+    if (!ui_cb_data_p->captureVolumeControl)
+      return;
+    snd_mixer_selem_set_capture_volume_all (ui_cb_data_p->captureVolumeControl,
+                                            static_cast<long> (value_d));
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_device_volume_value_changed_cb
 
@@ -8047,6 +8065,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
     }
   } // end SWITCH
 #else
+  gdouble value_d = gtk_range_get_value (range_in);
+
   // sanity check(s)
   struct Test_U_MicVisualize_UI_CBData* data_p =
     static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
@@ -8057,20 +8077,14 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
 
-  if (!Stream_MediaFramework_ALSA_Tools::setVolumeLevel ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
-                                                         ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
-                                                         false, // playback
-                                                         static_cast<long> (gtk_range_get_value (range_in))))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::setVolumeLevel(\"%s\",\"%s\",%d), returning\n"),
-                 ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
-                 ACE_TEXT (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
-                 static_cast<long> (gtk_range_get_value (range_in))));
-    return;
-  } // end IF
-  (*modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-    gtk_range_get_value (range_in) / 100.0;
+  if (!data_p->playbackVolumeControl)
+    goto continue_;
+  snd_mixer_selem_set_playback_volume_all (data_p->playbackVolumeControl,
+                                           static_cast<long> (value_d));
+
+continue_:
+  // (*modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+  //   value_d / data_p->playbackMaxVolumeLevel;
 #endif // ACE_WIN32 || ACE_WIN64
 } // hscale_volume_value_changed_cb
 
@@ -8866,6 +8880,15 @@ togglebutton_mute_toggled_cb (GtkToggleButton* toggleButton_in,
 
   (*modulehandler_configuration_iterator).second.second->mute =
     is_active;
+
+  int result;
+  if (unlikely (!data_p->playbackVolumeControl))
+    goto continue_;
+  result =
+    snd_mixer_selem_set_playback_switch_all (data_p->playbackVolumeControl,
+                                             !is_active);
+  ACE_ASSERT (result == 0);
+continue_:
 #endif // ACE_WIN32 || ACE_WIN64
   GtkScale* scale_p =
     GTK_SCALE (gtk_builder_get_object ((*iterator).second.second,
@@ -11164,22 +11187,27 @@ continue_2:
   gtk_range_set_value (GTK_RANGE (scale_2),
                        static_cast<gdouble> (boost_f));
 #else
-  if (!Stream_MediaFramework_ALSA_Tools::getVolumeLevels ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
-                                                          ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
-                                                          true, // capture
-                                                          min_level_i,
-                                                          max_level_i,
-                                                          current_level_i))
+  Stream_MediaFramework_ALSA_Tools::freeMixerHandle (ui_cb_data_p->captureMixerHandle);
+  ui_cb_data_p->captureMixerHandle = NULL;
+  ui_cb_data_p->captureVolumeControl = NULL;
+  if (!Stream_MediaFramework_ALSA_Tools::getVolumeControl ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier,
+                                                           ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME),
+                                                           true, // capture
+                                                           min_level_i,
+                                                           ui_cb_data_p->captureMaxVolumeLevel,
+                                                           current_level_i,
+                                                           ui_cb_data_p->captureMixerHandle,
+                                                           ui_cb_data_p->captureVolumeControl))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeLevels(\"%s\",\"%s\"), continuing\n"),
+                ACE_TEXT ("failed to Stream_MediaFramework_ALSA_Tools::getVolumeControl(\"%s\",\"%s\"), continuing\n"),
                 ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ()),
                 ACE_TEXT (STREAM_LIB_ALSA_CAPTURE_DEFAULT_SELEM_VOLUME_NAME)));
     goto continue_;
   } // end IF
   gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
-                       static_cast<gdouble> (max_level_i));
+                       static_cast<gdouble> (ui_cb_data_p->captureMaxVolumeLevel));
   gtk_range_set_increments (GTK_RANGE (scale_p),
                             static_cast<gdouble> (1),
                             static_cast<gdouble> (1));
