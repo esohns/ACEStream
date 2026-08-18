@@ -77,7 +77,7 @@ class Stream_MediaFramework_DirectSound_Tools
 
   // WASAPI
   static IMMDevice* getDevice (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
-  static std::string getDeviceFriendlyName (IMMDevice*); // device handle
+  static std::string getDeviceFriendlyName (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
   static bool canRender (REFGUID,                      // device identifier
                          enum _AUDCLNT_SHAREMODE,      // share mode
                          const struct tWAVEFORMATEX&); // format
@@ -87,12 +87,12 @@ class Stream_MediaFramework_DirectSound_Tools
   // *IMPORTANT NOTE*: callers must 'CoTaskMemFree' any return values
   static struct tWAVEFORMATEX* getAudioEngineMixFormat (REFGUID); // device identifier
   static IAudioEndpointVolume* getMasterVolumeControl (REFGUID); // device identifier
-  static ISimpleAudioVolume* getSessionVolumeControl (REFGUID,  // device identifier
-                                                      REFGUID); // session identifier [GUID_NULL ? default session]
   static IAudioVolumeLevel* getMicrophoneBoostControl (REFGUID); // device identifier
 
   // WASAPI sessions
   static IAudioSessionControl* getDefaultSessionControl (REFGUID); // device identifier [GUID_NULL ? default render (!) device]
+  static ISimpleAudioVolume* getSessionVolumeControl (REFGUID,  // device identifier
+                                                      REFGUID); // session identifier [GUID_NULL ? default session]
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_MediaFramework_DirectSound_Tools ())

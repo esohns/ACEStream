@@ -853,7 +853,7 @@ Stream_MediaFramework_DirectSound_Tools::getMasterVolumeControl (REFGUID deviceI
   } // end IF
 
   HRESULT result =
-    device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_INPROC_SERVER, NULL,
+    device_p->Activate (__uuidof (IAudioEndpointVolume), CLSCTX_ALL, NULL,
                         (LPVOID*)&result_p);
   ACE_ASSERT (SUCCEEDED (result) && result_p);
   device_p->Release (); device_p = NULL;
@@ -882,7 +882,7 @@ Stream_MediaFramework_DirectSound_Tools::getSessionVolumeControl (REFGUID device
 
   IAudioSessionManager* audio_session_manager_p = NULL;
   HRESULT result =
-    device_p->Activate (__uuidof (IAudioSessionManager), CLSCTX_INPROC_SERVER, NULL,
+    device_p->Activate (__uuidof (IAudioSessionManager), CLSCTX_ALL, NULL,
                         (LPVOID*)&audio_session_manager_p);
   ACE_ASSERT (SUCCEEDED (result) && audio_session_manager_p);
   device_p->Release (); device_p = NULL;
@@ -954,7 +954,7 @@ Stream_MediaFramework_DirectSound_Tools::getDefaultSessionControl (REFGUID devic
 
   IAudioSessionManager* audio_session_manager_p = NULL;
   HRESULT result =
-    device_p->Activate (__uuidof (IAudioSessionManager), CLSCTX_INPROC_SERVER, NULL,
+    device_p->Activate (__uuidof (IAudioSessionManager), CLSCTX_ALL, NULL,
                         (LPVOID*)&audio_session_manager_p);
   ACE_ASSERT (SUCCEEDED (result) && audio_session_manager_p);
   device_p->Release (); device_p = NULL;
@@ -974,17 +974,17 @@ Stream_MediaFramework_DirectSound_Tools::canRender (ULONG deviceId_in,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::canRender"));
 
-  WAVEOUTCAPS capabilities_s;
-  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEOUTCAPS));
-  MMRESULT result = waveOutGetDevCaps (deviceId_in,
-                                       &capabilities_s,
-                                       sizeof (WAVEOUTCAPS));
+  WAVEOUTCAPSA capabilities_s;
+  ACE_OS::memset (&capabilities_s, 0, sizeof (WAVEOUTCAPSA));
+  MMRESULT result = waveOutGetDevCapsA (deviceId_in,
+                                        &capabilities_s,
+                                        sizeof (WAVEOUTCAPSA));
   if (unlikely (result != MMSYSERR_NOERROR))
   {
     char error_msg_a[BUFSIZ];
-    waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+    waveOutGetErrorTextA (result, error_msg_a, BUFSIZ - 1);
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to waveOutGetDevCaps(%d): \"%s\", aborting\n"),
+                ACE_TEXT ("failed to waveOutGetDevCapsA(%d): \"%s\", aborting\n"),
                 deviceId_in, ACE_TEXT (error_msg_a)));
     return false; // *TODO*: false negative !
   } // end IF
@@ -1311,10 +1311,11 @@ continue_:
   if (result == WAVERR_BADFORMAT)
     return false;
   char error_msg_a[BUFSIZ];
-  waveOutGetErrorText (result, error_msg_a, BUFSIZ - 1);
+  waveOutGetErrorTextA (result, error_msg_a, BUFSIZ - 1);
   ACE_DEBUG ((LM_ERROR,
               ACE_TEXT ("failed to waveOutGetDevCaps(%d): \"%s\", aborting\n"),
-              deviceId_in, ACE_TEXT (error_msg_a)));
+              deviceId_in,
+              ACE_TEXT (error_msg_a)));
   return false; // *TODO*: false negative !
 }
 
@@ -1588,18 +1589,27 @@ Stream_MediaFramework_DirectSound_Tools::getDevice (REFGUID deviceIdentifier_in)
 }
 
 std::string
-Stream_MediaFramework_DirectSound_Tools::getDeviceFriendlyName (IMMDevice* device_in)
+Stream_MediaFramework_DirectSound_Tools::getDeviceFriendlyName (REFGUID deviceIdentifier_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_MediaFramework_DirectSound_Tools::getDeviceFriendlyName"));
 
-  // sanity check(s)
-  ACE_ASSERT (device_in);
-
+  // initialize return value(s)
   std::string result;
 
+  IMMDevice* device_p =
+    Stream_MediaFramework_DirectSound_Tools::getDevice (deviceIdentifier_in);
+  if (unlikely (!device_p))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to retrieve device handle (id was: \"%s\"), aborting\n"),
+                ACE_TEXT (Common_OS_Tools::GUIDToString (deviceIdentifier_in).c_str ())));
+    return result;
+  } // end IF
+
   IPropertyStore* properties_p = NULL;
-  HRESULT result_2 = device_in->OpenPropertyStore (STGM_READ, &properties_p);
+  HRESULT result_2 = device_p->OpenPropertyStore (STGM_READ, &properties_p);
   ACE_ASSERT (SUCCEEDED (result_2) && properties_p);
+  device_p->Release (); device_p = NULL;
 
   struct tagPROPVARIANT var_name_s;
   PropVariantInit (&var_name_s);
