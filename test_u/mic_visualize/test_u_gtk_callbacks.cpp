@@ -5220,6 +5220,9 @@ continue_:
     goto continue_2;
   } // end IF
   ACE_ASSERT (data_p->playbackMaxVolumeLevel && data_p->playbackMixerHandle && data_p->playbackVolumeControl);
+
+  gtk_scale_set_digits (scale_p,
+                        0);
   gtk_range_set_range (GTK_RANGE (scale_p),
                        static_cast<gdouble> (min_level_i),
                        static_cast<gdouble> (data_p->playbackMaxVolumeLevel));

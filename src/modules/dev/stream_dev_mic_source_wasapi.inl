@@ -34,6 +34,7 @@
 
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_directsound_tools.h"
+#include "stream_lib_guids.h"
 
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
