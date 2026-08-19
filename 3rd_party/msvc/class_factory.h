@@ -49,7 +49,7 @@ class CClassFactory
   STDMETHODIMP CreateInstance (LPUNKNOWN, REFIID, __deref_out void**);
   STDMETHODIMP LockServer (BOOL);
 
-  static BOOL IsLocked ();
+  inline static BOOL IsLocked () { return (m_cLocked == 0) ? FALSE : TRUE; }
 
  private:
   ULONG                         m_cRef;

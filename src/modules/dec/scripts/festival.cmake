@@ -114,7 +114,6 @@ if (FESTIVAL_FOUND)
 endif (FESTIVAL_FOUND)
 
 ##########################################
-
 set (FLITE_SUPPORT_DEFAULT ON)
 if (UNIX)
  include (FindPkgConfig)
@@ -172,29 +171,25 @@ if (UNIX)
   endif (FLITE_LIBRARY AND CMU_LEX_LIBRARY AND USENGLISH_LIBRARY AND CMU_GRAPHEME_LANG_LIBRARY AND CMU_GRAPHEME_LEX_LIBRARY)
  endif (PKG_FLITE_FOUND)
 elseif (WIN32)
- set (PATH_SUFFIX "Release")
- if (DEFINED CMAKE_BUILD_TYPE)
-  set (PATH_SUFFIX ${CMAKE_BUILD_TYPE})
- endif (DEFINED CMAKE_BUILD_TYPE)
  if (VCPKG_USE)
 #  cmake_policy (SET CMP0074 OLD)
   find_package (flite CONFIG)
   if (FLITE_FOUND)
    set (FLITE_FOUND TRUE)
-   if (${PATH_SUFFIX} STREQUAL "Debug" OR
-       ${PATH_SUFFIX} STREQUAL "RelWithDebInfo")
+   if (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
+       ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
     set (FLITE_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/debug/bin")
    else ()
     set (FLITE_LIB_DIR "${VCPKG_ROOT}/installed/${VCPKG_TARGET_TRIPLET}/bin")
-   endif (${PATH_SUFFIX} STREQUAL "Debug" OR
-          ${PATH_SUFFIX} STREQUAL "RelWithDebInfo")
+   endif (${CMAKE_BUILD_TYPE} STREQUAL "Debug" OR
+          ${CMAKE_BUILD_TYPE} STREQUAL "RelWithDebInfo")
   endif (FLITE_FOUND)
  endif (VCPKG_USE)
  if (NOT FLITE_FOUND)
-  set (FLITE_LIB_FILE "libflite.lib")
+  set (FLITE_LIB_FILE "fliteDll.lib")
   find_library (FLITE_LIBRARY ${FLITE_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${FLITE_LIB_FILE}")
   if (NOT FLITE_LIBRARY)
    message (WARNING "could not find ${FLITE_LIB_FILE}, continuing")
@@ -202,7 +197,7 @@ elseif (WIN32)
   set (CMU_LEX_LIB_FILE "libflite_cmulex.lib")
   find_library (CMU_LEX_LIBRARY ${CMU_LEX_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${CMU_LEX_LIB_FILE}")
   if (NOT CMU_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_LEX_LIB_FILE}, continuing")
@@ -210,7 +205,7 @@ elseif (WIN32)
   set (USENGLISH_LIB_FILE "libflite_usenglish.lib")
   find_library (USENGLISH_LIBRARY ${USENGLISH_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${USENGLISH_LIB_FILE}")
   if (NOT USENGLISH_LIBRARY)
    message (WARNING "could not find ${USENGLISH_LIB_FILE}, continuing")
@@ -218,7 +213,7 @@ elseif (WIN32)
   set (CMU_GRAPHEME_LANG_LIB_FILE "libflite_cmu_grapheme_lang.lib")
   find_library (CMU_GRAPHEME_LANG_LIBRARY ${CMU_GRAPHEME_LANG_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${CMU_GRAPHEME_LANG_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LANG_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LANG_LIB_FILE}, continuing")
@@ -226,7 +221,7 @@ elseif (WIN32)
   set (CMU_GRAPHEME_LEX_LIB_FILE "libflite_cmu_grapheme_lex.lib")
   find_library (CMU_GRAPHEME_LEX_LIBRARY ${CMU_GRAPHEME_LEX_LIB_FILE}
                 PATHS $ENV{LIB_ROOT}/flite/${CMAKE_VS_PLATFORM_TOOLSET_HOST_ARCHITECTURE}
-                PATH_SUFFIXES ${PATH_SUFFIX}
+                PATH_SUFFIXES ${CMAKE_BUILD_TYPE}
                 DOC "searching for ${CMU_GRAPHEME_LEX_LIB_FILE}")
   if (NOT CMU_GRAPHEME_LEX_LIBRARY)
    message (WARNING "could not find ${CMU_GRAPHEME_LEX_LIB_FILE}, continuing")
@@ -240,7 +235,11 @@ elseif (WIN32)
  endif (NOT FLITE_FOUND)
 endif ()
 if (FLITE_FOUND)
- option (FLITE_SUPPORT "enable flite support" ${FLITE_SUPPORT_DEFAULT})
+ if (WIN32)
+# *TODO*: fix those missing symbols on WIN32 and turn support back on
+ else ()
+  option (FLITE_SUPPORT "enable flite support" ${FLITE_SUPPORT_DEFAULT})
+ endif ()
  if (FLITE_SUPPORT)
   add_definitions (-DFLITE_SUPPORT)
  endif (FLITE_SUPPORT)
