@@ -21,7 +21,12 @@
 #ifndef STREAM_DEC_FLITE_DECODER_T_H
 #define STREAM_DEC_FLITE_DECODER_T_H
 
+extern "C"
+{
 #include "flite.h"
+
+GLOBALVARDEF cst_val* flite_voice_list = NULL;
+}
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

@@ -18,10 +18,8 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 
-//#if defined (DIRECTSHOW_BASECLASSES_SUPPORT)
-//#include "mtype.h"
-//#endif // DIRECTSHOW_BASECLASSES_SUPPORT
-
+extern "C"
+{
 #include "cmulex/cmu_lex.h"
 #include "usenglish/usenglish.h"
 
@@ -29,6 +27,7 @@
 #include "cmu_grapheme_lex/cmu_grapheme_lex.h"
 //#include "cmu_indic_lang/cmu_indic_lang.h"
 //#include "cmu_indic_lex/cmu_indic_lex.h"
+}
 
 #include "ace/Log_Msg.h"
 
@@ -156,7 +155,9 @@ Stream_Decoder_FliteDecoder_T<ACE_SYNCH_USE,
   std::string filename_string = configuration_in.voiceDirectory;
   filename_string += ACE_DIRECTORY_SEPARATOR_STR_A;
   filename_string += configuration_in.voice;
+
   voice_ = flite_voice_load (filename_string.c_str ());
+  //voice_ = register_cmu_us_slt (configuration_in.voiceDirectory.c_str ());
   if (unlikely (!voice_))
   {
     ACE_DEBUG ((LM_ERROR,
