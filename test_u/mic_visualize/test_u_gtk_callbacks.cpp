@@ -5194,9 +5194,9 @@ continue_:
     }
   } // end SWITCH
   float volume_level_f = 0.0;
-  HRESULT result_3 =
+  HRESULT result_4 =
     i_simple_audio_volume_p->GetMasterVolume (&volume_level_f);
-  ACE_ASSERT (SUCCEEDED (result_3));
+  ACE_ASSERT (SUCCEEDED (result_4));
   gtk_range_set_value (GTK_RANGE (scale_p),
                        static_cast<gdouble> (volume_level_f) * 100.0);
 #else
