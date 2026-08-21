@@ -39,6 +39,7 @@ extern "C"
 #include "linux/videodev2.h"
 
 #if defined (LIBPIPEWIRE_SUPPORT)
+#include "pipewire/pipewire.h"
 #include "spa/param/audio/format-utils.h"
 #include "spa/param/video/format-utils.h"
 

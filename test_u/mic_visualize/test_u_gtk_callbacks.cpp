@@ -114,6 +114,8 @@ extern "C"
 #else
 #include "stream_lib_alsa_tools.h"
 #if defined (LIBPIPEWIRE_SUPPORT)
+#include "spa/param/props.h"
+#include "spa/pod/builder.h"
 #include "stream_lib_pipewire_tools.h"
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
@@ -4307,6 +4309,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+  int result_3;
   gint sort_column_id; // device
   GtkSortType sort_order;
   enum Stream_MediaFramework_SoundGeneratorType noise_type_e =
@@ -4466,6 +4469,8 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
+  struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+
   // sanity check(s)
   struct Test_U_MicVisualize_UI_CBData* data_p =
     static_cast<struct Test_U_MicVisualize_UI_CBData*> (userData_in);
@@ -5204,6 +5209,31 @@ continue_:
                 ACE_TEXT ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier.c_str ())));
   } // end IF
 
+#if defined (LIBPIPEWIRE_SUPPORT)
+  ACE_ASSERT (!data_p->loop);
+  data_p->loop =
+    pw_thread_loop_new (ACE_TEXT_ALWAYS_CHAR ("micvisualize-thread-loop"),
+                        NULL);
+  ACE_ASSERT (data_p->loop && !data_p->pipewireConfiguration->loop);
+  result_3 = pw_thread_loop_start (data_p->loop);
+  ACE_ASSERT (result_3 >= 0);
+  data_p->pipewireConfiguration->loop = pw_thread_loop_get_loop (data_p->loop);
+  ACE_ASSERT (data_p->pipewireConfiguration->loop);
+  pw_thread_loop_lock (data_p->loop);
+  media_type_s.format = SND_PCM_FORMAT_FLOAT;
+  if (!Stream_MediaFramework_Pipewire_Tools::getVolumeControl (media_type_s,
+                                                               data_p->pipewireConfiguration->loop,
+                                                               data_p->pipewireConfiguration->context,
+                                                               data_p->pipewireConfiguration->core,
+                                                               data_p->pipewireConfiguration->stream))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to Stream_MediaFramework_Pipewire_Tools::getVolumeControl(), continuing\n")));
+  } // end IF
+  pw_thread_loop_unlock (data_p->loop);
+  ACE_ASSERT (data_p->pipewireConfiguration->loop && data_p->pipewireConfiguration->context && data_p->pipewireConfiguration->core && data_p->pipewireConfiguration->stream);
+#endif // LIBPIPEWIRE_SUPPORT
+
   if (!Stream_MediaFramework_ALSA_Tools::getVolumeControl ((*modulehandler_configuration_iterator_2).second.second->deviceIdentifier.identifier,
                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_ALSA_PLAYBACK_DEFAULT_SELEM_VOLUME_NAME),
                                                            false, // playback
@@ -5775,8 +5805,8 @@ continue_3:
 
   // step10: OpenGL context, ...
 #if defined (GTKGL_SUPPORT)
-#if GTK_CHECK_VERSION(3,0,0)
-#if GTK_CHECK_VERSION(3,16,0)
+#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (3,16,0)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   switch (ui_cb_data_base_p->mediaFramework)
   {
@@ -5808,9 +5838,9 @@ continue_3:
   (*modulehandler_configuration_iterator).second.second->window.gdk_window =
 #if GTK_CHECK_VERSION (3,0,0)
 #if GTK_CHECK_VERSION (3,16,0)
-      gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
+    gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
 #else
-      gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
+    gtk_widget_get_window (GTK_WIDGET ((*opengl_contexts_iterator).first));
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->GdkWindow3D);
   (*modulehandler_configuration_iterator).second.second->GdkWindow3D =
     gtk_widget_get_window (GTK_WIDGET (&(*opengl_contexts_iterator).first->darea));
@@ -5834,7 +5864,7 @@ continue_3:
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
 #if defined (GTK_USE)
   (*modulehandler_configuration_iterator).second.second->window.type =
-      Common_UI_Window::TYPE_GTK;
+    Common_UI_Window::TYPE_GTK;
 #else
   (*modulehandler_configuration_iterator).second.second->window.x11_window =
       gdk_x11_window_get_xid ((*modulehandler_configuration_iterator).second.second->window.gdk_window);
@@ -5945,9 +5975,9 @@ continue_3:
                                    &tree_iterator);
 
     toggle_button_p =
-          GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                     ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
-      ACE_ASSERT (toggle_button_p);
+      GTK_TOGGLE_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_CHECKBUTTON_EFFECT_NAME)));
+    ACE_ASSERT (toggle_button_p);
     gtk_toggle_button_set_active (toggle_button_p, TRUE);
   } // end IF
 
@@ -6093,6 +6123,19 @@ continue_3:
   gtk_progress_bar_set_pulse_step (progress_bar_p,
                                    1.0 / static_cast<double> (allocation_s.width));
 
+  { ACE_GUARD_RETURN (ACE_SYNCH_MUTEX, aGuard, state_r.lock, G_SOURCE_REMOVE);
+    // schedule asynchronous updates of the info view
+    guint event_source_id =
+      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
+                     idle_update_info_display_cb,
+                     userData_in);
+    if (event_source_id > 0)
+      state_r.eventSourceIds.insert (event_source_id);
+    else
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_timeout_add(idle_update_info_display_cb): \"%m\", continuing\n")));
+  } // end lock scope
+
   return G_SOURCE_REMOVE;
 
 error:
@@ -6188,6 +6231,24 @@ idle_finalize_UI_cb (gpointer userData_in)
 #else
   // clean up
   int result;
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct pw_main_loop* dummy_p = NULL;
+  if (data_p->loop)
+    pw_thread_loop_lock (data_p->loop);
+  Stream_MediaFramework_Pipewire_Tools::freeVolumeControl (dummy_p,
+                                                           data_p->pipewireConfiguration->context,
+                                                           data_p->pipewireConfiguration->core,
+                                                           data_p->pipewireConfiguration->stream);
+  if (data_p->loop)
+  {
+    pw_thread_loop_unlock (data_p->loop);
+    pw_thread_loop_stop (data_p->loop);
+    pw_thread_loop_destroy (data_p->loop); data_p->loop = NULL;
+  } // end IF
+  data_p->pipewireConfiguration->loop = NULL;
+  ACE_ASSERT (!data_p->pipewireConfiguration->loop && !data_p->pipewireConfiguration->context && !data_p->pipewireConfiguration->core && !data_p->pipewireConfiguration->stream);
+#endif // LIBPIPEWIRE_SUPPORT
   Stream_MediaFramework_ALSA_Tools::freeMixerHandle (data_p->captureMixerHandle);
   data_p->captureMixerHandle = NULL;
   data_p->captureVolumeControl = NULL;
@@ -7207,25 +7268,14 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 
   // step12: initialize updates
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    // schedule asynchronous updates of the info view
-    guint event_source_id =
-      g_timeout_add (COMMON_UI_REFRESH_DEFAULT_WIDGET_MS,
-                     idle_update_info_display_cb,
-                     userData_in);
-    if (event_source_id > 0)
-      state_r.eventSourceIds.insert (event_source_id);
-    else
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_timeout_add(idle_update_info_display_cb): \"%m\", continuing\n")));
-
     GtkCheckButton* check_button_p =
       GTK_CHECK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p)))
     {
-      event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
-                                       idle_update_display_cb,
-                                       userData_in);
+      guint event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
+                                             idle_update_display_cb,
+                                             userData_in);
       if (event_source_id > 0)
         state_r.eventSourceIds.insert (event_source_id);
       else
@@ -8076,14 +8126,34 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   ACE_ASSERT (data_p);
   ACE_ASSERT (data_p->configuration);
   Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_configuration_iterator =
-      data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING));
+    data_p->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING));
   ACE_ASSERT (modulehandler_configuration_iterator != data_p->configuration->streamConfiguration.end ());
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->generatorConfiguration);
-
-  if (!data_p->playbackVolumeControl)
-    goto continue_;
-  snd_mixer_selem_set_playback_volume_all (data_p->playbackVolumeControl,
-                                           static_cast<long> (value_d));
+  bool use_pipewire_b =
+    data_p->configuration->streamConfiguration.configuration_->renderer == STREAM_DEVICE_RENDERER_PIPEWIRE;
+  if (use_pipewire_b)
+  {
+#if defined (LIBPIPEWIRE_SUPPORT)
+    ACE_ASSERT (data_p->loop);
+    // pw_thread_loop_lock (data_p->loop);
+    if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (//data_p->pipewireConfiguration->loop,
+                                                               data_p->pipewireConfiguration->stream,
+                                                               2,
+                                                               value_d / data_p->playbackMaxVolumeLevel))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to Stream_MediaFramework_Pipewire_Tools::setVolumeLevel(), continuing\n")));
+    } // end IF
+    // pw_thread_loop_unlock (data_p->loop);
+#endif // LIBPIPEWIRE_SUPPORT
+  } // end IF
+  else
+  {
+    if (!data_p->playbackVolumeControl)
+      goto continue_;
+    snd_mixer_selem_set_playback_volume_all (data_p->playbackVolumeControl,
+                                             static_cast<long> (value_d));
+  } // end ELSE
 
 continue_:
   // (*modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
@@ -10617,6 +10687,9 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   ACE_ASSERT (modulehandler_configuration_iterator != ui_cb_data_p->configuration->streamConfiguration.end ());
 
   stream_p = ui_cb_data_p->stream;
+
+  bool use_pipewire_b =
+    ui_cb_data_p->configuration->streamConfiguration.configuration_->capturer == STREAM_DEVICE_CAPTURER_PIPEWIRE;
 #endif // ACE_WIN32 || ACE_WIN64
   ACE_ASSERT (stream_p);
 
@@ -10641,8 +10714,8 @@ combobox_device_changed_cb (GtkWidget* widget_in,
   gint n_rows = 0;
   GtkToggleButton* toggle_button_p = NULL;
   GtkListStore* list_store_2 =
-      GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
+    GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
+                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_LISTSTORE_FORMAT_NAME)));
   ACE_ASSERT (list_store_2);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -10984,10 +11057,25 @@ retry:
               ACE_TEXT ("opened ALSA device (capture) \"%s\"\n"),
               ACE_TEXT ((*modulehandler_configuration_iterator).second.second->deviceIdentifier.identifier.c_str ())));
 
-  result_2 =
+  if (use_pipewire_b)
+  {
+    gtk_list_store_clear (list_store_2);
+    GtkTreeIter iterator;
+    gtk_list_store_append (list_store_2, &iterator);
+    gtk_list_store_set (list_store_2, &iterator,
+                        0, snd_pcm_format_description (SND_PCM_FORMAT_FLOAT),
+                        1, snd_pcm_format_name (SND_PCM_FORMAT_FLOAT),
+                        2, SND_PCM_FORMAT_FLOAT,
+                        -1);
+    result_2 = true;
+  } // end IF
+  else
+  {
+    result_2 =
       load_formats (ui_cb_data_p->handle,
                     (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->access,
                     list_store_2);
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
   if (!result_2)
   {
@@ -13046,9 +13134,11 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
   mode =
     (*modulehandler_configuration_iterator).second.second->spectrumAnalyzerConfiguration->mode;
   is_signed_format =
-      snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+    snd_pcm_format_signed (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
+  is_float_format =
+    snd_pcm_format_float (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format);
   sample_size =
-      (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8);
+    (snd_pcm_format_width (ui_cb_data_p->configuration->streamConfiguration.configuration_->format.format) / 8);
   channels =
     ui_cb_data_p->configuration->streamConfiguration.configuration_->format.channels;
 #endif // ACE_WIN32 || ACE_WIN64
@@ -13093,11 +13183,9 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
     {
       // *TODO*: the value type depends on the format, so this isn't accurate
       if (is_signed_format)
-        converter <<
-          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
+        converter << static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
       else
-        converter <<
-          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
+        converter << static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       break;
     }
     case STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_SPECTRUM:
@@ -13107,11 +13195,9 @@ drawingarea_query_tooltip_cb (GtkWidget*  widget_in,
         converter <<
           (static_cast<float> (allocation.height - y_in) * maximum_value) / static_cast<float> (allocation.height);
       else if (is_signed_format)
-        converter <<
-          static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
+        converter << static_cast<int64_t> (((half_height - y_in) * static_cast<int64_t> (maximum_value)) / half_height);
       else
-        converter <<
-          static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
+        converter << static_cast<uint64_t> (((half_height - y_in) * maximum_value) / half_height);
       unsigned int allocation_per_channel = (allocation.width / channels);
       unsigned int slot =
         static_cast<unsigned int> ((x_in % allocation_per_channel) * (fft_p->Slots () / static_cast<double> (allocation_per_channel)));

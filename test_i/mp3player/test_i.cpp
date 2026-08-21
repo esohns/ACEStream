@@ -60,6 +60,10 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "stream_lib_directshow_tools.h"
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_common.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_stat_common.h"
@@ -440,6 +444,11 @@ do_work (ACE_UINT32 bufferSize_in,
   modulehandler_configuration.deviceIdentifier.identifier =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);
+
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration pipewire_configuration_s;
+  modulehandler_configuration.pipewireConfiguration = &pipewire_configuration_s;
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.fileIdentifier.identifier = inputFileName_in;
@@ -458,7 +467,8 @@ do_work (ACE_UINT32 bufferSize_in,
                                                 stream_configuration);
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Common_Timer_Tools::configuration_.taskType = ACE_TEXT_ALWAYS_CHAR ("Playback");
+  Common_Timer_Tools::configuration_.taskType =
+    ACE_TEXT_ALWAYS_CHAR ("Playback");
   Common_Timer_Tools::configuration_.taskPriority = AVRT_PRIORITY_HIGH;
 #endif // ACE_WIN32 || ACE_WIN64
   Common_Timer_Tools::initialize ();

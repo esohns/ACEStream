@@ -24,4 +24,6 @@
 // default device names
 #define STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT "combined_stereo_mix"
 
+#define STREAM_LIB_PIPEWIRE_PLAYBACK_STREAM_NAME_DEFAULT "ACEStream_Playback_Stream"
+
 #endif

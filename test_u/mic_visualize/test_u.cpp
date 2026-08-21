@@ -89,6 +89,10 @@
 #include "stream_lib_directshow_tools.h"
 #include "stream_lib_guids.h"
 #include "stream_lib_tools.h"
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_common.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_defines.h"
@@ -1307,7 +1311,6 @@ do_work (int argc_in,
                                        );
   Test_U_ALSA_MessageHandler_Module event_handler (istream_p,
                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MESSAGEHANDLER_DEFAULT_NAME_STRING));
-  // Test_U_MicVisualize_ALSA_StreamConfiguration_t::ITERATOR_T modulehandler_iterator;
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration; // capture
   ALSA_configuration.asynch = STREAM_LIB_ALSA_CAPTURE_DEFAULT_ASYNCH;
   if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
@@ -1321,6 +1324,11 @@ do_work (int argc_in,
   if (Common_Error_Tools::inDebugSession ()) // gdb seems not to play too well with signals
     ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = true;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration pipewire_configuration_s;
+  CBData_in.pipewireConfiguration = &pipewire_configuration_s;
+#endif // LIBPIPEWIRE_SUPPORT
+
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // renderer module
   struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
@@ -1692,6 +1700,10 @@ do_work (int argc_in,
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
   //Stream_MediaFramework_ALSA_Tools::listCards ();
+#if defined (LIBPIPEWIRE_SUPPORT)
+  modulehandler_configuration.pipewireConfiguration =
+    &pipewire_configuration_s;
+#endif // LIBPIPEWIRE_SUPPORT
   modulehandler_configuration_2.deviceIdentifier.identifier =
     playbackDeviceIdentifier_in;
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING),
@@ -1768,6 +1780,7 @@ do_work (int argc_in,
     // stream_configuration.format.format = SND_PCM_FORMAT_FLOAT_LE;
     // stream_configuration.sourceType = AUDIOEFFECT_SOURCE_DEVICE;
     // stream_configuration.UIFramework = COMMON_UI_FRAMEWORK_CONSOLE;
+    stream_configuration.renderer = STREAM_DEVICE_RENDERER_PIPEWIRE;
 
     configuration_in.signalHandlerConfiguration.stream = &stream;
   } // end IF

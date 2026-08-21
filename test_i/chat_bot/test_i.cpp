@@ -90,6 +90,10 @@
 #include "stream_dev_tools.h"
 
 #include "stream_dec_tools.h"
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_common.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_defines.h"
@@ -1471,6 +1475,10 @@ do_work (const std::string& STTScorerFile_in,
   struct Stream_MediaFramework_ALSA_Configuration ALSA_configuration_2; // playback
 //  ALSA_configuration_2.asynch = false;
   ALSA_configuration_2.rateResample = false;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration pipewire_configuration_s;
+#endif // LIBPIPEWIRE_SUPPORT
+
   struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration;
   struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_2; // resampler/renderer module
   struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration modulehandler_configuration_3; // file writer module
@@ -1936,6 +1944,10 @@ do_work (const std::string& STTScorerFile_in,
 
   modulehandler_configuration_2 = modulehandler_configuration;
   modulehandler_configuration_2.ALSAConfiguration = &ALSA_configuration_2;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  modulehandler_configuration_2.pipewireConfiguration =
+    &pipewire_configuration_s;
+#endif // LIBPIPEWIRE_SUPPORT
   modulehandler_configuration_2.deviceIdentifier.identifier =
     Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                      SND_PCM_STREAM_PLAYBACK);

@@ -93,6 +93,7 @@
 #else
 #include "stream_lib_alsa_defines.h"
 #include "stream_lib_v4l_defines.h"
+#include "stream_lib_pipewire_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
@@ -570,7 +571,7 @@ struct Stream_AVSave_ALSA_V4L_ModuleHandlerConfiguration
    , area ()
    , buffers (STREAM_LIB_V4L_DEFAULT_DEVICE_BUFFERS)
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
-   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
+   , nodeName (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT))
    , outputFormat ()
    , subscriber (NULL)
    , subscribers (NULL)

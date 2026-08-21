@@ -129,6 +129,9 @@ extern "C"
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directsound_common.h"
 #include "stream_lib_mediafoundation_common.h"
+#else
+#include "stream_lib_pipewire_common.h"
+#include "stream_lib_pipewire_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_common.h"
@@ -492,25 +495,31 @@ struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
-   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
+   , nodeName (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT))
    , outputFormat ()
+#if defined (LIBPIPEWIRE_SUPPORT)
+   , pipewireConfiguration (NULL)
+#endif // LIBPIPEWIRE_SUPPORT
    , streamConfiguration (NULL)
    , subscriber (NULL)
-   , subscribers (NULL)
+   // , subscribers (NULL)
   {
     deviceIdentifier.identifier =
       Stream_MediaFramework_ALSA_Tools::getDeviceName (STREAM_LIB_ALSA_DEVICE_DEFAULT,
                                                        SND_PCM_STREAM_CAPTURE);
   }
 
-  struct Stream_MediaFramework_ALSA_Configuration* ALSAConfiguration;
-  std::string                                      effect;
-  std::vector<std::string>                         effectOptions;
-  std::string                                      nodeName; // pipewire source-
-  struct Stream_MediaFramework_ALSA_MediaType      outputFormat;
-  Test_U_MicVisualize_ALSA_StreamConfiguration_t*  streamConfiguration;
-  Test_U_MicVisualize_ISessionNotify_t*            subscriber;
-  Test_U_MicVisualize_Subscribers_t*               subscribers;
+  struct Stream_MediaFramework_ALSA_Configuration*     ALSAConfiguration;
+  std::string                                          effect;
+  std::vector<std::string>                             effectOptions;
+  std::string                                          nodeName; // pipewire source-
+  struct Stream_MediaFramework_ALSA_MediaType          outputFormat;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration* pipewireConfiguration;
+#endif // LIBPIPEWIRE_SUPPORT
+  Test_U_MicVisualize_ALSA_StreamConfiguration_t*      streamConfiguration;
+  Test_U_MicVisualize_ISessionNotify_t*                subscriber;
+  // Test_U_MicVisualize_Subscribers_t*               subscribers;
 };
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -943,6 +952,10 @@ struct Test_U_MicVisualize_UI_CBData
    , captureMixerHandle (NULL)
    , captureVolumeControl (NULL)
    , captureMaxVolumeLevel (0)
+#if defined (LIBPIPEWIRE_SUPPORT)
+   , loop (NULL)
+   , pipewireConfiguration (NULL)
+#endif // LIBPIPEWIRE_SUPPORT
    , playbackMixerHandle (NULL)
    , playbackVolumeControl (NULL)
    , playbackMaxVolumeLevel (0)
@@ -953,6 +966,10 @@ struct Test_U_MicVisualize_UI_CBData
   snd_mixer_t*                              captureMixerHandle;
   snd_mixer_elem_t*                         captureVolumeControl;
   long                                      captureMaxVolumeLevel;
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct pw_thread_loop*                               loop;
+  struct Stream_MediaFramework_Pipewire_Configuration* pipewireConfiguration;
+#endif // LIBPIPEWIRE_SUPPORT
   snd_mixer_t*                              playbackMixerHandle;
   snd_mixer_elem_t*                         playbackVolumeControl;
   long                                      playbackMaxVolumeLevel;

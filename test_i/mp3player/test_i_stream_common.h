@@ -49,6 +49,9 @@
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #include "stream_lib_alsa_common.h"
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_common.h"
+#endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (FFMPEG_SUPPORT)
 #include "stream_lib_ffmpeg_common.h"
@@ -109,6 +112,9 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
    , manageSoX (true)
 #endif // SOX_SUPPORT
    , outputFormat ()
+#if defined (LIBPIPEWIRE_SUPPORT)
+   , pipewireConfiguration (NULL)
+#endif // LIBPIPEWIRE_SUPPORT
    , pushStatisticMessages (true)
    , spectrumAnalyzerConfiguration (NULL)
    //, window ()
@@ -135,6 +141,9 @@ struct Test_I_MP3Player_ModuleHandlerConfiguration
 #else
   struct Stream_MediaFramework_ALSA_MediaType                 outputFormat;
 #endif // ACE_WIN32 || ACE_WIN64
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration*        pipewireConfiguration;
+#endif // LIBPIPEWIRE_SUPPORT
   bool                                                        pushStatisticMessages;
 #if defined (GTK_SUPPORT)
   struct Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_Configuration* spectrumAnalyzerConfiguration;

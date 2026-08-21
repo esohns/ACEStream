@@ -35,38 +35,54 @@ acestream_dev_target_pw_on_stream_param_changed_cb (void* userData_in,
 
   // sanity check(s)
   struct Stream_Device_Pipewire_Playback_CBData* cb_data_p =
-      static_cast<struct Stream_Device_Pipewire_Playback_CBData*> (userData_in);
+    static_cast<struct Stream_Device_Pipewire_Playback_CBData*> (userData_in);
   ACE_ASSERT (cb_data_p);
-  /* NULL means to clear the format */
-  if (parameters_in == NULL || id_in != SPA_PARAM_Format)
-    return;
-  int result = spa_format_parse (parameters_in,
+
+  int result;
+  switch (id_in)
+  {
+    case SPA_PARAM_Format:
+    { ACE_ASSERT (parameters_in); /* *TODO*: NULL means to clear the format */
+      result = spa_format_parse (parameters_in,
                                  &cb_data_p->format.media_type,
                                  &cb_data_p->format.media_subtype);
-  if (unlikely (result < 0))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to spa_format_parse(%@), returning\n"),
-                parameters_in));
-    return;
-  } // end IF
-  /* only accept raw audio */
-  if (unlikely (cb_data_p->format.media_type != SPA_MEDIA_TYPE_audio ||
-                cb_data_p->format.media_subtype != SPA_MEDIA_SUBTYPE_raw))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("invalid media (sub-)type (was: %u|%u), returning\n"),
-                cb_data_p->format.media_type,
-                cb_data_p->format.media_subtype));
-    return;
-  } // end IF
-  result = spa_format_audio_raw_parse (parameters_in,
-                                       &cb_data_p->format.info.raw);
-  ACE_ASSERT (result >= 0);
-  ACE_DEBUG ((LM_DEBUG,
-              ACE_TEXT ("playing back %d channel(s) @ %uHz\n"),
-              cb_data_p->format.info.raw.channels,
-              cb_data_p->format.info.raw.rate));
+      if (unlikely (result < 0))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to spa_format_parse(%@), returning\n"),
+                    parameters_in));
+        return;
+      } // end IF
+      /* only accept raw audio */
+      if (unlikely (cb_data_p->format.media_type != SPA_MEDIA_TYPE_audio ||
+                    cb_data_p->format.media_subtype != SPA_MEDIA_SUBTYPE_raw))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("invalid media (sub-)type (was: %u|%u), returning\n"),
+                    cb_data_p->format.media_type,
+                    cb_data_p->format.media_subtype));
+        return;
+      } // end IF
+      result = spa_format_audio_raw_parse (parameters_in,
+                                           &cb_data_p->format.info.raw);
+      ACE_ASSERT (result >= 0);
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("playing back %d channel(s) @ %uHz\n"),
+                  cb_data_p->format.info.raw.channels,
+                  cb_data_p->format.info.raw.rate));
+
+      break;
+    }
+    case SPA_PARAM_Props:
+    {
+      result = pw_stream_update_params (cb_data_p->stream,
+                                        &parameters_in, 1);
+      ACE_ASSERT (result >= 0);
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
 }
 
 void

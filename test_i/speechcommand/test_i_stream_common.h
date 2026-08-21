@@ -45,6 +45,11 @@
 
 #include "stream_dev_common.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#include "stream_lib_pipewire_defines.h"
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_stat_common.h"
 #include "stream_stat_defines.h"
 
@@ -429,7 +434,7 @@ struct Test_I_SpeechCommand_ALSA_ModuleHandlerConfiguration
    , manageSoX (false)
    , modelFile ()
    , mute (false)
-   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
+   , nodeName (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT))
    , scorerFile ()
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)

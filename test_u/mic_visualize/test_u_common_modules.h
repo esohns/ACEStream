@@ -68,6 +68,7 @@
 
 #if defined (LIBPIPEWIRE_SUPPORT)
 #include "stream_dev_mic_source_pipewire.h"
+#include "stream_dev_target_pipewire.h"
 #endif // LIBPIPEWIRE_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 #include "stream_misc_asynch.h"
@@ -854,12 +855,27 @@ typedef Stream_Dev_Target_ALSA_T<ACE_MT_SYNCH,
                                  Test_U_Message,
                                  Test_U_SessionMessage,
                                  Test_U_MicVisualize_SessionData> Test_U_MicVisualize_Target_ALSA;
-DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                          // session data type
-                              enum Stream_SessionMessageType,                          // session event type
-                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,    // module handler configuration type
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                            // session data type
+                              enum Stream_SessionMessageType,                             // session event type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration, // module handler configuration type
                               libacestream_default_dev_target_alsa_module_name_string,
-                              Stream_INotify_t,                                        // stream notification interface type
-                              Test_U_MicVisualize_Target_ALSA);                         // writer type
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Test_U_MicVisualize_Target_ALSA);                           // writer type
+#if defined (LIBPIPEWIRE_SUPPORT)
+typedef Stream_Dev_Target_Pipewire_T<ACE_MT_SYNCH,
+                                     Common_TimePolicy_t,
+                                     struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,
+                                     Stream_ControlMessage_t,
+                                     Test_U_Message,
+                                     Test_U_SessionMessage> Test_U_MicVisualize_Target_Pipewire;
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MicVisualize_SessionData,                             // session data type
+                              enum Stream_SessionMessageType,                              // session event type
+                              struct Test_U_MicVisualize_ALSA_ModuleHandlerConfiguration,  // module handler configuration type
+                              libacestream_default_dev_target_pipewire_module_name_string,
+                              Stream_INotify_t,                                            // stream notification interface type
+                              Test_U_MicVisualize_Target_Pipewire);                        // writer type
+#endif // LIBPIPEWIRE_SUPPORT
+
 #if defined (GTK_SUPPORT)
 typedef Stream_Visualization_GTK_Cairo_SpectrumAnalyzer_T<ACE_MT_SYNCH,
                                                           Common_TimePolicy_t,

@@ -103,7 +103,9 @@ class Stream_Dev_Target_Pipewire_T
 
   struct Stream_Device_Pipewire_Playback_CBData CBData_;
   struct pw_stream_events                       events_;
+  struct spa_hook                               listener_;
   struct pw_main_loop*                          loop_;
+  bool                                          ourLoop_;
   uint8_t                                       PODBuffer_[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE];
   typename inherited::MESSAGE_QUEUE_T           queue_;
 };

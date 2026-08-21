@@ -46,7 +46,9 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
  , inherited2 ()
  , CBData_ ()
  , events_ ()
+ , listener_ ()
  , loop_ (NULL)
+ , ourLoop_ (true)
  , PODBuffer_ ()
  , queue_ (0,    // max # slots; 0 --> unlimited
            NULL) // notification handle
@@ -94,9 +96,9 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
 
   if (unlikely (CBData_.buffer))
     CBData_.buffer->release ();
-  if (likely (CBData_.stream))
+  if (likely (ourLoop_ && CBData_.stream))
     pw_stream_destroy (CBData_.stream);
-  if (likely (loop_))
+  if (likely (ourLoop_ && loop_))
     pw_main_loop_destroy (loop_);
 }
 
@@ -143,15 +145,16 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
       CBData_.buffer->release (); CBData_.buffer = NULL;
     } // end IF
 
-    if (unlikely (CBData_.stream))
+    if (unlikely (ourLoop_ && CBData_.stream))
     {
       pw_stream_destroy (CBData_.stream); CBData_.stream = NULL;
     } // end IF
 
-    if (likely (loop_))
+    if (likely (ourLoop_ && loop_))
     {
       pw_main_loop_destroy (loop_); loop_ = NULL;
     } // end IF
+    ourLoop_ = true;
   } // end IF
 
   result = queue_.activate ();
@@ -164,6 +167,15 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
   } // end IF
 
   ACE_ASSERT (!loop_);
+  struct pw_properties* properties_p = NULL;
+  ACE_ASSERT (configuration_in.pipewireConfiguration);
+  if (configuration_in.pipewireConfiguration->loop)
+  { ourLoop_ = false;
+    // loop_ = configuration_in.pipewireConfiguration->loop;
+    ACE_ASSERT (configuration_in.pipewireConfiguration->stream);
+    CBData_.stream = configuration_in.pipewireConfiguration->stream;
+    goto continue_;
+  } // end IF
   loop_ = pw_main_loop_new (NULL);
   if (unlikely (!loop_))
   {
@@ -173,11 +185,11 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  struct pw_properties* properties_p =
-      pw_properties_new (PW_KEY_MEDIA_TYPE, ACE_TEXT_ALWAYS_CHAR ("Audio"),
-                         PW_KEY_MEDIA_CATEGORY, ACE_TEXT_ALWAYS_CHAR ("Playback"),
-                         PW_KEY_MEDIA_ROLE, ACE_TEXT_ALWAYS_CHAR ("Music"),
-                         NULL);
+  properties_p =
+    pw_properties_new (PW_KEY_MEDIA_TYPE, ACE_TEXT_ALWAYS_CHAR ("Audio"),
+                       PW_KEY_MEDIA_CATEGORY, ACE_TEXT_ALWAYS_CHAR ("Playback"),
+                       PW_KEY_MEDIA_ROLE, ACE_TEXT_ALWAYS_CHAR ("Music"),
+                       NULL);
   if (unlikely (!properties_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -203,6 +215,7 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
+continue_:
   return inherited::initialize (configuration_in,
                                 allocator_in);
 }
@@ -320,16 +333,16 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
   {
     case STREAM_SESSION_MESSAGE_ABORT:
     {
-      unsigned int result = queue_.flush (false); // flush all data messages
-      if (unlikely (result == static_cast<unsigned int> (-1)))
+      unsigned int result_2 = queue_.flush (false); // flush all data messages
+      if (unlikely (result_2 == static_cast<unsigned int> (-1)))
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to Stream_MessageQueue_T::flush(false): \"%m\", continuing\n"),
                     inherited::mod_->name ()));
-      else if (result > 0)
+      else if (result_2 > 0)
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting session: flushed %u data messages\n"),
                     inherited::mod_->name (),
-                    result));
+                    result_2));
       else
         ACE_DEBUG ((LM_DEBUG,
                     ACE_TEXT ("%s: aborting session\n"),
@@ -342,7 +355,7 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
     { // sanity check(s)
       ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-          const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
       ACE_ASSERT (!session_data_r.formats.empty ());
       struct Stream_MediaFramework_ALSA_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
@@ -353,12 +366,28 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
         (snd_pcm_format_width (media_type_s.format) / 8) * media_type_s.channels;
 
       bool lock_activate_was_b =
-          inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
-
+        inherited::TASK_BASE_T::TASK_BASE_T::lockActivate_;
       struct spa_pod_builder POD_builder_s =
         SPA_POD_BUILDER_INIT (PODBuffer_, sizeof (uint8_t[STREAM_DEV_PIPEWIRE_DEFAULT_POD_BUFFER_SIZE]));
       const struct spa_pod* parameters_a[1];
       struct spa_audio_info_raw audio_info_raw_s;
+      enum pw_stream_flags stream_flags_e =
+        static_cast<enum pw_stream_flags> (PW_STREAM_FLAG_AUTOCONNECT |
+                                           PW_STREAM_FLAG_MAP_BUFFERS |
+                                           PW_STREAM_FLAG_RT_PROCESS);
+
+      if (!ourLoop_)
+      {
+        pw_loop_lock (inherited::configuration_->pipewireConfiguration->loop);
+        // pw_stream_disconnect (CBData_.stream);
+        pw_stream_add_listener (CBData_.stream,
+                                &listener_,
+                                &events_,
+                                &CBData_);
+        pw_loop_unlock (inherited::configuration_->pipewireConfiguration->loop);
+        goto continue_;
+      } // end IF
+
       ACE_OS::memset (&audio_info_raw_s, 0, sizeof (struct spa_audio_info_raw));
       audio_info_raw_s.channels = media_type_s.channels;
       audio_info_raw_s.format =
@@ -371,10 +400,6 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
                                                     &audio_info_raw_s);
       ACE_ASSERT (parameters_a[0]);
       ACE_ASSERT (CBData_.stream);
-      enum pw_stream_flags stream_flags_e =
-          static_cast<enum pw_stream_flags> (PW_STREAM_FLAG_AUTOCONNECT |
-                                             PW_STREAM_FLAG_MAP_BUFFERS |
-                                             PW_STREAM_FLAG_RT_PROCESS);
       result = pw_stream_connect (CBData_.stream,
                                   PW_DIRECTION_OUTPUT,
                                   PW_ID_ANY,
@@ -407,6 +432,7 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
       inherited::threadCount_ = 0;
       ACE_ASSERT (inherited::threadIds_.size () == 1);
 
+continue_:
       break;
 
 error:
@@ -424,11 +450,17 @@ end:
         queue_.waitForIdleState ();
       queue_.deactivate ();
 
+      if (!ourLoop_)
+      {
+        spa_hook_remove (&listener_);
+        goto continue_2;
+      } // end IF
       ACE_ASSERT (loop_);
       pw_main_loop_quit (loop_);
 
       inherited::wait (false); // do not wait for message queue
 
+continue_2:
       break;
     }
     default:

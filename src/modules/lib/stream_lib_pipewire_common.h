@@ -21,19 +21,32 @@
 #ifndef STREAM_LIB_PIPEWIRE_COMMON_H
 #define STREAM_LIB_PIPEWIRE_COMMON_H
 
+#include "pipewire/pipewire.h"
+
 #include <string>
 
-#include "stream_lib_pipewire_defines.h"
+// #include "stream_lib_pipewire_defines.h"
 
 struct Stream_MediaFramework_Pipewire_Configuration
 {
   Stream_MediaFramework_Pipewire_Configuration ()
-   : captureSink (false)
+   : loop (NULL)
+   , context (NULL)
+   , core (NULL)
+   , stream (NULL)
+   , captureSink (false)
    , nodeName ()
   {}
 
-  bool        captureSink; // Stereo-Mix ?
-  std::string nodeName;
+  // playback
+  struct pw_loop*    loop;
+  struct pw_context* context;
+  struct pw_core*    core;
+  struct pw_stream*  stream;
+
+  // capture
+  bool               captureSink; // Stereo-Mix ?
+  std::string        nodeName;
 };
 
 #endif

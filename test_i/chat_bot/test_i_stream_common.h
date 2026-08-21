@@ -45,6 +45,14 @@
 
 #include "stream_dev_common.h"
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
+#include "stream_lib_pipewire_common.h"
+#include "stream_lib_pipewire_defines.h"
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_stat_common.h"
 #include "stream_stat_defines.h"
 
@@ -460,7 +468,10 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
    , manageSoX (false)
    , modelFile ()
    , mute (false)
-   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
+   , nodeName (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT))
+#if defined (LIBPIPEWIRE_SUPPORT)
+   , pipewireConfiguration (NULL)
+#endif // LIBPIPEWIRE_SUPPORT
    , scorerFile ()
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)
@@ -494,6 +505,9 @@ struct Test_I_ChatBot_ALSA_ModuleHandlerConfiguration
   std::string                                       modelFile;
   bool                                              mute;
   std::string                                       nodeName; // pipewire source-
+#if defined (LIBPIPEWIRE_SUPPORT)
+  struct Stream_MediaFramework_Pipewire_Configuration* pipewireConfiguration;
+#endif // LIBPIPEWIRE_SUPPORT
   std::string                                       scorerFile;
 #if defined (GTK_SUPPORT)
 #if defined (GTKGL_SUPPORT)

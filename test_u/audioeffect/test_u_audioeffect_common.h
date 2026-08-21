@@ -123,6 +123,8 @@ extern "C"
 #include "stream_lib_directshow_common.h"
 #include "stream_lib_directsound_common.h"
 #include "stream_lib_mediafoundation_common.h"
+#else
+#include "stream_lib_pipewire_defines.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_common.h"
@@ -481,7 +483,7 @@ struct Test_U_AudioEffect_ALSA_ModuleHandlerConfiguration
    , ALSAConfiguration (NULL)
    , effect ()
    , effectOptions ()
-   , nodeName (ACE_TEXT_ALWAYS_CHAR ("combined_stereo_mix"))
+   , nodeName (ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_STEREO_MIX_NODE_NAME_DEFAULT))
    , outputFormat ()
    , streamConfiguration (NULL)
    , subscriber (NULL)

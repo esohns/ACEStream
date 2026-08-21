@@ -2414,10 +2414,35 @@ Test_U_ALSA_Stream::load (Stream_ILayout* layout_in,
       module_p = NULL;
     } // end IF
 
-    ACE_NEW_RETURN (module_p,
-                    Test_U_MicVisualize_Target_ALSA_Module (this,
-                                                            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
-                    false);
+    switch (inherited::configuration_->configuration_->renderer)
+    {
+      case STREAM_DEVICE_RENDERER_ALSA:
+      {
+        ACE_NEW_RETURN (module_p,
+                        Test_U_MicVisualize_Target_ALSA_Module (this,
+                                                                ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_ALSA_DEFAULT_NAME_STRING)),
+                        false);
+        break;
+      }
+      case STREAM_DEVICE_RENDERER_PIPEWIRE:
+      {
+#if defined (LIBPIPEWIRE_SUPPORT)
+        ACE_NEW_RETURN (module_p,
+                        Test_U_MicVisualize_Target_Pipewire_Module (this,
+                                                                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_TARGET_PIPEWIRE_DEFAULT_NAME_STRING)),
+                        false);
+#endif // LIBPIPEWIRE_SUPPORT
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown renderer type (was: %d), aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    inherited::configuration_->configuration_->renderer));
+        return false;
+      }
+    } // end SWITCH
     layout_in->append (module_p, branch_p, index_i);
     module_p = NULL;
   } // end IF

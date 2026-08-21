@@ -25,6 +25,8 @@
 
 #include "ace/Global_Macros.h"
 
+#include "stream_lib_alsa_common.h"
+
 class Stream_MediaFramework_Pipewire_Tools
 {
  public:
@@ -33,6 +35,19 @@ class Stream_MediaFramework_Pipewire_Tools
   static void finalizeStream (struct pw_loop*,    // loop handle
                               struct pw_stream*); // stream handle
 
+  static bool getVolumeControl (struct Stream_MediaFramework_ALSA_MediaType&, // format
+                                struct pw_loop*&,      // (return value:) loop handle
+                                struct pw_context*&,   // return value: context handle
+                                struct pw_core*&,      // return value: core handle
+                                struct pw_stream*&);   // return value: stream handle
+  static void freeVolumeControl (struct pw_main_loop*&, // loop handle
+                                 struct pw_context*&,   // context handle
+                                 struct pw_core*&,      // core handle
+                                 struct pw_stream*&);   // stream handle
+
+  static bool setVolumeLevel (struct pw_stream*, // stream handle
+                              uint32_t,          // #channels
+                              float);            // level [0.0f-1.0f]
   static bool setVolumeLevel (struct pw_loop*,   // loop handle
                               // struct pw_proxy*, // node (!) proxy handle
                               struct pw_stream*, // stream handle
