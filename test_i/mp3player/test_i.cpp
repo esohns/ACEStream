@@ -117,8 +117,8 @@ do_printUsage (const std::string& programName_in)
             << false
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
-  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : console VU meter mode [")
-            << STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID
+  std::cout << ACE_TEXT_ALWAYS_CHAR ("-u [VALUE]  : VU meter mode [")
+            << STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE
             << ACE_TEXT_ALWAYS_CHAR ("]")
             << std::endl;
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-v          : print version information and exit [")
@@ -140,7 +140,7 @@ do_processArguments (int argc_in,
                      std::string& outputFileName_out,
                      enum Stream_Device_Renderer& renderer_out,
                      bool& traceInformation_out,
-                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& consoleVUMeterMode_out,
+                     enum Stream_Visualization_SpectrumAnalyzer_2DMode& VUMeterMode_out,
                      bool& printVersionAndExit_out,
                      enum Stream_Visualization_AudioRenderer& visualizationRenderer_out)
 {
@@ -160,7 +160,7 @@ do_processArguments (int argc_in,
   outputFileName_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_OUTPUT_FILE);
   renderer_out = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   traceInformation_out = false;
-  consoleVUMeterMode_out = STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
+  VUMeterMode_out = STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE;
   printVersionAndExit_out = false;
   visualizationRenderer_out = STREAM_VISUALIZATION_AUDIORENDERER_INVALID;
 
@@ -223,7 +223,7 @@ do_processArguments (int argc_in,
         converter.str (ACE_TEXT_ALWAYS_CHAR (""));
         converter << argumentParser.opt_arg ();
         converter >> value_i;
-        consoleVUMeterMode_out =
+        VUMeterMode_out =
           static_cast<enum Stream_Visualization_SpectrumAnalyzer_2DMode> (value_i);
         break;
       }
@@ -345,7 +345,7 @@ do_work (ACE_UINT32 bufferSize_in,
          const std::string& inputFileName_in,
          const std::string& outputFileName_in,
          enum Stream_Device_Renderer renderer_in,
-         enum Stream_Visualization_SpectrumAnalyzer_2DMode consoleVUMeterMode_in,
+         enum Stream_Visualization_SpectrumAnalyzer_2DMode VUMeterMode_in,
          enum Stream_Visualization_AudioRenderer visualizationRenderer_in,
          const ACE_Sig_Set& signalSet_in,
          const ACE_Sig_Set& ignoredSignalSet_in,
@@ -459,7 +459,7 @@ do_work (ACE_UINT32 bufferSize_in,
   stream_configuration.messageAllocator = &message_allocator;
   stream_configuration.printFinalReport = true;
   stream_configuration.fileIdentifier.identifier = outputFileName_in;
-  stream_configuration.analyzerMode = consoleVUMeterMode_in;
+  stream_configuration.analyzerMode = VUMeterMode_in;
   stream_configuration.renderer = renderer_in;
   stream_configuration.visualizationRenderer = visualizationRenderer_in;
   configuration.streamConfiguration.initialize (module_configuration,
@@ -587,7 +587,7 @@ ACE_TMAIN (int argc_in,
   enum Stream_Device_Renderer renderer_e = STREAM_DEV_AUDIO_DEFAULT_RENDERER;
   bool trace_information = false;
   enum Stream_Visualization_SpectrumAnalyzer_2DMode console_VU_meter_mode_e =
-    STREAM_VISUALIZATION_SPECTRUMANALYZER_2DMODE_INVALID;
+    STREAM_VIS_SPECTRUMANALYZER_DEFAULT_2DMODE;
   bool print_version_and_exit = false;
   enum Stream_Visualization_AudioRenderer visualization_renderer_e =
     STREAM_VISUALIZATION_AUDIORENDERER_INVALID;

@@ -251,6 +251,12 @@ end:
       if (likely (inherited::thr_count_))
         inherited::wait (false); // wait for message queue ?
 
+      lastTrackNumber_ = 0;
+      trackNumberToMessageMediaType_.clear ();
+      trackNumbersToSkip_.clear ();
+      audioTrackNumber_ = -1;
+      videoTrackNumber_ = -1;
+
       break;
     }
     default:

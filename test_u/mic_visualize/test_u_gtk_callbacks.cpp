@@ -8082,8 +8082,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         directshow_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                        NULL);
       ACE_ASSERT (SUCCEEDED (result));
-      (*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-        gtk_range_get_value (range_in) / 100.0;
+      //(*directshow_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+      //  gtk_range_get_value (range_in) / 100.0;
       break;
     }
     case STREAM_MEDIAFRAMEWORK_MEDIAFOUNDATION:
@@ -8102,8 +8102,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
         mediafoundation_ui_cb_data_p->renderVolumeControl->SetMasterVolume (static_cast<float> (gtk_range_get_value (range_in) / 100.0),
                                                                             NULL);
       ACE_ASSERT (SUCCEEDED (result));
-      (*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
-        gtk_range_get_value (range_in) / 100.0;
+      //(*mediafoundation_modulehandler_configuration_iterator).second.second->generatorConfiguration->amplitude =
+      //  gtk_range_get_value (range_in) / 100.0;
       break;
     }
     default:
