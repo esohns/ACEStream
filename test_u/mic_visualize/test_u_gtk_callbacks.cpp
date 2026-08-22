@@ -5210,16 +5210,14 @@ continue_:
   } // end IF
 
 #if defined (LIBPIPEWIRE_SUPPORT)
-  ACE_ASSERT (!data_p->loop);
-  data_p->loop =
+  ACE_ASSERT (!data_p->pipewireConfiguration->loop);
+  data_p->pipewireConfiguration->loop =
     pw_thread_loop_new (ACE_TEXT_ALWAYS_CHAR ("micvisualize-thread-loop"),
                         NULL);
-  ACE_ASSERT (data_p->loop && !data_p->pipewireConfiguration->loop);
-  result_3 = pw_thread_loop_start (data_p->loop);
-  ACE_ASSERT (result_3 >= 0);
-  data_p->pipewireConfiguration->loop = pw_thread_loop_get_loop (data_p->loop);
   ACE_ASSERT (data_p->pipewireConfiguration->loop);
-  pw_thread_loop_lock (data_p->loop);
+  result_3 = pw_thread_loop_start (data_p->pipewireConfiguration->loop);
+  ACE_ASSERT (result_3 >= 0);
+  pw_thread_loop_lock (data_p->pipewireConfiguration->loop);
   media_type_s.format = SND_PCM_FORMAT_FLOAT;
   if (!Stream_MediaFramework_Pipewire_Tools::getVolumeControl (media_type_s,
                                                                data_p->pipewireConfiguration->loop,
@@ -5230,7 +5228,7 @@ continue_:
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to Stream_MediaFramework_Pipewire_Tools::getVolumeControl(), continuing\n")));
   } // end IF
-  pw_thread_loop_unlock (data_p->loop);
+  pw_thread_loop_unlock (data_p->pipewireConfiguration->loop);
   ACE_ASSERT (data_p->pipewireConfiguration->loop && data_p->pipewireConfiguration->context && data_p->pipewireConfiguration->core && data_p->pipewireConfiguration->stream);
 #endif // LIBPIPEWIRE_SUPPORT
 
@@ -6233,20 +6231,19 @@ idle_finalize_UI_cb (gpointer userData_in)
   int result;
 
 #if defined (LIBPIPEWIRE_SUPPORT)
-  struct pw_main_loop* dummy_p = NULL;
-  if (data_p->loop)
-    pw_thread_loop_lock (data_p->loop);
+  struct pw_thread_loop* dummy_p = NULL;
+  if (data_p->pipewireConfiguration->loop)
+    pw_thread_loop_lock (data_p->pipewireConfiguration->loop);
   Stream_MediaFramework_Pipewire_Tools::freeVolumeControl (dummy_p,
                                                            data_p->pipewireConfiguration->context,
                                                            data_p->pipewireConfiguration->core,
                                                            data_p->pipewireConfiguration->stream);
-  if (data_p->loop)
+  if (data_p->pipewireConfiguration->loop)
   {
-    pw_thread_loop_unlock (data_p->loop);
-    pw_thread_loop_stop (data_p->loop);
-    pw_thread_loop_destroy (data_p->loop); data_p->loop = NULL;
+    pw_thread_loop_unlock (data_p->pipewireConfiguration->loop);
+    pw_thread_loop_stop (data_p->pipewireConfiguration->loop);
+    pw_thread_loop_destroy (data_p->pipewireConfiguration->loop); data_p->pipewireConfiguration->loop = NULL;
   } // end IF
-  data_p->pipewireConfiguration->loop = NULL;
   ACE_ASSERT (!data_p->pipewireConfiguration->loop && !data_p->pipewireConfiguration->context && !data_p->pipewireConfiguration->core && !data_p->pipewireConfiguration->stream);
 #endif // LIBPIPEWIRE_SUPPORT
   Stream_MediaFramework_ALSA_Tools::freeMixerHandle (data_p->captureMixerHandle);
@@ -8134,8 +8131,8 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
   if (use_pipewire_b)
   {
 #if defined (LIBPIPEWIRE_SUPPORT)
-    ACE_ASSERT (data_p->loop);
-    // pw_thread_loop_lock (data_p->loop);
+    ACE_ASSERT (data_p->pipewireConfiguration->loop);
+    // pw_thread_loop_lock (data_p->pipewireConfiguration->loop);
     if (!Stream_MediaFramework_Pipewire_Tools::setVolumeLevel (//data_p->pipewireConfiguration->loop,
                                                                data_p->pipewireConfiguration->stream,
                                                                2,
@@ -8144,7 +8141,7 @@ hscale_volume_value_changed_cb (GtkRange* range_in,
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("failed to Stream_MediaFramework_Pipewire_Tools::setVolumeLevel(), continuing\n")));
     } // end IF
-    // pw_thread_loop_unlock (data_p->loop);
+    // pw_thread_loop_unlock (data_p->pipewireConfiguration->loop);
 #endif // LIBPIPEWIRE_SUPPORT
   } // end IF
   else

@@ -30,23 +30,23 @@
 struct Stream_MediaFramework_Pipewire_Configuration
 {
   Stream_MediaFramework_Pipewire_Configuration ()
-   : loop (NULL)
-   , context (NULL)
+   : context (NULL)
    , core (NULL)
+   , loop (NULL)
    , stream (NULL)
    , captureSink (false)
    , nodeName ()
   {}
 
   // playback
-  struct pw_loop*    loop;
-  struct pw_context* context;
-  struct pw_core*    core;
-  struct pw_stream*  stream;
+  struct pw_context*     context;
+  struct pw_core*        core;
+  struct pw_thread_loop* loop;
+  struct pw_stream*      stream;
 
   // capture
-  bool               captureSink; // Stereo-Mix ?
-  std::string        nodeName;
+  bool                   captureSink; // Stereo-Mix ?
+  std::string            nodeName;
 };
 
 #endif

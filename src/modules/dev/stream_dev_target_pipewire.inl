@@ -377,14 +377,14 @@ Stream_Dev_Target_Pipewire_T<ACE_SYNCH_USE,
                                            PW_STREAM_FLAG_RT_PROCESS);
 
       if (!ourLoop_)
-      {
-        pw_loop_lock (inherited::configuration_->pipewireConfiguration->loop);
+      { ACE_ASSERT (inherited::configuration_->pipewireConfiguration->loop);
+        pw_thread_loop_lock (inherited::configuration_->pipewireConfiguration->loop);
         // pw_stream_disconnect (CBData_.stream);
         pw_stream_add_listener (CBData_.stream,
                                 &listener_,
                                 &events_,
                                 &CBData_);
-        pw_loop_unlock (inherited::configuration_->pipewireConfiguration->loop);
+        pw_thread_loop_unlock (inherited::configuration_->pipewireConfiguration->loop);
         goto continue_;
       } // end IF
 

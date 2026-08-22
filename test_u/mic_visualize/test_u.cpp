@@ -340,6 +340,10 @@ do_process_arguments (int argc_in,
   mute_out = false;
   printVersionAndExit_out = false;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+  usePipewire_out = false;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
   useFrameworkSource_out = false;
   useFrameworkRenderer_out = false;
 #endif // ACE_WIN32 || ACE_WIN64

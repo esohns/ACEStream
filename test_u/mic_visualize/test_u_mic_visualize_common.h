@@ -953,7 +953,6 @@ struct Test_U_MicVisualize_UI_CBData
    , captureVolumeControl (NULL)
    , captureMaxVolumeLevel (0)
 #if defined (LIBPIPEWIRE_SUPPORT)
-   , loop (NULL)
    , pipewireConfiguration (NULL)
 #endif // LIBPIPEWIRE_SUPPORT
    , playbackMixerHandle (NULL)
@@ -967,7 +966,6 @@ struct Test_U_MicVisualize_UI_CBData
   snd_mixer_elem_t*                         captureVolumeControl;
   long                                      captureMaxVolumeLevel;
 #if defined (LIBPIPEWIRE_SUPPORT)
-  struct pw_thread_loop*                               loop;
   struct Stream_MediaFramework_Pipewire_Configuration* pipewireConfiguration;
 #endif // LIBPIPEWIRE_SUPPORT
   snd_mixer_t*                              playbackMixerHandle;

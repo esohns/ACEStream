@@ -21,9 +21,8 @@
 #ifndef STREAM_DEV_TARGET_PIPEWIRE_H
 #define STREAM_DEV_TARGET_PIPEWIRE_H
 
-#include "spa/param/audio/format-utils.h"
-
 #include "pipewire/pipewire.h"
+#include "spa/param/audio/format-utils.h"
 
 #include "ace/Global_Macros.h"
 #include "ace/Synch_Traits.h"

@@ -162,7 +162,7 @@ Stream_MediaFramework_Pipewire_Tools::finalizeStream (struct pw_loop* loop_in,
 
 bool
 Stream_MediaFramework_Pipewire_Tools::getVolumeControl (struct Stream_MediaFramework_ALSA_MediaType& format_in,
-                                                        struct pw_loop*& loop_inout,
+                                                        struct pw_thread_loop*& loop_inout,
                                                         struct pw_context*& context_out,
                                                         struct pw_core*& core_out,
                                                         struct pw_stream*& stream_out)
@@ -172,23 +172,24 @@ Stream_MediaFramework_Pipewire_Tools::getVolumeControl (struct Stream_MediaFrame
   // sanity check(s)
   ACE_ASSERT (/*!loop_out && */!context_out && !core_out && !stream_out);
 
-  struct pw_main_loop* main_loop_p = NULL;
+  struct pw_thread_loop* thread_loop_p = NULL;
   bool our_loop_b = (loop_inout == NULL);
   if (loop_inout)
     goto continue_;
 
-  main_loop_p = pw_main_loop_new (NULL);
+  thread_loop_p = pw_thread_loop_new (NULL,
+                                      NULL);
   if (unlikely (!loop_inout))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to pw_main_loop_new(), aborting\n")));
+                ACE_TEXT ("failed to pw_thread_loop_new(), aborting\n")));
     return false;
   } // end IF
-  loop_inout = pw_main_loop_get_loop (main_loop_p);
+  loop_inout = thread_loop_p;
 
 continue_:
   ACE_ASSERT (loop_inout);
-  context_out = pw_context_new (loop_inout,
+  context_out = pw_context_new (pw_thread_loop_get_loop (loop_inout),
                                 NULL,
                                 0);
   if (unlikely (!context_out))
@@ -197,7 +198,7 @@ continue_:
                 ACE_TEXT ("failed to pw_context_new(), aborting\n")));
     if (our_loop_b)
     {
-      pw_main_loop_destroy (main_loop_p); loop_inout = NULL;
+      pw_thread_loop_destroy (thread_loop_p); loop_inout = NULL;
     } // end IF
     return false;
   } // end IF
@@ -212,7 +213,7 @@ continue_:
     pw_context_destroy (context_out); context_out = NULL;
     if (our_loop_b)
     {
-      pw_main_loop_destroy (main_loop_p); loop_inout = NULL;
+      pw_thread_loop_destroy (thread_loop_p); loop_inout = NULL;
     } // end IF
     return false;
   } // end IF
@@ -224,7 +225,8 @@ continue_:
                        ACE_TEXT_ALWAYS_CHAR ("node.passive"), ACE_TEXT_ALWAYS_CHAR ("false"),
                        NULL);
   ACE_ASSERT (properties_p);
-  // pw_loop_lock (loop_inout);
+  if (our_loop_b)
+    pw_thread_loop_lock (loop_inout);
   stream_out =
     pw_stream_new (core_out,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_LIB_PIPEWIRE_PLAYBACK_STREAM_NAME_DEFAULT),
@@ -233,12 +235,13 @@ continue_:
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to pw_stream_new(), aborting\n")));
-    // pw_loop_unlock (loop_inout);
+    if (our_loop_b)
+      pw_thread_loop_unlock (loop_inout);
     pw_core_disconnect (core_out); core_out = NULL;
     pw_context_destroy (context_out); context_out = NULL;
     if (our_loop_b)
     {
-      pw_main_loop_destroy (main_loop_p); loop_inout = NULL;
+      pw_thread_loop_destroy (thread_loop_p); loop_inout = NULL;
     } // end IF
     return false;
   } // end IF
@@ -279,13 +282,14 @@ continue_:
                                   stream_flags_e,
                                   parameters_a, 2);
   ACE_ASSERT (result >= 0);
-  // pw_loop_unlock (loop_inout);
+  if (our_loop_b)
+    pw_thread_loop_unlock (loop_inout);
 
   return true;
 }
 
 void
-Stream_MediaFramework_Pipewire_Tools::freeVolumeControl (struct pw_main_loop*& loop_inout,
+Stream_MediaFramework_Pipewire_Tools::freeVolumeControl (struct pw_thread_loop*& loop_inout,
                                                          struct pw_context*& context_inout,
                                                          struct pw_core*& core_inout,
                                                          struct pw_stream*& stream_inout)
@@ -297,7 +301,7 @@ Stream_MediaFramework_Pipewire_Tools::freeVolumeControl (struct pw_main_loop*& l
   pw_context_destroy (context_inout); context_inout = NULL;
   if (loop_inout)
   {
-    pw_main_loop_destroy (loop_inout); loop_inout = NULL;
+    pw_thread_loop_destroy (loop_inout); loop_inout = NULL;
   } // end IF
 }
 
