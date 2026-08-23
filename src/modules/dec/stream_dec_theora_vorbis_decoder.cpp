@@ -17,23 +17,11 @@
  *   Free Software Foundation, Inc.,                                       *
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
+#include "stdafx.h"
 
-#ifndef STREAM_ILAYOUT_H
-#define STREAM_ILAYOUT_H
+#include "stream_dec_theora_vorbis_decoder.h"
 
-#include "stream_common.h"
+#include "stream_dec_defines.h"
 
-class Stream_ILayout
-{
- public:
-  // *IMPORTANT NOTE*: to append branch modules, append the corresponding
-  //                   distributor module first !
-  virtual bool append (Stream_Module_t*,        // module handle
-                       Stream_Module_t* = NULL, // distributor module handle {NULL: 'main' branch}
-                       unsigned int = 0) = 0;   // distributor branch index (zero-based)
-
-  // debug info
-  virtual void dump () = 0;
-};
-
-#endif
+const char libacestream_default_dec_theora_vorbis_decoder_module_name_string[] =
+  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_THEORA_VORBIS_DEFAULT_NAME_STRING);

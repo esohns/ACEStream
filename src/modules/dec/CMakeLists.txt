@@ -21,11 +21,12 @@ include (espeak_ng)
 include (faad)
 include (festival)
 include (mpg123)
-include (opencv)
-include (opus)
 if (WIN32)
  include (ms_speech)
 endif (WIN32)
+include (opencv)
+include (opus)
+include (theora)
 include (vorbis)
 include (webm)
 include (whisper_cpp)
@@ -124,6 +125,11 @@ if (OPUS_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
                              "$<BUILD_INTERFACE:${OPUS_INCLUDE_DIRS}>")
 endif (OPUS_SUPPORT)
+
+if (THEORA_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
+                             "$<BUILD_INTERFACE:${THEORA_INCLUDE_DIRS}>")
+endif (THEORA_SUPPORT)
 
 if (VORBIS_SUPPORT)
  target_include_directories (${PROJECT_NAME}_Decoder PUBLIC
@@ -387,6 +393,14 @@ if (OPUS_SUPPORT)
 endif (OPUS_SUPPORT)
 
 if (VORBIS_SUPPORT)
+ if (THEORA_SUPPORT)
+  set (source_files
+       ${source_files}
+       stream_dec_theora_vorbis_decoder.cpp
+       stream_dec_theora_vorbis_decoder.h
+       stream_dec_theora_vorbis_decoder.inl)
+ endif (THEORA_SUPPORT)
+
  set (source_files
       ${source_files}
       stream_dec_vorbis_decoder.cpp
@@ -507,6 +521,10 @@ endif (MPG123_SUPPORT)
 if (OPUS_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${OPUS_LIBRARIES})
 endif (OPUS_SUPPORT)
+
+if (THEORA_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${THEORA_LIBRARIES})
+endif (THEORA_SUPPORT)
 
 if (VORBIS_SUPPORT)
  target_link_libraries (${PROJECT_NAME}_Decoder PUBLIC ${VORBIS_LIBRARIES})
@@ -701,6 +719,13 @@ if (OPUS_SUPPORT)
 endif (OPUS_SUPPORT)
 
 if (VORBIS_SUPPORT)
+ if (THEORA_SUPPORT)
+  set (${PROJECT_NAME}_Decoder_LIB_HDRS
+       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
+       stream_dec_theora_vorbis_decoder.h
+       stream_dec_theora_vorbis_decoder.inl)
+ endif (THEORA_SUPPORT)
+
  set (${PROJECT_NAME}_Decoder_LIB_HDRS
       ${${PROJECT_NAME}_Decoder_LIB_HDRS}
       stream_dec_vorbis_decoder.h

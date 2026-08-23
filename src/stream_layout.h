@@ -130,9 +130,10 @@ class Stream_Layout_T
              typename inherited::iterator_base&) const;
 
   // append a module to a branch
-  bool append (MODULE_T*,         // module handle
-               MODULE_T* = NULL,  // distributor module handle {NULL: 'main' branch}
-               unsigned int = 0); // distributor branch index (zero-based)
+  virtual bool append (MODULE_T*,         // module handle
+                       MODULE_T* = NULL,  // distributor module handle {NULL: 'main' branch}
+                       unsigned int = 0); // distributor branch index (zero-based)
+  inline virtual void dump () { dump_state (); }
   bool append (MODULE_T*,           // module handle
                const std::string&); // branch name {"": 'main' branch}
   bool remove (const std::string&); // nodule name

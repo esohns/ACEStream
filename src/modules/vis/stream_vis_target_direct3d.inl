@@ -283,6 +283,7 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
   // save the frame ?
   if (likely (!snapShotNextFrame_))
     goto continue_;
+  snapShotNextFrame_ = false;
   ACE_ASSERT (inherited::configuration_);
   filename_string = Common_File_Tools::getTempDirectory ();
   filename_string += ACE_DIRECTORY_SEPARATOR_CHAR;
@@ -303,7 +304,6 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
                 inherited::mod_->name (),
                 ACE_TEXT (filename_string.c_str ())));
 #endif // DIRECTXSDK_SUPPORT
-  snapShotNextFrame_ = false;
 
 continue_:
   // stretch the frame to the output window dimensions
@@ -349,8 +349,7 @@ continue_:
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
     goto error;
   } // end IF
-  d3d_surface_p->Release (); d3d_surface_p = NULL;
-  d3d_surface_2->Release (); d3d_surface_2 = NULL;
+  d3d_surface_p->Release (); d3d_surface_2->Release ();
 
   // present the frame
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0600) // _WIN32_WINNT_VISTA
@@ -484,20 +483,35 @@ Stream_Vis_Target_Direct3D_T<ACE_SYNCH_USE,
       //Stream_MediaFramework_DirectDraw_Tools::toFormat (media_type_s.subtype,
       //                                                  STREAM_MEDIAFRAMEWORK_DIRECTSHOW);
 
-      if (likely (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo)))
-      { ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
-        struct tagVIDEOINFOHEADER* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
-        inputStride_ =
-          ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+      if (Stream_MediaFramework_Tools::isRGB (media_type_s.subtype,
+                                              STREAM_MEDIAFRAMEWORK_DIRECTSHOW))
+      {
+        if (likely (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo)))
+        { ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER));
+          struct tagVIDEOINFOHEADER* video_info_header_p =
+            reinterpret_cast<struct tagVIDEOINFOHEADER*> (media_type_s.pbFormat);
+          inputStride_ =
+            ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+        } // end IF
+        else
+        { ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2));
+          ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
+          struct tagVIDEOINFOHEADER2* video_info_header_p =
+            reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
+          inputStride_ =
+            ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+        } // end ELSE
       } // end IF
+      else if (InlineIsEqualGUID (media_type_s.subtype, MEDIASUBTYPE_NV12))
+        inputStride_ = inherited::resolution_.cx;
       else
-      { ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_VideoInfo2));
-        ACE_ASSERT (media_type_s.cbFormat == sizeof (struct tagVIDEOINFOHEADER2));
-        struct tagVIDEOINFOHEADER2* video_info_header_p =
-          reinterpret_cast<struct tagVIDEOINFOHEADER2*> (media_type_s.pbFormat);
-        inputStride_ =
-          ((((video_info_header_p->bmiHeader.biWidth * video_info_header_p->bmiHeader.biBitCount) + 31) & ~31) >> 3);
+      {
+        // *TODO*: compute input stride based on input format
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown media type (was: %s), aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Stream_MediaFramework_Tools::mediaSubTypeToString (media_type_s.subtype, STREAM_MEDIAFRAMEWORK_DIRECTSHOW).c_str ())));
+        goto error;
       } // end ELSE
 
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);

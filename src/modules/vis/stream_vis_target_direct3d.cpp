@@ -111,16 +111,12 @@ __forceinline void libacestream_vis_transform_image_RGB32 (BYTE*       pDest,
                 ACE_TEXT ("failed to MFCopyImage(): \"%s\", continuing\n"),
                 ACE_TEXT (Common_Error_Tools::errorToString (result, false, false).c_str ())));
 #else
-  ACE_ASSERT (::abs (lSrcStride) <= ::abs (lDestStride));
+  ACE_ASSERT (std::abs (lSrcStride) <= std::abs (lDestStride));
   if (likely (lSrcStride == lDestStride))
-    ACE_OS::memcpy (pDest,
-                    pSrc,
-                    (lSrcStride * dwHeightInPixels));
+    ACE_OS::memcpy (pDest, pSrc, lSrcStride * dwHeightInPixels);
   else
     for (DWORD y = 0; y < dwHeightInPixels; y++)
-      ACE_OS::memcpy (pDest + (y * lDestStride),
-                      pSrc + (y * lSrcStride),
-                      ((lSrcStride < 0) ? -lSrcStride : lSrcStride));
+      ACE_OS::memcpy (pDest + (y * lDestStride), pSrc + (y * lSrcStride), ((lSrcStride < 0) ? -lSrcStride : lSrcStride));
 #endif // COMMON_OS_WIN32_TARGET_PLATFORM(0x0600)
 }
 
