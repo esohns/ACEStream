@@ -67,8 +67,8 @@ __forceinline void libacestream_vis_transform_image_RGB24 (BYTE*       pDest,
                                                            DWORD       dwWidthInPixels,
                                                            DWORD       dwHeightInPixels)
 {
-  DWORD*     pDestPel = NULL;
-  RGBTRIPLE* pSrcPel = NULL;
+  DWORD*     pDestPel;
+  RGBTRIPLE* pSrcPel;
   for (DWORD y = 0; y < dwHeightInPixels; ++y)
   {
     pDestPel = (DWORD*)pDest;
