@@ -51,7 +51,8 @@ class Stream_Visualization_Tools
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 #if defined (WAYLAND_SUPPORT)
-  static enum wl_shm_format depthToWaylandFormat (unsigned int); // image depth (bytes)
+  static enum wl_shm_format V4LFormatToWaylandFormat (__u32); // (V4L-) format
+  static enum wl_shm_format RGBDepthToWaylandFormat (unsigned int); // image depth (bytes)
 #endif // WAYLAND_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 

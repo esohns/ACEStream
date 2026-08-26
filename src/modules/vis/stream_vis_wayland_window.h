@@ -192,7 +192,8 @@ class Stream_Module_Vis_Wayland_Window_T
   virtual int svc (void);
 
   // helper methods
-  bool initialize_2 (const Common_Image_Resolution_t&); // resolution
+  bool initialize_2 (__u32,                             // (V4L-) format
+                     const Common_Image_Resolution_t&); // resolution
 
   struct libacestream_vis_wayland_cb_data cbData_;
   bool                                    closeDisplay_;

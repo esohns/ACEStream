@@ -195,13 +195,14 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       const typename SessionDataContainerType::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
-      MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      cbData_.resolution = inherited2::getResolution (media_type_s);
-
-      if (unlikely (!initialize_2 (cbData_.resolution)))
+      cbData_.resolution =
+        { media_type_s.format.width, media_type_s.format.height };
+      if (unlikely (!initialize_2 (media_type_s.format.pixelformat,
+                                   cbData_.resolution)))
       {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to initialize frame buffer, aborting\n"),
@@ -223,13 +224,14 @@ error:
       const typename SessionDataContainerType::DATA_T& session_data_r =
         inherited::sessionData_->getR ();
       ACE_ASSERT (!session_data_r.formats.empty ());
-      MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_s;
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_VIDEO,
                                 media_type_s);
-      cbData_.resolution = inherited2::getResolution (media_type_s);
-
-      if (unlikely (!initialize_2 (cbData_.resolution)))
+      cbData_.resolution =
+        { media_type_s.format.width, media_type_s.format.height };
+      if (unlikely (!initialize_2 (media_type_s.format.pixelformat,
+                                   cbData_.resolution)))
       {
         ACE_DEBUG ((LM_ERROR,
                    ACE_TEXT ("%s: failed to initialize frame buffer, aborting\n"),
@@ -643,7 +645,8 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                    DataMessageType,
                                    SessionMessageType,
                                    SessionDataContainerType,
-                                   MediaType>::initialize_2 (const Common_Image_Resolution_t& resolution_in)
+                                   MediaType>::initialize_2 (__u32 format_in,
+                                                             const Common_Image_Resolution_t& resolution_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Vis_Wayland_Window_T::initialize_2"));
 
@@ -664,17 +667,34 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
   unsigned int width_i = resolution_in.width;
   unsigned int height_i = resolution_in.height;
 
-  const typename SessionDataContainerType::DATA_T& session_data_r =
-    inherited::sessionData_->getR ();
-  ACE_ASSERT (!session_data_r.formats.empty ());
-  struct Stream_MediaFramework_V4L_MediaType media_type_s;
-  inherited2::getMediaType (session_data_r.formats.back (),
-                            STREAM_MEDIATYPE_VIDEO,
-                            media_type_s);
+  // const typename SessionDataContainerType::DATA_T& session_data_r =
+  //   inherited::sessionData_->getR ();
+  // ACE_ASSERT (!session_data_r.formats.empty ());
+  // struct Stream_MediaFramework_V4L_MediaType media_type_s;
+  // inherited2::getMediaType (session_data_r.formats.back (),
+  //                           STREAM_MEDIATYPE_VIDEO,
+  //                           media_type_s);
   unsigned int depth_i =
-    Stream_MediaFramework_Tools::v4lFormatToBitDepth (media_type_s.format.pixelformat) / 8;
-  int stride_i = width_i * depth_i;
+    Stream_MediaFramework_Tools::v4lFormatToBitDepth (format_in) / 8;
+  int stride_i = width_i * depth_i; // true for RGB
   frameSize_ = stride_i * height_i;
+  if (!Stream_MediaFramework_Tools::isRGB (format_in))
+    switch (format_in)
+    {
+      case V4L2_PIX_FMT_NV12:
+      {
+        stride_i = width_i;
+        frameSize_ = stride_i * height_i * 3 / 2; // 1.5x width * height
+        break;
+      }
+      default:
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown format (was: %u), aborting\n"),
+                    format_in));
+        return false;
+      }
+    } // end SWITCH
 
   static const char name_template[] =
     ACE_TEXT_ALWAYS_CHAR ("/libacestream_vis_wayland_shared_XXXXXX");
@@ -730,8 +750,10 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
                                                    fd,
                                                    frameSize_);
   ACE_ASSERT (pool_p);
+
   uint32_t format_i =
-    Stream_Visualization_Tools::depthToWaylandFormat (depth_i);
+    Stream_MediaFramework_Tools::isRGB (format_in) ? Stream_Visualization_Tools::RGBDepthToWaylandFormat (depth_i)
+                                                   : Stream_Visualization_Tools::V4LFormatToWaylandFormat (format_in);
   // sanity check: format supported at all ?
   if (unlikely (std::find (cbData_.formats.begin (), cbData_.formats.end (), format_i) == cbData_.formats.end ()))
   {
@@ -746,8 +768,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
 
   cbData_.buffer =
     wl_shm_pool_create_buffer (pool_p,
-                               0,                           // offset
-                               width_i, height_i, stride_i,
+                               0,                 // offset
+                               width_i, height_i,
+                               stride_i,
                                format_i);
   if (unlikely (!cbData_.buffer))
   {

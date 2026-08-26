@@ -205,9 +205,34 @@ Stream_Visualization_Tools::rendererToModuleName (enum Stream_Visualization_Vide
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
 enum wl_shm_format
-Stream_Visualization_Tools::depthToWaylandFormat (unsigned int depth_in)
+Stream_Visualization_Tools::V4LFormatToWaylandFormat (__u32 format_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::depthToWaylandFormat"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::V4LFormatToWaylandFormat"));
+
+  switch (format_in)
+  {
+    case V4L2_PIX_FMT_BGR24:
+      return WL_SHM_FORMAT_RGB888;
+    case V4L2_PIX_FMT_BGR32:
+      return WL_SHM_FORMAT_XRGB8888;
+    case V4L2_PIX_FMT_NV12:
+      return WL_SHM_FORMAT_NV12;
+    default:
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("invalid/unknown format (was: %u), aborting\n"),
+                  format_in));
+      break;
+    }
+  } // end SWITCH
+
+  return WL_SHM_FORMAT_ARGB8888;
+}
+
+enum wl_shm_format
+Stream_Visualization_Tools::RGBDepthToWaylandFormat (unsigned int depth_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Visualization_Tools::RGBDepthToWaylandFormat"));
 
   switch (depth_in)
   {
