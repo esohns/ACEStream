@@ -6712,61 +6712,80 @@ idle_update_progress_cb (gpointer userData_in)
 }
 
 gboolean
-idle_update_display_cb (gpointer userData_in)
+idle_update_display_1_cb (gpointer userData_in)
 {
-  STREAM_TRACE (ACE_TEXT ("::idle_update_display_cb"));
+  STREAM_TRACE (ACE_TEXT ("::idle_update_display_1_cb"));
 
   // sanity check(s)
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
+  if (!ui_cb_data_base_p->render2d)
+    return G_SOURCE_CONTINUE;
+
   Common_UI_GTK_BuildersConstIterator_t iterator =
     ui_cb_data_base_p->UIState->builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != ui_cb_data_base_p->UIState->builders.end ());
 
   // trigger refresh of the 2D area ?
-  GtkDrawingArea* drawing_area_p = NULL;
-  GdkWindow* window_p = NULL;
-  if (!ui_cb_data_base_p->render2d)
-    goto continue_2;
-  drawing_area_p =
-    GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
-                                              ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
-  ACE_ASSERT (drawing_area_p);
-  window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+  static GdkWindow* window_p = NULL;
   if (unlikely (!window_p))
-    goto continue_2; // <-- not realized yet
+  {
+    GtkDrawingArea* drawing_area_p =
+      GTK_DRAWING_AREA (gtk_builder_get_object ((*iterator).second.second,
+                                                ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_DRAWINGAREA_NAME)));
+    ACE_ASSERT (drawing_area_p);
+    window_p = gtk_widget_get_window (GTK_WIDGET (drawing_area_p));
+    ui_cb_data_base_p->spectrumAnalyzerCBData.window = window_p;
+  } // end IF
+  if (unlikely (!window_p))
+    return G_SOURCE_CONTINUE; // <-- not realized yet
 
   gdk_window_invalidate_rect (window_p,
                               NULL,   // whole window
                               FALSE); // invalidate children ?
 
-continue_2:
-#if defined (GTKGL_SUPPORT)
+  return G_SOURCE_CONTINUE;
+}
+
+gboolean
+idle_update_display_2_cb (gpointer userData_in)
+{
+  STREAM_TRACE (ACE_TEXT ("::idle_update_display_2_cb"));
+
+  // sanity check(s)
+  struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
+    static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
+  ACE_ASSERT (ui_cb_data_base_p);
   // trigger refresh of the 3D OpenGL area ?
   if (!ui_cb_data_base_p->render3d)
     return G_SOURCE_CONTINUE;
 
-  ACE_ASSERT (!ui_cb_data_base_p->UIState->OpenGLContexts.empty ());
-  Common_UI_GTK_GLContextsIterator_t iterator_2 =
-    ui_cb_data_base_p->UIState->OpenGLContexts.begin ();
-#if GTK_CHECK_VERSION (3,0,0)
-#if GTK_CHECK_VERSION (3,16,0)
-  window_p = gtk_widget_get_window (GTK_WIDGET ((*iterator_2).first));
+  static GdkWindow* window_p = NULL;
+  if (unlikely (!window_p))
+  {
+#if defined (GTKGL_SUPPORT)
+    ACE_ASSERT (!ui_cb_data_base_p->UIState->OpenGLContexts.empty ());
+    Common_UI_GTK_GLContextsIterator_t iterator_2 =
+      ui_cb_data_base_p->UIState->OpenGLContexts.begin ();
+#if GTK_CHECK_VERSION(3, 0, 0)
+#if GTK_CHECK_VERSION(3, 16, 0)
+    window_p = gtk_widget_get_window (GTK_WIDGET ((*iterator_2).first));
 #else
-  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
+    window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
 #endif // GTK_CHECK_VERSION (3,16,0)
 #else
-  window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
+    window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
 #endif // GTK_CHECK_VERSION
+#endif /* GTKGL_SUPPORT */
+  } // end IF
   if (unlikely (!window_p))
-    goto continue_3; // <-- not realized yet
+    return G_SOURCE_CONTINUE; // <-- not realized yet
 
   gdk_window_invalidate_rect (window_p,
                               NULL,
                               FALSE);
-continue_3:
-#endif /* GTKGL_SUPPORT */
+
   return G_SOURCE_CONTINUE;
 }
 
@@ -7270,9 +7289,20 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                                 ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_CHECKBUTTON_VISUALIZATION_NAME)));
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check_button_p)))
     {
-      guint event_source_id = g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
-                                             idle_update_display_cb,
-                                             userData_in);
+      guint event_source_id =
+        g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_CAIRO_MS, // ~30fps
+                       idle_update_display_1_cb,
+                       userData_in);
+      if (event_source_id > 0)
+        state_r.eventSourceIds.insert (event_source_id);
+      else
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
+
+      event_source_id =
+        g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS, // ~60fps
+                       idle_update_display_2_cb,
+                       userData_in);
       if (event_source_id > 0)
         state_r.eventSourceIds.insert (event_source_id);
       else
@@ -13539,15 +13569,14 @@ drawingarea_draw_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_draw_cb"));
 
+  ACE_UNUSED_ARG (widget_in);
+
   // sanity check(s)
-  ACE_ASSERT (widget_in);
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
   // sanity check(s)
-  ui_cb_data_base_p->spectrumAnalyzerCBData.window =
-    gtk_widget_get_window (widget_in);
   if (!ui_cb_data_base_p->spectrumAnalyzerCBData.window)
     return FALSE; // not realized yet
   if (!ui_cb_data_base_p->spectrumAnalyzerCBData.dispatch)
@@ -13571,17 +13600,15 @@ drawingarea_expose_event_cb (GtkWidget* widget_in,
 {
   STREAM_TRACE (ACE_TEXT ("::drawingarea_expose_event_cb"));
 
+  ACE_UNUSED_ARG (widget_in);
   ACE_UNUSED_ARG (event_in);
 
   // sanity check(s)
-  ACE_ASSERT (widget_in);
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
   ACE_ASSERT (ui_cb_data_base_p);
 
   // sanity check(s)
-  ui_cb_data_base_p->spectrumAnalyzerCBData.window =
-    gtk_widget_get_window (widget_in);
   if (!ui_cb_data_base_p->spectrumAnalyzerCBData.window)
     return FALSE; // not realized yet
   if (!ui_cb_data_base_p->spectrumAnalyzerCBData.dispatch)

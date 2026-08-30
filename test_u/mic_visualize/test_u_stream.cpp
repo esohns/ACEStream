@@ -815,27 +815,28 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
     Stream_MediaFramework_DirectShow_Tools::getBufferNegotiation ((*iterator).second.second->builder,
                                                                   STREAM_LIB_DIRECTSHOW_FILTER_NAME_CAPTURE_AUDIO_L,
                                                                   buffer_negotiation_p);
-    ACE_ASSERT (buffer_negotiation_p);
-    ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
-    // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
-    //         if this is -1/0 (why ?)
-    allocator_properties_s.cbAlign = 1;
-    allocator_properties_s.cbBuffer =
-      configuration_in.configuration_->allocatorConfiguration->defaultBufferSize * 1000;
-    allocator_properties_s.cbPrefix = -1; // <-- use default
-    allocator_properties_s.cBuffers =
-      STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
-    result_2 =
-        buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties_s);
-    if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+    if (likely (buffer_negotiation_p))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-      goto error;
+      ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
+      // *TODO*: IMemAllocator::SetProperties returns VFW_E_BADALIGN (0x8004020e)
+      //         if this is -1/0 (why ?)
+      allocator_properties_s.cbAlign = 1;
+      allocator_properties_s.cbBuffer =
+        configuration_in.configuration_->allocatorConfiguration->defaultBufferSize * 1000;
+      allocator_properties_s.cbPrefix = -1; // <-- use default
+      allocator_properties_s.cBuffers =
+        STREAM_DEV_MIC_DIRECTSHOW_DEFAULT_DEVICE_BUFFERS;
+      result_2 =
+        buffer_negotiation_p->SuggestAllocatorProperties (&allocator_properties_s);
+      if (FAILED (result_2)) // E_UNEXPECTED: 0x8000FFFF --> graph already connected
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAMBufferNegotiation::SuggestAllocatorProperties(): \"%s\", aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
     } // end IF
-
     if (!Stream_MediaFramework_DirectShow_Tools::connect ((*iterator).second.second->builder,
                                                           graph_configuration))
     {
@@ -845,18 +846,21 @@ Test_U_DirectShow_Stream::initialize (const inherited::CONFIGURATION_T& configur
       goto error;
     } // end IF
 
-    ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
-    result_2 =
-      buffer_negotiation_p->GetAllocatorProperties (&allocator_properties_s);
-    if (FAILED (result_2))
+    if (likely (buffer_negotiation_p))
     {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
-                  ACE_TEXT (stream_name_string_),
-                  ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
-      goto error;
+      ACE_OS::memset (&allocator_properties_s, 0, sizeof (struct _AllocatorProperties));
+      result_2 =
+        buffer_negotiation_p->GetAllocatorProperties (&allocator_properties_s);
+      if (FAILED (result_2))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: failed to IAMBufferNegotiation::GetAllocatorProperties(): \"%s\", aborting\n"),
+                    ACE_TEXT (stream_name_string_),
+                    ACE_TEXT (Common_Error_Tools::errorToString (result_2, true).c_str ())));
+        goto error;
+      } // end IF
+      buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
     } // end IF
-    buffer_negotiation_p->Release (); buffer_negotiation_p = NULL;
 
     result_2 =
       (*iterator).second.second->builder->QueryInterface (IID_PPV_ARGS (&media_filter_p));

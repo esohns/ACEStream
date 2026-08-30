@@ -1237,10 +1237,9 @@ glarea_expose_event_cb (GtkWidget* widget_in,
   ACE_UNUSED_ARG (event_in);
   ACE_ASSERT (userData_in);
 
+  // sanity check(s)
   struct Test_U_MicVisualize_UI_CBDataBase* ui_cb_data_base_p =
     static_cast<struct Test_U_MicVisualize_UI_CBDataBase*> (userData_in);
-
-  // sanity check(s)
   ACE_ASSERT (ui_cb_data_base_p);
 
   GLuint* texture_id_p = NULL;
@@ -1376,7 +1375,7 @@ glarea_expose_event_cb (GtkWidget* widget_in,
 
   ggla_area_swap_buffers (GGLA_AREA (widget_in));
 
-  glUseProgram (0);
+  shader_p->unuse ();
 
   return TRUE;
 }

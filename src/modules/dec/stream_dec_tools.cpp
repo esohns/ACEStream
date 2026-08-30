@@ -1383,6 +1383,10 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   struct tWAVEFORMATEX* waveformatex_p = NULL;
   WAVEFORMATEXTENSIBLE* waveformatextensible_p = NULL;
   bool has_resampler_b = false;
+  struct _AMMediaType media_type_s; // intermediate-
+  ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+  Stream_MediaFramework_DirectShow_Tools::copy (mediaType_in,
+                                                media_type_s);
 
   // initialize return value(s)
   Stream_MediaFramework_DirectShow_Tools::clear (graphConfiguration_out);
@@ -1490,6 +1494,8 @@ Stream_Module_Decoder_Tools::loadAudioRendererGraph (REFGUID deviceCategory_in,
   waveformatex_p->nSamplesPerSec = 44100;
   waveformatex_p->nAvgBytesPerSec =
     (waveformatex_p->nSamplesPerSec * waveformatex_p->nBlockAlign);
+  Stream_MediaFramework_DirectShow_Tools::copy (*graph_entry.mediaType,
+                                                media_type_s);
   graphConfiguration_out.push_back (graph_entry);
   graph_entry.connectDirect = false;
   graph_entry.mediaType =
@@ -1905,7 +1911,7 @@ continue_2:
 
   // step2a: add (second) resampler ?
   if (InlineIsEqualGUID (outputMediaType_in.majortype, GUID_NULL) ||
-      Stream_MediaFramework_DirectShow_Tools::match (mediaType_in, outputMediaType_in))
+      Stream_MediaFramework_DirectShow_Tools::match (media_type_s, outputMediaType_in))
     goto continue_4;
   // *NOTE*: "...Decompression is only to PCM audio. ..."
   ACE_ASSERT (InlineIsEqualGUID (outputMediaType_in.majortype, MEDIATYPE_Audio));
@@ -2114,6 +2120,7 @@ continue_3:
   ACE_ASSERT (IAMBufferNegotiation_out);
 
   Stream_MediaFramework_DirectShow_Tools::dump (graphConfiguration_out);
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
   return true;
 
@@ -2123,6 +2130,7 @@ error:
     filter_p->Release ();
   if (wrapper_filter_p)
     wrapper_filter_p->Release ();
+  Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 
   return false;
 }

@@ -684,7 +684,7 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
       case V4L2_PIX_FMT_NV12:
       {
         stride_i = width_i;
-        frameSize_ = stride_i * height_i * 3 / 2; // 1.5x width * height
+        frameSize_ = stride_i * height_i * 3 / 2; // 1.5 * width * height
         break;
       }
       default:
@@ -755,7 +755,9 @@ Stream_Module_Vis_Wayland_Window_T<ACE_SYNCH_USE,
     Stream_MediaFramework_Tools::isRGB (format_in) ? Stream_Visualization_Tools::RGBDepthToWaylandFormat (depth_i)
                                                    : Stream_Visualization_Tools::V4LFormatToWaylandFormat (format_in);
   // sanity check: format supported at all ?
-  if (unlikely (std::find (cbData_.formats.begin (), cbData_.formats.end (), format_i) == cbData_.formats.end ()))
+  if (unlikely (std::find (cbData_.formats.begin (),
+                           cbData_.formats.end (),
+                           format_i) == cbData_.formats.end ()))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: input format (was: %u) not supported, aborting\n"),

@@ -78,7 +78,8 @@ gboolean idle_initialize_UI_cb (gpointer);
 gboolean idle_finalize_UI_cb (gpointer);
 gboolean idle_session_end_cb (gpointer);
 gboolean idle_update_info_display_cb (gpointer);
-gboolean idle_update_display_cb (gpointer);
+gboolean idle_update_display_1_cb (gpointer);
+gboolean idle_update_display_2_cb (gpointer);
 
 //------------------------------------------------------------------------------
 
