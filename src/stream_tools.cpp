@@ -37,6 +37,22 @@
 #include "stream_istreamcontrol.h"
 #include "stream_macros.h"
 
+std::string
+Stream_Tools::toString (ACE_Message_Block* messageBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Tools::toString"));
+
+  std::string result;
+
+  for (ACE_Message_Block* message_block_p = messageBlock_in;
+       message_block_p;
+       message_block_p = message_block_p->cont ())
+    result.append (message_block_p->rd_ptr (),
+                   message_block_p->length ());
+
+  return result;
+}
+
 void
 Stream_Tools::append (ACE_Message_Block* head_in,
                       ACE_Message_Block* tail_in)

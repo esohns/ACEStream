@@ -35,6 +35,8 @@ class Stream_Tools
 {
  public:
   // --- message block ---
+  static std::string toString (ACE_Message_Block*); // buffer (chain)
+
   // *NOTE*: append the second argument (set to the last continuation)
   static void append (ACE_Message_Block*,  // head
                       ACE_Message_Block*); // (new) tail

@@ -82,7 +82,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
     message_inout->getR ();
   typename DataMessageType::DATA_T::DATA_T& data_r =
     const_cast<typename DataMessageType::DATA_T::DATA_T&> (data_container_r.getR ());
-  if (!data_r.document)
+  if (unlikely (!data_r.document))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: no document, cannot proceed, returning\n"),
@@ -92,9 +92,9 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
 
   // step1: create a query context
   xmlXPathContextPtr xpath_context_p = xmlXPathNewContext (data_r.document);
-  if (!xpath_context_p)
+  if (unlikely (!xpath_context_p))
   {
-    ACE_DEBUG ((LM_CRITICAL,
+    ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to xmlXPathNewContext(); \"%m\", returning\n"),
                 inherited::mod_->name ()));
     return;
@@ -122,7 +122,7 @@ Stream_Module_XPathQuery_T<ACE_SYNCH_USE,
   data_r.xPathObject =
     xmlXPathEvalExpression (BAD_CAST (inherited::configuration_->xPathQueryString.c_str ()),
                             xpath_context_p);
-  if (!data_r.xPathObject)
+  if (unlikely (!data_r.xPathObject))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to xmlXPathEvalExpression(\"%s\"); \"%m\", aborting\n"),

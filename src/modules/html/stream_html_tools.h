@@ -21,11 +21,18 @@
 #ifndef STREAM_HTML_TOOLS_H
 #define STREAM_HTML_TOOLS_H
 
+#if defined (LIBXML2_SUPPORT)
+#include "libxml/xmlerror.h"
+#include "libxml/xpath.h"
+
+#include <string>
+#endif // LIBXML2_SUPPORT
+
 #include "ace/Global_Macros.h"
 #include "ace/Log_Priority.h"
 
 #if defined (LIBXML2_SUPPORT)
-#include "libxml/xmlerror.h"
+#include "stream_html_common.h"
 #endif // LIBXML2_SUPPORT
 
 class Stream_HTML_Tools
@@ -33,6 +40,10 @@ class Stream_HTML_Tools
  public:
 #if defined (LIBXML2_SUPPORT)
   static ACE_Log_Priority errorLevelToLogPriority (xmlErrorLevel); // error level
+
+  static xmlXPathObject* query (xmlDoc*,                              // document handle
+                                const Stream_HTML_XPathNameSpaces_t&, // namespaces
+                                const std::string&);                  // query
 #endif // LIBXML2_SUPPORT
 
  private:

@@ -51,7 +51,6 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
  , headFragment_ (NULL)
  , parserContext_ ()
  , SAXHandler_ ()
- , mode_ (STREAM_MODULE_HTMLPARSER_DEFAULT_MODE)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::Stream_Module_HTMLParser_T"));
 
@@ -373,12 +372,8 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     xmlPedanticParserDefault (1);
 #endif // _DEBUG
 
-  // sanity check(s)
-  ACE_ASSERT (inherited::mod_);
-
   // *TODO*: remove type inferences
-  mode_ = configuration_in.mode;
-  if (mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX)
+  if (configuration_in.mode == STREAM_MODULE_HTMLPARSER_MODE_SAX)
   {
     //htmlDefaultSAXHandlerInit ();
     xmlSAX2InitHtmlDefaultSAXHandler (&SAXHandler_);
@@ -427,6 +422,9 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_HTMLParser_T::resetParser"));
 
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+
   // clean up
   if (parserContext_.parserContext)
   {
@@ -434,10 +432,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
   } // end IF
 
   parserContext_.parserContext =
-    htmlCreatePushParserCtxt (((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &SAXHandler_
-                                                                            : NULL), // SAX handler
-                              ((mode_ == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &parserContext_
-                                                                            : NULL), // user data (SAX)
+    htmlCreatePushParserCtxt (((inherited::configuration_->mode == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &SAXHandler_
+                                                                                                      : NULL), // SAX handler
+                              ((inherited::configuration_->mode == STREAM_MODULE_HTMLPARSER_MODE_SAX) ? &parserContext_
+                                                                                                      : NULL), // user data (SAX)
                               NULL,                                                  // chunk
                               0,                                                     // size
                               NULL,                                                  // filename

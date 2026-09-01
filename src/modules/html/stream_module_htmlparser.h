@@ -139,16 +139,14 @@ class Stream_Module_HTMLParser_T
   inline virtual bool initializeSAXParser () { ACE_ASSERT (false); ACE_NOTSUP_RETURN (false); ACE_NOTREACHED (return false;) }
   bool resetParser ();
 
-  DataMessageType*                   headFragment_;
-  ParserContextType                  parserContext_;
-  htmlSAXHandler                     SAXHandler_;
+  DataMessageType*  headFragment_;
+  ParserContextType parserContext_;
+  htmlSAXHandler    SAXHandler_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T ())
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T (const Stream_Module_HTMLParser_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_HTMLParser_T& operator= (const Stream_Module_HTMLParser_T&))
-
-  enum Stream_Module_HTMLParser_Mode mode_;
 };
 
 // include template definition

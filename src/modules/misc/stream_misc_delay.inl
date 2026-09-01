@@ -307,9 +307,11 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                   inherited::configuration_->delayConfiguration->mode,
                   inherited::configuration_->delayConfiguration->averageTokensPerInterval));
 
+continue_:
       if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor)
       {
-        adaptiveState_.currentFactor = inherited::configuration_->delayConfiguration->tokenFactor;
+        adaptiveState_.currentFactor =
+          inherited::configuration_->delayConfiguration->tokenFactor;
         adaptiveState_.underrunCount = 0;
         adaptiveState_.successCount = 0;
         adaptiveState_.lastAdjustmentTickId = 0;
@@ -321,7 +323,6 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
                     inherited::configuration_->delayConfiguration->maxTokenFactor));
       } // end IF
 
-continue_:
       switch (inherited::configuration_->delayConfiguration->mode)
       {
         case STREAM_MISCELLANEOUS_DELAY_MODE_BYTES:
@@ -614,6 +615,9 @@ Stream_Module_Delay_T<ACE_SYNCH_USE,
     // recompute average tokens per interval with new factor
     inherited::configuration_->delayConfiguration->averageTokensPerInterval =
       static_cast<ACE_UINT64> (baseNumberOfTokens_ * new_factor);
+    // make sure there is some progress
+    if (!inherited::configuration_->delayConfiguration->averageTokensPerInterval)
+      inherited::configuration_->delayConfiguration->averageTokensPerInterval = 1;
 
     adaptiveState_.currentFactor = new_factor;
     adaptiveState_.lastAdjustmentTickId = tick_id_s;
@@ -1059,6 +1063,11 @@ continue_:
       {
         tokens_to_dispatch_i = 1;
         --availableTokens_;
+
+        if (inherited::configuration_->delayConfiguration->adaptiveTokenFactor &&
+            (availableTokens_ > 0))
+          ++adaptiveState_.successCount;
+
         break;
       }
       default:
