@@ -388,6 +388,10 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
 
   initGenericErrorDefaultFunc ((xmlGenericErrorFunc*)&::stream_html_parser_sax_default_error_cb);
 
+  if (!inherited::initialize (configuration_in,
+                              allocator_in))
+    return false;
+
   if (!resetParser ())
   {
     ACE_DEBUG ((LM_ERROR,
@@ -396,8 +400,7 @@ Stream_Module_HTMLParser_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  return inherited::initialize (configuration_in,
-                                allocator_in);
+  return true;
 }
 
 template <ACE_SYNCH_DECL,
