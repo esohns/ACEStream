@@ -238,7 +238,7 @@ end:
       //              inherited::mod_->name ()));
 
       if (likely (inherited::configuration_->concurrency != STREAM_HEADMODULECONCURRENCY_CONCURRENT))
-      { Common_ITask* itask_p = this; // *TODO*: is the no other way ?
+      { Common_ITask* itask_p = this; // *TODO*: is there no other way ?
         itask_p->stop (false,                           // wait for completion ?
                        inherited::isHighPriorityStop_); // high priority ?
       } // end IF
