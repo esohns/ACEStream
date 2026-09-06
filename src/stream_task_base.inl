@@ -853,7 +853,7 @@ error_4:
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", aborting\n"),
                   inherited::mod_->name ()));
-      messageBlock_in->release ();
+      //messageBlock_in->release ();
       stopProcessing_out = true;
     } // end IF
   } // end IF
