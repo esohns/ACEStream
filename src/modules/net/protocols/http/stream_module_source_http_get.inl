@@ -351,10 +351,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
         goto error;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (inherited::configuration_->URL.c_str ())));
       break;
 
 error:
@@ -381,10 +381,10 @@ error:
                     ACE_TEXT (inherited::configuration_->URL.c_str ())));
         goto error_2;
       } // end IF
-      ACE_DEBUG ((LM_DEBUG,
-                  ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
-                  inherited::mod_->name (),
-                  ACE_TEXT (inherited::configuration_->URL.c_str ())));
+      //ACE_DEBUG ((LM_DEBUG,
+      //            ACE_TEXT ("%s: started HTTP request for \"%s\"\n"),
+      //            inherited::mod_->name (),
+      //            ACE_TEXT (inherited::configuration_->URL.c_str ())));
       break;
 
 error_2:
@@ -531,13 +531,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     hostname_string = Net_Common_Tools::URLToHostName (URL_in,
                                                        false,  // return hostname
                                                        false); // do not return port#
+    headers.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
+                                    hostname_string));
     ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: adding \"%s\" header (value: \"%s\") to HTTP request...\n"),
+                ACE_TEXT ("%s: added \"%s\" header (value: \"%s\") to request\n"),
                 inherited::mod_->name (),
                 ACE_TEXT (HTTP_PRT_HEADER_HOST_STRING),
                 ACE_TEXT (hostname_string.c_str ())));
-    headers.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
-                                    hostname_string));
   } // end IF
   else
   {
