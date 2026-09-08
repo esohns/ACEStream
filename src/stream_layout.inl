@@ -357,8 +357,19 @@ Stream_Layout_T<ACE_SYNCH_USE,
     // establish branch head
     find (distributorModule_in, iterator);
     ACE_ASSERT (inherited::is_valid (iterator));
+    // *DESIGN DECISION*: the distributors' children are the branch heads
+    //                    (, followed by its' own siblings, iff it is a
+    //                    branch-head distributor)
+    // *NOTE*: iff the distributor IS a branch-head, make sure to append ALL
+    //         sub-branch heads BEFORE appending any direct siblings
     unsigned int num_existing_branches_i =
-        inherited::number_of_children (iterator);
+      inherited::number_of_children (iterator);
+    if (index_in == -1)
+    { ACE_ASSERT (num_existing_branches_i > 0);
+      iterator = inherited::append_child (iterator, module_in);
+      return inherited::is_valid (iterator);
+    } // end IF
+
     if (unlikely (!num_existing_branches_i ||
                   ((num_existing_branches_i - 1) < index_in)))
     { // --> module is (new) branch 'head'
@@ -371,6 +382,8 @@ Stream_Layout_T<ACE_SYNCH_USE,
     ACE_ASSERT (inherited::is_valid (iterator));
     iterator = inherited::sibling (iterator, index_in);
     ACE_ASSERT (inherited::is_valid (iterator));
+    // *DESIGN DECISION*: the children of a branch head are the siblings of that
+    //                    module
     iterator = inherited::append_child (iterator, module_in);
     return inherited::is_valid (iterator);
   } // end IF
@@ -606,9 +619,12 @@ Stream_Layout_T<ACE_SYNCH_USE,
   TASK_T* task_p = NULL;
   MODULE_T* prev_p = NULL, *tail_p = NULL;
   std::vector<typename inherited::iterator_base> sub_distributors_a;
-  for (typename inherited::sibling_iterator iterator = inherited::begin (&node_in);
-       iterator != inherited::end (&node_in);
-       ++iterator)
+
+  // iterate over all branch heads (!) of the distributor
+  typename inherited::sibling_iterator iterator = inherited::begin (&node_in);
+  for (int i = 0;
+       i < idistributor_p->numberOfBranches ();
+       ++i, ++iterator)
   {
     task_p = (*iterator)->reader ();
     ACE_ASSERT (task_p);
@@ -641,6 +657,74 @@ Stream_Layout_T<ACE_SYNCH_USE,
 
     // link sub-branch, retain any sub-distributors
     prev_p = *iterator;
+    // *NOTE*: distributor modules as branch heads must be treated differently,
+    //         because their children are not the siblings (!) of the
+    //         branch head. I.e. cannot simply use inherited::begin/end in this
+    //         case...
+    if (is_distributor (*iterator))
+    {
+      std::vector<typename inherited::iterator_base> sub_distributors_2;
+
+      // setup 'main' sub-branch of the distributor; iterate over all siblings
+      typename inherited::sibling_iterator iterator_2 = inherited::begin (iterator);
+      iterator_2 += idistributor_p->numberOfBranches ();
+      for (;
+           iterator_2 != inherited::end (iterator);
+           ++iterator_2)
+      {
+        task_p = (*iterator_2)->reader ();
+        ACE_ASSERT (task_p);
+        result = task_p->open ((*iterator_2)->arg ());
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                      (*iterator_2)->name ()));
+          return false;
+        } // end IF
+        task_p = (*iterator_2)->writer ();
+        ACE_ASSERT (task_p);
+        result = task_p->open ((*iterator_2)->arg ());
+        if (unlikely (result == -1))
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("%s: failed to ACE_Task_Base::open (): \"%m\", aborting\n"),
+                      (*iterator_2)->name ()));
+          return false;
+        } // end IF
+      
+        ACE_ASSERT (prev_p);
+        prev_p->link (*iterator_2);
+        prev_p = *iterator_2;
+
+        if (unlikely (is_distributor (*iterator_2)))
+          sub_distributors_2.push_back (iterator_2);
+      } // end FOR
+      ACE_ASSERT (prev_p);
+
+      tail_p = makeSubStreamTail ();
+      if (unlikely (!tail_p))
+      {
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("failed to Stream_Layout_T::makeSubStreamTail(): \"%m\", aborting\n")));
+        return false;
+      } // end IF
+      prev_p->link (tail_p);
+
+      // set up branches
+      if (unlikely (!setup (*(iterator.node))))
+        return false;
+
+      // process any sub-distributors
+      for (typename std::vector<typename inherited::iterator_base>::const_iterator iterator_2 = sub_distributors_2.begin ();
+           iterator_2 != sub_distributors_2.end ();
+           ++iterator_2)
+        if (unlikely (!setup (*((*iterator_2).node))))
+          return false;
+
+      continue;
+    } // end IF
+
     for (typename inherited::sibling_iterator iterator_2 = inherited::begin (iterator);
          iterator_2 != inherited::end (iterator);
          ++iterator_2)

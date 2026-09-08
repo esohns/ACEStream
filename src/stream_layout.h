@@ -129,10 +129,11 @@ class Stream_Layout_T
   bool find (MODULE_T*,
              typename inherited::iterator_base&) const;
 
-  // append a module to a branch
+  // append a module (to a branch/distributor)
+  // *NOTE*: -1 as branch index makes sense for branch-head distributors
   virtual bool append (MODULE_T*,         // module handle
                        MODULE_T* = NULL,  // distributor module handle {NULL: 'main' branch}
-                       unsigned int = 0); // distributor branch index (zero-based)
+                       unsigned int = 0); // distributor branch index (zero-based); -1: append to distributor itself (i.e. its' own 'main' branch)
   inline virtual void dump () { dump_state (); }
   bool append (MODULE_T*,           // module handle
                const std::string&); // branch name {"": 'main' branch}

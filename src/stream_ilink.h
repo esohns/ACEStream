@@ -41,6 +41,9 @@ class Stream_IDistributorModule
 
   // *NOTE*: the return index value is correct as long as:
   //         - the module has been initialize()d
+  virtual unsigned int numberOfBranches () const = 0;
+  // *NOTE*: the return index value is correct as long as:
+  //         - the module has been initialize()d
   //         - the corresponding head module has not been push()ed yet
   virtual bool has (const std::string&,       // branch name
                     unsigned int&) const = 0; // return value: index (zero-based; see above)

@@ -178,6 +178,7 @@ class Stream_Miscellaneous_Distributor_WriterTask_T
   virtual bool pop (Stream_Module_t*);
   virtual Stream_Module_t* head (const std::string&) const;
   virtual std::string branch (Stream_Module_t*) const;
+  inline virtual unsigned int numberOfBranches () const { return numberOfBranches_; }
   virtual bool has (const std::string&,   // branch name
                     unsigned int&) const; // return value: index (zero-based)
   virtual Stream_ModuleList_t next () const;

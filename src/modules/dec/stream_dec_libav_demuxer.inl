@@ -324,7 +324,7 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: av_find_input_format(%s) failed, aborting\n"),
                 inherited::mod_->name (),
-                inherited::configuration_->inputFormat.c_str ()));
+                ACE_TEXT (inherited::configuration_->inputFormat.c_str ())));
     avformat_close_input (&formatContext_);
     goto error;
   } // end IF
@@ -340,13 +340,13 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   //             ACE_TEXT_ALWAYS_CHAR ("fflags"), ACE_TEXT_ALWAYS_CHAR ("nobuffer"),
   //             0);
   // 2. Lower the probing size (default is 5,000,000 bytes)
-  av_dict_set (&opts_p,
-               ACE_TEXT_ALWAYS_CHAR ("probesize"), ACE_TEXT_ALWAYS_CHAR ("16384"),
-               0);
+  //av_dict_set (&opts_p,
+  //             ACE_TEXT_ALWAYS_CHAR ("probesize"), ACE_TEXT_ALWAYS_CHAR ("16384"),
+  //             0);
   // 3. Reduce the max analysis duration (default is 5,000,000 microseconds)
-  av_dict_set (&opts_p,
-               ACE_TEXT_ALWAYS_CHAR ("analyzeduration"), ACE_TEXT_ALWAYS_CHAR ("100000"),
-               0);
+  //av_dict_set (&opts_p,
+  //             ACE_TEXT_ALWAYS_CHAR ("analyzeduration"), ACE_TEXT_ALWAYS_CHAR ("100000"),
+  //             0);
   result = avformat_open_input (&formatContext_,
                                 NULL,
                                 input_format_p,
@@ -354,8 +354,9 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: avformat_open_input() failed: \"%s\", aborting\n"),
+                ACE_TEXT ("%s: avformat_open_input(%s) failed: \"%s\", aborting\n"),
                 inherited::mod_->name (),
+                ACE_TEXT (inherited::configuration_->inputFormat.c_str ()),
                 ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
     av_dict_free (&opts_p);
     avformat_close_input (&formatContext_);
