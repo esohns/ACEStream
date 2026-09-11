@@ -335,6 +335,9 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   //av_dict_set (&opts_p,
   //             ACE_TEXT_ALWAYS_CHAR ("scan_all_pmts"), ACE_TEXT_ALWAYS_CHAR ("1"),
   //             0);
+  av_dict_set (&opts_p,
+               ACE_TEXT_ALWAYS_CHAR ("live"), ACE_TEXT_ALWAYS_CHAR ("1"),
+               0);
   // 1. Force the demuxer to instantly parse packets without scanning ahead
   //av_dict_set (&opts_p,
   //             ACE_TEXT_ALWAYS_CHAR ("fflags"), ACE_TEXT_ALWAYS_CHAR ("nobuffer"),
