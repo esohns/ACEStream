@@ -70,6 +70,7 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
 {
   Stream_MediaFramework_FFMPEG_CodecConfiguration ()
    : codecId (AV_CODEC_ID_NONE)
+   , codecName ()
    , deviceType (AV_HWDEVICE_TYPE_NONE)
    , flags (0)
    , flags2 (0)
@@ -84,6 +85,7 @@ struct Stream_MediaFramework_FFMPEG_CodecConfiguration
   }
 
   enum AVCodecID        codecId;         // encoder-/decoder-
+  std::string           codecName;       // encoder-/decoder-
   enum AVHWDeviceType   deviceType;      // encoder-/decoder-
   int                   flags;           // codec-
   int                   flags2;          // codec-

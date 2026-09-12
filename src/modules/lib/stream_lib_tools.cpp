@@ -4609,6 +4609,26 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
 
       break;
     }
+    case AV_HWDEVICE_TYPE_D3D12VA:
+    {
+      switch (codecId_in)
+      {
+        case AV_CODEC_ID_AV1:
+          return AV_PIX_FMT_YUV420P; // supported by AV1 decoder
+        case AV_CODEC_ID_H264:
+          return AV_PIX_FMT_YUV420P; // supported by H264 decoder
+        default:
+        {
+          ACE_DEBUG ((LM_ERROR,
+                      ACE_TEXT ("invalid/unknown codec id (was: %d: \"%s\") for hardware device type, aborting\n"),
+                      codecId_in,
+                      ACE_TEXT (avcodec_get_name (codecId_in))));
+          break;
+        }
+      } // end SWITCH
+
+      break;
+    }
     default:
     {
       ACE_DEBUG ((LM_ERROR,
