@@ -90,8 +90,9 @@ class Stream_Module_Net_Source_HTTP_Get_T
   //         entity head
   HTTP_Record* parse (DataMessageType&);
 
-  unsigned int receivedBytes_;
-  bool         resentRequest_;
+  unsigned int       receivedBytes_;
+  bool               resentRequest_;
+  Stream_SessionId_t sessionId_;
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_Net_Source_HTTP_Get_T ())

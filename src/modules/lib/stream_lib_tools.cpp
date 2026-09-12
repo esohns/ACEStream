@@ -4571,6 +4571,8 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
     {
       switch (codecId_in)
       {
+        case AV_CODEC_ID_AV1:
+          return AV_PIX_FMT_YUV420P; // supported by AV1 decoder
         case AV_CODEC_ID_H264:
           return AV_PIX_FMT_NV12; // supported by H264 decoder
         case AV_CODEC_ID_HEVC:
@@ -4591,6 +4593,8 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
     {
       switch (codecId_in)
       {
+        case AV_CODEC_ID_AV1:
+          return AV_PIX_FMT_YUV420P; // supported by AV1 decoder
         case AV_CODEC_ID_H264:
           return AV_PIX_FMT_NV12; // supported by H264 decoder
         default:

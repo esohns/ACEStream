@@ -54,6 +54,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
  : inherited (stream_in)
  , receivedBytes_ (0)
  , resentRequest_ (false)
+ , sessionId_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Net_Source_HTTP_Get_T::Stream_Module_Net_Source_HTTP_Get_T"));
 
@@ -78,10 +79,10 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
 
   if (inherited::isInitialized_)
   {
+    receivedBytes_ = 0;
+    resentRequest_ = false;
+    sessionId_ = 0;
   } // end IF
-
-  receivedBytes_ = 0;
-  resentRequest_ = false;
 
   // *TODO*: validate URI
   return inherited::initialize (configuration_in,
@@ -336,6 +337,11 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     {
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::sessionData_);
+
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      sessionId_ = session_data_r.sessionId;
 
       // send HTTP request ?
       if (inherited::configuration_->waitForConnect)
@@ -419,7 +425,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->connectionConfigurations);
-  ACE_ASSERT (inherited::sessionData_);
+  ACE_ASSERT (sessionId_);
 
   Net_ConnectionConfigurationsIterator_t iterator =
     inherited::configuration_->connectionConfigurations->find (inherited::mod_->name ());
@@ -476,12 +482,9 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     return NULL;
   } // end IF
 
-  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-    
   // *IMPORTANT NOTE*: fire-and-forget API (message_data_container_p)
   message_out->initialize (message_data_container_p,
-                           session_data_r.sessionId,
+                           sessionId_,
                            NULL);
 
   return message_out;

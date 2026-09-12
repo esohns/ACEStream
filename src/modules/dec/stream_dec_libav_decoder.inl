@@ -406,7 +406,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
                                 media_type_2);
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       formatHeight_ =
-          static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
+        static_cast<unsigned int> (std::abs (media_type_s.resolution.cy));
       formatWidth_ = static_cast<unsigned int> (media_type_s.resolution.cx);
 #else
       formatHeight_ = media_type_s.resolution.height;
@@ -512,7 +512,7 @@ continue_:
       } // end IF
       //codec_parameters_p->extradata = NULL;
       //codec_parameters_p->extradata_size = 0;
-      codec_parameters_p->format = outputFormat_;
+      codec_parameters_p->format = AV_PIX_FMT_YUV420P;
       //codec_parameters_p->bit_rate = 200000;
       //codec_parameters_p->bits_per_coded_sample = 0;
       //codec_parameters_p->bits_per_raw_sample = 0;
@@ -617,7 +617,7 @@ continue_:
                AV_CODEC_FLAG2_EXPORT_MVS    |
                AV_CODEC_FLAG2_SKIP_MANUAL;
 #endif // ACE_WIN32 || ACE_WIN64
-      format_ = outputFormat_; // try
+      format_ = AV_PIX_FMT_YUV420P; // try
       context_->opaque = &format_;
       //context_->bit_rate = bit_rate;
       context_->flags = inherited::configuration_->codecConfiguration->flags;
