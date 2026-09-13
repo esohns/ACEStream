@@ -7309,8 +7309,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
       else
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
-    } // end IF
 #endif // GTKGL_SUPPORT
+    } // end IF
   } // end lock scope
 } // togglebutton_record_toggled_cb
 
