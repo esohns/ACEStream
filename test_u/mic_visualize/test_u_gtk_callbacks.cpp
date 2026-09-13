@@ -6748,6 +6748,7 @@ idle_update_display_1_cb (gpointer userData_in)
   return G_SOURCE_CONTINUE;
 }
 
+#if defined (GTKGL_SUPPORT)
 gboolean
 idle_update_display_2_cb (gpointer userData_in)
 {
@@ -6764,7 +6765,6 @@ idle_update_display_2_cb (gpointer userData_in)
   static GdkWindow* window_p = NULL;
   if (unlikely (!window_p))
   {
-#if defined (GTKGL_SUPPORT)
     ACE_ASSERT (!ui_cb_data_base_p->UIState->OpenGLContexts.empty ());
     Common_UI_GTK_GLContextsIterator_t iterator_2 =
       ui_cb_data_base_p->UIState->OpenGLContexts.begin ();
@@ -6777,7 +6777,6 @@ idle_update_display_2_cb (gpointer userData_in)
 #else
     window_p = gtk_widget_get_window (GTK_WIDGET (&(*iterator_2).first->darea));
 #endif // GTK_CHECK_VERSION
-#endif /* GTKGL_SUPPORT */
   } // end IF
   if (unlikely (!window_p))
     return G_SOURCE_CONTINUE; // <-- not realized yet
@@ -6788,6 +6787,7 @@ idle_update_display_2_cb (gpointer userData_in)
 
   return G_SOURCE_CONTINUE;
 }
+#endif // GTKGL_SUPPORT
 
 //////////////////////////////////////////
 
@@ -7299,6 +7299,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
 
+#if defined (GTKGL_SUPPORT)
       event_source_id =
         g_timeout_add (COMMON_UI_GTK_REFRESH_DEFAULT_OPENGL_MS, // ~60fps
                        idle_update_display_2_cb,
@@ -7309,6 +7310,7 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("failed to g_timeout_add(): \"%m\", continuing\n")));
     } // end IF
+#endif // GTKGL_SUPPORT
   } // end lock scope
 } // togglebutton_record_toggled_cb
 
