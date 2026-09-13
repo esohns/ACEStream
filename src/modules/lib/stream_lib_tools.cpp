@@ -4567,6 +4567,7 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
 
   switch (type_in)
   {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
     case AV_HWDEVICE_TYPE_DXVA2:
     {
       switch (codecId_in)
@@ -4629,6 +4630,7 @@ Stream_MediaFramework_Tools::AVHWDeviceTypeToIntermediatePixelFormat (enum AVHWD
 
       break;
     }
+#endif // ACE_WIN32 || ACE_WIN64
     default:
     {
       ACE_DEBUG ((LM_ERROR,
