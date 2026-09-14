@@ -72,6 +72,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
  , formatWidth_ (0)
  , frame_ (NULL)
  , frameSize_ (0)
+ , isFirst_ (true)
  , outputFormat_ (AV_PIX_FMT_NONE)
  , outputFrameSize_ (0)
  , parserContext_ (NULL)
@@ -152,6 +153,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_frame_free (&frame_); ACE_ASSERT (!frame_);
     } // end IF
     frameSize_ = 0;
+    isFirst_ = true;
     outputFormat_ = AV_PIX_FMT_NONE;
     outputFrameSize_ = 0;
     if (parserContext_)
@@ -233,7 +235,46 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   struct AVPacket packet_s;
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
-  size_t   data_size_i = 0;
+  size_t data_size_i = 0;
+
+  if (unlikely (isFirst_ && inherited::configuration_->codecConfiguration->delayOpen))
+  { isFirst_ = false;
+    ACE_ASSERT (inherited::sessionData_);
+    typename SessionDataContainerType::DATA_T& session_data_r =
+      const_cast<typename SessionDataContainerType::DATA_T&> (inherited::sessionData_->getR ());
+    Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator =
+      session_data_r.codecConfiguration.find (inherited::configuration_->codecConfiguration->codecId);
+    if (unlikely (iterator != session_data_r.codecConfiguration.end () &&
+                  !context_->extradata))
+    { ACE_ASSERT ((*iterator).second.size);
+      context_->extradata =
+        static_cast<uint8_t*> (av_malloc ((*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE));
+      ACE_ASSERT (context_->extradata);
+      ACE_OS::memset (context_->extradata, 0, (*iterator).second.size + AV_INPUT_BUFFER_PADDING_SIZE);
+      ACE_OS::memcpy (context_->extradata,
+                      (*iterator).second.data,
+                      (*iterator).second.size);
+      context_->extradata_size = (*iterator).second.size;
+    } // end IF
+
+    result = avcodec_open2 (context_,
+                            context_->codec,
+                            NULL);
+    if (unlikely (result < 0))
+    {
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: avcodec_open2(%d) failed: \"%s\", aborting\n"),
+                  inherited::mod_->name (),
+                  inherited::configuration_->codecConfiguration->codecId,
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+      goto error;
+    } // end IF
+    ACE_DEBUG ((LM_DEBUG,
+                ACE_TEXT ("%s: initialized codec \"%s\"; decoded pixel format: \"%s\"\n"),
+                inherited::mod_->name (),
+                ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
+                ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
+  } // end IF
 
   // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
   //         alignment, as well as 'padding' bytes.
@@ -272,7 +313,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       av_init_packet (&packet_s);
 
       if (likely (parserContext_))
-      { /* use the parser to split the data into frames */
+      {
         result =
           av_parser_parse2 (parserContext_,
                             context_,
@@ -437,7 +478,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
 
       int result = -1;
       const struct AVCodec* codec_p = NULL;
-      struct AVDictionary* dictionary_p = NULL;
+      //struct AVDictionary* dictionary_p = NULL;
       int flags, flags2;
       Stream_MediaFramework_SessionData_CodecConfigurationMapIterator_t iterator;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -725,17 +766,11 @@ continue_:
       //   codec_context->flags |= AV_CODEC_FLAG_TRUNCATED;
       // } // end IF
 
-//      result = av_dict_set (&dictionary_p,
-//                            NULL, NULL,
-//                            0);
-      result = av_dict_set (&dictionary_p,
-                            ACE_TEXT_ALWAYS_CHAR ("foo"), ACE_TEXT_ALWAYS_CHAR ("bar"),
-                            0);
-      ACE_ASSERT (result >= 0);
-      ACE_ASSERT (dictionary_p);
+      if (unlikely (inherited::configuration_->codecConfiguration->delayOpen))
+        goto continue_2;
       result = avcodec_open2 (context_,
                               context_->codec,
-                              &dictionary_p);
+                              NULL);
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -743,16 +778,15 @@ continue_:
                     inherited::mod_->name (),
                     inherited::configuration_->codecConfiguration->codecId,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
       } // end IF
-      av_dict_free (&dictionary_p); dictionary_p = NULL;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec \"%s\"; decoded pixel format: \"%s\"\n"),
                   inherited::mod_->name (),
                   ACE_TEXT (avcodec_get_name (inherited::configuration_->codecConfiguration->codecId)),
                   ACE_TEXT (Stream_MediaFramework_Tools::pixelFormatToString (context_->pix_fmt).c_str ())));
 
+continue_2:
       frameSize_ =
         av_image_get_buffer_size (context_->pix_fmt,
                                   formatWidth_,
@@ -809,7 +843,7 @@ continue_:
       formatsIndex_ =
         static_cast<unsigned int> (session_data_r.formats.size () - 1);
 
-      goto continue_2;
+      break;
 
 error:
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -819,9 +853,6 @@ error:
 
       this->notify (STREAM_SESSION_MESSAGE_ABORT);
 
-      break;
-
-continue_2:
       break;
     }
     case STREAM_SESSION_MESSAGE_RESIZE:

@@ -309,6 +309,7 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (formatContext_);
+  ACE_ASSERT (inherited::sessionData_);
 
   int result;
   struct AVPacket packet_s = {0};
@@ -316,6 +317,9 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   std::vector<int> stream_ids_to_skip_a;
   static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
   AVDictionary* opts_p = NULL;
+  struct Stream_MediaFramework_SessionData_CodecConfiguration codec_configuration_s;
+  typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+    const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
 
   const AVInputFormat* input_format_p =
     av_find_input_format (inherited::configuration_->inputFormat.c_str ());
@@ -441,20 +445,24 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
 //          break;
 //        } // end IF
 //        media_type_s.video.codecId = context_->streams[i]->codecpar->codec_id;
-//        if (context_->streams[i]->codecpar->extradata_size)
-//        {
-//          codec_configuration_s.size =
-//            context_->streams[i]->codecpar->extradata_size;
-//          ACE_NEW_NORETURN (codec_configuration_s.data,
-//                            ACE_UINT8[context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
-//          ACE_ASSERT (codec_configuration_s.data);
-//          ACE_OS::memset (codec_configuration_s.data, 0, context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
-//          ACE_OS::memcpy (codec_configuration_s.data,
-//                          context_->streams[i]->codecpar->extradata,
-//                          context_->streams[i]->codecpar->extradata_size);
-//          session_data_r.codecConfiguration.insert (std::make_pair (context_->streams[i]->codecpar->codec_id,
-//                                                                    codec_configuration_s));
-//        } // end IF
+        if (formatContext_->streams[i]->codecpar->extradata_size)
+        {
+          codec_configuration_s.size =
+            formatContext_->streams[i]->codecpar->extradata_size;
+          ACE_NEW_NORETURN (codec_configuration_s.data,
+                            ACE_UINT8[formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
+          ACE_ASSERT (codec_configuration_s.data);
+          ACE_OS::memset (codec_configuration_s.data, 0, formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
+          ACE_OS::memcpy (codec_configuration_s.data,
+                          formatContext_->streams[i]->codecpar->extradata,
+                          formatContext_->streams[i]->codecpar->extradata_size);
+          session_data_r.codecConfiguration.insert (std::make_pair (formatContext_->streams[i]->codecpar->codec_id,
+                                                                    codec_configuration_s));
+
+          //if (formatContext_->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264)
+          //  processSPSPPS (formatContext_->streams[i]->codecpar->extradata,
+          //                 formatContext_->streams[i]->codecpar->extradata_size);
+        } // end IF
 //        media_type_s.video.format = static_cast<enum AVPixelFormat> (context_->streams[i]->codecpar->format);
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //        media_type_s.video.resolution =
@@ -564,6 +572,178 @@ error:
   return -1;
 }
 
+//template <ACE_SYNCH_DECL,
+//          typename TimePolicyType,
+//          typename ConfigurationType,
+//          typename ControlMessageType,
+//          typename DataMessageType,
+//          typename SessionMessageType,
+//          typename MediaType>
+//void
+//Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
+//                               TimePolicyType,
+//                               ConfigurationType,
+//                               ControlMessageType,
+//                               DataMessageType,
+//                               SessionMessageType,
+//                               MediaType>::processSPSPPS (uint8_t* data_in,
+//                                                          int size_in)
+//{
+//  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAV_Demuxer_T::processSPSPPS"));
+//
+//  // sanity check(s)
+//  ACE_ASSERT (data_in && size_in >= 7);
+//
+//  int pos = 0, result;
+//  uint8_t num_sps_pps;
+//  uint16_t sps_pps_len;
+//  size_t total_length_i = 0;
+//  std::vector<std::pair<int, uint16_t> > SPS_PPS_a;
+//  DataMessageType* message_p = NULL;
+//  char* data_p;
+//
+//  // skip version, profile, compatibility, level, and length size configuration
+//  pos += 5; 
+//
+//  // parse SPS count
+//  num_sps_pps = data_in[pos++] & 0x1F; 
+//
+//  // parse SPSs offsets and sizes
+//  for (int i = 0; i < num_sps_pps; i++)
+//  { ACE_ASSERT (pos + 2 <= size_in);
+//
+//    // read 16-bit big-endian length field
+//    sps_pps_len = (data_in[pos] << 8) | data_in[pos + 1];
+//    pos += 2;
+//    ACE_ASSERT (pos + sps_pps_len <= size_in);
+//
+//    // remember offset/size
+//    SPS_PPS_a.push_back (std::make_pair (pos, sps_pps_len));
+//    total_length_i += sps_pps_len;
+//
+//    pos += sps_pps_len;
+//  } // end FOR
+//
+//  message_p =
+//    inherited::allocateMessage (total_length_i + 4 + inherited::configuration_->allocatorConfiguration->paddingBytes,
+//                                NULL);
+//  if (unlikely (!message_p))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), returning\n"),
+//                inherited::mod_->name (),
+//                total_length_i + 4 + inherited::configuration_->allocatorConfiguration->paddingBytes));
+//    return;
+//  } // end IF
+//  message_p->size (total_length_i + 4);
+//  message_p->setMediaType (STREAM_MEDIATYPE_VIDEO);
+//
+//  // *NOTE*: insert standard Annex B delimiter: 0x00000001
+//  *message_p->wr_ptr () = 0x00;
+//  *(message_p->wr_ptr () + 1) = 0x00;
+//  *(message_p->wr_ptr () + 2) = 0x00;
+//  *(message_p->wr_ptr () + 3) = 0x01;
+//  message_p->wr_ptr (4);
+//  for (std::vector<std::pair<int, uint16_t> >::const_iterator iterator = SPS_PPS_a.begin ();
+//       iterator != SPS_PPS_a.end ();
+//       ++iterator)
+//  {
+//    data_p = reinterpret_cast<char*> (&data_in[(*iterator).first]);
+//    result = message_p->copy (data_p,
+//                              (*iterator).second);
+//    if (unlikely (result == -1))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", returning\n"),
+//                  inherited::mod_->name (),
+//                  (*iterator).second));
+//      message_p->release (); message_p = NULL;
+//      return;
+//    } // end IF
+//  } // end FOR
+//
+//  result = inherited::put_next (message_p, NULL);
+//  if (unlikely (result == -1))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+//                inherited::mod_->name ()));
+//    message_p->release (); message_p = NULL;
+//    return;
+//  } // end IF
+//  message_p = NULL;
+//
+//  SPS_PPS_a.clear ();
+//  total_length_i = 0;
+//
+//  // parse PPS count
+//  ACE_ASSERT (pos + 1 <= size_in);
+//
+//  num_sps_pps = data_in[pos++];
+//  for (int i = 0; i < num_sps_pps; i++)
+//  { ACE_ASSERT (pos + 2 <= size_in);
+//
+//    // read 16-bit big-endian length field
+//    sps_pps_len = (data_in[pos] << 8) | data_in[pos + 1];
+//    pos += 2;
+//    ACE_ASSERT (pos + sps_pps_len <= size_in);
+//
+//    // remember offset/size
+//    SPS_PPS_a.push_back (std::make_pair (pos, sps_pps_len));
+//    total_length_i += sps_pps_len;
+//
+//    pos += sps_pps_len;
+//  } // end FOR
+//
+//  message_p =
+//    inherited::allocateMessage (total_length_i + 4 + inherited::configuration_->allocatorConfiguration->paddingBytes,
+//                                NULL);
+//  if (unlikely (!message_p))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), returning\n"),
+//                inherited::mod_->name (),
+//                total_length_i + 4 + inherited::configuration_->allocatorConfiguration->paddingBytes));
+//    return;
+//  } // end IF
+//  message_p->size (total_length_i + 4);
+//  message_p->setMediaType (STREAM_MEDIATYPE_VIDEO);
+//
+//  // *NOTE*: insert standard Annex B delimiter: 0x00000001
+//  *message_p->wr_ptr () = 0x00;
+//  *(message_p->wr_ptr () + 1) = 0x00;
+//  *(message_p->wr_ptr () + 2) = 0x00;
+//  *(message_p->wr_ptr () + 3) = 0x01;
+//  message_p->wr_ptr (4);
+//  for (std::vector<std::pair<int, uint16_t> >::const_iterator iterator = SPS_PPS_a.begin ();
+//       iterator != SPS_PPS_a.end ();
+//       ++iterator)
+//  {
+//    data_p = reinterpret_cast<char*> (&data_in[(*iterator).first]);
+//    result = message_p->copy (data_p,
+//                              (*iterator).second);
+//    if (unlikely (result == -1))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%m\", returning\n"),
+//                  inherited::mod_->name (),
+//                  (*iterator).second));
+//      message_p->release (); message_p = NULL;
+//      return;
+//    } // end IF
+//  } // end FOR
+//
+//  result = inherited::put_next (message_p, NULL);
+//  if (unlikely (result == -1))
+//  {
+//    ACE_DEBUG ((LM_ERROR,
+//                ACE_TEXT ("%s: failed to ACE_Task::put_next(): \"%m\", returning\n"),
+//                inherited::mod_->name ()));
+//    message_p->release (); message_p = NULL;
+//    return;
+//  } // end IF
+//}
+
 template <ACE_SYNCH_DECL,
           typename TimePolicyType,
           typename ConfigurationType,
@@ -580,7 +760,7 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
                                SessionMessageType,
                                MediaType>::stop ()
 {
-  COMMON_TRACE (ACE_TEXT ("Stream_Decoder_LibAV_Demuxer_T::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAV_Demuxer_T::stop"));
 
   // sanity check(s)
   if (queue_.deactivated ())

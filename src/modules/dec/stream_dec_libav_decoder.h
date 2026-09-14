@@ -120,6 +120,7 @@ class Stream_Decoder_LibAVDecoder_T
   unsigned int                 formatWidth_; // codec output-
   struct AVFrame*              frame_;
   unsigned int                 frameSize_; // codec output-
+  bool                         isFirst_;
   enum AVPixelFormat           outputFormat_; // output-
   unsigned int                 outputFrameSize_; // output-
   struct AVCodecParserContext* parserContext_;

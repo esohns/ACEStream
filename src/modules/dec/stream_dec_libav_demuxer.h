@@ -122,6 +122,8 @@ class Stream_Decoder_LibAV_Demuxer_T
                                     Common_TimePolicy_t> MESSAGE_QUEUE_T;
 
   // helper methods
+  //void processSPSPPS (uint8_t*, // data
+  //                    int);     // size
   void stop ();
 
   // override some ACE_Task_T methods
