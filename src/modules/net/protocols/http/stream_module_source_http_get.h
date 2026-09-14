@@ -90,7 +90,7 @@ class Stream_Module_Net_Source_HTTP_Get_T
   //         entity head
   HTTP_Record* parse (DataMessageType&);
 
-  unsigned int       receivedBytes_;
+  ACE_UINT64         receivedBytes_;
   bool               resentRequest_;
   Stream_SessionId_t sessionId_;
 

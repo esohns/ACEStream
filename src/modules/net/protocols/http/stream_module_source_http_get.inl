@@ -682,7 +682,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
       std::string response_string (message_in.rd_ptr (),
                                    message_in.length ());
       std::istringstream input_stream (response_string);
-      unsigned int offset = 0;
+      ACE_UINT64 offset = 0;
       while (std::getline (input_stream, line_string))
       {
         if (!std::regex_match (line_string,

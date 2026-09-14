@@ -223,6 +223,23 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
       // sanity check(s)
       ACE_ASSERT (inherited::configuration_->deviceIdentifier.identifierDiscriminator == Stream_Device_Identifier::GUID);
 
+      struct _AMMediaType media_type_s;
+      struct tWAVEFORMATEX* audio_info_p = NULL;
+      struct _GUID GUID_s = GUID_NULL;
+      REFERENCE_TIME requested_duration_i = 0;
+      enum _AUDCLNT_SHAREMODE share_mode_e =
+        STREAM_LIB_WASAPI_CAPTURE_DEFAULT_SHAREMODE;
+      IMMDevice* device_p = NULL;
+      UINT32 number_of_buffer_frames_i = 0;
+      DWORD stream_flags_i = (AUDCLNT_STREAMFLAGS_EVENTCALLBACK |
+                              // AUDCLNT_STREAMFLAGS_NOPERSIST         |
+                              /////////////////////////////////
+                              AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED |
+                              AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
+      HANDLE task_h = NULL;
+      DWORD task_index_i = 0;
+      struct tWAVEFORMATEX* audio_info_2 = NULL;
+
       if (inherited::configuration_->statisticCollectionInterval != ACE_Time_Value::zero)
       {
         // schedule regular statistic collection
@@ -248,33 +265,16 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
 
       // determine media type
       ACE_ASSERT (!session_data_r.formats.empty ());
-      struct _AMMediaType media_type_s;
       ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
       inherited2::getMediaType (session_data_r.formats.back (),
                                 STREAM_MEDIATYPE_AUDIO,
                                 media_type_s);
       ACE_ASSERT (media_type_s.majortype == MEDIATYPE_Audio);
       ACE_ASSERT (media_type_s.formattype == FORMAT_WaveFormatEx);
-      struct tWAVEFORMATEX* audio_info_p =
+      audio_info_p =
         reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
       frameSize_ = audio_info_p->nChannels * (audio_info_p->wBitsPerSample / 8);
       ACE_ASSERT (frameSize_ == audio_info_p->nBlockAlign);
-
-      REFERENCE_TIME requested_duration_i = 0;
-      enum _AUDCLNT_SHAREMODE share_mode_e =
-        STREAM_LIB_WASAPI_CAPTURE_DEFAULT_SHAREMODE;
-      IMMDevice* device_p = NULL;
-      UINT32 number_of_buffer_frames_i = 0;
-      DWORD stream_flags_i =
-        (AUDCLNT_STREAMFLAGS_EVENTCALLBACK      |
-         //AUDCLNT_STREAMFLAGS_NOPERSIST         |
-         /////////////////////////////////
-         AUDCLNT_SESSIONFLAGS_EXPIREWHENUNOWNED |
-         AUDCLNT_SESSIONFLAGS_DISPLAY_HIDEWHENEXPIRED);
-      HANDLE task_h = NULL;
-      DWORD task_index_i = 0;
-      struct tWAVEFORMATEX* audio_info_2 = NULL;
-      struct _GUID GUID_s = GUID_NULL;
 
       if (InlineIsEqualGUID (inherited::configuration_->deviceIdentifier.identifier._guid, GUID_NULL))
       {
