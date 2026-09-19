@@ -623,7 +623,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
   // iterate over all branch heads (!) of the distributor
   typename inherited::sibling_iterator iterator = inherited::begin (&node_in);
   for (int i = 0;
-       i < idistributor_p->numberOfBranches ();
+       i < static_cast<int> (idistributor_p->numberOfBranches ());
        ++i, ++iterator)
   {
     task_p = (*iterator)->reader ();

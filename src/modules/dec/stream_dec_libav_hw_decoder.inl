@@ -729,11 +729,11 @@ continue_3:
 //      result = av_dict_set (&dictionary_p,
 //                            NULL, NULL,
 //                            0);
-      result = av_dict_set (&dictionary_p,
-                            ACE_TEXT_ALWAYS_CHAR ("foo"), ACE_TEXT_ALWAYS_CHAR ("bar"),
-                            0);
-      ACE_ASSERT (result >= 0);
-      ACE_ASSERT (dictionary_p);
+      // result = av_dict_set (&dictionary_p,
+      //                       ACE_TEXT_ALWAYS_CHAR ("foo"), ACE_TEXT_ALWAYS_CHAR ("bar"),
+      //                       0);
+      // ACE_ASSERT (result >= 0);
+      // ACE_ASSERT (dictionary_p);
 
       result =
         av_hwdevice_ctx_create (&hw_device_ctx_p,                                          // return value: device context
@@ -803,15 +803,16 @@ continue_:
       //                ACE_TEXT_ALWAYS_CHAR ("refcounted_frames"),
       //                1,
       //                0);
-      av_opt_set (context_->priv_data,
-                  ACE_TEXT_ALWAYS_CHAR ("profile"),
-                  ACE_TEXT_ALWAYS_CHAR ("baseline"),
-                  0);
-      context_->profile = inherited::configuration_->codecConfiguration->profile;
+      // av_opt_set (context_->priv_data,
+      //             ACE_TEXT_ALWAYS_CHAR ("profile"),
+      //             ACE_TEXT_ALWAYS_CHAR ("baseline"),
+      //             0);
+      if (inherited::configuration_->codecConfiguration->profile != AV_PROFILE_UNKNOWN)
+        context_->profile = inherited::configuration_->codecConfiguration->profile;
 
       result = avcodec_open2 (context_,
                               context_->codec,
-                              &dictionary_p);
+                              NULL/*&dictionary_p*/);
       if (unlikely (result < 0))
       {
         ACE_DEBUG ((LM_ERROR,
@@ -819,11 +820,11 @@ continue_:
                     inherited::mod_->name (),
                     inherited::configuration_->codecConfiguration->codecId,
                     ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
-        av_dict_free (&dictionary_p); dictionary_p = NULL;
+        // av_dict_free (&dictionary_p); dictionary_p = NULL;
         goto error;
       } // end IF
 //      ACE_ASSERT (context_->pix_fmt != AV_PIX_FMT_NONE);
-      av_dict_free (&dictionary_p); dictionary_p = NULL;
+      // av_dict_free (&dictionary_p); dictionary_p = NULL;
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: initialized codec %s; decoded pixel format: %s\n"),
                   inherited::mod_->name (),

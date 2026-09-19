@@ -2552,6 +2552,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
   GtkTreeIter iterator_2;
+  static bool is_first_b = true;
   if (!gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget_in),
                                       &iterator_2))
     return; // <-- nothing selected
@@ -2657,7 +2658,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
   {
     case STT_DEEPSPEECH:
     {
-      if (model_file_string.empty ())
+      if (!is_first_b || model_file_string.empty ())
       {
         model_file_string =
           ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
@@ -2670,7 +2671,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
           ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
       } // end IF
 
-      if (scorer_file_string.empty ())
+      if (!is_first_b || scorer_file_string.empty ())
       {
         scorer_file_string =
           ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
@@ -2722,7 +2723,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
 #endif // ACE_WIN32 || ACE_WIN64
     case STT_WHISPERCPP:
     {
-      if (model_file_string.empty ())
+      if (!is_first_b || model_file_string.empty ())
       {
         model_file_string =
           ACE_OS::getenv (ACE_TEXT_ALWAYS_CHAR ("LIB_ROOT"));
@@ -2766,6 +2767,8 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
         SND_PCM_FORMAT_FLOAT_LE;
 #endif // ACE_WIN32 || ACE_WIN64
 
+      scorer_file_string.clear ();
+
       break;
     }
     default:
@@ -2776,6 +2779,7 @@ combobox_backend_changed_cb (GtkWidget* widget_in,
       return;
     }
   } // end SWITCH
+  is_first_b = false;
 
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,

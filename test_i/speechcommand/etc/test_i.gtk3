@@ -78,6 +78,7 @@
   </object>
   <object class="GtkFileFilter" id="filefilter_model">
     <patterns>
+      <pattern>*.bin</pattern>
       <pattern>*.pbmm</pattern>
     </patterns>
   </object>

@@ -821,6 +821,7 @@ do_work (int argc_in,
 #else
   codec_configuration.deviceType = AV_HWDEVICE_TYPE_VAAPI;
   codec_configuration.format.videoFormat = AV_PIX_FMT_VAAPI;
+  // codec_configuration.profile = AV_PROFILE_H264_BASELINE;
   // video_codec_configuration.deviceType = AV_HWDEVICE_TYPE_VDPAU;
   // video_codec_configuration.format = AV_PIX_FMT_VDPAU;
 
@@ -1519,7 +1520,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_print_version,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_print_version, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
 
 int
 ACE_TMAIN (int argc_in,

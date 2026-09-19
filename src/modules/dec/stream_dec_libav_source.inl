@@ -461,7 +461,7 @@ loop:
       break;
     } // end ELSE IF
 
-  continue_:
+continue_:
     if (unlikely (!context_))
       continue;
 

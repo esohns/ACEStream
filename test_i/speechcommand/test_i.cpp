@@ -168,7 +168,7 @@ do_printUsage (const std::string& programName_in)
             << std::endl;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   std::cout << ACE_TEXT_ALWAYS_CHAR ("-f [STRING] : model file [\"")
             << model_file
             << ACE_TEXT_ALWAYS_CHAR ("\"]")
@@ -313,7 +313,7 @@ do_processArguments (int argc_in,
   gain_out = 0.0;
   modelFile_out = path;
   modelFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+  modelFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   UIFile_out = configuration_path;
   UIFile_out += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UIFile_out += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);
@@ -2488,7 +2488,7 @@ ACE_TMAIN (int argc_in,
   double gain_d = 0.0;
   std::string model_file = path;
   model_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
-  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE);
+  model_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_DEFAULT_MODEL_FILE);
   std::string UI_definition_file = configuration_path;
   UI_definition_file += ACE_DIRECTORY_SEPARATOR_CHAR_A;
   UI_definition_file += ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_DEFINITION_FILE);

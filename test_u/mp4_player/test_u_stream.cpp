@@ -1531,8 +1531,7 @@ Test_U_Stream::initialize (const typename inherited::CONFIGURATION_T& configurat
 
 error:
   if (reset_setup_pipeline)
-    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline =
-      setup_pipeline;
+    const_cast<typename inherited::CONFIGURATION_T&> (configuration_in).configuration_->setupPipeline = setup_pipeline;
 
   return false;
 }

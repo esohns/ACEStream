@@ -23,10 +23,13 @@
 
 #if defined (WHISPERCPP_SUPPORT)
 #define TEST_I_DEFAULT_STT_BACKEND                     STT_WHISPERCPP
+#define TEST_I_DEFAULT_MODEL_FILE                      TEST_I_DEFAULT_WHISPERCPP_MODEL_FILE
 #elif defined (DEEPSPEECH_SUPPORT)
 #define TEST_I_DEFAULT_STT_BACKEND                     STT_DEEPSPEECH
+#define TEST_I_DEFAULT_MODEL_FILE                      TEST_I_DEFAULT_DEEPSPEECH_MODEL_FILE
 #else
 #define TEST_I_DEFAULT_STT_BACKEND                     STT_INVALID
+#define TEST_I_DEFAULT_MODEL_FILE                      ""
 #endif // WHISPERCPP_SUPPORT || DEEPSPEECH_SUPPORT
 
 #define TEST_I_DEFAULT_WHISPERCPP_MODEL_FILE           "ggml-medium.en.bin"
