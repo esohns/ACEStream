@@ -382,7 +382,7 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   } // end IF
 
   for (unsigned int i = 0; i < formatContext_->nb_streams; i++)
-  {
+  { ACE_ASSERT (formatContext_->streams[i]->codecpar);
     ACE_DEBUG ((LM_DEBUG,
                 ACE_TEXT ("%s: pre-processing stream %u: codec %d \"%s\" media type...\n"),
                 inherited::mod_->name (),
@@ -390,6 +390,21 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
                 formatContext_->streams[i]->codecpar->codec_id,
                 ACE_TEXT (avcodec_get_name (formatContext_->streams[i]->codecpar->codec_id))));
   
+    if (formatContext_->streams[i]->codecpar->extradata_size)
+    { ACE_ASSERT (formatContext_->streams[i]->codecpar->extradata);
+      codec_configuration_s.size =
+        formatContext_->streams[i]->codecpar->extradata_size;
+      ACE_NEW_NORETURN (codec_configuration_s.data,
+                        ACE_UINT8[formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
+      ACE_ASSERT (codec_configuration_s.data);
+      ACE_OS::memset (codec_configuration_s.data, 0, formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
+      ACE_OS::memcpy (codec_configuration_s.data,
+                      formatContext_->streams[i]->codecpar->extradata,
+                      formatContext_->streams[i]->codecpar->extradata_size);
+      session_data_r.codecConfiguration.insert (std::make_pair (formatContext_->streams[i]->codecpar->codec_id,
+                                                                codec_configuration_s));
+    } // end IF
+
     switch (formatContext_->streams[i]->codecpar->codec_type)
     {
       case AVMEDIA_TYPE_AUDIO:
@@ -409,20 +424,6 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
         //  break;
         //} // end IF
         //media_type_s.audio.codecId = context_->streams[i]->codecpar->codec_id;
-        //if (context_->streams[i]->codecpar->extradata_size)
-        //{
-        //  codec_configuration_s.size =
-        //    context_->streams[i]->codecpar->extradata_size;
-        //  ACE_NEW_NORETURN (codec_configuration_s.data,
-        //                    ACE_UINT8[context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
-        //  ACE_ASSERT (codec_configuration_s.data);
-        //  ACE_OS::memset (codec_configuration_s.data, 0, context_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
-        //  ACE_OS::memcpy (codec_configuration_s.data,
-        //                  context_->streams[i]->codecpar->extradata,
-        //                  context_->streams[i]->codecpar->extradata_size);
-        //  session_data_r.codecConfiguration.insert (std::make_pair (context_->streams[i]->codecpar->codec_id,
-        //                                                            codec_configuration_s));
-        //} // end IF
         //media_type_s.audio.format = static_cast<enum AVSampleFormat> (context_->streams[i]->codecpar->format);
         //media_type_s.audio.channels = context_->streams[i]->codecpar->ch_layout.nb_channels;
         //media_type_s.audio.sampleRate = context_->streams[i]->codecpar->sample_rate;
@@ -445,24 +446,6 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
 //          break;
 //        } // end IF
 //        media_type_s.video.codecId = context_->streams[i]->codecpar->codec_id;
-        if (formatContext_->streams[i]->codecpar->extradata_size)
-        {
-          codec_configuration_s.size =
-            formatContext_->streams[i]->codecpar->extradata_size;
-          ACE_NEW_NORETURN (codec_configuration_s.data,
-                            ACE_UINT8[formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE]);
-          ACE_ASSERT (codec_configuration_s.data);
-          ACE_OS::memset (codec_configuration_s.data, 0, formatContext_->streams[i]->codecpar->extradata_size + AV_INPUT_BUFFER_PADDING_SIZE);
-          ACE_OS::memcpy (codec_configuration_s.data,
-                          formatContext_->streams[i]->codecpar->extradata,
-                          formatContext_->streams[i]->codecpar->extradata_size);
-          session_data_r.codecConfiguration.insert (std::make_pair (formatContext_->streams[i]->codecpar->codec_id,
-                                                                    codec_configuration_s));
-
-          //if (formatContext_->streams[i]->codecpar->codec_id == AV_CODEC_ID_H264)
-          //  processSPSPPS (formatContext_->streams[i]->codecpar->extradata,
-          //                 formatContext_->streams[i]->codecpar->extradata_size);
-        } // end IF
 //        media_type_s.video.format = static_cast<enum AVPixelFormat> (context_->streams[i]->codecpar->format);
 //#if defined (ACE_WIN32) || defined (ACE_WIN64)
 //        media_type_s.video.resolution =
