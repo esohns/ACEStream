@@ -167,18 +167,27 @@ Stream_Visualization_LibAVResize_T<TaskType,
   } // end IF
 
   result =
-    av_image_fill_linesizes (inherited::frame_->linesize,
-                             inherited::inputFormat_,
-                             static_cast<int> (inherited::frame_->width));
-  ACE_ASSERT (result >= 0);
+    av_image_fill_arrays (inherited::frame_->data,
+                          inherited::frame_->linesize,
+                          reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                          static_cast<AVPixelFormat> (inherited::frame_->format),
+                          static_cast<int> (inherited::frame_->width),
+                          static_cast<int> (inherited::frame_->height),
+                          1); // *TODO*: linesize alignment
+  ACE_ASSERT (result == inherited::frameSize_);
+  //result =
+  //  av_image_fill_linesizes (inherited::frame_->linesize,
+  //                           static_cast<AVPixelFormat> (inherited::frame_->format),
+  //                           static_cast<int> (inherited::frame_->width));
+  //ACE_ASSERT (result >= 0);
 
-  result =
-    av_image_fill_pointers (inherited::frame_->data,
-                            inherited::inputFormat_,
-                            static_cast<int> (inherited::frame_->height),
-                            reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                            inherited::frame_->linesize);
-  ACE_ASSERT (result >= 0);
+  //result =
+  //  av_image_fill_pointers (inherited::frame_->data,
+  //                          static_cast<AVPixelFormat> (inherited::frame_->format),
+  //                          static_cast<int> (inherited::frame_->height),
+  //                          reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+  //                          inherited::frame_->linesize);
+  //ACE_ASSERT (result == inherited::frameSize_);
 
   return;
 
@@ -339,7 +348,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
       inherited::frame_->height = media_type_3.resolution.height;
 #endif // ACE_WIN32 || ACE_WIN64
       inherited::frameSize_ =
-        av_image_get_buffer_size (inherited::inputFormat_,
+        av_image_get_buffer_size (static_cast<AVPixelFormat> (inherited::frame_->format),
                                   inherited::frame_->width, inherited::frame_->height,
                                   1); // *TODO*: linesize alignment
       ACE_ASSERT (inherited::frameSize_ >= 0);
@@ -354,19 +363,28 @@ Stream_Visualization_LibAVResize_T<TaskType,
         goto error;
       } // end IF
       ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
+
       result =
-        av_image_fill_linesizes (inherited::frame_->linesize,
-                                 inherited::inputFormat_,
-                                 static_cast<int> (inherited::frame_->width));
-      ACE_ASSERT (result >= 0);
-      result =
-        av_image_fill_pointers (inherited::frame_->data,
-                                inherited::inputFormat_,
-                                static_cast<int> (inherited::frame_->height),
-                                reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                                inherited::frame_->linesize);
-      ACE_ASSERT (result >= 0);
-      ACE_UNUSED_ARG (result);
+        av_image_fill_arrays (inherited::frame_->data,
+                              inherited::frame_->linesize,
+                              reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                              static_cast<AVPixelFormat> (inherited::frame_->format),
+                              static_cast<int> (inherited::frame_->width),
+                              static_cast<int> (inherited::frame_->height),
+                              1); // *TODO*: linesize alignment
+      ACE_ASSERT (result == inherited::frameSize_);
+      //result =
+      //  av_image_fill_linesizes (inherited::frame_->linesize,
+      //                           static_cast<AVPixelFormat> (inherited::frame_->format),
+      //                           static_cast<int> (inherited::frame_->width));
+      //ACE_ASSERT (result >= 0);
+      //result =
+      //  av_image_fill_pointers (inherited::frame_->data,
+      //                          static_cast<AVPixelFormat> (inherited::frame_->format),
+      //                          static_cast<int> (inherited::frame_->height),
+      //                          reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+      //                          inherited::frame_->linesize);
+      //ACE_ASSERT (result == inherited::frameSize_);
 
       break;
 
@@ -503,7 +521,7 @@ error:
         inherited::frame_->width = media_type_3.resolution.width;
 #endif // ACE_WIN32 || ACE_WIN64
         inherited::frameSize_ =
-          av_image_get_buffer_size (inherited::inputFormat_,
+          av_image_get_buffer_size (static_cast<AVPixelFormat> (inherited::frame_->format),
                                     inherited::frame_->width, inherited::frame_->height,
                                     1); // *TODO*: linesize alignment
 
@@ -518,18 +536,27 @@ error:
         } // end IF
 
         result =
-          av_image_fill_linesizes (inherited::frame_->linesize,
-                                   inherited::inputFormat_,
-                                   static_cast<int> (inherited::frame_->width));
-        ACE_ASSERT (result >= 0);
+          av_image_fill_arrays (inherited::frame_->data,
+                                inherited::frame_->linesize,
+                                reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+                                static_cast<AVPixelFormat> (inherited::frame_->format),
+                                static_cast<int> (inherited::frame_->width),
+                                static_cast<int> (inherited::frame_->height),
+                                1); // *TODO*: linesize alignment
+        ACE_ASSERT (result == inherited::frameSize_);
+        //result =
+        //  av_image_fill_linesizes (inherited::frame_->linesize,
+        //                           static_cast<AVPixelFormat> (inherited::frame_->format),
+        //                           static_cast<int> (inherited::frame_->width));
+        //ACE_ASSERT (result >= 0);
 
-        result =
-          av_image_fill_pointers (inherited::frame_->data,
-                                  inherited::inputFormat_,
-                                  static_cast<int> (inherited::frame_->height),
-                                  reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
-                                  inherited::frame_->linesize);
-        ACE_ASSERT (result >= 0);
+        //result =
+        //  av_image_fill_pointers (inherited::frame_->data,
+        //                          static_cast<AVPixelFormat> (inherited::frame_->format),
+        //                          static_cast<int> (inherited::frame_->height),
+        //                          reinterpret_cast<uint8_t*> (inherited::buffer_->wr_ptr ()),
+        //                          inherited::frame_->linesize);
+        //ACE_ASSERT (result == inherited::frameSize_);
       } // end lock scope
 
       ACE_ASSERT (session_data_r.lock);
@@ -673,7 +700,7 @@ Stream_Visualization_LibAVResize1_T<TaskType,
   // initialize conversion context
   flags_i =
     (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-     SWS_BICUBIC | SWS_ACCURATE_RND);
+     SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND);
   inherited::context_ =
     sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -943,7 +970,7 @@ error:
       sws_freeContext (inherited::context_); inherited::context_ = NULL;
       flags_i =
         (//SWS_BILINEAR | SWS_FAST_BILINEAR | // interpolation
-         SWS_BICUBIC | SWS_ACCURATE_RND);
+         SWS_FULL_CHR_H_INP | SWS_BICUBIC | SWS_ACCURATE_RND);
       inherited::context_ =
         sws_getCachedContext (NULL,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
