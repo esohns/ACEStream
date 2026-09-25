@@ -364,7 +364,7 @@ Stream_Layout_T<ACE_SYNCH_USE,
     //         sub-branch heads BEFORE appending any direct siblings
     unsigned int num_existing_branches_i =
       inherited::number_of_children (iterator);
-    if (index_in == -1)
+    if (static_cast<int> (index_in) == -1)
     { ACE_ASSERT (num_existing_branches_i > 0);
       iterator = inherited::append_child (iterator, module_in);
       return inherited::is_valid (iterator);

@@ -174,7 +174,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
                           static_cast<int> (inherited::frame_->width),
                           static_cast<int> (inherited::frame_->height),
                           1); // *TODO*: linesize alignment
-  ACE_ASSERT (result == inherited::frameSize_);
+  ACE_ASSERT (result == static_cast<int> (inherited::frameSize_));
   //result =
   //  av_image_fill_linesizes (inherited::frame_->linesize,
   //                           static_cast<AVPixelFormat> (inherited::frame_->format),
@@ -372,7 +372,7 @@ Stream_Visualization_LibAVResize_T<TaskType,
                               static_cast<int> (inherited::frame_->width),
                               static_cast<int> (inherited::frame_->height),
                               1); // *TODO*: linesize alignment
-      ACE_ASSERT (result == inherited::frameSize_);
+      ACE_ASSERT (result == static_cast<int> (inherited::frameSize_));
       //result =
       //  av_image_fill_linesizes (inherited::frame_->linesize,
       //                           static_cast<AVPixelFormat> (inherited::frame_->format),
@@ -543,7 +543,7 @@ error:
                                 static_cast<int> (inherited::frame_->width),
                                 static_cast<int> (inherited::frame_->height),
                                 1); // *TODO*: linesize alignment
-        ACE_ASSERT (result == inherited::frameSize_);
+        ACE_ASSERT (result == static_cast<int> (inherited::frameSize_));
         //result =
         //  av_image_fill_linesizes (inherited::frame_->linesize,
         //                           static_cast<AVPixelFormat> (inherited::frame_->format),

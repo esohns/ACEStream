@@ -25,8 +25,6 @@
 
 #include <string>
 
-// #include "stream_lib_pipewire_defines.h"
-
 struct Stream_MediaFramework_Pipewire_Configuration
 {
   Stream_MediaFramework_Pipewire_Configuration ()
