@@ -100,6 +100,7 @@ Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
   ConnectionManagerType* connection_manager_p =
     ConnectionManagerType::SINGLETON_T::instance ();
   typename ConnectionManagerType::ICONNECTION_T* connection_p = NULL;
+  ACE_HANDLE handle_h = ACE_INVALID_HANDLE;
   WRITER_T* sibling_task_p = static_cast<WRITER_T*> (inherited::sibling ());
   if (unlikely (!sibling_task_p))
   {
@@ -120,11 +121,12 @@ Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
   session_data_p =
     &const_cast<SESSION_DATA_T&> (sibling_task_p->sessionData_->getR ());
   //  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_p->lock);
-    ACE_ASSERT (!session_data_p->connectionStates.empty ());
+    if (unlikely (session_data_p->connectionStates.empty ()))
+      goto continue_; // something went wrong: session aborted ?
     ACE_ASSERT (session_data_p->connectionStates.size () == 1);
-    ACE_ASSERT ((*session_data_p->connectionStates.begin ()).first != ACE_INVALID_HANDLE);
-    connection_p =
-      connection_manager_p->get ((*session_data_p->connectionStates.begin ()).first);
+    handle_h = (*session_data_p->connectionStates.begin ()).first;
+    ACE_ASSERT (handle_h != ACE_INVALID_HANDLE);
+    connection_p = connection_manager_p->get (handle_h);
   //} // end lock scope
   if (unlikely (!connection_p))
   {
@@ -132,12 +134,12 @@ Stream_Module_Net_InputReader_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve connection (id was: 0x%@), returning\n"),
                 inherited::mod_->name (),
-                (*session_data_p->connectionStates.begin ()).first));
+                handle_h));
 #else
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to retrieve connection (id was: %d), returning\n"),
                 inherited::mod_->name (),
-                (*session_data_p->connectionStates.begin ()).first));
+                handle_h));
 #endif // ACE_WIN32 || ACE_WIN64
     return;
   } // end IF
@@ -146,7 +148,9 @@ continue_:
   switch (controlMessage_in.type ())
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
-    { ACE_ASSERT (connection_p);
+    {
+      if (unlikely (!connection_p))
+        goto continue_2;
 
       // *WARNING*: regular disconnections must enforce that all enqueued
       //            outbound data has been dispatched by the kernel. This
@@ -157,10 +161,10 @@ continue_:
       if (unlikely (!i_message_queue_p))
       {
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), returning\n"),
+                    ACE_TEXT ("%s: failed to dynamic_cast<Stream_IMessageQueue>(0x%@), continuing\n"),
                     inherited::mod_->name (),
                     connection_p));
-        return;
+        break;
       } // end IF
       try {
         i_message_queue_p->waitForIdleState ();
@@ -169,14 +173,18 @@ continue_:
                     ACE_TEXT ("%s: caught exception in Net_IStreamConnection_T::waitForIdleState() (id was: %u), continuing\n"),
                     inherited::mod_->name (),
                     connection_p->id ()));
-        return;
+        break;
       }
 
+continue_2:
       // *WARNING*: the control flow falls through here
       ACE_FALLTHROUGH;
     }
     case STREAM_CONTROL_MESSAGE_ABORT:
-    { ACE_ASSERT (connection_p);
+    {
+      if (unlikely (!connection_p))
+        goto continue_3;
+      
       try {
         connection_p->abort ();
       } catch (...) {
@@ -184,20 +192,24 @@ continue_:
                     ACE_TEXT ("%s: caught exception in Net_IConnection_T::abort() (id was: %u), continuing\n"),
                     inherited::mod_->name (),
                     connection_p->id ()));
-        return;
+        break;
       }
       ACE_DEBUG ((LM_DEBUG,
                   ACE_TEXT ("%s: aborted connection (id was: %u)\n"),
                   inherited::mod_->name (),
                   connection_p->id ()));
 
+continue_3:
       break;
     }
     default:
       break;
   } // end SWITCH
 
-  connection_p->decrease (); connection_p = NULL;
+  if (likely (connection_p))
+  {
+    connection_p->decrease (); connection_p = NULL;
+  } // end IF
 }
 
 //////////////////////////////////////////
