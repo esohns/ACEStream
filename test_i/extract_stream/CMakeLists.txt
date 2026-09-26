@@ -1,3 +1,6 @@
+set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../modules/Common/src/math/scripts;${CMAKE_CURRENT_SOURCE_DIR}/../../../Common/src/math/scripts")
+include (fftw)
+
 include (ffmpeg)
 include (ImageMagick)
 set (CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_SOURCE_DIR}/../../src/modules/lib/scripts")
@@ -18,7 +21,9 @@ string (SUBSTRING ${BUILD_PATH_SUFFIX} 1 -1 BUILD_PATH_SUFFIX)
 if (UNIX)
   add_compile_options ("-rdynamic")
   add_link_options ("LINKER:--export-dynamic")
-endif (UNIX)
+elseif (WIN32)
+ add_link_options ("$<$<CXX_COMPILER_ID:MSVC>:-FORCE:MULTIPLE>")
+endif ()
 
 if (FFMPEG_SUPPORT)
  include_directories (${ffmpeg_INCLUDE_DIRS})
@@ -255,6 +260,7 @@ elseif (WIN32)
  endif (GTK_USE OR WXWIDGETS_USE)
 # *NOTE*: ffmpeg was built with (vcpkg-)"libpng" support, so now there is a new dependency to zlib1.dll, liblzma.dll, iconv-2.dll :-(
  file (TO_CMAKE_PATH "$ENV{VCPKG_INSTALLATION_ROOT}/installed/x64-windows/bin" VCPKG_PATH)
+ file (TO_CMAKE_PATH "${FFTW_LIB_DIR}" FFTW_PATH)
  file (TO_CMAKE_PATH "${ffmpeg_LIB_DIR}" FFMPEG_PATH)
  file (TO_CMAKE_PATH "${ImageMagick_LIB_DIR}" IMAGEMAGICK_PATH)
  file (TO_CMAKE_PATH "${faad_LIB_DIR}" FAAD_PATH)
@@ -262,6 +268,7 @@ elseif (WIN32)
  file (TO_CMAKE_PATH "${ACE_LIB_DIR}" ACE_PATH)
  set (RUNTIME_LIBRARY_DIRS ${RUNTIME_LIBRARY_DIRS}
                            ${VCPKG_PATH}
+                           ${FFTW_PATH}
                            ${FFMPEG_PATH}
                            ${IMAGEMAGICK_PATH}
                            ${FAAD_PATH}
