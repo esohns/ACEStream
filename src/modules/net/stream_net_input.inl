@@ -149,6 +149,7 @@ continue_:
   {
     case STREAM_CONTROL_MESSAGE_DISCONNECT:
     {
+      Stream_IMessageQueue* i_message_queue_p = NULL;
       if (unlikely (!connection_p))
         goto continue_2;
 
@@ -156,7 +157,7 @@ continue_:
       //            outbound data has been dispatched by the kernel. This
       //            implementation works as long as there are no asynchronous
       //            upstream module reader tasks
-      Stream_IMessageQueue* i_message_queue_p =
+      i_message_queue_p =
         dynamic_cast<Stream_IMessageQueue*> (connection_p);
       if (unlikely (!i_message_queue_p))
       {
