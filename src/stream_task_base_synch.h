@@ -88,6 +88,10 @@ class Stream_TaskBaseSynch_T
   // implement Stream_ITask_T
   inline virtual void waitForIdleState (bool = true) const {}
 
+  // implement (part of) Stream_ITaskBase
+  inline virtual void handleSessionMessage (SessionMessageType*&, // session message handle
+                                            bool&) {}             // return value: pass message downstream ?
+
  protected:
   // convenient types
   typedef Stream_TaskBase_T<ACE_SYNCH_USE,
