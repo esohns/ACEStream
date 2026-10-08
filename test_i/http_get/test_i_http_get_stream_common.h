@@ -224,6 +224,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
 {
   Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
+   , addMissingHeaders (true)
    , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , connection (NULL)
    , connectionConfigurations (NULL)
@@ -248,6 +249,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
     passive = false;
   }
 
+  bool                                             addMissingHeaders; // HTTP get module
   bool                                             closeAfterReception; // HTTP get module
   Net_IINETConnection_t*                           connection; // TCP target/IO module
   Net_ConnectionConfigurations_t*                  connectionConfigurations;

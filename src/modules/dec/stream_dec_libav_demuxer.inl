@@ -339,20 +339,20 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   //av_dict_set (&opts_p,
   //             ACE_TEXT_ALWAYS_CHAR ("scan_all_pmts"), ACE_TEXT_ALWAYS_CHAR ("1"),
   //             0);
-  av_dict_set (&opts_p,
-               ACE_TEXT_ALWAYS_CHAR ("live"), ACE_TEXT_ALWAYS_CHAR ("1"),
-               0);
+  //av_dict_set (&opts_p,
+  //             ACE_TEXT_ALWAYS_CHAR ("live"), ACE_TEXT_ALWAYS_CHAR ("1"),
+  //             0);
   // 1. Force the demuxer to instantly parse packets without scanning ahead
   //av_dict_set (&opts_p,
   //             ACE_TEXT_ALWAYS_CHAR ("fflags"), ACE_TEXT_ALWAYS_CHAR ("nobuffer"),
   //             0);
   // 2. Lower the probing size (default is 5,000,000 bytes)
   //av_dict_set (&opts_p,
-  //             ACE_TEXT_ALWAYS_CHAR ("probesize"), ACE_TEXT_ALWAYS_CHAR ("16384"),
+  //             ACE_TEXT_ALWAYS_CHAR ("probesize"), ACE_TEXT_ALWAYS_CHAR ("5000000"),
   //             0);
   // 3. Reduce the max analysis duration (default is 5,000,000 microseconds)
   //av_dict_set (&opts_p,
-  //             ACE_TEXT_ALWAYS_CHAR ("analyzeduration"), ACE_TEXT_ALWAYS_CHAR ("100000"),
+  //             ACE_TEXT_ALWAYS_CHAR ("analyzeduration"), ACE_TEXT_ALWAYS_CHAR ("50000000"),
   //             0);
   result = avformat_open_input (&formatContext_,
                                 NULL,

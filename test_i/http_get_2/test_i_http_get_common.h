@@ -223,6 +223,7 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   Test_I_HTTPGet_ModuleHandlerConfiguration ()
    : Test_I_ModuleHandlerConfiguration ()
    , allocatorConfiguration (NULL)
+   , addMissingHeaders (true)
    , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , configuration (NULL)
    , connection (NULL)
@@ -246,7 +247,8 @@ struct Test_I_HTTPGet_ModuleHandlerConfiguration
   {}
 
   struct Common_Parser_FlexAllocatorConfiguration* allocatorConfiguration;
-  bool                                             closeAfterReception;      // HTTP get module
+  bool                                             addMissingHeaders; // HTTP get module
+  bool                                             closeAfterReception; // HTTP get module
   struct Test_I_HTTPGet_Configuration*             configuration;
   Net_IINETConnection_t*                           connection; // net source/IO module
   Net_ConnectionConfigurations_t*                  connectionConfigurations;

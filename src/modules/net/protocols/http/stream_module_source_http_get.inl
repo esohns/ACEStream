@@ -529,7 +529,8 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
   HTTP_Headers_t headers = headers_in;
   HTTP_HeadersConstIterator_t iterator =
     headers_in.find (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING));
-  if (iterator == headers_in.end ())
+  if (inherited::configuration_->addMissingHeaders &&
+      iterator == headers_in.end ())
   {
     hostname_string = Net_Common_Tools::URLToHostName (URL_in,
                                                        false,  // return hostname
@@ -542,13 +543,13 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
                 ACE_TEXT (HTTP_PRT_HEADER_HOST_STRING),
                 ACE_TEXT (hostname_string.c_str ())));
   } // end IF
-  else
-  {
-    hostname_string = Net_Common_Tools::URLToHostName (URL_in,
-                                                       false,  // return hostname
-                                                       false); // do not return port#
-    ACE_ASSERT ((*iterator).second == hostname_string);
-  } // end ELSE
+  //else
+  //{
+  //  hostname_string = Net_Common_Tools::URLToHostName (URL_in,
+  //                                                     false,  // return hostname
+  //                                                     false); // do not return port#
+  //  ACE_ASSERT ((*iterator).second == hostname_string);
+  //} // end ELSE
 
   // *TODO*: estimate a reasonable buffer size
   DataMessageType* message_p = makeRequest (URI_string,

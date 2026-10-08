@@ -130,6 +130,7 @@ struct HTTPGet_ModuleHandlerConfiguration
 {
   HTTPGet_ModuleHandlerConfiguration ()
    : Stream_ModuleHandlerConfiguration ()
+   , addMissingHeaders (true)
    , closeAfterReception (HTTP_DEFAULT_CLOSE_AFTER_RECEPTION)
    , configuration (NULL)
    , connection (NULL)
@@ -153,6 +154,7 @@ struct HTTPGet_ModuleHandlerConfiguration
     stopOnUnlink = true; // (downstream) head modules stop the active session after connection closes and the stream is unlinked
   }
 
+  bool                             addMissingHeaders;        // HTTP get module
   bool                             closeAfterReception;      // HTTP get module
   struct HTTPGet_Configuration*    configuration;
   Net_IINETConnection_t*           connection;               // TCP target/IO module
