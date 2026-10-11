@@ -535,6 +535,7 @@ Stream_Module_Net_Source_HTTP_Get_T<ACE_SYNCH_USE,
     hostname_string = Net_Common_Tools::URLToHostName (URL_in,
                                                        false,  // return hostname
                                                        false); // do not return port#
+    //hostname_string = ACE_TEXT_ALWAYS_CHAR ("://") + hostname_string;
     headers.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (HTTP_PRT_HEADER_HOST_STRING),
                                     hostname_string));
     ACE_DEBUG ((LM_DEBUG,

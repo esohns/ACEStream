@@ -102,6 +102,7 @@ continue_:
     std::min (available_space_i, static_cast<int> (message_block_p->length ()));
   ACE_OS::memcpy (buffer_in + offset, message_block_p->rd_ptr (), bytes_to_read);
   bytes_read += bytes_to_read;
+  offset += bytes_to_read;
 
   available_space_i -= bytes_to_read;
   message_block_p->rd_ptr (bytes_to_read);
