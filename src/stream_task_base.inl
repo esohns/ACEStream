@@ -350,7 +350,8 @@ continue_:
       { ACE_ASSERT (sessionData_);
         sessionData_->decrease ();
       } // end IF
-      sessionData_ = &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
+      sessionData_ =
+        &const_cast<typename SessionMessageType::DATA_T&> (message_inout->getR ());
       sessionData_->increase ();
 
       const typename SessionMessageType::DATA_T::DATA_T* session_data_p =

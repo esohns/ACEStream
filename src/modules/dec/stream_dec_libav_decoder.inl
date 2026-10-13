@@ -361,7 +361,7 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
       // forward the decoded frame
       message_p->initialize (message_inout->sessionId (),
                              NULL);
-      message_p->set (message_inout->type ());
+      message_p->setMediaType (message_inout->getMediaType ());
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))
       {

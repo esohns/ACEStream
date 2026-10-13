@@ -320,6 +320,7 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
   struct Stream_MediaFramework_SessionData_CodecConfiguration codec_configuration_s;
   typename SessionMessageType::DATA_T::DATA_T& session_data_r =
     const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+  bool send_resize_b = false;
 
   const AVInputFormat* input_format_p =
     av_find_input_format (inherited::configuration_->inputFormat.c_str ());
@@ -383,12 +384,12 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
 
   for (unsigned int i = 0; i < formatContext_->nb_streams; i++)
   { ACE_ASSERT (formatContext_->streams[i]->codecpar);
-    ACE_DEBUG ((LM_DEBUG,
-                ACE_TEXT ("%s: pre-processing stream %u: codec %d \"%s\" media type...\n"),
-                inherited::mod_->name (),
-                i,
-                formatContext_->streams[i]->codecpar->codec_id,
-                ACE_TEXT (avcodec_get_name (formatContext_->streams[i]->codecpar->codec_id))));
+    //ACE_DEBUG ((LM_DEBUG,
+    //            ACE_TEXT ("%s: pre-processing stream %u: codec %d \"%s\" media type...\n"),
+    //            inherited::mod_->name (),
+    //            i,
+    //            formatContext_->streams[i]->codecpar->codec_id,
+    //            ACE_TEXT (avcodec_get_name (formatContext_->streams[i]->codecpar->codec_id))));
   
     if (formatContext_->streams[i]->codecpar->extradata_size)
     { ACE_ASSERT (formatContext_->streams[i]->codecpar->extradata);
@@ -403,6 +404,15 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
                       formatContext_->streams[i]->codecpar->extradata_size);
       session_data_r.codecConfiguration.insert (std::make_pair (formatContext_->streams[i]->codecpar->codec_id,
                                                                 codec_configuration_s));
+
+      ACE_DEBUG ((LM_DEBUG,
+                  ACE_TEXT ("%s: copied codec (was: %d \"%s\") initialization data (%d bytes) to session data\n"),
+                  inherited::mod_->name (),
+                  formatContext_->streams[i]->codecpar->codec_id,
+                  ACE_TEXT (avcodec_get_name (formatContext_->streams[i]->codecpar->codec_id)),
+                  formatContext_->streams[i]->codecpar->extradata_size));
+
+      send_resize_b = true;
     } // end IF
 
     switch (formatContext_->streams[i]->codecpar->codec_type)
@@ -477,6 +487,27 @@ Stream_Decoder_LibAV_Demuxer_T<ACE_SYNCH_USE,
     } // end SWITCH
   } // end FOR
   //session_data_r.formats.push_back (media_type_s);
+
+  // *IMPORTANT NOTE*: this is necessary iff there is a distributor downstream
+  //                   BEFORE any decoder module(s). In that case, the codec
+  //                   configuration data will not be passed to the decoder
+  //                   otherwise
+  // *TODO*: this should not be a 'resize' message but rather a 'session data
+  //         update' message
+  if (send_resize_b)
+  {
+    inherited::sessionData_->increase ();
+    typename SessionMessageType::DATA_T* session_data_container_p =
+      inherited::sessionData_;
+    if (unlikely (!inherited::putSessionMessage (STREAM_SESSION_MESSAGE_RESIZE,
+                                                 session_data_container_p,
+                                                 NULL,
+                                                 false))) // expedited ?
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
+                  inherited::mod_->name (),
+                  STREAM_SESSION_MESSAGE_RESIZE));
+  } // end IF
 
   av_init_packet (&packet_s);
   do
