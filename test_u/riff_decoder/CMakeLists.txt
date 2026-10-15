@@ -60,18 +60,13 @@ if (WIN32 AND NOT BUILD_TEST_U)
  set_target_properties (${EXECUTABLE} PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD TRUE)
 endif ()
 
-#add_dependencies (${ACESTREAM_TARGET_NAME} ACE)
+#add_dependencies (${EXECUTABLE} ACE)
 add_dependencies (${EXECUTABLE} Common)
 
 add_dependencies (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
 
 target_link_libraries (${EXECUTABLE} ${CMAKE_THREAD_LIBS_INIT})
-#if (UNIX)
-# target_link_libraries (${EXECUTABLE} rt)
-# target_link_libraries (${EXECUTABLE} ${AIO_LIBRARY})
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-# target_link_libraries (${EXECUTABLE} ${PKG_FFMPEG_LIBRARIES})
-#endif (UNIX)
+
 target_link_libraries (${EXECUTABLE} ${ACE_LIBRARY})
 
 target_link_libraries (${EXECUTABLE} Common)
@@ -81,14 +76,11 @@ target_link_libraries (${EXECUTABLE} CommonTimer)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME})
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Decoder)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_File)
+target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_MediaFramework)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Miscellaneous)
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Statistic)
 
 target_link_libraries (${EXECUTABLE} ${PROJECT_NAME}_Test_U)
-
-#if (UNIX)
-# target_link_libraries (${EXECUTABLE} ${PKG_CAP_LIBRARIES})
-#endif (UNIX)
 
 # add PCH
 #set_target_properties (${EXECUTABLE} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "stdafx.h")
