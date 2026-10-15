@@ -105,7 +105,10 @@ class Test_U_Message
 
   // implement Stream_MessageBase_T
   //virtual HTTP_Method_t command () const; // return value: message type
-  //inline static std::string CommandTypeToString (HTTP_Method_t method_in) { return (method_in == HTTP_Codes::HTTP_METHOD_INVALID ? ACE_TEXT_ALWAYS_CHAR (HTTP_COMMAND_STRING_RESPONSE) : HTTP_Tools::MethodToString (method_in)); }
+
+  // implement Stream_IMediaType
+  inline virtual void setMediaType (enum Stream_MediaType_Type) {}
+  inline virtual enum Stream_MediaType_Type getMediaType () const { return STREAM_MEDIATYPE_VIDEO; }
 
  protected:
   // copy ctor to be used by duplicate() and derived classes
