@@ -3182,9 +3182,9 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->audioStreamConfiguration.end ());
 
   resolution_s.width =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.width;
   resolution_s.height =
-      ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
+    ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.format.height;
   framerate_i =
     ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.numerator;
   ACE_ASSERT (ui_cb_data_p->configuration->videoStreamConfiguration.configuration_->format.video.frameRate.denominator == 1);

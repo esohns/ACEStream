@@ -897,8 +897,6 @@ do_initialize_ALSA_V4L (const std::string& audioDeviceIdentifier_in,
   Stream_MediaFramework_ALSA_Tools::getDefaultFormat (audioDeviceIdentifier_in,
                                                       true, // capture
                                                       captureFormat_out.audio);
-  // *TODO*: currently hard-coded into the encoder :-(
-  ACE_ASSERT (captureFormat_out.audio.format == SND_PCM_FORMAT_S16_LE);
 
   return true;
 
@@ -1488,7 +1486,7 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
   } // end IF
   CBData_in.progressData.audioFrameSize =
     (snd_pcm_format_width (video_stream_configuration.format.audio.format) / 8) *
-      video_stream_configuration.format.audio.channels;
+    video_stream_configuration.format.audio.channels;
 #if defined (FFMPEG_SUPPORT)
   enum AVCodecID codec_id =
     Stream_MediaFramework_Tools::v4lFormatToffmpegCodecId (video_stream_configuration.format.video.format.pixelformat);
@@ -1497,6 +1495,8 @@ do_work (const struct Stream_Device_Identifier& deviceIdentifier_in,
 #endif // FFMPEG_SUPPORT
 
   audio_modulehandler_configuration.display = displayDevice_in;
+
+  audio_stream_configuration.format = video_stream_configuration.format;
 
   configuration_in.audioStreamConfiguration.initialize (module_configuration,
                                                         audio_modulehandler_configuration,
@@ -1922,7 +1922,7 @@ clean:
               ACE_TEXT ("finished working...\n")));
 }
 
-COMMON_DEFINE_PRINTVERSION_FUNCTION(do_printVersion,STREAM_MAKE_VERSION_STRING_VARIABLE(programName_in,ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL),version_string),version_string)
+COMMON_DEFINE_PRINTVERSION_FUNCTION (do_printVersion, STREAM_MAKE_VERSION_STRING_VARIABLE (programName_in, ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_VERSION_FULL), version_string), version_string)
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #else
