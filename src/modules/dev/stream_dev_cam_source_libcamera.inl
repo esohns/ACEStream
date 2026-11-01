@@ -137,7 +137,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   int result = -1;
   ACE_Message_Block* message_block_p = NULL;
   DataMessageType* message_p = NULL;
-  typename DataMessageType::DATA_T* message_data_p = NULL;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
 
   switch (message_inout->type ())
   {
@@ -267,8 +268,10 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
         } // end IF
         message_p = dynamic_cast<DataMessageType*> (message_block_p);
         ACE_ASSERT (message_p);
+        message_data_container_p =
+          &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
         message_data_p =
-            &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+          &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
         message_data_p->buffer = (*iterator).get ();
         message_data_p->camera = camera_.get ();
         message_data_p->request = request_p.get ();
@@ -324,8 +327,10 @@ error:
         ACE_ASSERT (message_block_p);
         message_p = dynamic_cast<DataMessageType*> (message_block_p);
         ACE_ASSERT (message_p);
-        message_data_p =
+        message_data_container_p =
           &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+        message_data_p =
+          &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
         message_data_p->release = true;
         message_p->release ();
       } // end FOR
@@ -363,8 +368,10 @@ error:
         ACE_ASSERT (message_block_p);
         message_p = dynamic_cast<DataMessageType*> (message_block_p);
         ACE_ASSERT (message_p);
-        message_data_p =
+        message_data_container_p =
           &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+        message_data_p =
+          &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
         message_data_p->release = true;
         message_p->release ();
       } // end FOR

@@ -110,11 +110,13 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         message_p = static_cast<MessageType*> (message_block_p);
         message_p->wr_ptr (format.fmt.pix.sizeimage);
         // *TODO*: remove type inference
-        typename MessageType::DATA_T& data_r =
-            const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-        data_r.fileDescriptor = fd_in;
-        data_r.index = i;
-        data_r.method = method_in;
+        typename MessageType::DATA_T& message_data_container_r =
+          const_cast<typename MessageType::DATA_T&> (message_p->getR ());
+        typename MessageType::DATA_T::DATA_T& message_data_r =
+          const_cast<typename MessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+        message_data_r.fileDescriptor = fd_in;
+        message_data_r.index = i;
+        message_data_r.method = method_in;
         buffer.m.userptr =
             reinterpret_cast<unsigned long> (message_block_p->rd_ptr ());
         buffer.length = format.fmt.pix.sizeimage;
@@ -176,7 +178,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           try {
             message_block_p =
-                static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
+              static_cast<ACE_Message_Block*> (allocator_in->malloc (format.fmt.pix.sizeimage));
           } catch (...) {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), continuing\n"),
@@ -197,11 +199,13 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         message_block_p->size (format.fmt.pix.sizeimage);
         message_p = static_cast<MessageType*> (message_block_p);
         // *TODO*: remove type inference
-        typename MessageType::DATA_T& data_r =
-            const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-        data_r.fileDescriptor = fd_in;
-        data_r.index = i;
-        data_r.method = method_in;
+        typename MessageType::DATA_T& message_data_container_r =
+          const_cast<typename MessageType::DATA_T&> (message_p->getR ());
+        typename MessageType::DATA_T::DATA_T& message_data_r =
+          const_cast<typename MessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+        message_data_r.fileDescriptor = fd_in;
+        message_data_r.index = i;
+        message_data_r.method = method_in;
 
         mmap_p = v4l2_mmap (NULL,
                             buffer.length,
@@ -319,9 +323,11 @@ Stream_Device_Tools::finalizeBuffers (int fd_in,
     } // end IF
     message_p = static_cast<MessageType*> (message_block_p);
     // *TODO*: remove type inference
-    typename MessageType::DATA_T& data_r =
-        const_cast<typename MessageType::DATA_T&> (message_p->getR ());
-    data_r.release = true;
+    typename MessageType::DATA_T& message_data_container_r =
+      const_cast<typename MessageType::DATA_T&> (message_p->getR ());
+    typename MessageType::DATA_T::DATA_T& message_data_r =
+      const_cast<typename MessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+    message_data_r.release = true;
     message_block_p->release (); message_block_p = NULL;
 
     ++counter;

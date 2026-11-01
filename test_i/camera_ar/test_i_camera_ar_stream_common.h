@@ -89,7 +89,7 @@ struct Stream_CameraAR_MessageData
   enum v4l2_memory method;
   bool             release;
 };
-typedef Stream_DataBase_T<struct Stream_CameraAR_MessageData> Stream_CameraAR_MessageData_MessageData_t;
+typedef Stream_DataBase_T<struct Stream_CameraAR_MessageData> Stream_CameraAR_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CameraAR_StatisticData

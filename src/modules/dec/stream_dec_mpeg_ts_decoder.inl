@@ -146,6 +146,9 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p;
   ACE_Message_Block* message_block_2;
   DataMessageType* message_p;
+  typename DataMessageType::DATA_T* message_data_container_p;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p;
+
   size_t total_length_i = message_inout->total_length ();
 
   // initialize return value(s)
@@ -351,11 +354,11 @@ parse_psi:
     message_p = static_cast<DataMessageType*> (message_block_p);
     
     // set timestamp(s)
-    typename DataMessageType::DATA_T& message_data_container_r =
-      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-    typename DataMessageType::DATA_T::DATA_T& message_data_r =
-      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
-    message_data_r.timeStamps =
+    message_data_container_p =
+      &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+    message_data_p =
+      &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
+    message_data_p->timeStamps =
       (packet_identifier == audioStreamPacketId_) ? audioTimeStamps_ : videoTimeStamps_;
     
     // tag the message so the splitter knows what to do

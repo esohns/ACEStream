@@ -216,7 +216,7 @@ Stream_AVSave_Message_T<DataType>::release (void)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
-                  inherited::data_.method));
+                  message_data_r.method));
       return NULL;
     }
   } // end SWITCH
@@ -227,7 +227,7 @@ Stream_AVSave_Message_T<DataType>::release (void)
   //         the driver
   //         --> maintain a mapping: buffer index <--> buffer handle
 //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  int result = v4l2_ioctl (inherited::data_.fileDescriptor,
+  int result = v4l2_ioctl (message_data_r.fileDescriptor,
                            VIDIOC_QBUF,
                            &buffer_s);
   if (unlikely (result == -1))

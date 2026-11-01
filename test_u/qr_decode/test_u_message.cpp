@@ -151,9 +151,11 @@ Test_U_Message::release (void)
   } // end IF
 
   int reference_count = inherited::reference_count ();
-  if ((reference_count > 1)                   || // not the last reference
-      (inherited::data_.fileDescriptor == -1) || // not a device data buffer (-clone)
-      inherited::data_.release)                  // clean up (device data)
+  struct Test_U_V4L2_MessageData& message_data_r =
+    const_cast<struct Test_U_V4L2_MessageData&> (inherited::data_.getR ());
+  if ((reference_count > 1)                 || // not the last reference
+      (message_data_r.fileDescriptor == -1) || // not a device data buffer (-clone)
+      message_data_r.release)                  // clean up (device data)
     return inherited::release ();
 
   // sanity check(s)
@@ -170,10 +172,10 @@ Test_U_Message::release (void)
   //requeue:
   struct v4l2_buffer buffer_s;
   ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
-  buffer_s.index = inherited::data_.index;
+  buffer_s.index = message_data_r.index;
   buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer_s.memory = inherited::data_.method;
-  switch (inherited::data_.method)
+  buffer_s.memory = message_data_r.method;
+  switch (message_data_r.method)
   {
     case V4L2_MEMORY_USERPTR:
     {
@@ -190,7 +192,7 @@ Test_U_Message::release (void)
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("invalid/unknown method (was: %d), returning\n"),
-                  inherited::data_.method));
+                  message_data_r.method));
       return NULL;
     }
   } // end SWITCH
@@ -201,13 +203,13 @@ Test_U_Message::release (void)
   //         the driver
   //         --> maintain a mapping: buffer index <--> buffer handle
   //        buffer.reserved = reinterpret_cast<unsigned long> (message_block_p);
-  int result = v4l2_ioctl (inherited::data_.fileDescriptor,
+  int result = v4l2_ioctl (message_data_r.fileDescriptor,
                            VIDIOC_QBUF,
                            &buffer_s);
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                inherited::data_.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
+                message_data_r.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
 
   return NULL;
 }

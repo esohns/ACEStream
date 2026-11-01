@@ -27,6 +27,8 @@
 
 #include "stream_task_base_synch.h"
 
+#include "stream_dec_mpeg_ts_common.h"
+
 extern const char libacestream_default_dec_mpeg_ts_module_name_string[];
 
 // forward declaration(s)

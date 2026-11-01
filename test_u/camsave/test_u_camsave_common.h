@@ -238,12 +238,15 @@ struct Stream_CamSave_LibCamera_MessageData
    , stream (NULL)
   {}
 
+  inline struct Stream_CamSave_LibCamera_MessageData& operator+= (const struct Stream_CamSave_LibCamera_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   libcamera::FrameBuffer* buffer;
   libcamera::Camera*      camera;
   bool                    release;
   libcamera::Request*     request;
   libcamera::Stream*      stream;
 };
+typedef Stream_DataBase_T<struct Stream_CamSave_LibCamera_MessageData> Stream_CamSave_LibCamera_MessageData_t;
 #endif // LIBCAMERA_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
@@ -479,7 +482,7 @@ typedef Stream_CamSave_Message_T<Stream_CamSave_V4L_MessageData_t,
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_V4L_Message_t,
                                         Stream_CamSave_V4L_SessionData_t> Stream_CamSave_V4L_SessionMessage_t;
 #if defined (LIBCAMERA_SUPPORT)
-typedef Stream_CamSave_LibCamera_Message_T<struct Stream_CamSave_LibCamera_MessageData,
+typedef Stream_CamSave_LibCamera_Message_T<Stream_CamSave_LibCamera_MessageData_t,
                                            Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_Message_t;
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_LibCamera_Message_t,
                                         Stream_CamSave_LibCamera_SessionData_t> Stream_CamSave_LibCamera_SessionMessage_t;
