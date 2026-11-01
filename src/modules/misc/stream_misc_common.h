@@ -48,6 +48,9 @@ enum Stream_Miscellaneous_DelayModeType
   STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER, // support isochronicity (timer-based)
   STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_BYTES, // support isochronicity (timer-based)
   ////////////////////////////////////////
+  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_DTS, // scheduler: DTS
+  STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_PTS, // scheduler: PTS
+  ////////////////////////////////////////
   STREAM_MISCELLANEOUS_DELAY_MODE_MAX,
   STREAM_MISCELLANEOUS_DELAY_MODE_INVALID = -1
 };

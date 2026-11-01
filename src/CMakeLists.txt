@@ -34,8 +34,8 @@ endif ()
 add_library (${PROJECT_NAME} STATIC "")
 
 if (UNIX)
- target_link_options (${PROJECT_NAME} PUBLIC
-                      "LINKER:--as-needed")
+# target_link_options (${PROJECT_NAME} PUBLIC
+#                      "LINKER:--as-needed")
 endif (UNIX)
 
 if (TREE_HH_SUPPORT)

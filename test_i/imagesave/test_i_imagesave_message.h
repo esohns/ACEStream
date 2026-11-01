@@ -28,6 +28,8 @@
 #include "stream_common.h"
 #include "stream_data_message_base.h"
 
+#include "stream_dec_mpeg_ts_common.h"
+
 #include "stream_lib_imediatype.h"
 
 #include "test_i_common.h"
@@ -46,13 +48,28 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
+// ---------------------------------------
+
+struct Test_I_ImageSave_MessageData
+{
+  Test_I_ImageSave_MessageData ()
+   : timeStamps ()
+  {}
+
+  inline void operator+= (const Test_I_ImageSave_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); }
+
+  struct Stream_Decoder_MPEG_TS_Timestamps timeStamps;
+};
+
+// ---------------------------------------
+
 class Test_I_Message
- : public Stream_DataMessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+ : public Stream_DataMessageBase_T<Stream_DataBase_T<struct Test_I_ImageSave_MessageData>,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
  , public Stream_IMediaType
 {
-  typedef Stream_DataMessageBase_T<Stream_DataBase_T<Stream_CommandType_t>,
+  typedef Stream_DataMessageBase_T<Stream_DataBase_T<struct Test_I_ImageSave_MessageData>,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 

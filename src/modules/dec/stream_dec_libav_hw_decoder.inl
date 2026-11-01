@@ -250,6 +250,9 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
   uint8_t* data_p = NULL;
   size_t data_size_i = 0;
   bool abort_session_on_error = true;
+  typename DataMessageType::DATA_T* data_container_p = NULL;
+  if (message_inout->isInitialized ())
+    data_container_p = &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   // *NOTE*: ffmpeg processes data in 'chunks' and supports/requires memory
   //         alignment, as well as 'padding' bytes.
@@ -327,8 +330,15 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
         continue;
 
       // forward the decoded frame
-      message_p->initialize (message_inout->sessionId (),
+      if (message_inout->isInitialized ())
+      { ACE_ASSERT (data_container_p);
+        data_container_p->increase ();
+      } // end IF
+      message_p->initialize (data_container_p,
+                             message_inout->sessionId (),
                              NULL);
+      //message_p->initialize (message_inout->sessionId (),
+      //                       NULL);
       message_p->set (message_inout->type ());
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))

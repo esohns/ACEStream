@@ -46,7 +46,7 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Stream_AVSave_SessionMessage_T;
 
-template <typename DataType>
+template <typename DataType> // must be reference-counted !
 class Test_I_Message_T
  : public Stream_DataMessageBase_T<DataType,
                                    enum Stream_MessageType,

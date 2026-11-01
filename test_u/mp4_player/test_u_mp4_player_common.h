@@ -229,11 +229,11 @@ typedef Stream_SessionData_T<Test_U_MP4Player_SessionData> Test_U_MP4Player_Sess
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Test_U_Message_T<struct Test_U_DirectShow_MessageData,
+typedef Test_U_Message_T<Test_U_DirectShow_MessageData_t,
                          Test_U_MP4Player_DirectShow_SessionData_t> Test_U_DirectShow_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_DirectShow_Message_t,
                                 Test_U_MP4Player_DirectShow_SessionData_t> Test_U_DirectShow_SessionMessage_t;
-typedef Test_U_Message_T<struct Test_U_MediaFoundation_MessageData,
+typedef Test_U_Message_T<Test_U_MediaFoundation_MessageData_t,
                          Test_U_MP4Player_MediaFoundation_SessionData_t> Test_U_MediaFoundation_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_MediaFoundation_Message_t,
                                 Test_U_MP4Player_MediaFoundation_SessionData_t> Test_U_MediaFoundation_SessionMessage_t;
@@ -252,7 +252,7 @@ typedef Stream_ISessionDataNotify_T<Test_U_MP4Player_MediaFoundation_SessionData
 typedef std::list<Test_U_MediaFoundation_ISessionNotify_t*> Test_U_MediaFoundation_Subscribers_t;
 typedef Test_U_MediaFoundation_Subscribers_t::iterator Test_U_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_U_Message_T<struct Test_U_V4L2_MessageData,
+typedef Test_U_Message_T<Test_U_V4L2_MessageData_t,
                          Test_U_MP4Player_SessionData_t> Test_U_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_Message_t,
                                 Test_U_MP4Player_SessionData_t> Test_U_SessionMessage_t;

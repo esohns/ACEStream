@@ -3,9 +3,25 @@
 
 #include <cstdint>
 
-#include "ace/config-lite.h"
+#include "ace/Basic_Types.h"
 
 // ---------------------------------------
+
+struct Stream_Decoder_MPEG_TS_Timestamps
+{
+  Stream_Decoder_MPEG_TS_Timestamps ()
+   : PCR (0)
+   , DTS (0)
+   , PTS (0)
+  {}
+
+  ACE_UINT64 PCR; // program clock reference
+  ACE_INT64  DTS; // decoding timestamp
+  ACE_INT64  PTS; // presentation timestamp
+};
+
+// ---------------------------------------
+
 // MPEG-2 Transport Stream
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 __pragma (pack (push, 1))

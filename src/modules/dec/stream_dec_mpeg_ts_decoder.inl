@@ -51,6 +51,8 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
  , streams_ ()
  , audioStreamPacketId_ (0)
  , videoStreamPacketId_ (0)
+ , audioTimeStamps_ ()
+ , videoTimeStamps_ ()
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MPEG_TS_Decoder_T::Stream_Decoder_MPEG_TS_Decoder_T"));
 
@@ -109,6 +111,9 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
     streams_.clear ();
     audioStreamPacketId_ = 0;
     videoStreamPacketId_ = 0;
+
+    ACE_OS::memset (&audioTimeStamps_, 0, sizeof (struct Stream_Decoder_MPEG_TS_Timestamps));
+    ACE_OS::memset (&videoTimeStamps_, 0, sizeof (struct Stream_Decoder_MPEG_TS_Timestamps));
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -231,11 +236,20 @@ sync:
     if (unlikely (packet_identifier == 0x1FFF)) // 8191: ignore NULL-packets
       goto continue_;
       
-    // skip over adaptation field(s), if any
+    // skip over (optional) adaptation field(s)
     if (packet_header_p->adaptation_field_control & 2)
     {
       struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader* adaptation_field_control_p =
         reinterpret_cast<struct Stream_Decoder_MPEG_TS_AdaptationFieldControlHeader*> (buffer_->rd_ptr ());
+
+      if (adaptation_field_control_p->pcr_flag)
+      { ACE_ASSERT (adaptation_field_control_p->adaptation_field_length >= 1 + 6);
+        if (packet_identifier && packet_identifier == audioStreamPacketId_)
+          audioTimeStamps_.PCR = parsePCR (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + 2);
+        else if (packet_identifier)
+          videoTimeStamps_.PCR = parsePCR (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + 2);
+      } // end IF
+
       buffer_->rd_ptr (adaptation_field_control_p->adaptation_field_length + 1);
       already_skipped_bytes +=
         (adaptation_field_control_p->adaptation_field_length + 1);
@@ -284,6 +298,22 @@ parse_psi:
         {
           struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader* optional_pes_header_p =
             reinterpret_cast<struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader*> (buffer_->rd_ptr ());
+
+          if (optional_pes_header_p->pts_dts_indicator & 2) // PTS and/or DTS present ?
+          { ACE_ASSERT (optional_pes_header_p->pes_header_length >= 5);
+            if (packet_identifier && packet_identifier == audioStreamPacketId_)
+              audioTimeStamps_.PTS = parsePESTimestamp (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader));
+            else if (packet_identifier)
+              videoTimeStamps_.PTS = parsePESTimestamp (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader));
+            if (optional_pes_header_p->pts_dts_indicator == 0x03)
+            { ACE_ASSERT (optional_pes_header_p->pes_header_length >= 10);
+              if (packet_identifier && packet_identifier == audioStreamPacketId_)
+                audioTimeStamps_.DTS = parsePESTimestamp (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader) + 5);
+              else if (packet_identifier)
+                videoTimeStamps_.DTS = parsePESTimestamp (reinterpret_cast<ACE_UINT8*> (buffer_->rd_ptr ()) + sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader) + 5);
+            } // end IF
+          } // end IF
+
           buffer_->rd_ptr (sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader));
           already_skipped_bytes +=
             sizeof (struct Stream_Decoder_MPEG_TS_PacketizedElementaryStreamOptionalHeader);
@@ -318,8 +348,17 @@ parse_psi:
       message_block_p->cont (NULL);
     } // end IF
 
-    // tag the message so the splitter knows what to do
     message_p = static_cast<DataMessageType*> (message_block_p);
+    
+    // set timestamp(s)
+    typename DataMessageType::DATA_T& message_data_container_r =
+      const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+    typename DataMessageType::DATA_T::DATA_T& message_data_r =
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+    message_data_r.timeStamps =
+      (packet_identifier == audioStreamPacketId_) ? audioTimeStamps_ : videoTimeStamps_;
+    
+    // tag the message so the splitter knows what to do
     message_p->setMediaType ((packet_identifier == audioStreamPacketId_) ? STREAM_MEDIATYPE_AUDIO
                                                                          : STREAM_MEDIATYPE_VIDEO);
 
@@ -557,4 +596,67 @@ Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
       break;
     }
   } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+ACE_UINT64
+Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType>::parsePCR (const ACE_UINT8* data_in)
+{
+  //STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MPEG_TS_Decoder_T::parsePCR"));
+
+  // sanity check(s)
+  ACE_ASSERT (data_in);
+
+  ACE_UINT64 pcr_base = 0;
+  pcr_base |= ((ACE_UINT64)data_in[0] << 25);
+  pcr_base |= ((ACE_UINT64)data_in[1] << 17);
+  pcr_base |= ((ACE_UINT64)data_in[2] << 9);
+  pcr_base |= ((ACE_UINT64)data_in[3] << 1);
+  pcr_base |= ((ACE_UINT64)data_in[4] >> 7);
+
+  ACE_UINT16 pcr_ext = ((ACE_UINT16)(data_in[4] & 0x01) << 8) | data_in[5];
+
+  ACE_UINT64 pcr = (pcr_base * 300) + pcr_ext;
+  return pcr;
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename SessionDataContainerType>
+ACE_INT64
+Stream_Decoder_MPEG_TS_Decoder_T<ACE_SYNCH_USE,
+                                 TimePolicyType,
+                                 ConfigurationType,
+                                 ControlMessageType,
+                                 DataMessageType,
+                                 SessionMessageType,
+                                 SessionDataContainerType>::parsePESTimestamp (const ACE_UINT8* data_in)
+{
+  // STREAM_TRACE (ACE_TEXT ("Stream_Decoder_MPEG_TS_Decoder_T::parsePESTimestamp"));
+
+  ACE_INT64 ts = 0;
+  // Extract bits according to MPEG-2 System specifications (ISO/IEC 13818-1)
+  ts |= ((ACE_INT64)(data_in[0] & 0x0E) << 29); // 3 bits
+  ts |= ((ACE_INT64)data_in[1] << 22);          // 8 bits
+  ts |= ((ACE_INT64)(data_in[2] & 0xFE) << 14); // 7 bits
+  ts |= ((ACE_INT64)data_in[3] << 7);           // 8 bits
+  ts |= ((ACE_INT64)(data_in[4] >> 1));         // 7 bits
+
+  return ts;
 }

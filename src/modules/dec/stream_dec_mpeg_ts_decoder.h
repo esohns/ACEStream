@@ -86,22 +86,26 @@ class Stream_Decoder_MPEG_TS_Decoder_T
   // helper methods
   void parsePSI (ACE_Message_Block*, // data pointer
                  unsigned int&);     // inout: skipped bytes
+  ACE_UINT64 parsePCR (const ACE_UINT8*); // data pointer
+  ACE_INT64 parsePESTimestamp (const ACE_UINT8*);  // data pointer
 
   // helper types
-  typedef std::map<unsigned short, unsigned short> PROGRAMNUM_TO_PMTPACKETID_T;
+  typedef std::map<ACE_UINT16, ACE_UINT16> PROGRAMNUM_TO_PMTPACKETID_T;
   typedef PROGRAMNUM_TO_PMTPACKETID_T::const_iterator PROGRAMNUM_TO_PMTPACKETID_ITERATOR_T;
-  typedef std::map<unsigned short, unsigned short> STREAMTYPE_TO_PACKETID_T;
+  typedef std::map<ACE_UINT16, ACE_UINT16> STREAMTYPE_TO_PACKETID_T;
   typedef STREAMTYPE_TO_PACKETID_T::const_iterator STREAMTYPE_TO_PACKETID_ITERATOR_T;
 
-  DataMessageType*            buffer_;
-  unsigned int                missingPESBytes_;
-  bool                        isParsingPSI_; // program-specific information
-  unsigned int                missingPSIBytes_;
-  unsigned int                programPMTPacketId_;
-  PROGRAMNUM_TO_PMTPACKETID_T programs_;
-  STREAMTYPE_TO_PACKETID_T    streams_;
-  unsigned int                audioStreamPacketId_;
-  unsigned int                videoStreamPacketId_;
+  DataMessageType*                         buffer_;
+  unsigned int                             missingPESBytes_;
+  bool                                     isParsingPSI_; // program-specific information
+  unsigned int                             missingPSIBytes_;
+  ACE_UINT16                               programPMTPacketId_;
+  PROGRAMNUM_TO_PMTPACKETID_T              programs_;
+  STREAMTYPE_TO_PACKETID_T                 streams_;
+  ACE_UINT16                               audioStreamPacketId_;
+  ACE_UINT16                               videoStreamPacketId_;
+  struct Stream_Decoder_MPEG_TS_Timestamps audioTimeStamps_;
+  struct Stream_Decoder_MPEG_TS_Timestamps videoTimeStamps_;
 };
 
 // include template definition

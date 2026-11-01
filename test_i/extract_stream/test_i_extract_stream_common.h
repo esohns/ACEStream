@@ -127,10 +127,7 @@ typedef Stream_SessionData_T<Test_I_ExtractStream_SessionData> Test_I_ExtractStr
 
 template <typename DataType>
 class Test_I_Message_T;
-//template <typename DataMessageType,
-//          typename SessionDataType>
-//class Test_I_ExtractStream_SessionMessage_T;
-typedef Test_I_Message_T<struct Test_I_MessageData> Test_I_Message_t;
+typedef Test_I_Message_T<Stream_DataBase_T<struct Test_I_MessageData> > Test_I_Message_t;
 typedef Test_I_SessionMessage_T<Test_I_Message_t,
                                 Test_I_ExtractStream_SessionData_t> Test_I_SessionMessage_t;
 

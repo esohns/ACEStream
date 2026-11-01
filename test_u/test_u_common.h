@@ -83,6 +83,8 @@ struct Test_U_DirectShow_MessageData
    , sampleTime (0)
   {}
 
+  inline struct Test_U_DirectShow_MessageData& operator+= (const struct Test_U_DirectShow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   IMediaSample* sample;
   double        sampleTime;
 };
@@ -94,6 +96,8 @@ struct Test_U_MediaFoundation_MessageData
    : sample (NULL)
    , sampleTime (0)
   {}
+
+  inline struct Test_U_MediaFoundation_MessageData& operator+= (const struct Test_U_MediaFoundation_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -108,6 +112,8 @@ struct Test_U_V4L2_MessageData
    , method (STREAM_LIB_V4L_DEFAULT_IO_METHOD)
    , release (false)
   {}
+
+  inline struct Test_U_V4L2_MessageData& operator+= (const struct Test_U_V4L2_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 
   int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer

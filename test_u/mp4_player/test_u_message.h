@@ -45,7 +45,7 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Test_U_SessionMessage_T;
 
-template <typename DataType,
+template <typename DataType,        // must be reference-counted !
           typename SessionDataType> // derives off Stream_SessionData_T
 class Test_U_Message_T
  : public Stream_DataMessageBase_T<DataType,

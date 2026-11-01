@@ -9,34 +9,32 @@ endif (UNIX)
 
 add_library (${PROJECT_NAME}_Miscellaneous STATIC "")
 
-if (UNIX)
- if (FFMPEG_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
- endif (FFMPEG_SUPPORT)
+if (FFMPEG_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             $<BUILD_INTERFACE:${ffmpeg_INCLUDE_DIRS}>)
+endif (FFMPEG_SUPPORT)
 
- if (GTK_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
-  if (GTKGL_SUPPORT)
-   if (GTKGLAREA_SUPPORT)
+if (GTK_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             "$<BUILD_INTERFACE:${GTK_INCLUDE_DIRS}>")
+ if (GTKGL_SUPPORT)
+  if (GTKGLAREA_SUPPORT)
 # *NOTE*: check out the 'master' branch for gtk3-based applications
 # *NOTE*: check out the 'gtkglarea-2' branch for gtk2-based applications
 # *TODO*: verify and set automatically
-    target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                                $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
-   endif (GTKGLAREA_SUPPORT)
-  endif (GTKGL_SUPPORT)
- endif (GTK_SUPPORT)
- if (QT_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              "$<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>")
- endif (QT_SUPPORT)
- if (WXWIDGETS_SUPPORT)
-  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
-                              "$<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>")
- endif (WXWIDGETS_SUPPORT)
-endif (UNIX)
+   target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                               $<BUILD_INTERFACE:$ENV{LIB_ROOT}/gtkglarea>)
+  endif (GTKGLAREA_SUPPORT)
+ endif (GTKGL_SUPPORT)
+endif (GTK_SUPPORT)
+if (QT_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             "$<BUILD_INTERFACE:${QT_INCLUDE_DIRS}>")
+endif (QT_SUPPORT)
+if (WXWIDGETS_SUPPORT)
+ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                             "$<BUILD_INTERFACE:${wxWidgets_INCLUDE_DIRS}>")
+endif (WXWIDGETS_SUPPORT)
 
 if (UNIX)
  target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
@@ -82,6 +80,8 @@ target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/../../..>)
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>)
+target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../dec>)
 target_include_directories (${PROJECT_NAME}_Miscellaneous PUBLIC
                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../file>)
 
@@ -131,6 +131,9 @@ set (source_files
      stream_misc_queue_target.cpp
      stream_misc_queue_target.h
      stream_misc_queue_target.inl
+     stream_misc_scheduler.cpp
+     stream_misc_scheduler.h
+     stream_misc_scheduler.inl
      stream_misc_splitter.cpp
      stream_misc_splitter.h
      stream_misc_splitter.inl
@@ -138,21 +141,18 @@ set (source_files
      stream_misc_window_source.h
      stream_misc_window_source.inl)
 
-# Include dir for installed targets
-#set (INCLUDE_DIR include/${PROJECT_NAME}-${upstream_version})
-
 unset (absolute_source_files)
 foreach (source_file ${source_files})
  get_filename_component (abs_source_file ${source_file} ABSOLUTE)
  list (APPEND absolute_source_files
        PRIVATE ${abs_source_file}
       )
-#       $<INSTALL_INTERFACE:${INCLUDE_DIR}/${source_file}>)
 endforeach ()
 target_sources (${PROJECT_NAME}_Miscellaneous
 #                PRIVATE stdafx.cpp
                 PRIVATE stdafx.h
                 PRIVATE ${absolute_source_files})
+
 target_precompile_headers (${PROJECT_NAME}_Miscellaneous
                            PUBLIC stdafx.h)
 
@@ -161,11 +161,9 @@ set_property (TARGET ${PROJECT_NAME}_Miscellaneous PROPERTY FOLDER "modules")
 add_dependencies (${PROJECT_NAME}_Miscellaneous Common)
 add_dependencies (${PROJECT_NAME}_Miscellaneous ${PROJECT_NAME})
 
-if (UNIX)
- if (FFMPEG_SUPPORT)
-  target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ffmpeg_LIBRARIES})
- endif (FFMPEG_SUPPORT)
-endif (UNIX)
+if (FFMPEG_SUPPORT)
+ target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ffmpeg_LIBRARIES})
+endif (FFMPEG_SUPPORT)
 
 target_link_libraries (${PROJECT_NAME}_Miscellaneous PUBLIC ${ACE_LIBRARY})
 
@@ -209,6 +207,8 @@ install (FILES
          stream_misc_queue_source.inl
          stream_misc_queue_target.h
          stream_misc_queue_target.inl
+         stream_misc_scheduler.h
+         stream_misc_scheduler.inl
          stream_misc_splitter.h
          stream_misc_splitter.inl
          stream_misc_window_source.h
