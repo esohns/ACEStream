@@ -124,10 +124,12 @@ Test_U_AudioEffect_DirectShow_Message::duplicate (void) const
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
   // increase reference count
-  if (message_p->data_.sample)
-    message_p->data_.sample->AddRef ();
+  struct Test_U_AudioEffect_DirectShow_MessageData& message_data_r =
+    const_cast<struct Test_U_AudioEffect_DirectShow_MessageData&> (inherited::data_.getR ());
+  if (message_data_r.sample)
+    message_data_r.sample->AddRef ();
   // reset data index
-  message_p->data_.index = -1;
+  message_data_r.index = -1;
 
   return message_p;
 }
@@ -144,9 +146,11 @@ Test_U_AudioEffect_DirectShow_Message::release (void)
   } // end IF
 
   // DirectShow buffer ?
-  if (inherited::data_.sample)
+  struct Test_U_AudioEffect_DirectShow_MessageData& message_data_r =
+    const_cast<struct Test_U_AudioEffect_DirectShow_MessageData&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 
   return inherited::release ();
@@ -207,10 +211,11 @@ Test_U_AudioEffect_MediaFoundation_Message::~Test_U_AudioEffect_MediaFoundation_
   STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::~Test_U_AudioEffect_MediaFoundation_Message"));
 
   // release media sample ?
-  if (inherited::data_.sample)
+  struct Test_U_AudioEffect_MediaFoundation_MessageData& message_data_r =
+    const_cast<struct Test_U_AudioEffect_MediaFoundation_MessageData&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release ();
-    inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 }
 
@@ -264,17 +269,6 @@ Test_U_AudioEffect_MediaFoundation_Message::duplicate (void) const
 
   return message_p;
 }
-
-//const Stream_HeaderType_t&
-//Test_U_AudioEffect_MediaFoundation_Message::get () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_U_AudioEffect_MediaFoundation_Message::get"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP_RETURN (-1);
-//
-//  ACE_NOTREACHED (return -1;)
-//}
 
 std::string
 Test_U_AudioEffect_MediaFoundation_Message::CommandTypeToString (Stream_CommandType_t command_in)

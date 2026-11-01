@@ -88,9 +88,11 @@ Stream_CamSave_Message_T<DataType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // release media sample ?
-  if (inherited::data_.sample)
+  typename OWN_TYPE_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename OWN_TYPE_T::DATA_T::DATA_T&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 }

@@ -56,7 +56,7 @@ struct Test_I_SpeechCommand_DirectShow_MessageData
 
   Stream_Decoder_STT_Result_t STTResult;
 };
-//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData> Test_I_SpeechCommand_DirectShow_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData> Test_I_SpeechCommand_DirectShow_MessageData_t;
 
 struct Test_I_SpeechCommand_MediaFoundation_MessageData
  : Test_I_MediaFoundation_MessageData
@@ -72,7 +72,7 @@ struct Test_I_SpeechCommand_MediaFoundation_MessageData
 
   Stream_Decoder_STT_Result_t STTResult;
 };
-//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData> Test_I_SpeechCommand_MediaFoundation_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData> Test_I_SpeechCommand_MediaFoundation_MessageData_t;
 #else
 struct Test_I_SpeechCommand_ALSA_MessageData
  : Test_I_ALSA_MessageData
@@ -84,18 +84,18 @@ struct Test_I_SpeechCommand_ALSA_MessageData
 
   Stream_Decoder_STT_Result_t STTResult;
 };
-//typedef Stream_DataBase_T<struct Test_I_SpeechCommand_ALSA_MessageData> Test_I_SpeechCommand_ALSA_MessageData_t;
+typedef Stream_DataBase_T<struct Test_I_SpeechCommand_ALSA_MessageData> Test_I_SpeechCommand_ALSA_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 //////////////////////////////////////////
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_DirectShow_Message
- : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_SpeechCommand_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_DirectShow_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_SpeechCommand_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    int> inherited;
 
@@ -141,11 +141,11 @@ class Test_I_DirectShow_Message
 };
 
 class Test_I_MediaFoundation_Message
- : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_SpeechCommand_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_MediaFoundation_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_SpeechCommand_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    int> inherited;
 
@@ -191,11 +191,11 @@ class Test_I_MediaFoundation_Message
 };
 #else
 class Test_I_Message
- : public Stream_DataMessageBase_T<struct Test_I_SpeechCommand_ALSA_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_SpeechCommand_ALSA_MessageData_t,
                                    enum Stream_MessageType,
                                    int>
 {
-  typedef Stream_DataMessageBase_T<struct Test_I_SpeechCommand_ALSA_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_SpeechCommand_ALSA_MessageData_t,
                                    enum Stream_MessageType,
                                    int> inherited;
 

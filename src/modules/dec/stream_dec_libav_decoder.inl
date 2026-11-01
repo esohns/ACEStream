@@ -236,6 +236,9 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p = NULL;
   size_t data_size_i = 0;
+  typename DataMessageType::DATA_T* data_container_p = NULL;
+  if (message_inout->isInitialized ())
+    data_container_p = &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   if (unlikely (isFirst_ && inherited::configuration_->codecConfiguration->delayOpen))
   { isFirst_ = false;
@@ -359,7 +362,12 @@ Stream_Decoder_LibAVDecoder_T<ACE_SYNCH_USE,
         continue;
 
       // forward the decoded frame
-      message_p->initialize (message_inout->sessionId (),
+      if (message_inout->isInitialized ())
+      { ACE_ASSERT (data_container_p);
+        data_container_p->increase ();
+      } // end IF
+      message_p->initialize (data_container_p,
+                             message_inout->sessionId (),
                              NULL);
       message_p->setMediaType (message_inout->getMediaType ());
       result = inherited::put_next (message_p, NULL);

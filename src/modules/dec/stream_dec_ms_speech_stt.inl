@@ -535,9 +535,11 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
               goto error;
             } // end IF
 
-            typename DataMessageType::DATA_T& data_r =
+            typename DataMessageType::DATA_T& message_data_container_r =
               const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-            data_r.STTResult.push_back (std::make_pair (text_string, 0.0f));
+            typename DataMessageType::DATA_T::DATA_T& message_data_r =
+              const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+            message_data_r.STTResult.push_back (std::make_pair (text_string, 0.0f));
  
             result = message_p->copy (text_string.c_str (),
                                       text_string.size ());
@@ -551,9 +553,11 @@ Stream_Decoder_SAPI_STT_T<ACE_SYNCH_USE,
               spEvent.Clear ();
               goto error;
             } // end IF
-            message_p->initialize (sessionId_, NULL);
+            message_p->initialize (sessionId_,
+                                   NULL);
 
-            result = inherited::put_next (message_p, NULL);
+            result = inherited::put_next (message_p,
+                                          NULL);
             if (unlikely (result == -1))
             {
               ACE_DEBUG ((LM_ERROR,

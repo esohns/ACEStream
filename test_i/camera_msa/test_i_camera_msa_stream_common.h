@@ -236,11 +236,11 @@ typedef Stream_SessionData_T<Test_I_CameraMSA_V4L_SessionData> Test_I_CameraMSA_
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Test_I_Message_T<struct Test_I_DirectShow_MessageData,
+typedef Test_I_Message_T<Test_I_DirectShow_MessageData_t,
                          Test_I_CameraMSA_DirectShow_SessionData_t> Test_I_DirectShow_Message_t;
 typedef Test_I_SessionMessage_T<Test_I_DirectShow_Message_t,
                                 Test_I_CameraMSA_DirectShow_SessionData_t> Test_I_DirectShow_SessionMessage_t;
-typedef Test_I_Message_T<struct Test_I_MediaFoundation_MessageData,
+typedef Test_I_Message_T<Test_I_MediaFoundation_MessageData_t,
                          Test_I_CameraMSA_MediaFoundation_SessionData_t> Test_I_MediaFoundation_Message_t;
 typedef Test_I_SessionMessage_T<Test_I_MediaFoundation_Message_t,
                                 Test_I_CameraMSA_MediaFoundation_SessionData_t> Test_I_MediaFoundation_SessionMessage_t;
@@ -259,7 +259,7 @@ typedef Stream_ISessionDataNotify_T<Test_I_CameraMSA_MediaFoundation_SessionData
 typedef std::list<Test_I_MediaFoundation_ISessionNotify_t*> Test_I_MediaFoundation_Subscribers_t;
 typedef Test_I_MediaFoundation_Subscribers_t::iterator Test_I_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_I_Message_T<struct Test_I_V4L_MessageData,
+typedef Test_I_Message_T<Test_I_V4L_MessageData_t,
                          Test_I_CameraMSA_V4L_SessionData_t> Test_I_Message_t;
 typedef Test_I_SessionMessage_T<Test_I_Message_t,
                                 Test_I_CameraMSA_V4L_SessionData_t> Test_I_SessionMessage_t;

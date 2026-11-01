@@ -46,11 +46,11 @@ class Stream_MessageAllocatorHeapBase_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_AudioEffect_DirectShow_Message
- : public Stream_DataMessageBase_T<struct Test_U_AudioEffect_DirectShow_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_AudioEffect_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_AudioEffect_DirectShow_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_AudioEffect_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 
@@ -99,11 +99,11 @@ class Test_U_AudioEffect_DirectShow_Message
 //////////////////////////////////////////
 
 class Test_U_AudioEffect_MediaFoundation_Message
- : public Stream_DataMessageBase_T<struct Test_U_AudioEffect_MediaFoundation_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_AudioEffect_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_AudioEffect_MediaFoundation_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_AudioEffect_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 
@@ -148,11 +148,11 @@ class Test_U_AudioEffect_MediaFoundation_Message
 };
 #else
 class Test_U_AudioEffect_Message
- : public Stream_MessageBase_T<Stream_CommandType_t,
+ : public Stream_MessageBase_T<Test_U_AudioEffect_MessageData_t,
                                enum Stream_MessageType,
                                Stream_CommandType_t>
 {
-  typedef Stream_MessageBase_T<Stream_CommandType_t,
+  typedef Stream_MessageBase_T<Test_U_AudioEffect_MessageData_t,
                                enum Stream_MessageType,
                                Stream_CommandType_t> inherited;
 

@@ -187,12 +187,15 @@ struct Test_U_MicVisualize_DirectShow_MessageData
    , index (-1)
   {}
 
+  inline struct Test_U_MicVisualize_DirectShow_MessageData& operator+= (const struct Test_U_MicVisualize_DirectShow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   // DirectShow
   IMediaSample*                sample;
   double                       sampleTime;
   // WaveIn
   unsigned int                 index;
 };
+typedef Stream_DataBase_T<struct Test_U_MicVisualize_DirectShow_MessageData> Test_U_MicVisualize_DirectShow_MessageData_t;
 
 struct Test_U_MicVisualize_MediaFoundation_MessageData
 {
@@ -202,12 +205,15 @@ struct Test_U_MicVisualize_MediaFoundation_MessageData
    , index (-1)
   {}
 
+  inline struct Test_U_MicVisualize_MediaFoundation_MessageData& operator+= (const struct Test_U_MicVisualize_MediaFoundation_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   // Media Foundation
   IMFSample*   sample;
   LONGLONG     sampleTime;
   // WaveIn
   unsigned int index;
 };
+typedef Stream_DataBase_T<struct Test_U_MicVisualize_MediaFoundation_MessageData> Test_U_MicVisualize_MediaFoundation_MessageData_t;
 #else
 struct Test_U_MicVisualize_MessageData
 {
@@ -216,9 +222,12 @@ struct Test_U_MicVisualize_MessageData
    , release (false)
   {}
 
+  inline struct Test_U_MicVisualize_MessageData& operator+= (const struct Test_U_MicVisualize_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   struct _snd_pcm* deviceHandle; // (capture) device handle
   bool             release;
 };
+typedef Stream_DataBase_T<struct Test_U_MicVisualize_MessageData> Test_U_MicVisualize_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Test_U_MicVisualize_Statistic

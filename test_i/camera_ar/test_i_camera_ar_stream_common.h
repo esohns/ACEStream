@@ -52,6 +52,8 @@ struct Stream_CameraAR_DirectShow_MessageData
    , sampleTime (0)
   {}
 
+  inline struct Stream_CameraAR_DirectShow_MessageData& operator+= (const struct Stream_CameraAR_DirectShow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   IMediaSample* sample;
   double        sampleTime;
 };
@@ -63,6 +65,8 @@ struct Stream_CameraAR_MediaFoundation_MessageData
    : sample (NULL)
    , sampleTime (0)
   {}
+
+  inline struct Stream_CameraAR_MediaFoundation_MessageData& operator+= (const struct Stream_CameraAR_MediaFoundation_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -78,11 +82,14 @@ struct Stream_CameraAR_MessageData
    , release (false)
   {}
 
+  inline struct Stream_CameraAR_MessageData& operator+= (const struct Stream_CameraAR_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   int              fileDescriptor; // (capture) device file descriptor
   __u32            index;  // 'index' field of v4l2_buffer
   enum v4l2_memory method;
   bool             release;
 };
+typedef Stream_DataBase_T<struct Stream_CameraAR_MessageData> Stream_CameraAR_MessageData_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_CameraAR_StatisticData
@@ -264,11 +271,11 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Stream_CameraAR_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_CameraAR_Message_T<struct Stream_CameraAR_DirectShow_MessageData,
+typedef Stream_CameraAR_Message_T<Stream_CameraAR_DirectShow_MessageData_t,
                                   Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_Message_t;
 typedef Stream_CameraAR_SessionMessage_T<Stream_CameraAR_DirectShow_Message_t,
                                          Stream_CameraAR_DirectShow_SessionData_t> Stream_CameraAR_DirectShow_SessionMessage_t;
-typedef Stream_CameraAR_Message_T<struct Stream_CameraAR_MediaFoundation_MessageData,
+typedef Stream_CameraAR_Message_T<Stream_CameraAR_MediaFoundation_MessageData_t,
                                   Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_Message_t;
 typedef Stream_CameraAR_SessionMessage_T<Stream_CameraAR_MediaFoundation_Message_t,
                                          Stream_CameraAR_MediaFoundation_SessionData_t> Stream_CameraAR_MediaFoundation_SessionMessage_t;
@@ -287,10 +294,10 @@ typedef Stream_ISessionDataNotify_T<Stream_CameraAR_MediaFoundation_SessionData,
 typedef std::list<Stream_CameraAR_MediaFoundation_ISessionNotify_t*> Stream_CameraAR_MediaFoundation_Subscribers_t;
 typedef Stream_CameraAR_MediaFoundation_Subscribers_t::iterator Stream_CameraAR_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Stream_CameraAR_Message_T<struct Stream_CameraAR_MessageData,
-                                      Stream_CameraAR_V4L_SessionData_t> Stream_CameraAR_Message_t;
+typedef Stream_CameraAR_Message_T<Stream_CameraAR_MessageData_t,
+                                  Stream_CameraAR_V4L_SessionData_t> Stream_CameraAR_Message_t;
 typedef Stream_CameraAR_SessionMessage_T<Stream_CameraAR_Message_t,
-                                             Stream_CameraAR_V4L_SessionData_t> Stream_CameraAR_SessionMessage_t;
+                                         Stream_CameraAR_V4L_SessionData_t> Stream_CameraAR_SessionMessage_t;
 
 typedef Stream_ISessionDataNotify_T<Stream_CameraAR_V4L_SessionData,
                                     enum Stream_SessionMessageType,

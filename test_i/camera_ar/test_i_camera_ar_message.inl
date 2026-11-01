@@ -88,9 +88,11 @@ Stream_CameraAR_Message_T<DataType,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // release media sample ?
-  if (inherited::data_.sample)
+  typename OWN_TYPE_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename OWN_TYPE_T::DATA_T::DATA_T&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 }
@@ -149,9 +151,12 @@ Stream_CameraAR_Message_T<DataType,
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  DataType& data_r = const_cast<DataType&> (message_p->getR ());
-  if (data_r.sample)
-    data_r.sample->AddRef ();
+  typename OWN_TYPE_T::DATA_T& message_data_container_r =
+    const_cast<typename OWN_TYPE_T::DATA_T&> (message_p->getR ());
+  typename OWN_TYPE_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename OWN_TYPE_T::DATA_T::DATA_T&> (message_data_container_r.getR ());
+  if (message_data_r.sample)
+    message_data_r.sample->AddRef ();
 #endif // ACE_WIN32 || ACE_WIN64
 
   return message_p;
@@ -166,11 +171,13 @@ Stream_CameraAR_Message_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_CameraAR_Message_T::release"));
 
+  typename OWN_TYPE_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename OWN_TYPE_T::DATA_T::DATA_T&> (inherited::data_.getR ());
   ULONG reference_count = 0;
-  if (inherited::data_.sample)
-    reference_count = inherited::data_.sample->Release ();
+  if (message_data_r.sample)
+    reference_count = message_data_r.sample->Release ();
   if (reference_count == 0)
-    inherited::data_.sample = NULL;
+    message_data_r.sample = NULL;
 
   return inherited::release ();
 }

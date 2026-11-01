@@ -200,7 +200,8 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
   std::string prompt_string = message_inout->rd_ptr ();
   std::string prompt_string_2, response;
   int result, new_len;
-  typename DataMessageType::DATA_T* data_p;
+  typename DataMessageType::DATA_T* message_data_container_p;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p;
 
   // add the user input to the message list and format it
   messages_.push_back ({ACE_TEXT_ALWAYS_CHAR ("user"), ACE_OS::strdup (prompt_string.c_str ())});
@@ -240,8 +241,11 @@ Stream_Module_LlamaCpp_T<ConfigurationType,
     goto error;
   } // end IF
 
-  data_p = &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
-  data_p->LLMResult.push_back (response);
+  message_data_container_p =
+    &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  message_data_p =
+    &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
+  message_data_p->LLMResult.push_back (response);
 
   message_inout->reset ();
   ACE_ASSERT (message_inout->space () >= response.size () + 1);

@@ -422,11 +422,13 @@ Stream_MediaFramework_DirectShow_Source_T<ACE_SYNCH_USE,
       return E_FAIL;
     } // end IF
     ACE_ASSERT (message_p);
-    typename DataMessageType::DATA_T& data_r =
+    typename DataMessageType::DATA_T& message_data_container_r =
       const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+    typename DataMessageType::DATA_T::DATA_T& message_data_r =
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
     // *TODO*: remove type inference
-    data_r.sample = sample_in;
-    data_r.sampleTime = sampleTime_in;
+    message_data_r.sample = sample_in;
+    message_data_r.sampleTime = sampleTime_in;
 
     BYTE* buffer_p = NULL;
     HRESULT result_2 = sample_in->GetPointer (&buffer_p);

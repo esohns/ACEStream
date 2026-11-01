@@ -124,22 +124,27 @@ Test_I_Source_DirectShow_Stream_Message::duplicate (void) const
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
+  struct Test_I_DirectShow_MessageData& message_data_r =
+    const_cast<struct Test_I_DirectShow_MessageData&> (inherited::data_.getR ());
   ULONG reference_count = 0;
-  if (inherited::data_.sample)
-    reference_count = inherited::data_.sample->AddRef ();
+  if (message_data_r.sample)
+    reference_count = message_data_r.sample->AddRef ();
 
   return message_p;
 }
+
 ACE_Message_Block*
 Test_I_Source_DirectShow_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_DirectShow_Stream_Message::release"));
 
+  struct Test_I_DirectShow_MessageData& message_data_r =
+    const_cast<struct Test_I_DirectShow_MessageData&> (inherited::data_.getR ());
   ULONG reference_count = 0;
-  if (inherited::data_.sample)
-    reference_count = inherited::data_.sample->Release ();
+  if (message_data_r.sample)
+    reference_count = message_data_r.sample->Release ();
   if (reference_count == 0)
-    inherited::data_.sample = NULL;
+    message_data_r.sample = NULL;
 
   return inherited::release ();
 }
@@ -199,10 +204,11 @@ Test_I_Source_MediaFoundation_Stream_Message::~Test_I_Source_MediaFoundation_Str
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::~Test_I_Source_MediaFoundation_Stream_Message"));
 
   // release media sample ?
-  if (inherited::data_.sample)
+  struct Test_I_MediaFoundation_MessageData& message_data_r =
+    const_cast<struct Test_I_MediaFoundation_MessageData&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release ();
-    inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 }
 
@@ -259,9 +265,11 @@ Test_I_Source_MediaFoundation_Stream_Message::duplicate (void) const
 
   // *NOTE*: if "this" is initialized, so is the "clone" (and vice-versa)...
 
+  struct Test_I_MediaFoundation_MessageData& message_data_r =
+    const_cast<struct Test_I_MediaFoundation_MessageData&> (inherited::data_.getR ());
   ULONG reference_count = 0;
-  if (inherited::data_.sample)
-    reference_count = inherited::data_.sample->AddRef ();
+  if (message_data_r.sample)
+    reference_count = message_data_r.sample->AddRef ();
 
   return message_p;
 }
@@ -271,11 +279,13 @@ Test_I_Source_MediaFoundation_Stream_Message::release (void)
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Source_MediaFoundation_Stream_Message::release"));
 
+  struct Test_I_MediaFoundation_MessageData& message_data_r =
+    const_cast<struct Test_I_MediaFoundation_MessageData&> (inherited::data_.getR ());
   ULONG reference_count = 0;
-  if (inherited::data_.sample)
-    reference_count = inherited::data_.sample->Release ();
+  if (message_data_r.sample)
+    reference_count = message_data_r.sample->Release ();
   if (reference_count == 0)
-    inherited::data_.sample = NULL;
+    message_data_r.sample = NULL;
 
   return inherited::release ();
 }

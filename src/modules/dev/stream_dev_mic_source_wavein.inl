@@ -193,13 +193,15 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
   ACE_ASSERT (inherited::configuration_->messageAllocator);
   ACE_ASSERT (inherited::configuration_->allocatorConfiguration);
   ACE_ASSERT (inherited::sessionData_);
-  typename DataMessageType::DATA_T& data_r =
+  typename DataMessageType::DATA_T& message_data_container_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
-  ACE_ASSERT (data_r.index < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
-  ACE_ASSERT (CBData_.buffers[data_r.index] == message_inout);
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+  ACE_ASSERT (message_data_r.index < STREAM_DEV_WAVEIN_DEFAULT_DEVICE_BUFFERS);
+  ACE_ASSERT (CBData_.buffers[message_data_r.index] == message_inout);
 
   MMRESULT result = waveInUnprepareHeader (handle_,
-                                           &bufferHeaders_[data_r.index],
+                                           &bufferHeaders_[message_data_r.index],
                                            sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
@@ -207,12 +209,12 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveInUnprepareHeader(%u): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                data_r.index,
+                message_data_r.index,
                 ACE_TEXT (error_msg_a)));
     return;
   } // end IF
 
-  CBData_.buffers[data_r.index] = NULL;
+  CBData_.buffers[message_data_r.index] = NULL;
   DataMessageType* message_p = NULL;
   try {
     message_p =
@@ -232,18 +234,20 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
     return;
   } // end IF
-  typename DataMessageType::DATA_T& data_2 =
+  typename DataMessageType::DATA_T& message_data_container_2 =
     const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-  data_2.index = data_r.index;
-  CBData_.buffers[data_r.index] = message_p;
-  data_r.index = -1;
+  typename DataMessageType::DATA_T::DATA_T& message_data_2 =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_2.getR ());
+  message_data_2.index = message_data_r.index;
+  CBData_.buffers[message_data_r.index] = message_p;
+  message_data_r.index = -1;
 
-  bufferHeaders_[data_2.index].lpData = message_p->wr_ptr ();
-  ACE_ASSERT (bufferHeaders_[data_2.index].dwBufferLength == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
-  ACE_ASSERT (bufferHeaders_[data_2.index].dwUser == data_2.index);
+  bufferHeaders_[message_data_2.index].lpData = message_p->wr_ptr ();
+  ACE_ASSERT (bufferHeaders_[message_data_2.index].dwBufferLength == inherited::configuration_->allocatorConfiguration->defaultBufferSize);
+  ACE_ASSERT (bufferHeaders_[message_data_2.index].dwUser == message_data_2.index);
 
   result = waveInPrepareHeader (handle_,
-                                &bufferHeaders_[data_2.index],
+                                &bufferHeaders_[message_data_2.index],
                                 sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
@@ -251,13 +255,13 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveInPrepareHeader(%d): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                data_2.index,
+                message_data_2.index,
                 ACE_TEXT (error_msg_a)));
     return;
   } // end IF
 
   result = waveInAddBuffer (handle_,
-                            &bufferHeaders_[data_2.index],
+                            &bufferHeaders_[message_data_2.index],
                             sizeof (struct wavehdr_tag));
   if (unlikely (result != MMSYSERR_NOERROR))
   { char error_msg_a[BUFSIZ];
@@ -265,7 +269,7 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to waveInAddBuffer(%d): \"%s\", returning\n"),
                 inherited::mod_->name (),
-                data_2.index,
+                message_data_2.index,
                 ACE_TEXT (error_msg_a)));
     return;
   } // end IF
@@ -756,9 +760,11 @@ Stream_Dev_Mic_Source_WaveIn_T<ACE_SYNCH_USE,
 
     message_p = static_cast<DataMessageType*> (CBData_.buffers[i]);
     ACE_ASSERT (message_p);
-    typename DataMessageType::DATA_T& data_r =
+    typename DataMessageType::DATA_T& message_data_container_r =
       const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-    data_r.index = i;
+    typename DataMessageType::DATA_T::DATA_T& message_data_r =
+      const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+    message_data_r.index = i;
   } // end FOR
 
   return true;

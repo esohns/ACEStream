@@ -46,7 +46,7 @@ class Stream_MessageAllocatorHeapBase_T;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Source_DirectShow_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_DirectShow_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t>
 {
@@ -57,7 +57,7 @@ class Test_I_Source_DirectShow_Stream_Message
                                                  Test_I_Source_DirectShow_Stream_Message,
                                                  Test_I_Source_DirectShow_SessionMessage>;
 
-  typedef Stream_DataMessageBase_T<struct Test_I_DirectShow_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t> inherited;
 
@@ -94,7 +94,7 @@ class Test_I_Source_DirectShow_Stream_Message
 };
 
 class Test_I_Source_MediaFoundation_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_MediaFoundation_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t>
 {
@@ -105,7 +105,7 @@ class Test_I_Source_MediaFoundation_Stream_Message
                                                  Test_I_Source_MediaFoundation_Stream_Message,
                                                  Test_I_Source_MediaFoundation_SessionMessage>;
 
-  typedef Stream_DataMessageBase_T<struct Test_I_MediaFoundation_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_MediaFoundation_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t> inherited;
   
@@ -142,12 +142,12 @@ class Test_I_Source_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Source_V4L_Stream_Message
- : public Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
+ : public Stream_DataMessageBase_T<Test_I_V4L_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t>
  , public Common_ReferenceCounter_T<ACE_MT_SYNCH>
 {
-  typedef Stream_DataMessageBase_T<struct Test_I_V4L_MessageData,
+  typedef Stream_DataMessageBase_T<Test_I_V4L_MessageData_t,
                                    enum Stream_MessageType,
                                    Test_I_CommandType_t> inherited;
   typedef Common_ReferenceCounter_T<ACE_MT_SYNCH> inherited2;

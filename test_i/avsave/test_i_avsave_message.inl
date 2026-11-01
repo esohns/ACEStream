@@ -82,9 +82,11 @@ Stream_AVSave_Message_T<DataType>::~Stream_AVSave_Message_T ()
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // release media sample ?
-  if (inherited::data_.sample)
+  typename Stream_AVSave_Message_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename Stream_AVSave_Message_T::DATA_T::DATA_T&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 }
@@ -146,14 +148,16 @@ Stream_AVSave_Message_T<DataType>::release (void)
     inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
-  if ((inherited::data_.index == static_cast<unsigned int> (-1)) || // not a device data buffer (-clone)
-      !inherited::data_.task)           // clean up (device data)
+  typename Stream_AVSave_Message_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename Stream_AVSave_Message_T::DATA_T::DATA_T&> (inherited::data_.getR ());
+  if ((message_data_r.index == static_cast<unsigned int> (-1)) || // not a device data buffer (-clone)
+      !message_data_r.task)                                       // clean up (device data)
     return inherited::release ();
 
   // sanity check(s)
   ACE_ASSERT (inherited::data_block_);
 
-  inherited::data_.task->set (inherited::data_.index);
+  message_data_r.task->set (message_data_r.index);
 
   return NULL;
 }
@@ -170,10 +174,12 @@ Stream_AVSave_Message_T<DataType>::release (void)
     inherited::cont_->release (); inherited::cont_ = NULL;
   } // end IF
 
+  typename Stream_AVSave_Message_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename Stream_AVSave_Message_T::DATA_T::DATA_T&> (inherited::data_.getR ());
   int reference_count = inherited::reference_count ();
-  if ((reference_count > 1)                   || // not the last reference
-      (inherited::data_.fileDescriptor == -1) || // not a device data buffer (-clone)
-      inherited::data_.release)                  // clean up (device data)
+  if ((reference_count > 1)                 || // not the last reference
+      (message_data_r.fileDescriptor == -1) || // not a device data buffer (-clone)
+      message_data_r.release)                  // clean up (device data)
     return inherited::release ();
 
   // sanity check(s)
@@ -190,15 +196,15 @@ Stream_AVSave_Message_T<DataType>::release (void)
 //requeue:
   struct v4l2_buffer buffer_s;
   ACE_OS::memset (&buffer_s, 0, sizeof (struct v4l2_buffer));
-  buffer_s.index = inherited::data_.index;
+  buffer_s.index = message_data_r.index;
   buffer_s.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  buffer_s.memory = inherited::data_.method;
-  switch (inherited::data_.method)
+  buffer_s.memory = message_data_r.method;
+  switch (message_data_r.method)
   {
     case V4L2_MEMORY_USERPTR:
     {
       buffer_s.m.userptr =
-          reinterpret_cast<unsigned long> (inherited::rd_ptr ());
+        reinterpret_cast<unsigned long> (inherited::rd_ptr ());
       buffer_s.length = inherited::size ();
       break;
     }
@@ -227,7 +233,7 @@ Stream_AVSave_Message_T<DataType>::release (void)
   if (unlikely (result == -1))
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("failed to v4l2_ioctl(%d,%s): \"%m\", continuing\n"),
-                inherited::data_.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
+                message_data_r.fileDescriptor, ACE_TEXT ("VIDIOC_QBUF")));
 
   return NULL;
 }

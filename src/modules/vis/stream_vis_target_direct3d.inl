@@ -2000,8 +2000,10 @@ Stream_Vis_MediaFoundation_Target_Direct3D_T<ACE_SYNCH_USE,
   std::string filename_string;
   BYTE* data_p = NULL;
   bool unlock_media_buffer = false;
-  const typename DataMessageType::DATA_T& message_data_r =
+  const typename DataMessageType::DATA_T& message_data_container_r =
     message_inout->getR ();
+  const typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    message_data_container_r.getR ();
   IMFMediaBuffer* media_buffer_p = NULL;
 
   // sanity check(s)

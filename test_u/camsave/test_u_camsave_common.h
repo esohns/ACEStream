@@ -182,6 +182,8 @@ struct Stream_CamSave_DirectShow_MessageData
    , sampleTime (0)
   {}
 
+  inline struct Stream_CamSave_DirectShow_MessageData& operator+= (const struct Stream_CamSave_DirectShow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   IMediaSample* sample;
   double        sampleTime;
 };
@@ -193,6 +195,8 @@ struct Stream_CamSave_MediaFoundation_MessageData
    : sample (NULL)
    , sampleTime (0)
   {}
+
+  inline struct Stream_CamSave_MediaFoundation_MessageData& operator+= (const struct Stream_CamSave_MediaFoundation_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 
   IMFSample* sample;
   LONGLONG   sampleTime;
@@ -208,11 +212,14 @@ struct Stream_CamSave_V4L_MessageData
    , release (false)
   {}
 
+  inline struct Stream_CamSave_V4L_MessageData& operator+= (const struct Stream_CamSave_V4L_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
   v4l2_memory method;
   bool        release;
 };
+typedef Stream_DataBase_T<struct Stream_CamSave_V4L_MessageData> Stream_CamSave_V4L_MessageData_t;
 
 #if defined (LIBCAMERA_SUPPORT)
 namespace libcamera {
@@ -444,11 +451,11 @@ template <typename DataMessageType,
           typename SessionDataType>
 class Stream_CamSave_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_CamSave_Message_T<struct Stream_CamSave_DirectShow_MessageData,
+typedef Stream_CamSave_Message_T<Stream_CamSave_DirectShow_MessageData_t,
                                  Stream_CamSave_DirectShow_SessionData_t> Stream_CamSave_DirectShow_Message_t;
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_DirectShow_Message_t,
                                         Stream_CamSave_DirectShow_SessionData_t> Stream_CamSave_DirectShow_SessionMessage_t;
-typedef Stream_CamSave_Message_T<struct Stream_CamSave_MediaFoundation_MessageData,
+typedef Stream_CamSave_Message_T<Stream_CamSave_MediaFoundation_MessageData_t,
                                  Stream_CamSave_MediaFoundation_SessionData_t> Stream_CamSave_MediaFoundation_Message_t;
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_MediaFoundation_Message_t,
                                         Stream_CamSave_MediaFoundation_SessionData_t> Stream_CamSave_MediaFoundation_SessionMessage_t;
@@ -467,7 +474,7 @@ typedef Stream_ISessionDataNotify_T<Stream_CamSave_MediaFoundation_SessionData,
 typedef std::list<Stream_CamSave_MediaFoundation_ISessionNotify_t*> Stream_CamSave_MediaFoundation_Subscribers_t;
 typedef Stream_CamSave_MediaFoundation_Subscribers_t::iterator Stream_CamSave_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Stream_CamSave_Message_T<struct Stream_CamSave_V4L_MessageData,
+typedef Stream_CamSave_Message_T<Stream_CamSave_V4L_MessageData_t,
                                  Stream_CamSave_V4L_SessionData_t> Stream_CamSave_V4L_Message_t;
 typedef Stream_CamSave_SessionMessage_T<Stream_CamSave_V4L_Message_t,
                                         Stream_CamSave_V4L_SessionData_t> Stream_CamSave_V4L_SessionMessage_t;

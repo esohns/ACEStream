@@ -313,7 +313,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     return;
   } // end IF
 
-  typename DataMessageType::DATA_T* data_p;
+  typename DataMessageType::DATA_T* message_data_container_p;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p;
   int n_segments, n_tokens;
   std::string buffer_string;
   DataMessageType* message_p = NULL;
@@ -347,7 +348,10 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  data_p = &const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
+  message_data_container_p =
+    &const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
+  message_data_p =
+    &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
   n_segments = whisper_full_n_segments_from_state (state_);
   for (int i = 0; i < n_segments; ++i)
   {
@@ -359,8 +363,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       token_probability_f = whisper_full_get_token_p_from_state (state_, i, j);
       if (token_probability_f < STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_TOKEN_P_THRESHOLD_F)
         continue; // skip low confidence tokens
-      data_p->STTResult.push_back (std::make_pair (whisper_full_get_token_text_from_state (context_, state_, i, j),
-                                                   token_probability_f));
+      message_data_p->STTResult.push_back (std::make_pair (whisper_full_get_token_text_from_state (context_, state_, i, j),
+                                                           token_probability_f));
     } // end FOR
   } // end FOR
 
@@ -370,7 +374,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   //data_p->words.erase (std::remove_if (data_p->words.begin (), data_p->words.end (),
   //                                     [&] (const std::string& word_in) { return std::find (token_filter_a.begin (), token_filter_a.end (), word_in) != token_filter_a.end (); }),
   //                     data_p->words.end ());
-  if (data_p->STTResult.empty ())
+  if (message_data_p->STTResult.empty ())
   {
     // nothing significant recognized; reset buffer and return
     buffer_->release (); buffer_ = NULL;
@@ -380,7 +384,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
   // concatenate words
   buffer_string =
-    std::accumulate (data_p->STTResult.begin (), data_p->STTResult.end (), std::string (),
+    std::accumulate (message_data_p->STTResult.begin (), message_data_p->STTResult.end (), std::string (),
                      [] (std::string& acc, const std::pair<std::string, float>& val) { return acc + val.first; });
 
   message_p =
@@ -396,7 +400,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
   ACE_ASSERT (message_p->space () >= buffer_string.size () + 1);
   result = message_p->copy (buffer_string.c_str ());
   ACE_ASSERT (result == 0);
-  message_p->initialize (*data_p,
+  message_p->initialize (*message_data_container_p,
                          session_id_i,
                          NULL);
 

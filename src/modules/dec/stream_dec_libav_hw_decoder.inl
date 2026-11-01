@@ -337,8 +337,6 @@ Stream_LibAV_HW_Decoder_T<ACE_SYNCH_USE,
       message_p->initialize (data_container_p,
                              message_inout->sessionId (),
                              NULL);
-      //message_p->initialize (message_inout->sessionId (),
-      //                       NULL);
       message_p->set (message_inout->type ());
       result = inherited::put_next (message_p, NULL);
       if (unlikely (result == -1))

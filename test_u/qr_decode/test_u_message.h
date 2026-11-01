@@ -48,20 +48,20 @@ class Test_U_SessionMessage;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_U_Message
- : public Stream_DataMessageBase_T<struct Test_U_DirectShow_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_DirectShow_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_DirectShow_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 #else
 class Test_U_Message
- : public Stream_DataMessageBase_T<struct Test_U_V4L2_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_V4L2_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_V4L2_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_V4L2_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 #endif // ACE_WIN32 || ACE_WIN64

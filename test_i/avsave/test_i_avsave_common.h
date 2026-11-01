@@ -163,6 +163,8 @@ struct Stream_AVSave_DirectShow_MessageData
    , index (-1)
   {}
 
+  inline struct Stream_AVSave_DirectShow_MessageData& operator+= (const struct Stream_AVSave_DirectShow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   // video
   IMediaSample*                sample;
   double                       sampleTime;
@@ -180,6 +182,8 @@ struct Stream_AVSave_MediaFoundation_MessageData
    , task (NULL)
    , index (-1)
   {}
+
+  inline struct Stream_AVSave_MediaFoundation_MessageData& operator+= (const struct Stream_AVSave_MediaFoundation_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 
   // video
   IMFSample*                   sample;
@@ -199,11 +203,14 @@ struct Stream_AVSave_MessageData
    , release (false)
   {}
 
+  inline struct Stream_AVSave_MessageData& operator+= (const struct Stream_AVSave_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
+
   int         fileDescriptor; // (capture) device file descriptor
   __u32       index;  // 'index' field of v4l2_buffer
   v4l2_memory method;
   bool        release;
 };
+typedef Stream_DataBase_T<struct Stream_AVSave_MessageData> Stream_AvSave_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 struct Stream_AVSave_StatisticData
@@ -367,10 +374,10 @@ class Stream_AVSave_Message_T;
 //          typename SessionDataType>
 //class Stream_AVSave_SessionMessage_T;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Stream_AVSave_Message_T<struct Stream_AVSave_DirectShow_MessageData> Stream_AVSave_DirectShow_Message_t;
+typedef Stream_AVSave_Message_T<Stream_AvSave_DirectShow_MessageData_t> Stream_AVSave_DirectShow_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_DirectShow_Message_t,
                                        Stream_AVSave_DirectShow_SessionData_t> Stream_AVSave_DirectShow_SessionMessage_t;
-typedef Stream_AVSave_Message_T<struct Stream_AVSave_MediaFoundation_MessageData> Stream_AVSave_MediaFoundation_Message_t;
+typedef Stream_AVSave_Message_T<Stream_AvSave_MediaFoundation_MessageData_t> Stream_AVSave_MediaFoundation_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_MediaFoundation_Message_t,
                                        Stream_AVSave_MediaFoundation_SessionData_t> Stream_AVSave_MediaFoundation_SessionMessage_t;
 
@@ -388,7 +395,7 @@ typedef Stream_ISessionDataNotify_T<Stream_AVSave_MediaFoundation_SessionData,
 typedef std::list<Stream_AVSave_MediaFoundation_ISessionNotify_t*> Stream_AVSave_MediaFoundation_Subscribers_t;
 typedef Stream_AVSave_MediaFoundation_Subscribers_t::iterator Stream_AVSave_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Stream_AVSave_Message_T<struct Stream_AVSave_MessageData> Stream_AVSave_Message_t;
+typedef Stream_AVSave_Message_T<Stream_AvSave_MessageData_t> Stream_AVSave_Message_t;
 typedef Stream_AVSave_SessionMessage_T<Stream_AVSave_Message_t,
                                        Stream_AVSave_ALSA_V4L_SessionData_t> Stream_AVSave_ALSA_V4L_SessionMessage_t;
 

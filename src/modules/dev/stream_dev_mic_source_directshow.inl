@@ -891,9 +891,11 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     return E_FAIL;
   } // end IF
   ACE_ASSERT (message_p);
-  typename DataMessageType::DATA_T& data_r =
+  typename DataMessageType::DATA_T& message_data_container_r =
     const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-  data_r.sampleTime = sampleTime_in;
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+  message_data_r.sampleTime = sampleTime_in;
   //ACE_ASSERT (size_in <= static_cast<long> (inherited::configuration_->allocatorConfiguration->defaultBufferSize));
   result = message_p->copy (reinterpret_cast<char*> (buffer_in),
                             size_in);
@@ -962,10 +964,12 @@ Stream_Dev_Mic_Source_DirectShow_T<ACE_SYNCH_USE,
     return E_FAIL;
   } // end IF
   ACE_ASSERT (message_p);
-  typename DataMessageType::DATA_T& data_r =
+  typename DataMessageType::DATA_T& message_data_container_r =
     const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-  data_r.sample = IMediaSample_in;
-  data_r.sampleTime = sampleTime_in;
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+  message_data_r.sample = IMediaSample_in;
+  message_data_r.sampleTime = sampleTime_in;
 
   long size = IMediaSample_in->GetSize ();
   BYTE* buffer_p = NULL;

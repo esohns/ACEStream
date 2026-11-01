@@ -238,8 +238,10 @@ Test_I_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif
 
-  typename DataMessageType::DATA_T& data_r =
+  typename DataMessageType::DATA_T& message_data_container_r =
     const_cast<typename DataMessageType::DATA_T&> (message_in.getR ());
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   const DataMessageType* message_p = &message_in;
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -258,32 +260,36 @@ Test_I_EventHandler_T<NotificationType,
       state_r.eventStack.push (COMMON_UI_EVENT_DATA);
 
       CBData_->progressData.STTResult.insert (CBData_->progressData.STTResult.end (),
-                                              data_r.STTResult.begin (), data_r.STTResult.end ());
+                                              message_data_r.STTResult.begin (), message_data_r.STTResult.end ());
       CBData_->progressData.LLMResult.insert (CBData_->progressData.LLMResult.end (),
-                                              data_r.LLMResult.begin (), data_r.LLMResult.end ());
+                                              message_data_r.LLMResult.begin (), message_data_r.LLMResult.end ());
       goto continue_;
     } // end IF/lock scope
 #else
       goto continue_;
 #endif // GTK_USE || WXWIDGETS_USE
-    for (Stream_Decoder_STT_ResultConstIterator_t iterator = data_r.STTResult.begin ();
-         iterator != data_r.STTResult.end ();
+    for (Stream_Decoder_STT_ResultConstIterator_t iterator = message_data_r.STTResult.begin ();
+         iterator != message_data_r.STTResult.end ();
          ++iterator)
       std::cout << (*iterator).first << ACE_TEXT_ALWAYS_CHAR (" ");
-    if (!data_r.STTResult.empty ())
+    if (!message_data_r.STTResult.empty ())
       std::cout.flush ();
-    for (Stream_MachineLearning_LLM_ResultConstIterator_t iterator = data_r.LLMResult.begin ();
-         iterator != data_r.LLMResult.end ();
+    for (Stream_MachineLearning_LLM_ResultConstIterator_t iterator = message_data_r.LLMResult.begin ();
+         iterator != message_data_r.LLMResult.end ();
          ++iterator)
       std::cout << *iterator << ACE_TEXT_ALWAYS_CHAR ("\n");
-    if (!data_r.LLMResult.empty ())
+    if (!message_data_r.LLMResult.empty ())
       std::cout.flush ();
 
 continue_:
     message_p = static_cast<DataMessageType*> (message_p->cont ());
     if (message_p)
-      data_r =
+    {
+      message_data_container_r =
         const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
+      message_data_r =
+        const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
+    } // end IF
   } while (message_p);
 }
 

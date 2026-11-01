@@ -246,8 +246,10 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (context2_);
 
-  typename DataMessageType::DATA_T& data_r =
+  typename DataMessageType::DATA_T& message_data_container_r =
     const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   ACE_Message_Block* message_block_p = message_inout;
   const char* partial_p = NULL;
   unsigned int number_of_samples_i = 0;
@@ -267,7 +269,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
     bufferedMs_ -= STREAM_DEC_DEEPSPEECH_DECODE_BUFFER_LENGTH_MS;
     partial_p = DS_IntermediateDecode (context2_);
     decodedWords_ += processWords (partial_p,
-                                   data_r.STTResult); // *TODO*: remove type inference
+                                   message_data_r.STTResult); // *TODO*: remove type inference
     if (likely (partial_p))
     {
       DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;
@@ -276,7 +278,7 @@ Stream_Decoder_DeepSpeechDecoder_T<ACE_SYNCH_USE,
       goto continue_;
     partial_p = DS_FinishStream (context2_);
     decodedWords_ += processWords (partial_p,
-                                   data_r.STTResult); // *TODO*: remove type inference
+                                   message_data_r.STTResult); // *TODO*: remove type inference
     if (likely (partial_p))
     {
       DS_FreeString (const_cast<char*> (partial_p)); partial_p = NULL;

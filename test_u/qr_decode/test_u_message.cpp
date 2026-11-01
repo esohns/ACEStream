@@ -66,9 +66,11 @@ Test_U_Message::~Test_U_Message ()
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // release media sample ?
-  if (inherited::data_.sample)
+  struct Test_U_DirectShow_MessageData& message_data_r =
+    const_cast<struct Test_U_DirectShow_MessageData&> (inherited::data_.getR ());
+  if (message_data_r.sample)
   {
-    inherited::data_.sample->Release (); inherited::data_.sample = NULL;
+    message_data_r.sample->Release (); message_data_r.sample = NULL;
   } // end IF
 #endif // ACE_WIN32 || ACE_WIN64
 }
