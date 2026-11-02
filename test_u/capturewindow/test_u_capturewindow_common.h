@@ -283,11 +283,11 @@ typedef Stream_SessionData_T<Test_U_CaptureWindow_SessionData> Test_U_CaptureWin
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-typedef Test_U_Message_T<struct Test_U_CaptureWindow_DirectShow_MessageData,
+typedef Test_U_Message_T<Test_U_CaptureWindow_DirectShow_MessageData_t,
                          Test_U_CaptureWindow_DirectShow_SessionData_t> Test_U_DirectShow_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_DirectShow_Message_t,
                                 Test_U_CaptureWindow_DirectShow_SessionData_t> Test_U_DirectShow_SessionMessage_t;
-typedef Test_U_Message_T<struct Test_U_CaptureWindow_MediaFoundation_MessageData,
+typedef Test_U_Message_T<Test_U_CaptureWindow_MediaFoundation_MessageData_t,
                          Test_U_CaptureWindow_MediaFoundation_SessionData_t> Test_U_MediaFoundation_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_MediaFoundation_Message_t,
                                 Test_U_CaptureWindow_MediaFoundation_SessionData_t> Test_U_MediaFoundation_SessionMessage_t;
@@ -306,7 +306,7 @@ typedef Stream_ISessionDataNotify_T<Test_U_CaptureWindow_MediaFoundation_Session
 typedef std::list<Test_U_MediaFoundation_ISessionNotify_t*> Test_U_MediaFoundation_Subscribers_t;
 typedef Test_U_MediaFoundation_Subscribers_t::iterator Test_U_MediaFoundation_SubscribersIterator_t;
 #else
-typedef Test_U_Message_T<struct Test_U_CaptureWindow_MessageData,
+typedef Test_U_Message_T<Test_U_CaptureWindow_MessageData_t,
                          Test_U_CaptureWindow_SessionData_t> Test_U_Message_t;
 typedef Test_U_SessionMessage_T<Test_U_Message_t,
                                 Test_U_CaptureWindow_SessionData_t> Test_U_SessionMessage_t;

@@ -72,6 +72,9 @@ Stream_Visualization_LibAVResize_T<TaskType,
   uint8_t* data_a[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&data_a, 0, sizeof (uint8_t*[AV_NUM_DATA_POINTERS]));
   int result;
+  typename TaskType::DATA_MESSAGE_T::DATA_T* data_container_p = NULL;
+  if (message_inout->isInitialized ())
+    data_container_p = &const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (message_inout->getR ());
 
   // *NOTE*: make sure we can resize any time (see below)...
   ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, inherited::lock_);
@@ -127,7 +130,12 @@ Stream_Visualization_LibAVResize_T<TaskType,
   } // end IF
 
   inherited::buffer_->wr_ptr (inherited::frameSize_);
-  inherited::buffer_->initialize (message_inout->sessionId (),
+  if (message_inout->isInitialized ())
+  { ACE_ASSERT (data_container_p);
+    data_container_p->increase ();
+  } // end IF
+  inherited::buffer_->initialize (data_container_p,
+                                  message_inout->sessionId (),
                                   NULL);
   inherited::buffer_->set (message_inout->type ());
   message_inout->release (); message_inout = NULL;

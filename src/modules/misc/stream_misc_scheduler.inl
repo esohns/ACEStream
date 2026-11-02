@@ -20,29 +20,14 @@
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #include "avrt.h"
-//#else
-//#define ALSA_PCM_NEW_HW_PARAMS_API
-//extern "C"
-//{
-//#include "alsa/asoundlib.h"
-//}
 #endif // ACE_WIN32 || ACE_WIN64
 
 #include <thread>
 
 #include "ace/Log_Msg.h"
 
-#include "common_time_common.h"
-#include "common_timer_manager_common.h"
-
 #include "stream_defines.h"
 #include "stream_macros.h"
-#include "stream_tools.h"
-
-//#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//#else
-//#include "stream_lib_alsa_common.h"
-//#endif // ACE_WIN32 || ACE_WIN64
 
 #include "stream_misc_defines.h"
 

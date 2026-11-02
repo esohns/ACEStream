@@ -109,9 +109,13 @@ struct Test_I_Target_DirectShow_MessageData
    , sampleTime (0.0)
   {}
 
+  inline void operator+= (const Test_I_Target_DirectShow_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); }
+
   IMediaSample* sample;
   double        sampleTime;
 };
+typedef Stream_DataBase_T<struct Test_I_Target_DirectShow_MessageData> Test_I_Target_DirectShow_MessageData_t;
+
 struct Test_I_Target_MediaFoundation_MessageData
 {
   Test_I_Target_MediaFoundation_MessageData ()
@@ -119,29 +123,12 @@ struct Test_I_Target_MediaFoundation_MessageData
    , sampleTime (0)
   {}
 
+  inline void operator+= (const Test_I_Target_MediaFoundation_MessageData& rhs_in) { ACE_UNUSED_ARG (rhs_in); ACE_ASSERT (false); }
+
   IMFMediaBuffer* sample;
   LONGLONG        sampleTime;
 };
-#endif // ACE_WIN32 || ACE_WIN64
-
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-//struct Test_I_Target_DirectShow_ConnectionConfiguration;
-//struct Test_I_Target_DirectShow_StreamConfiguration;
-//struct Test_I_Target_MediaFoundation_ConnectionConfiguration;
-//struct Test_I_Target_MediaFoundation_StreamConfiguration;
-//struct Test_I_Target_MediaFoundation_UserData
-// : Stream_UserData
-//{
-//  Test_I_Target_MediaFoundation_UserData ()
-//   : Stream_UserData ()
-//   //, connectionConfiguration (NULL)
-//   //, streamConfiguration (NULL)
-//  {}
-//
-//  //struct Test_I_Target_MediaFoundation_ConnectionConfiguration* connectionConfiguration;
-//  //struct Test_I_Target_MediaFoundation_StreamConfiguration*     streamConfiguration;
-//};
-#else
+typedef Stream_DataBase_T<struct Test_I_Target_MediaFoundation_MessageData> Test_I_Target_MediaFoundation_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

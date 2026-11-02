@@ -73,10 +73,7 @@ struct Test_I_MessageData
   Test_I_MessageData ()
   {}
 
-  struct Test_I_MessageData& operator+= (const struct Test_I_MessageData& rhs_in)
-  {
-    return *this;
-  }
+  inline struct Test_I_MessageData& operator+= (const struct Test_I_MessageData& rhs_in) { return *this; }
 };
 typedef Stream_DataBase_T<struct Test_I_MessageData> Test_I_MessageData_t;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)

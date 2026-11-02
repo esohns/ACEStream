@@ -47,13 +47,13 @@ class Test_I_Target_SessionMessage;
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 class Test_I_Target_DirectShow_Stream_Message
- : public Stream_MediaFramework_DirectShow_MessageBase_T<//struct Common_AllocatorConfiguration,
-                                                         enum Stream_MessageType,
-                                                         Test_I_CommandType_t>
+ : public Stream_MediaFramework_DirectShow_DataMessageBase_T<Test_I_Target_DirectShow_MessageData_t,
+                                                             enum Stream_MessageType,
+                                                             Test_I_CommandType_t>
 {
-  typedef Stream_MediaFramework_DirectShow_MessageBase_T<//struct Common_AllocatorConfiguration,
-                                                         enum Stream_MessageType,
-                                                         Test_I_CommandType_t> inherited;
+  typedef Stream_MediaFramework_DirectShow_DataMessageBase_T<Test_I_Target_DirectShow_MessageData_t,
+                                                             enum Stream_MessageType,
+                                                             Test_I_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
@@ -95,10 +95,10 @@ class Test_I_Target_DirectShow_Stream_Message
 };
 
 class Test_I_Target_MediaFoundation_Stream_Message
- : public Stream_MediaFramework_MediaFoundation_DataMessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+ : public Stream_MediaFramework_MediaFoundation_DataMessageBase_T<Test_I_Target_MediaFoundation_MessageData_t,
                                                                   enum Stream_MessageType>
 {
-  typedef Stream_MediaFramework_MediaFoundation_DataMessageBase_T<struct Test_I_Target_MediaFoundation_MessageData,
+  typedef Stream_MediaFramework_MediaFoundation_DataMessageBase_T<Test_I_Target_MediaFoundation_MessageData_t,
                                                                   enum Stream_MessageType> inherited;
 
   // grant access to specific private ctors
@@ -141,13 +141,13 @@ class Test_I_Target_MediaFoundation_Stream_Message
 };
 #else
 class Test_I_Target_Stream_Message
- : public Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               Test_I_CommandType_t>
+ : public Stream_DataMessageBase_T<Test_I_MessageData_t,
+                                   enum Stream_MessageType,
+                                   Test_I_CommandType_t>
 {
-  typedef Stream_MessageBase_T<//struct Common_AllocatorConfiguration,
-                               enum Stream_MessageType,
-                               Test_I_CommandType_t> inherited;
+  typedef Stream_DataMessageBase_T<Test_I_MessageData_t,
+                                   enum Stream_MessageType,
+                                   Test_I_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,
