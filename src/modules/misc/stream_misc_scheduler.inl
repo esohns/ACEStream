@@ -749,16 +749,6 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
         std::this_thread::sleep_for (std::chrono::milliseconds (static_cast<long long> (ms_to_wait)));
       } // end IF
 
-      result = queue_2_.enqueue_tail (message_in, NULL);
-      if (unlikely (result == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
-                    inherited::mod_->name ()));
-        message_in->release ();
-        return;
-      } // end IF
-
       break;
     }
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_PTS:
@@ -770,15 +760,6 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
         std::this_thread::sleep_for (std::chrono::milliseconds (static_cast<long long> (ms_to_wait)));
       } // end IF
 
-      result = queue_2_.enqueue_tail (message_in, NULL);
-      if (unlikely (result == -1))
-      {
-        ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
-                    inherited::mod_->name ()));
-        message_in->release ();
-        return;
-      } // end IF
       break;
     }
     default:
@@ -791,6 +772,17 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
       return;
     }
   } // end SWITCH
+
+  result = queue_2_.enqueue_tail (message_in,
+                                  NULL);
+  if (unlikely (result == -1))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: failed to ACE_Message_Queue_T::enqueue_tail(): \"%m\", returning\n"),
+                inherited::mod_->name ()));
+    message_in->release ();
+    return;
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,

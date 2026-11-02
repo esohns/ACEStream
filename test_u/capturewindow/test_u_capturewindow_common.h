@@ -102,6 +102,8 @@ struct Test_U_CaptureWindow_MessageData
 {
   Test_U_CaptureWindow_MessageData ()
   {}
+
+  inline struct Test_U_CaptureWindow_MessageData& operator+= (const struct Test_U_CaptureWindow_MessageData& rhs_in) { ACE_ASSERT (false); return *this; }
 };
 typedef Stream_DataBase_T<struct Test_U_CaptureWindow_MessageData> Test_U_CaptureWindow_MessageData_t;
 #endif // ACE_WIN32 || ACE_WIN64

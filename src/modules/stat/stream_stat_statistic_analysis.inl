@@ -425,10 +425,10 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
 
     was_in_peak_ = in_peak_;
     in_peak_ =
-      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
+      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_PEAK_DETECTION_DEVIATION_RANGE * std_deviation_d)) : !value_is_zero_b);
 
     // step2a: 'sustain' detection (streak)
-    if (difference_d <= 0.0)
+    if (difference_d < 0.0)
     { // --> amplitude drop
       streak_ = 0;
       streak_d = 0.0;
@@ -453,13 +453,13 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     std_deviation_d = (frameCount_ ? std::sqrt (streakS_ / frame_count_d) : 0.0);
     was_in_streak_ = in_streak_;
     in_streak_ =
-      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
+      (frameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : !value_is_zero_b);
 
     if (unlikely (in_streak_))
     {
       if (!was_in_streak_)
         ++streakCount_;
-      goto continue_2;
+      goto continue_;
     } // end IF
     // --> !in_streak
     if (unlikely (was_in_streak_))
@@ -473,6 +473,7 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
       volumeFrameCount_ = 0;
     } // end IF
 
+continue_:
     // step2b: 'sustain' detection (volume)
     old_mean_d = (volumeFrameCount_ ? volumeM_ : abs_value_d);
     volumeM_ =
@@ -483,9 +484,8 @@ Stream_Statistic_StatisticAnalysis_T<ACE_SYNCH_USE,
     was_in_volume_ = in_volume_;
     ACE_UNUSED_ARG (was_in_volume_);
     in_volume_ =
-      (volumeFrameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : value_is_zero_b);
+      (volumeFrameCount_ ? (std::abs (difference_d) > (MODULE_STAT_ANALYSIS_ACTIVITY_DETECTION_DEVIATION_RANGE * std_deviation_d)) : !value_is_zero_b);
 
-continue_2:
     if (unlikely (inherited::configuration_->dispatch &&
                   ((in_streak_ && !was_in_streak_) || in_volume_)))  // <-- 'activity' ?
     {
@@ -498,7 +498,6 @@ continue_2:
       }
     } // end IF
 
-continue_:
     if (unlikely (inherited::configuration_->dispatch &&
                   (in_peak_ && !was_in_peak_))) // <-- 'peak' ?
     {

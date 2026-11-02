@@ -21,10 +21,9 @@
 #ifndef TEST_I_TARGET_MESSAGE_H
 #define TEST_I_TARGET_MESSAGE_H
 
-#include "ace/config-lite.h"
 #include "ace/Global_Macros.h"
 
-#include "stream_message_base.h"
+#include "stream_data_message_base.h"
 #include "stream_messageallocatorheap_base.h"
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
