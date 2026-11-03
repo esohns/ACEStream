@@ -234,6 +234,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   uint8_t* data_p;
   size_t data_size_i;
+  typename DataMessageType::DATA_T* data_container_p = NULL;
+  if (message_inout->isInitialized ())
+    data_container_p =
+      &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   if (unlikely (isFirst_ && inherited::configuration_->codecConfiguration->delayOpen))
   { isFirst_ = false;
@@ -343,7 +347,8 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
         break;
 
       if (unlikely (!decodePacket (packet_s,
-                                   message_inout->sessionId ())))
+                                   message_inout->sessionId (),
+                                   data_container_p)))
       {
         ACE_DEBUG ((LM_WARNING,
                     ACE_TEXT ("%s: failed to decodePacket(), continuing\n"),
@@ -791,9 +796,10 @@ Stream_Decoder_LibAVAudioDecoder_T<ACE_SYNCH_USE,
                                    SessionMessageType,
                                    SessionDataContainerType,
                                    MediaType>::decodePacket (struct AVPacket& packet_in,
-                                                             Stream_SessionId_t sessionId_in)
+                                                             Stream_SessionId_t sessionId_in,
+                                                             typename DataMessageType::DATA_T* dataContainer_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::decodePacket"));
+  //STREAM_TRACE (ACE_TEXT ("Stream_Decoder_LibAVAudioDecoder_T::decodePacket"));
 
   // sanity check(s)
   ACE_ASSERT (context_);
@@ -972,7 +978,10 @@ continue_:
     message_p = static_cast<DataMessageType*> (message_block_p);
 
     // forward the decoded frame
-    message_p->initialize (sessionId_in,
+    if (unlikely (dataContainer_in))
+      dataContainer_in->increase ();
+    message_p->initialize (dataContainer_in,
+                           sessionId_in,
                            NULL);
     //message_p->set (message_inout->type ());
     result = inherited::put_next (message_p, NULL);
