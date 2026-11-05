@@ -22,6 +22,7 @@
 #include "avrt.h"
 #endif // ACE_WIN32 || ACE_WIN64
 
+#include <chrono>
 #include <thread>
 
 #include "ace/Log_Msg.h"
@@ -39,14 +40,14 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType,
           typename UserDataType>
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::Stream_Module_Scheduler_T (typename inherited::ISTREAM_T* stream_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::Stream_Module_VideoScheduler_T (typename inherited::ISTREAM_T* stream_in)
  : inherited (stream_in)
  , isFirstDispatchingThread_ (true)
  , queue_ (0,     // max # slots --> unlimited
@@ -59,10 +60,8 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
 #endif // ACE_WIN32 || ACE_WIN64
  , isPCRInitialized_ (false)
  , initialPCR_ (0)
- , initialSystemTime_ ()
- , clockScaleFactor_ (1.0)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::Stream_Module_Scheduler_T"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::Stream_Module_VideoScheduler_T"));
 
   // set group id for worker thread(s)
   // *TODO*: pass this in from outside
@@ -78,16 +77,16 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::handleControlMessage (ControlMessageType& message_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::handleControlMessage (ControlMessageType& message_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::handleControlMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::handleControlMessage"));
 
   switch (message_in.type ())
   {
@@ -131,17 +130,17 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::handleDataMessage (DataMessageType*& message_inout,
-                                                            bool& passMessageDownstream_out)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::handleDataMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::handleDataMessage"));
 
   passMessageDownstream_out = false;
 
@@ -170,17 +169,17 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
-                                                               bool& passMessageDownstream_out)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::handleSessionMessage"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::handleSessionMessage"));
 
   // don't care (implies yes per default, if part of a stream)
   ACE_UNUSED_ARG (passMessageDownstream_out);
@@ -188,7 +187,6 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
   // sanity check(s)
   ACE_ASSERT (message_inout);
   ACE_ASSERT (inherited::configuration_);
-  ACE_ASSERT (inherited::configuration_->delayConfiguration);
 
   bool high_priority_b = false;
 
@@ -223,23 +221,6 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
     }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
-      // sanity check(s)
-      ACE_ASSERT (inherited::sessionData_);
-      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      ACE_UINT64 average_bytes_per_second_i;
-      float token_factor_f =
-        inherited::configuration_->delayConfiguration->tokenFactor;
-      ACE_Time_Value interval =
-        inherited::configuration_->delayConfiguration->interval;
-#if defined (ACE_WIN32) || defined (ACE_WIN64)
-      struct _AMMediaType media_type_s;
-      struct tWAVEFORMATEX* waveformatex_p = NULL;
-#else
-      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
-      struct Stream_MediaFramework_V4L_MediaType media_type_2;
-#endif // ACE_WIN32 || ACE_WIN64
-
       // *NOTE*: this prevents a race condition in svc()
       { ACE_GUARD (ACE_Thread_Mutex, aGuard, inherited::lock_);
         inherited::threadCount_ = 2;
@@ -347,25 +328,23 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 bool
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::initialize (const ConfigurationType& configuration_in,
-                                                     Stream_IAllocator* allocator_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::initialize"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::initialize"));
 
   if (unlikely (inherited::isInitialized_))
   {
     isFirstDispatchingThread_ = true;
     isPCRInitialized_ = false;
     initialPCR_ = 0;
-    //initialSystemTime_ = 0;
-    clockScaleFactor_ = 1.0;
   } // end IF
 
   return inherited::initialize (configuration_in,
@@ -381,18 +360,18 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::stop (bool stopInbound_in,
-                                               bool waitForCompletion_in,
-                                               bool highPriority_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::stop (bool stopInbound_in,
+                                                    bool waitForCompletion_in,
+                                                    bool highPriority_in)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::stop"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::stop"));
 
   ACE_Message_Block* message_block_p = NULL;
   int result;
@@ -485,16 +464,16 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 int
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::svc (void)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::svc (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::svc"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::svc"));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 #if COMMON_OS_WIN32_TARGET_PLATFORM (0x0A00) // _WIN32_WINNT_WIN10
@@ -646,16 +625,16 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 int
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::svc_2 (void)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::svc_2 (void)
 {
-  STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::svc_2"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::svc_2"));
 
   ACE_Message_Block* message_block_p = NULL;
   int result, result_2;
@@ -713,20 +692,21 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::dispatch (DataMessageType* message_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::dispatch (DataMessageType* message_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::dispatch"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::dispatch"));
 
   // sanity check(s)
   ACE_ASSERT (inherited::configuration_);
   ACE_ASSERT (inherited::configuration_->delayConfiguration);
+  ACE_ASSERT (inherited::configuration_->masterClock);
   ACE_ASSERT (message_in);
 
   int result;
@@ -736,29 +716,58 @@ Stream_Module_Scheduler_T<ACE_SYNCH_USE,
     const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   // *TODO*: remove type inference(s)
   updatePCR (message_data_r.timeStamps.PCR);
-  ACE_UINT64 elapsed_time_ticks_i = getElapsedTimeIn90kHzTicks ();
+  double elapsed_video_seconds_d;
+  double elapsed_audio_seconds_d =
+    inherited::configuration_->masterClock->getTimeInSeconds ();
+  double drift_d;
+
+  const double MAX_SLEEP_PER_FRAME = 0.1;
+  const double MIN_SYNC_THRESHOLD = 0.1;
+  const double MAX_DROP_THRESHOLD = 0.15;
 
   switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_DTS:
     {
-      if (elapsed_time_ticks_i && message_data_r.timeStamps.DTS > elapsed_time_ticks_i)
+      // *TODO*: remove type inference(s)
+      elapsed_video_seconds_d = getElapsedTimeInSeconds (message_data_r.timeStamps.DTS);
+      drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
+      if (drift_d > MIN_SYNC_THRESHOLD)
       {
-        double ms_to_wait =
-          ((message_data_r.timeStamps.DTS - elapsed_time_ticks_i) / 90000.0) * 1000.0;
-        std::this_thread::sleep_for (std::chrono::milliseconds (static_cast<long long> (ms_to_wait)));
+        std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, MAX_SLEEP_PER_FRAME)));
+        std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
       } // end IF
+      else if (drift_d < -MAX_DROP_THRESHOLD)
+      {
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
+        //            inherited::mod_->name (),
+        //            drift_d));
+        //message_in->release ();
+        //return;
+      } // end ELSE IF
 
       break;
     }
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_PTS:
     {
-      if (elapsed_time_ticks_i && message_data_r.timeStamps.PTS > elapsed_time_ticks_i)
+      // *TODO*: remove type inference(s)
+      elapsed_video_seconds_d = getElapsedTimeInSeconds (message_data_r.timeStamps.PTS);
+      drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
+      if (drift_d > MIN_SYNC_THRESHOLD)
       {
-        double ms_to_wait =
-          ((message_data_r.timeStamps.PTS - elapsed_time_ticks_i) / 90000.0) * 1000.0;
-        std::this_thread::sleep_for (std::chrono::milliseconds (static_cast<long long> (ms_to_wait)));
+        std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, MAX_SLEEP_PER_FRAME)));
+        std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
       } // end IF
+      else if (drift_d < -MAX_DROP_THRESHOLD)
+      {
+        //ACE_DEBUG ((LM_WARNING,
+        //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
+        //            inherited::mod_->name (),
+        //            drift_d));
+        //message_in->release ();
+        //return;
+      } // end ELSE IF
 
       break;
     }
@@ -794,22 +803,25 @@ template <ACE_SYNCH_DECL,
           typename MediaType,
           typename UserDataType>
 void
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::updatePCR (ACE_UINT64 PCR_27MHz_in)
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::updatePCR (ACE_UINT64 PCR_27MHz_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::updatePCR"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::updatePCR"));
 
   if (unlikely (!isPCRInitialized_))
   { isPCRInitialized_ = true;
-    initialPCR_ = PCR_27MHz_in / 300;
-    initialSystemTime_ = std::chrono::steady_clock::now ();
+    initialPCR_ = PCR_27MHz_in / 300; // convert to 90kHz
     return;
+  } // end IF
+  if (unlikely (PCR_27MHz_in < initialPCR_))
+  {
+    initialPCR_ = PCR_27MHz_in / 300; // PCR restarted/wrapped
   } // end IF
 }
 
@@ -821,26 +833,201 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType,
           typename UserDataType>
-ACE_UINT64
-Stream_Module_Scheduler_T<ACE_SYNCH_USE,
-                          TimePolicyType,
-                          ConfigurationType,
-                          ControlMessageType,
-                          DataMessageType,
-                          SessionMessageType,
-                          MediaType,
-                          UserDataType>::getElapsedTimeIn90kHzTicks ()
+double
+Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::getElapsedTimeInSeconds (ACE_UINT64 timeStamp_90kHz_in)
 {
-  //STREAM_TRACE (ACE_TEXT ("Stream_Module_Scheduler_T::getElapsedTimeIn90kHzTicks"));
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_VideoScheduler_T::getElapsedTimeInSeconds"));
 
   // sanity check(s)
   if (unlikely (!isPCRInitialized_))
-    return 0;
+    return 0.0;
+  if (unlikely (timeStamp_90kHz_in < initialPCR_))
+    return 0.0;
 
-  auto elapsed_ns =
-    std::chrono::duration_cast<std::chrono::nanoseconds> (std::chrono::steady_clock::now () - initialSystemTime_).count ();
-  ACE_UINT64 elapsed_ticks =
-    static_cast<ACE_UINT64> ((elapsed_ns / 1e9) * 90000.0 * clockScaleFactor_);
+  return (timeStamp_90kHz_in - initialPCR_) / 90000.0;
+}
 
-  return initialPCR_ + elapsed_ticks;
+//////////////////////////////////////////
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::Stream_Module_AudioScheduler_T (typename inherited::ISTREAM_T* stream_in)
+ : inherited (stream_in)
+ //, frameSize_ (0)
+ , isFirstDataMessage_ (true)
+ , sampleRate_ (0)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_AudioScheduler_T::Stream_Module_AudioScheduler_T"));
+
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+void
+Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                 bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_AudioScheduler_T::handleDataMessage"));
+
+  ACE_UNUSED_ARG (message_inout);
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (inherited::configuration_);
+  ACE_ASSERT (inherited::configuration_->masterClock);
+  //ACE_ASSERT (frameSize_);
+  ACE_ASSERT (sampleRate_);
+
+  if (unlikely (isFirstDataMessage_))
+  { isFirstDataMessage_ = false;
+    inherited::configuration_->masterClock->initialize (Stream_MasterClock::CLOCK_MODE_STOPWATCH,
+                                                        sampleRate_);
+  } // end IF
+  //int number_of_samples_i = message_inout->total_length () / frameSize_;
+  //inherited::configuration_->masterClock->advance (number_of_samples_i);
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+void
+Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
+                                                                    bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_AudioScheduler_T::handleSessionMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  // sanity check(s)
+  ACE_ASSERT (message_inout);
+
+  switch (message_inout->type ())
+  {
+    case STREAM_SESSION_MESSAGE_BEGIN:
+    {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      ACE_ASSERT (inherited::configuration_->masterClock);
+      ACE_ASSERT (inherited::sessionData_);
+      typename SessionMessageType::DATA_T::DATA_T& session_data_r =
+        const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
+      int sample_rate_i = 0;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      struct _AMMediaType media_type_s;
+      struct tWAVEFORMATEX* waveformatex_p = NULL;
+#else
+      struct Stream_MediaFramework_ALSA_MediaType media_type_s;
+      struct Stream_MediaFramework_V4L_MediaType media_type_2;
+#endif // ACE_WIN32 || ACE_WIN64
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_s);
+      ACE_ASSERT (InlineIsEqualGUID (media_type_s.formattype, FORMAT_WaveFormatEx));
+      waveformatex_p =
+        reinterpret_cast<struct tWAVEFORMATEX*> (media_type_s.pbFormat);
+      ACE_ASSERT (waveformatex_p);
+      sample_rate_i = waveformatex_p->nSamplesPerSec;
+      //frameSize_ = waveformatex_p->nBlockAlign;
+      Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
+#else
+      inherited2::getMediaType (session_data_r.formats.back (),
+                                STREAM_MEDIATYPE_AUDIO,
+                                media_type_s);
+      sample_rate_i = media_type_s.rate;
+      //frameSize_ = (snd_pcm_format_width (media_type_s.format) / 8) *
+      //             media_type_s.channels;
+#endif // ACE_WIN32 || ACE_WIN64
+      sampleRate_ = sample_rate_i;
+      //inherited::configuration_->masterClock->initialize (sample_rate_i);
+
+      break;
+
+error:
+      this->notify (STREAM_SESSION_MESSAGE_ABORT);
+
+      break;
+    }
+    default:
+      break;
+  } // end SWITCH
+}
+
+template <ACE_SYNCH_DECL,
+          typename TimePolicyType,
+          typename ConfigurationType,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename MediaType,
+          typename UserDataType>
+bool
+Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
+                               TimePolicyType,
+                               ConfigurationType,
+                               ControlMessageType,
+                               DataMessageType,
+                               SessionMessageType,
+                               MediaType,
+                               UserDataType>::initialize (const ConfigurationType& configuration_in,
+                                                          Stream_IAllocator* allocator_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_AudioScheduler_T::initialize"));
+
+  if (unlikely (inherited::isInitialized_))
+  {
+    //frameSize_ = 0;
+    isFirstDataMessage_ = true;
+    sampleRate_ = 0;
+  } // end IF
+
+  return inherited::initialize (configuration_in,
+                                allocator_in);
 }
