@@ -721,54 +721,20 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
     inherited::configuration_->masterClock->getTimeInSeconds ();
   double drift_d;
 
-  const double MAX_SLEEP_PER_FRAME = 0.1;
-  const double MIN_SYNC_THRESHOLD = 0.1;
-  const double MAX_DROP_THRESHOLD = 0.15;
-
   switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_DTS:
     {
       // *TODO*: remove type inference(s)
-      elapsed_video_seconds_d = getElapsedTimeInSeconds (message_data_r.timeStamps.DTS);
-      drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
-      if (drift_d > MIN_SYNC_THRESHOLD)
-      {
-        std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, MAX_SLEEP_PER_FRAME)));
-        std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
-      } // end IF
-      else if (drift_d < -MAX_DROP_THRESHOLD)
-      {
-        //ACE_DEBUG ((LM_WARNING,
-        //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
-        //            inherited::mod_->name (),
-        //            drift_d));
-        //message_in->release ();
-        //return;
-      } // end ELSE IF
-
+      elapsed_video_seconds_d =
+        getElapsedTimeInSeconds (message_data_r.timeStamps.DTS);
       break;
     }
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_PTS:
     {
       // *TODO*: remove type inference(s)
-      elapsed_video_seconds_d = getElapsedTimeInSeconds (message_data_r.timeStamps.PTS);
-      drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
-      if (drift_d > MIN_SYNC_THRESHOLD)
-      {
-        std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, MAX_SLEEP_PER_FRAME)));
-        std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
-      } // end IF
-      else if (drift_d < -MAX_DROP_THRESHOLD)
-      {
-        //ACE_DEBUG ((LM_WARNING,
-        //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
-        //            inherited::mod_->name (),
-        //            drift_d));
-        //message_in->release ();
-        //return;
-      } // end ELSE IF
-
+      elapsed_video_seconds_d =
+        getElapsedTimeInSeconds (message_data_r.timeStamps.PTS);
       break;
     }
     default:
@@ -781,6 +747,22 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
       return;
     }
   } // end SWITCH
+
+  drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
+  if (drift_d > STREAM_MISC_DEFAULT_SCHEDULER_MIN_SYNC_THRESHOLD_D)
+  { // --> video is ahead of audio; sleep a bit to let audio catch up
+    std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, STREAM_MISC_DEFAULT_SCHEDULER_MAX_SLEEP_PER_FRAME_D)));
+    std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
+  } // end IF
+  else if (drift_d < -STREAM_MISC_DEFAULT_SCHEDULER_MAX_DROP_THRESHOLD_D)
+  { // --> audio is ahead of video; let video catch up
+    //ACE_DEBUG ((LM_WARNING,
+    //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
+    //            inherited::mod_->name (),
+    //            drift_d));
+    //message_in->release ();
+    //return;
+  } // end ELSE IF
 
   result = queue_2_.enqueue_tail (message_in,
                                   NULL);
@@ -819,10 +801,8 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
     initialPCR_ = PCR_27MHz_in / 300; // convert to 90kHz
     return;
   } // end IF
-  if (unlikely (PCR_27MHz_in < initialPCR_))
-  {
-    initialPCR_ = PCR_27MHz_in / 300; // PCR restarted/wrapped
-  } // end IF
+  if (unlikely ((PCR_27MHz_in / 300) < initialPCR_))
+    initialPCR_ = PCR_27MHz_in / 300; // PCR restarted / wrapped
 }
 
 template <ACE_SYNCH_DECL,

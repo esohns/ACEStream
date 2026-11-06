@@ -51,6 +51,10 @@
 #define STREAM_MISC_DEFAULT_DELAY_MAX_TOKEN_MULTIPLIER_F            1.5f
 #define STREAM_MISC_DEFAULT_DELAY_UNDERRUN_THRESHOLD                3
 
+#define STREAM_MISC_DEFAULT_SCHEDULER_MIN_SYNC_THRESHOLD_D          0.03 // seconds
+#define STREAM_MISC_DEFAULT_SCHEDULER_MAX_DROP_THRESHOLD_D          0.15 // seconds
+#define STREAM_MISC_DEFAULT_SCHEDULER_MAX_SLEEP_PER_FRAME_D         0.1  // seconds
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
 // DirectShow
 #define STREAM_MISC_DS_WIN32_FILTER_SOURCE_BUFFERS                  30 // ==> max. #frames(/sec)
