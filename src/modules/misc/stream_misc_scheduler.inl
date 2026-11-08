@@ -716,24 +716,24 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
     const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_r.getR ());
   // *TODO*: remove type inference(s)
   updatePCR (message_data_r.timeStamps.PCR);
-  double elapsed_video_seconds_d;
-  double elapsed_audio_seconds_d =
+  float elapsed_video_seconds_f;
+  float elapsed_audio_seconds_f =
     inherited::configuration_->masterClock->getTimeInSeconds ();
-  double drift_d;
+  float drift_f;
 
   switch (inherited::configuration_->delayConfiguration->mode)
   {
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_DTS:
     {
       // *TODO*: remove type inference(s)
-      elapsed_video_seconds_d =
+      elapsed_video_seconds_f =
         getElapsedTimeInSeconds (message_data_r.timeStamps.DTS);
       break;
     }
     case STREAM_MISCELLANEOUS_DELAY_MODE_SCHEDULER_PTS:
     {
       // *TODO*: remove type inference(s)
-      elapsed_video_seconds_d =
+      elapsed_video_seconds_f =
         getElapsedTimeInSeconds (message_data_r.timeStamps.PTS);
       break;
     }
@@ -748,22 +748,30 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
     }
   } // end SWITCH
 
-  drift_d = elapsed_video_seconds_d - elapsed_audio_seconds_d;
-  if (drift_d > STREAM_MISC_DEFAULT_SCHEDULER_MIN_SYNC_THRESHOLD_D)
+  drift_f = elapsed_video_seconds_f - elapsed_audio_seconds_f;
+  // prevent rapid flip-flopping around the threshold
+  static float last_drift_f = 0.0f;
+  float drift_delta_f = std::abs (drift_f - last_drift_f);
+  last_drift_f = drift_f;
+  if (drift_delta_f < STREAM_MISC_DEFAULT_SCHEDULER_SYNC_HYSTERESIS_F)
+    goto continue_;
+
+  if (drift_f > STREAM_MISC_DEFAULT_SCHEDULER_MIN_SYNC_THRESHOLD_F)
   { // --> video is ahead of audio; sleep a bit to let audio catch up
-    std::chrono::duration<double> sleep_duration (std::max (0.0, std::min (drift_d * 0.5, STREAM_MISC_DEFAULT_SCHEDULER_MAX_SLEEP_PER_FRAME_D)));
+    std::chrono::duration<float> sleep_duration (std::min (drift_f, STREAM_MISC_DEFAULT_SCHEDULER_MAX_SLEEP_PER_FRAME_F));
     std::this_thread::sleep_for (std::chrono::duration_cast<std::chrono::microseconds> (sleep_duration));
   } // end IF
-  else if (drift_d < -STREAM_MISC_DEFAULT_SCHEDULER_MAX_DROP_THRESHOLD_D)
+  else if (drift_f < -STREAM_MISC_DEFAULT_SCHEDULER_MAX_DROP_THRESHOLD_F)
   { // --> audio is ahead of video; let video catch up
     //ACE_DEBUG ((LM_WARNING,
     //            ACE_TEXT ("%s: dropping video frame to catch up with audio (drift: %.3f seconds)\n"),
     //            inherited::mod_->name (),
-    //            drift_d));
+    //            drift_f));
     //message_in->release ();
     //return;
   } // end ELSE IF
 
+continue_:
   result = queue_2_.enqueue_tail (message_in,
                                   NULL);
   if (unlikely (result == -1))
@@ -801,8 +809,14 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
     initialPCR_ = PCR_27MHz_in / 300; // convert to 90kHz
     return;
   } // end IF
-  if (unlikely ((PCR_27MHz_in / 300) < initialPCR_))
-    initialPCR_ = PCR_27MHz_in / 300; // PCR restarted / wrapped
+  ACE_UINT64 PCR_in_90kHz = PCR_27MHz_in / 300; // convert to 90kHz
+  if (unlikely (PCR_in_90kHz < initialPCR_)) // PCR restarted / wrapped ?
+  { ACE_ASSERT (inherited::configuration_);
+    ACE_ASSERT (inherited::configuration_->masterClock);
+    initialPCR_ = PCR_in_90kHz;
+    std::chrono::duration<ACE_INT64, std::ratio<1, 27000000> > pcr_duration (PCR_27MHz_in);
+    inherited::configuration_->masterClock->reset (pcr_duration);
+  } // end IF
 }
 
 template <ACE_SYNCH_DECL,
@@ -813,7 +827,7 @@ template <ACE_SYNCH_DECL,
           typename SessionMessageType,
           typename MediaType,
           typename UserDataType>
-double
+float
 Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
                                TimePolicyType,
                                ConfigurationType,
@@ -827,11 +841,11 @@ Stream_Module_VideoScheduler_T<ACE_SYNCH_USE,
 
   // sanity check(s)
   if (unlikely (!isPCRInitialized_))
-    return 0.0;
+    return 0.0f;
   if (unlikely (timeStamp_90kHz_in < initialPCR_))
-    return 0.0;
+    return 0.0f;
 
-  return (timeStamp_90kHz_in - initialPCR_) / 90000.0;
+  return (timeStamp_90kHz_in - initialPCR_) / 90000.0f;
 }
 
 //////////////////////////////////////////
@@ -893,10 +907,10 @@ Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
 
   if (unlikely (isFirstDataMessage_))
   { isFirstDataMessage_ = false;
-    inherited::configuration_->masterClock->initialize (Stream_MasterClock::CLOCK_MODE_STOPWATCH,
+    inherited::configuration_->masterClock->initialize (Stream_Clock::CLOCK_MODE_STOPWATCH,
                                                         sampleRate_);
   } // end IF
-  //int number_of_samples_i = message_inout->total_length () / frameSize_;
+  //ACE_UINT64 number_of_samples_i = message_inout->total_length () / frameSize_;
   //inherited::configuration_->masterClock->advance (number_of_samples_i);
 }
 
@@ -937,7 +951,7 @@ Stream_Module_AudioScheduler_T<ACE_SYNCH_USE,
       ACE_ASSERT (inherited::sessionData_);
       typename SessionMessageType::DATA_T::DATA_T& session_data_r =
         const_cast<typename SessionMessageType::DATA_T::DATA_T&> (inherited::sessionData_->getR ());
-      int sample_rate_i = 0;
+      ACE_UINT32 sample_rate_i;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       struct _AMMediaType media_type_s;
       struct tWAVEFORMATEX* waveformatex_p = NULL;

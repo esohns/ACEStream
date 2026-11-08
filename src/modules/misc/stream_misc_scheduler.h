@@ -39,7 +39,7 @@ extern const char libacestream_default_misc_scheduler_module_name_string[];
 
 //////////////////////////////////////////
 
-class Stream_MasterClock
+class Stream_Clock
 {
  public:
   enum ClockMode
@@ -48,9 +48,16 @@ class Stream_MasterClock
     CLOCK_MODE_AUDIO_SAMPLES
   };
 
+  Stream_Clock ()
+   : start_ (std::chrono::high_resolution_clock::duration::zero ())
+   , mode_ (CLOCK_MODE_STOPWATCH)
+   , sampleRate_ (48000)
+   , totalSamplesRendered_ (0)
+  {}
+
   void
   initialize (enum ClockMode mode_in,
-              int sampleRate_in)
+              ACE_UINT32 sampleRate_in)
   {
     start_ = std::chrono::high_resolution_clock::now ();
     mode_ = mode_in;
@@ -58,9 +65,25 @@ class Stream_MasterClock
     totalSamplesRendered_ = 0;
   }
 
-  inline void advance (int numAudioSamples_in) { totalSamplesRendered_ += numAudioSamples_in; }
+  inline void advance (ACE_UINT64 numAudioSamples_in) { totalSamplesRendered_ += numAudioSamples_in; }
 
-  double
+  void
+  reset (std::chrono::duration<ACE_INT64, std::ratio<1, 27000000> >& elapsed_in)
+  {
+    std::chrono::nanoseconds elapsed_ns =
+      std::chrono::duration_cast<std::chrono::nanoseconds> (elapsed_in);
+    start_ =
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+      std::chrono::steady_clock::time_point (elapsed_ns);
+#elif defined (ACE_LINUX)
+      std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds> (elapsed_ns);
+#else
+#error missing implementation, aborting
+#endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
+    totalSamplesRendered_ = 0;
+  }
+
+  float
   getTimeInSeconds () const
   {
     switch (mode_)
@@ -76,17 +99,20 @@ class Stream_MasterClock
 #else
 #error missing implementation, aborting
 #endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
-        std::chrono::duration<double> elapsed_time = now - start_;
+        std::chrono::duration<float> elapsed_time = now - start_;
         return elapsed_time.count  ();
       }
       case CLOCK_MODE_AUDIO_SAMPLES:
-        return static_cast<double> (totalSamplesRendered_.load ()) / sampleRate_;
+        return static_cast<float> (totalSamplesRendered_.load ()) / sampleRate_;
       default:
+        ACE_DEBUG ((LM_ERROR,
+                    ACE_TEXT ("%s: invalid/unknown clock mode (was: %d), returning\n"),
+                    mode_));
         ACE_ASSERT (false);
         break;
     } // end SWITCH
 
-    return 0.0;
+    return 0.0f;
   }
 
  private:
@@ -97,9 +123,9 @@ class Stream_MasterClock
 #else
 #error missing implementation, aborting
 #endif // ACE_WIN32 || ACE_WIN64 || ACE_LINUX
-  enum ClockMode                        mode_ = CLOCK_MODE_STOPWATCH;
-  int                                   sampleRate_ = 48000;
-  std::atomic<ACE_INT64>                totalSamplesRendered_ = 0;
+  enum ClockMode                        mode_;
+  ACE_UINT32                            sampleRate_;
+  std::atomic<ACE_UINT64>               totalSamplesRendered_;
 };
 
 //////////////////////////////////////////
@@ -179,7 +205,7 @@ class Stream_Module_VideoScheduler_T
 #endif // ACE_WIN32 || ACE_WIN64
 
   void updatePCR (ACE_UINT64); // PCR (27 MHz)
-  double getElapsedTimeInSeconds (ACE_UINT64); // PTS/DTS (in 90kHz ticks)
+  float getElapsedTimeInSeconds (ACE_UINT64); // PTS/DTS (in 90kHz ticks)
 
   bool                                  isPCRInitialized_;
   ACE_UINT64                            initialPCR_; // (90 kHz)
@@ -241,9 +267,9 @@ class Stream_Module_AudioScheduler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_AudioScheduler_T (const Stream_Module_AudioScheduler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_Module_AudioScheduler_T& operator= (const Stream_Module_AudioScheduler_T&))
 
-  //int frameSize_;
-  bool isFirstDataMessage_;
-  int  sampleRate_;
+  //ACE_UINT32 frameSize_;
+  bool       isFirstDataMessage_;
+  ACE_UINT32 sampleRate_;
 };
 
 // include template definition
