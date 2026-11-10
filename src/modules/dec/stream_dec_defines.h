@@ -191,6 +191,9 @@
 #endif // FFMPEG_SUPPORT
 #define STREAM_DEC_DEFAULT_LIBAV_IO_BUFFER_SIZE                      32768 // bytes
 
+// OpenCV
+#define STREAM_DEC_DEFAULT_OPENCV_WINDOW_NAME                        "ACEStream OpenCV display"
+
 // ---------------------------------------
 
 // SoX

@@ -230,6 +230,7 @@ next:
         if (unlikely (!Stream_Device_Tools::initializeBuffers<DataMessageType> (captureFileDescriptor_,
                                                                                 inherited::configuration_->method,
                                                                                 inherited::configuration_->buffers,
+                                                                                session_data_r.sessionId,
                                                                                 bufferMap_,
                                                                                 inherited::allocator_,
                                                                                 inherited::configuration_->allocatorConfiguration)))
@@ -629,7 +630,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
   int result = -1;
   int result_2 = -1;
   const typename SessionMessageType::DATA_T::DATA_T& session_data_r =
-      inherited::sessionData_->getR ();
+    inherited::sessionData_->getR ();
   bool stop_processing = false;
 
   struct v4l2_buffer buffer_s;
@@ -640,7 +641,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
 //  ACE_OS::memset (&event_s, 0, sizeof (struct v4l2_event));
   Stream_Device_BufferMapIterator_t iterator;
   typename inherited::ISTREAM_T* stream_p =
-      const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
+    const_cast<typename inherited::ISTREAM_T*> (inherited::getP ());
 
   do
   {

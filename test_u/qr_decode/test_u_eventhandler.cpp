@@ -80,8 +80,6 @@ Test_U_EventHandler::notify (Stream_SessionId_t sessionId_in,
 
   ACE_UNUSED_ARG (sessionId_in);
 
-  ACE_ASSERT (message_in.isInitialized ());
-
   //ACE_DEBUG ((LM_DEBUG,
   //            ACE_TEXT ("received message (id: %u, session id: %u)\n"),
   //            message_in.id (),

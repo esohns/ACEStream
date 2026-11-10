@@ -127,6 +127,7 @@ Stream_DataBase_T<DataType>::getR () const
 
   if (likely (data_))
     return *data_;
+  // ACE_ASSERT (false);
 
   return dummy;
 }

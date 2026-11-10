@@ -142,6 +142,7 @@ class Stream_Device_Tools
                                  v4l2_memory,                            // I/O streaming method
                                  __u32,                                  // number of buffers
                                  /////////
+                                 Stream_SessionId_t,                     // session id
                                  Stream_Device_BufferMap_t&,             // return value: buffer map
                                  /////////
                                  Stream_IAllocator*,                     // allocator

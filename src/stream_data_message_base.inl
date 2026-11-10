@@ -154,6 +154,31 @@ template <typename DataType,
 void
 Stream_DataMessageBase_T<DataType,
                          MessageType,
+                         CommandType>::initialize (DataType*& data_inout,
+                                                   Stream_SessionId_t sessionId_in,
+                                                   ACE_Data_Block* dataBlock_in)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
+
+  if (likely (data_inout))
+  {
+    data_ = *data_inout;
+
+    // clean up
+    delete data_inout; data_inout = NULL;
+  } // end IF
+
+  inherited::initialize (sessionId_in,
+                         dataBlock_in);
+  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+}
+
+template <typename DataType,
+          typename MessageType,
+          typename CommandType>
+void
+Stream_DataMessageBase_T<DataType,
+                         MessageType,
                          CommandType>::setPR (DataType*& data_inout)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::setPR"));
@@ -166,23 +191,6 @@ Stream_DataMessageBase_T<DataType,
   // clean up
   delete data_inout; data_inout = NULL;
 }
-
-//template <typename DataType,
-//          typename AllocatorConfigurationType,
-//          typename MessageType,
-//          typename CommandType>
-//void
-//Stream_DataMessageBase_T<DataType,
-//                         AllocatorConfigurationType,
-//                         MessageType,
-//                         CommandType>::dump_state () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::dump_state"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)  
-//}
 
 template <typename DataType,
           typename MessageType,

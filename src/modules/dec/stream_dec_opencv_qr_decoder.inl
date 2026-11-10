@@ -30,6 +30,7 @@
 
 #include "stream_macros.h"
 
+#include "stream_dec_defines.h"
 #include "stream_dec_tools.h"
 
 template <ACE_SYNCH_DECL,
@@ -187,7 +188,7 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
   } // end IF
 
   // step2: display
-  cv::imshow (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display"),
+  cv::imshow (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DEFAULT_OPENCV_WINDOW_NAME),
               frame_matrix);
   int key_i = cv::waitKey (1);
   if (unlikely (key_i == 27)) // ASCII Escape
@@ -253,9 +254,15 @@ Stream_Decoder_OpenCVQRDecoder_T<ACE_SYNCH_USE,
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
 
-      cv::namedWindow (ACE_TEXT_ALWAYS_CHAR ("ACEStream OpenCV display"),
-                       cv::WINDOW_AUTOSIZE);
+      cv::namedWindow (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DEFAULT_OPENCV_WINDOW_NAME),
+                       cv::WINDOW_NORMAL);
 //      cv::startWindowThread ();
+      cv::resizeWindow (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DEFAULT_OPENCV_WINDOW_NAME),
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+                        resolution_.cx, resolution_.cy);
+#else
+                        resolution_.width, resolution_.height);
+#endif // ACE_WIN32 || ACE_WIN64
 
       break;
 

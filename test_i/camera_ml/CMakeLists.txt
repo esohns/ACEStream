@@ -151,7 +151,7 @@ if (MEDIAPIPE_SUPPORT)
  elseif (WIN32)
   target_include_directories (MP_FORMATS PUBLIC "C:/Users/eriks/_bazel_eriks/dma4fr6d/execroot/mediapipe/bazel-out/x64_windows-opt/bin")
  endif ()
- target_link_libraries (MP_FORMATS libprotobuf)
+ target_link_libraries (MP_FORMATS PUBLIC libprotobuf)
 
  set (EXECUTABLE_2 camera_ml_2)
  set (${EXECUTABLE_2}_EXE_SRCS
@@ -332,7 +332,7 @@ if (FFMPEG_SUPPORT)
  target_link_libraries (${EXECUTABLE} PUBLIC ${ffmpeg_LIBRARIES})
 endif (FFMPEG_SUPPORT)
 if (OPENCV_SUPPORT)
- target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
+  target_link_libraries (${EXECUTABLE} PUBLIC ${OPENCV_LIBRARIES})
 endif (OPENCV_SUPPORT)
 if (UNIX)
  if (TENSORFLOW_CC_SUPPORT)
@@ -384,7 +384,10 @@ if (MEDIAPIPE_SUPPORT)
  endif (OPENCV_SUPPORT)
  target_link_libraries (${EXECUTABLE_2} PUBLIC MP_FORMATS)
  target_link_libraries (${EXECUTABLE_2} PUBLIC ${MEDIAPIPE_LIBRARIES})
+
  if (UNIX)
+  target_link_options (${EXECUTABLE_2} PRIVATE "LINKER:-as-needed")
+
   target_link_libraries (${EXECUTABLE_2} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
   target_link_libraries (${EXECUTABLE_2} PUBLIC ${PKG_V4L_LIBRARIES})
  endif (UNIX)
@@ -424,6 +427,8 @@ if (MEDIAPIPE_SUPPORT)
   endif ()
 
   if (UNIX)
+   target_link_options (${EXECUTABLE_3} PRIVATE "LINKER:-as-needed")
+
    target_link_libraries (${EXECUTABLE_3} PUBLIC ${CMAKE_THREAD_LIBS_INIT})
    target_link_libraries (${EXECUTABLE_3} PUBLIC ${PKG_V4L_LIBRARIES})
   endif (UNIX)
@@ -719,6 +724,16 @@ endif (MEDIAPIPE_SUPPORT)
 add_test (NAME ${EXECUTABLE}_test
           COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${EXECUTABLE} -l -t
           WORKING_DIRECTORY ${WORKING_DIRECTORY})
+if (MEDIAPIPE_SUPPORT)
+ add_test (NAME ${EXECUTABLE_2}_test
+           COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${EXECUTABLE_2} -l -t
+           WORKING_DIRECTORY ${WORKING_DIRECTORY})
+ if (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+  add_test (NAME ${EXECUTABLE_3}_test
+            COMMAND ${CMAKE_CURRENT_BINARY_DIR}/${PATH_SUFFIX}/${EXECUTABLE_3} -l -t
+            WORKING_DIRECTORY ${WORKING_DIRECTORY})
+ endif (BOX2D_SUPPORT AND OLC_PGE_SUPPORT)
+endif (MEDIAPIPE_SUPPORT)
 
 set_tests_properties (${EXECUTABLE}_test
                       PROPERTIES

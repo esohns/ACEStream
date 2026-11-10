@@ -37,6 +37,7 @@ bool
 Stream_Device_Tools::initializeBuffers (int fd_in,
                                         v4l2_memory method_in,
                                         __u32 numberOfBuffers_in,
+                                        Stream_SessionId_t sessionId_in,
                                         Stream_Device_BufferMap_t& bufferMap_out,
                                         Stream_IAllocator* allocator_in,
                                         struct Common_AllocatorConfiguration* allocatorConfiguration_in)
@@ -56,6 +57,8 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
   buffer.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   ACE_Message_Block* message_block_p = NULL;
   MessageType* message_p = NULL;
+  typename MessageType::DATA_T* message_data_container_p;
+  typename MessageType::DATA_T::DATA_T* message_data_p;
 
   // step1: retrieve required buffer size (format-dependent)
   struct v4l2_format format;
@@ -84,6 +87,18 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
            ++i)
       {
         buffer.index = i;
+
+        message_data_p = NULL;
+        ACE_NEW_NORETURN (message_data_p,
+                          typename MessageType::DATA_T::DATA_T ());
+        ACE_ASSERT (message_data_p);
+
+        message_data_container_p = NULL;
+        ACE_NEW_NORETURN (message_data_container_p,
+                          typename MessageType::DATA_T (message_data_p,
+                                                        true));
+        ACE_ASSERT (message_data_container_p);
+
         if (allocator_in)
         {
           try {
@@ -104,11 +119,16 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           ACE_DEBUG ((LM_CRITICAL,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
+          message_data_container_p->decrease ();
           goto error;
         } // end IF
         message_block_p->size (format.fmt.pix.sizeimage);
         message_p = static_cast<MessageType*> (message_block_p);
         message_p->wr_ptr (format.fmt.pix.sizeimage);
+        message_p->initialize (message_data_container_p,
+                               sessionId_in,
+                               NULL);
+
         // *TODO*: remove type inference
         typename MessageType::DATA_T& message_data_container_r =
           const_cast<typename MessageType::DATA_T&> (message_p->getR ());
@@ -118,7 +138,7 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         message_data_r.index = i;
         message_data_r.method = method_in;
         buffer.m.userptr =
-            reinterpret_cast<unsigned long> (message_block_p->rd_ptr ());
+          reinterpret_cast<unsigned long> (message_block_p->rd_ptr ());
         buffer.length = format.fmt.pix.sizeimage;
         // *NOTE*: in oder to retrieve the buffer instance handle from the
         //         device buffer when it has written the frame data, the address
@@ -174,6 +194,17 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         // *TODO*: when/why does this assert trigger ?
         ACE_ASSERT (buffer.length >= format.fmt.pix.sizeimage);
 
+        message_data_p = NULL;
+        ACE_NEW_NORETURN (message_data_p,
+                          typename MessageType::DATA_T::DATA_T ());
+        ACE_ASSERT (message_data_p);
+
+        message_data_container_p = NULL;
+        ACE_NEW_NORETURN (message_data_container_p,
+                          typename MessageType::DATA_T (message_data_p,
+                                                        true));
+        ACE_ASSERT (message_data_container_p);
+
         if (allocator_in)
         {
           try {
@@ -194,10 +225,15 @@ Stream_Device_Tools::initializeBuffers (int fd_in,
         {
           ACE_DEBUG ((LM_CRITICAL,
                       ACE_TEXT ("failed to allocate memory, aborting\n")));
+          message_data_container_p->decrease ();
           goto error;
         } // end IF
         message_block_p->size (format.fmt.pix.sizeimage);
         message_p = static_cast<MessageType*> (message_block_p);
+        message_p->initialize (message_data_container_p,
+                               sessionId_in,
+                               NULL);
+
         // *TODO*: remove type inference
         typename MessageType::DATA_T& message_data_container_r =
           const_cast<typename MessageType::DATA_T&> (message_p->getR ());

@@ -54,9 +54,9 @@ class Stream_DataMessageBase_T
   virtual void initialize (DataType&,          // data
                            Stream_SessionId_t, // session id
                            ACE_Data_Block*);   // data block to use
-  inline virtual void initialize (DataType*&,
-                                  Stream_SessionId_t,
-                                  ACE_Data_Block*) { ACE_ASSERT (false); ACE_NOTSUP; ACE_NOTREACHED (return;) }
+  virtual void initialize (DataType*&,         // data handle
+                           Stream_SessionId_t, // session id
+                           ACE_Data_Block*);   // data block to use
 
   // implement Common_IGet_T
   inline virtual const DataType& getR () const { return data_; }
