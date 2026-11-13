@@ -41,15 +41,22 @@ template <ACE_SYNCH_DECL,
 
 struct Test_U_RIFFDecoder_MessageData
 {
+  // *NOTE*: the idea is to 'merge' the data
+  struct Test_U_RIFFDecoder_MessageData& operator+= (const struct Test_U_RIFFDecoder_MessageData& rhs_in)
+  { ACE_ASSERT (false);
+    return *this;
+  }
+
   Stream_Decoder_RIFFChunks_t chunks;
 };
+typedef Stream_DataBase_T<struct Test_U_RIFFDecoder_MessageData> Test_U_RIFFDecoder_MessageData_t;
 
 class Test_U_RIFFDecoder_Message
- : public Stream_DataMessageBase_T<struct Test_U_RIFFDecoder_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_RIFFDecoder_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_RIFFDecoder_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_RIFFDecoder_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 

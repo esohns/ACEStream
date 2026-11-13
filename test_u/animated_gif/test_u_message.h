@@ -53,7 +53,24 @@ struct Test_U_MessageData
 #if defined (IMAGEMAGICK_SUPPORT)
    , relinquishMemory (NULL)
 #endif // IMAGEMAGICK_SUPPORT
-  {}
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
+#endif // ACE_WIN32 || ACE_WIN64
+  }
+
+  ~Test_U_MessageData ()
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Stream_MediaFramework_DirectShow_Tools::free (format);
+#endif // ACE_WIN32 || ACE_WIN64
+  }
+
+  // *NOTE*: the idea is to 'merge' the data
+  struct Test_U_MessageData& operator+= (const struct Test_U_MessageData& rhs_in)
+  { ACE_ASSERT (false);
+    return *this;
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                                format;
@@ -67,13 +84,14 @@ struct Test_U_MessageData
   void*                                              relinquishMemory;
 #endif // IMAGEMAGICK_SUPPORT
 };
+typedef Stream_DataBase_T<struct Test_U_MessageData> Test_U_MessageData_t;
 
 class Test_U_Message
- : public Stream_DataMessageBase_T<struct Test_U_MessageData,
+ : public Stream_DataMessageBase_T<Test_U_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Test_U_MessageData,
+  typedef Stream_DataMessageBase_T<Test_U_MessageData_t,
                                    enum Stream_MessageType,
                                    Stream_CommandType_t> inherited;
 

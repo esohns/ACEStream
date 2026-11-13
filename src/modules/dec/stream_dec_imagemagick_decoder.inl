@@ -192,11 +192,15 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   ACE_Message_Block* message_block_p = NULL;
   unsigned char* data_p = NULL;
   size_t size_i = 0, size_2 = 0;
-  typename DataMessageType::DATA_T message_data_2;
+  typename DataMessageType::DATA_T* message_data_container_2 = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_2 = NULL, *message_data_2_ = NULL;
   std::string input_format_string;
 
-  const typename DataMessageType::DATA_T& message_data_r =
+  const typename DataMessageType::DATA_T& message_data_container_r =
     message_inout->getR ();
+  const typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    message_data_container_r.getR ();
+
   Common_Image_Resolution_t resolution_s;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
@@ -248,11 +252,19 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
   message_p = static_cast<DataMessageType*> (message_block_p);
   ACE_ASSERT (message_p);
 
+  ACE_NEW_NORETURN (message_data_2,
+                    typename DataMessageType::DATA_T::DATA_T ());
+  ACE_ASSERT (message_data_2);
+  message_data_2_ = message_data_2;
+  ACE_NEW_NORETURN (message_data_container_2,
+                    typename DataMessageType::DATA_T (message_data_2_, true));
+  ACE_ASSERT (message_data_container_2);
+
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  message_data_2.format =
+  message_data_2->format =
     *Stream_MediaFramework_DirectShow_Tools::copy (outputFormat_); // *TODO*
 #else
-  message_data_2.format = outputFormat_;
+  message_data_2->format = outputFormat_;
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if defined (IMAGEMAGICK_IS_GRAPHICSMAGICK)
@@ -308,8 +320,8 @@ Stream_Decoder_ImageMagick_Decoder_T<ACE_SYNCH_USE,
                    size_2,
                    ACE_Message_Block::DONT_DELETE); // own image data, but relinquish() in dtor
   message_p->wr_ptr (size_2);
-  message_data_2.relinquishMemory = data_p;
-  message_p->initialize (message_data_2,
+  message_data_2_->relinquishMemory = data_p;
+  message_p->initialize (message_data_container_2,
                          message_p->sessionId (),
                          NULL);
 

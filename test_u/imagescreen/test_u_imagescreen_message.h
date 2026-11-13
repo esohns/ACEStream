@@ -55,7 +55,24 @@ struct Stream_ImageScreen_MessageData
 #if defined (IMAGEMAGICK_SUPPORT)
    , relinquishMemory (NULL)
 #endif // IMAGEMAGICK_SUPPORT
-  {}
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    ACE_OS::memset (&format, 0, sizeof (struct _AMMediaType));
+#endif // ACE_WIN32 || ACE_WIN64
+  }
+
+  ~Stream_ImageScreen_MessageData ()
+  {
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+    Stream_MediaFramework_DirectShow_Tools::free (format);
+#endif // ACE_WIN32 || ACE_WIN64
+  }
+
+  // *NOTE*: the idea is to 'merge' the data
+  struct Stream_ImageScreen_MessageData& operator+= (const struct Stream_ImageScreen_MessageData& rhs_in)
+  { ACE_ASSERT (false);
+    return *this;
+  }
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType                                format;
@@ -69,18 +86,17 @@ struct Stream_ImageScreen_MessageData
   void*                                              relinquishMemory;
 #endif // IMAGEMAGICK_SUPPORT
 };
+typedef Stream_DataBase_T<struct Stream_ImageScreen_MessageData> Stream_ImageScreen_MessageData_t;
 
 template <typename SessionDataType> // derives off Stream_SessionData_T
 class Stream_ImageScreen_Message_T
- : public Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
-//                                   struct Stream_AllocatorConfiguration,
+ : public Stream_DataMessageBase_T<Stream_ImageScreen_MessageData_t,
                                    enum Stream_MessageType,
-                                   int>
+                                   Stream_CommandType_t>
 {
-  typedef Stream_DataMessageBase_T<struct Stream_ImageScreen_MessageData,
-//                                   struct Stream_AllocatorConfiguration,
+  typedef Stream_DataMessageBase_T<Stream_ImageScreen_MessageData_t,
                                    enum Stream_MessageType,
-                                   int> inherited;
+                                   Stream_CommandType_t> inherited;
 
   // grant access to specific private ctors
   friend class Stream_MessageAllocatorHeapBase_T<ACE_MT_SYNCH,

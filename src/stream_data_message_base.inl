@@ -165,7 +165,7 @@ Stream_DataMessageBase_T<DataType,
     data_ = *data_inout;
 
     // clean up
-    delete data_inout; data_inout = NULL;
+    data_inout->decrease (); data_inout = NULL;
   } // end IF
 
   inherited::initialize (sessionId_in,
@@ -191,7 +191,7 @@ Stream_DataMessageBase_T<DataType,
   data_ = *data_inout;
 
   // clean up
-  delete data_inout; data_inout = NULL;
+  data_inout->decrease (); data_inout = NULL;
 }
 
 template <typename DataType,

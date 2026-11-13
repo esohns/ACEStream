@@ -101,6 +101,7 @@ class Stream_Decoder_WhisperCppDecoder_T
   struct whisper_context_params parameters_;
   struct whisper_full_params    parameters2_;
   unsigned int                  sampleSize_;
+  Stream_SessionId_t            sessionId_;
   struct whisper_state*         state_;
 };
 

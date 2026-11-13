@@ -500,12 +500,20 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   size_t size_i = 0;
   int result_2 = -1;
   Stream_SessionId_t session_id = message_inout->sessionId ();
-  const typename DataMessageType::DATA_T& message_data_r =
+  const typename DataMessageType::DATA_T& message_data_container_r =
     message_inout->getR ();
-  typename DataMessageType::DATA_T message_data_2;
+  const typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    message_data_container_r.getR ();
+  typename DataMessageType::DATA_T* message_data_container_2 = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_2 = NULL, *message_data_2_ = NULL;
+
+  ACE_NEW_NORETURN (message_data_2,
+                    typename DataMessageType::DATA_T::DATA_T ());
+  ACE_ASSERT (message_data_2);
+
   inherited::getMediaType (message_data_r.format,
                            STREAM_MEDIATYPE_VIDEO,
-                           message_data_2.format);
+                           message_data_2->format);
   DataMessageType* message_p = NULL;
   std::string input_format_string;
   Common_Image_Resolution_t resolution_s, resolution_2;
@@ -704,15 +712,19 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_2,//targetResolution_,
-                                                         message_data_2.format);
+                                                         message_data_2->format);
 #else
-  message_data_2.format.resolution.width = resolution_2.width;
-  message_data_2.format.resolution.height = resolution_2.height;
+  message_data_2->format.resolution.width = resolution_2.width;
+  message_data_2->format.resolution.height = resolution_2.height;
   //message_data_2.format.resolution.width = targetResolution_.width;
   //message_data_2.format.resolution.height = targetResolution_.height;
 #endif // ACE_WIN32 || ACE_WIN64
-  message_data_2.relinquishMemory = data_p;
-  message_p->initialize (message_data_2,
+  message_data_2->relinquishMemory = data_p;
+
+  ACE_NEW_NORETURN (message_data_container_2,
+                    typename DataMessageType::DATA_T (message_data_2, true));
+  ACE_ASSERT (message_data_container_2);
+  message_p->initialize (message_data_container_2,
                          session_id,
                          NULL);
 

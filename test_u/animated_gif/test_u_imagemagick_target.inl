@@ -172,10 +172,10 @@ Test_U_ImageMagick_Target_T<ACE_SYNCH_USE,
   // initialize return value(s)
   passMessageDownstream_out = false;
 
-//  DataMessageType* message_p = NULL;
-//  ACE_Message_Block* message_block_p = NULL;
-  const typename DataMessageType::DATA_T& message_data_r =
-      message_inout->getR ();
+  const typename DataMessageType::DATA_T& message_data_container_r =
+    message_inout->getR ();
+  const typename DataMessageType::DATA_T::DATA_T& message_data_r =
+    message_data_container_r.getR ();
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;

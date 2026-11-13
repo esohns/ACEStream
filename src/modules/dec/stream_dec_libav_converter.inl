@@ -571,10 +571,13 @@ Stream_Decoder_LibAVConverter1_T<TaskType,
   int flags_i = 0;
   size_t size_i = 0;//, size_2 = 0;
   AVFrame* frame_p = NULL;
-  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_r =
-      const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (message_inout->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_container_r =
+    const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (message_inout->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T& message_data_r =
+    const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T&> (message_data_container_r.getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s, media_type_2;
-  typename TaskType::DATA_MESSAGE_T::DATA_T message_data_2;
+  typename TaskType::DATA_MESSAGE_T::DATA_T* message_data_container_2 = NULL;
+  typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T* message_data_2 = NULL, *message_data_2_ = NULL;
   int line_sizes[AV_NUM_DATA_POINTERS];
   uint8_t* data[AV_NUM_DATA_POINTERS];
   ACE_OS::memset (&line_sizes, 0, sizeof (int[AV_NUM_DATA_POINTERS]));
@@ -599,30 +602,40 @@ Stream_Decoder_LibAVConverter1_T<TaskType,
                             media_type_2);
   ACE_ASSERT (inherited::configuration_);
   size_i =
-      static_cast<unsigned int> (av_image_get_buffer_size (media_type_2.format,
+    static_cast<size_t> (av_image_get_buffer_size (media_type_2.format,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-                                                           media_type_s.resolution.cx,
-                                                           media_type_s.resolution.cy,
+                                                   media_type_s.resolution.cx,
+                                                   media_type_s.resolution.cy,
 #else
-                                                           media_type_s.resolution.width,
-                                                           media_type_s.resolution.height,
+                                                   media_type_s.resolution.width,
+                                                   media_type_s.resolution.height,
 #endif // ACE_WIN32 || ACE_WIN64
-                                                           1));
+                                                   1));
   ACE_ASSERT (size_i);
 
-  message_block_p =
-    inherited::allocateMessage (static_cast<unsigned int> (size_i));
+  message_block_p = inherited::allocateMessage (size_i);
   if (unlikely (!message_block_p))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%u), returning\n"),
+                ACE_TEXT ("%s: failed to Stream_Task_Base_T::allocateMessage(%B), returning\n"),
                 inherited::mod_->name (),
                 size_i));
     goto error;
   } // end IF
   message_p = static_cast<typename TaskType::DATA_MESSAGE_T*> (message_block_p);
-  message_data_2.format = inherited::configuration_->outputFormat;
-  message_p->initialize (message_data_2,
+
+  ACE_NEW_NORETURN (message_data_2,
+                    typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T ());
+  ACE_ASSERT (message_data_2);
+  // *TODO*: remove type inference(s)
+  message_data_2->format = inherited::configuration_->outputFormat;
+
+  message_data_2_ = message_data_2;
+  ACE_NEW_NORETURN (message_data_container_2,
+                    typename TaskType::DATA_MESSAGE_T::DATA_T (message_data_2_, true));
+  ACE_ASSERT (message_data_container_2);
+
+  message_p->initialize (message_data_container_2,
                          message_p->sessionId (),
                          NULL);
 

@@ -650,8 +650,10 @@ Stream_Visualization_LibAVResize1_T<TaskType,
 //  ACE_ASSERT (inherited::buffer_->capacity () >= inherited::frameSize_);
   ACE_ASSERT (inherited::frame_);
 
-  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_2 =
-      const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (inherited::buffer_->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T& message_data_container_2 =
+    const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T&> (inherited::buffer_->getR ());
+  typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T& message_data_2 =
+    const_cast<typename TaskType::DATA_MESSAGE_T::DATA_T::DATA_T&> (message_data_container_2.getR ());
   struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
   inherited::getMediaType (message_data_2.format,
                            STREAM_MEDIATYPE_VIDEO,

@@ -224,8 +224,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
   size_t data_size_i;
   static bool abort_session_on_error = true;
   bool is_first_b = true;
-  typename DataMessageType::DATA_T& data_r =
-    const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
+  typename DataMessageType::DATA_T* message_data_container_p =
+    &const_cast<typename DataMessageType::DATA_T&> (message_inout->getR ());
 
   av_init_packet (&packet_s);
 
@@ -257,7 +257,8 @@ Stream_Decoder_LibAVFilter_T<ACE_SYNCH_USE,
       // forward the decoded frame
       if (is_first_b)
       { is_first_b = false;
-        message_p->initialize (data_r,
+        message_data_container_p->increase ();
+        message_p->initialize (message_data_container_p,
                                message_inout->sessionId (),
                                NULL);
       } // end IF

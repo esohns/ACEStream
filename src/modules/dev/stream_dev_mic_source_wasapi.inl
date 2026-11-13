@@ -592,31 +592,6 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   return true;
 }
 
-//template <ACE_SYNCH_DECL,
-//          typename SessionMessageType,
-//          typename ProtocolMessageType,
-//          typename ConfigurationType,
-//          typename StreamStateType,
-//          typename SessionDataType,
-//          typename SessionDataContainerType,
-//          typename StatisticContainerType>
-//void
-//Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
-//                                   SessionMessageType,
-//                                   ProtocolMessageType,
-//                                   ConfigurationType,
-//                                   StreamStateType,
-//                                   SessionDataType,
-//                                   SessionDataContainerType,
-//                                   StatisticContainerType>::report () const
-//{
-//  STREAM_TRACE (ACE_TEXT ("Stream_Dev_Mic_Source_WASAPI_T::report"));
-//
-//  ACE_ASSERT (false);
-//  ACE_NOTSUP;
-//  ACE_NOTREACHED (return;)
-//}
-
 template <ACE_SYNCH_DECL,
           typename ControlMessageType,
           typename DataMessageType,
@@ -674,6 +649,8 @@ Stream_Dev_Mic_Source_WASAPI_T<ACE_SYNCH_USE,
   bool                           has_finished             = false;
   ACE_Message_Block*             message_block_p          = NULL;
   DataMessageType*               message_p                = NULL;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
   bool                           release_lock             = false;
   int                            result                   = -1;
   int                            result_2                 = 0;
@@ -891,7 +868,7 @@ continue_:
       bytes_to_read_i = frameSize_ * num_frames_available_i;
       try {
         message_p =
-            static_cast<DataMessageType*> (inherited::allocator_->malloc (bytes_to_read_i));
+          static_cast<DataMessageType*> (inherited::allocator_->malloc (bytes_to_read_i));
       } catch (...) {
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: caught exception in Stream_IAllocator::malloc(%Q), continuing\n"),
@@ -908,6 +885,13 @@ continue_:
         goto error;
       } // end IF
 
+      ACE_NEW_NORETURN (message_data_p,
+                        typename DataMessageType::DATA_T::DATA_T ());
+      ACE_ASSERT (message_data_p);
+      ACE_NEW_NORETURN (message_data_container_p,
+                        typename DataMessageType::DATA_T (message_data_p, true));
+      ACE_ASSERT (message_data_container_p);
+
       result_2 = message_p->copy (reinterpret_cast<char*> (data_p),
                                   bytes_to_read_i);
       if (unlikely (result_2 == -1))
@@ -915,6 +899,7 @@ continue_:
         ACE_DEBUG ((LM_ERROR,
                     ACE_TEXT ("%s: failed to ACE_Message_Block::copy(): \"%m\", aborting\n"),
                     inherited::mod_->name ()));
+        message_data_container_p->decrease ();
         message_block_p->release (); message_block_p = NULL;
         goto error;
       } // end IF
@@ -922,7 +907,8 @@ continue_:
       result_4 = audioCaptureClient_->ReleaseBuffer (num_frames_available_i);
       ACE_ASSERT (SUCCEEDED (result_4));
 
-      message_p->initialize (session_data_p->sessionId,
+      message_p->initialize (message_data_container_p,
+                             session_data_p->sessionId,
                              NULL);
 
       result_2 = inherited::put_next (message_p, NULL);

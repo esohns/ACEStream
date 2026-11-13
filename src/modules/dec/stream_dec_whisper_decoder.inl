@@ -59,6 +59,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
  , parameters_ ()
  , parameters2_ ()
  , sampleSize_ (0)
+ , sessionId_ (0)
  , state_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Decoder_WhisperCppDecoder_T::Stream_Decoder_WhisperCppDecoder_T"));
@@ -199,6 +200,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       whisper_free (context_); context_ = NULL;
     } // end IF
     sampleSize_ = 0;
+    sessionId_ = 0;
     if (unlikely (state_))
     {
       whisper_free_state (state_); state_ = NULL;
@@ -312,14 +314,13 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     message_inout = NULL;
     return;
   } // end IF
+  message_inout = NULL;
 
-  typename DataMessageType::DATA_T* message_data_container_p;
-  typename DataMessageType::DATA_T::DATA_T* message_data_p;
   int n_segments, n_tokens;
   std::string buffer_string;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL, *message_data_p_ = NULL;
   DataMessageType* message_p = NULL;
-  Stream_SessionId_t session_id_i = message_inout->sessionId ();
-  message_inout = NULL;
   static whisper_token const EOT_token = whisper_token_eot (context_);
   float token_probability_f;
 
@@ -348,10 +349,27 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     goto error;
   } // end IF
 
-  message_data_container_p =
-    &const_cast<typename DataMessageType::DATA_T&> (buffer_->getR ());
-  message_data_p =
-    &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
+  ACE_NEW_NORETURN (message_data_p,
+                    typename DataMessageType::DATA_T::DATA_T ());
+  if (unlikely (!message_data_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate message data, aborting\n"),
+                inherited::mod_->name ()));
+    goto error;
+  } // end IF
+  message_data_p_ = message_data_p;
+  ACE_NEW_NORETURN (message_data_container_p,
+                    typename DataMessageType::DATA_T (message_data_p_, true));
+  if (unlikely (!message_data_container_p))
+  {
+    ACE_DEBUG ((LM_CRITICAL,
+                ACE_TEXT ("%s: failed to allocate message data, aborting\n"),
+                inherited::mod_->name ()));
+    delete message_data_p; message_data_p = NULL;
+    goto error;
+  } // end IF
+
   n_segments = whisper_full_n_segments_from_state (state_);
   for (int i = 0; i < n_segments; ++i)
   {
@@ -363,6 +381,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
       token_probability_f = whisper_full_get_token_p_from_state (state_, i, j);
       if (token_probability_f < STREAM_DEC_DECODER_WHISPERCPP_DEFAULT_TOKEN_P_THRESHOLD_F)
         continue; // skip low confidence tokens
+      // *TODO*: remove type inference(s)
       message_data_p->STTResult.push_back (std::make_pair (whisper_full_get_token_text_from_state (context_, state_, i, j),
                                                            token_probability_f));
     } // end FOR
@@ -379,6 +398,7 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
     // nothing significant recognized; reset buffer and return
     buffer_->release (); buffer_ = NULL;
     bufferedMs_ = 0;
+    message_data_container_p->decrease ();
     return;
   } // end IF
 
@@ -395,13 +415,15 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
                 ACE_TEXT ("%s: allocateMessage(%u) failed: \"%m\", aborting\n"),
                 inherited::mod_->name (),
                 inherited::configuration_->allocatorConfiguration->defaultBufferSize));
+    message_data_container_p->decrease (); message_data_container_p = NULL;
     goto error;
   } // end IF
   ACE_ASSERT (message_p->space () >= buffer_string.size () + 1);
   result = message_p->copy (buffer_string.c_str ());
   ACE_ASSERT (result == 0);
-  message_p->initialize (*message_data_container_p,
-                         session_id_i,
+
+  message_p->initialize (message_data_container_p,
+                         sessionId_,
                          NULL);
 
   result = inherited::put_next (message_p, NULL);
@@ -560,6 +582,8 @@ Stream_Decoder_WhisperCppDecoder_T<ACE_SYNCH_USE,
 
       sampleSize_ = snd_pcm_format_width (media_type_s.format) / 8;
 #endif // ACE_WIN32 || ACE_WIN64
+      // *TODO*: remove type inference
+      sessionId_ = session_data_r.sessionId;
 
       break;
 

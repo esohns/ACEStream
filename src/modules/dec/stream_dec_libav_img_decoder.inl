@@ -193,7 +193,8 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
 //#endif // ACE_WIN32 || ACE_WIN64
   DataMessageType* message_p = NULL;
   ACE_Message_Block* message_block_p = NULL;
-  uint8_t* data_a[4] = { reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()), NULL, NULL, NULL }, *data_2[4] = { NULL, NULL, NULL, NULL };
+  uint8_t* data_a[4] =
+    { reinterpret_cast<uint8_t*> (message_inout->rd_ptr ()), NULL, NULL, NULL }, *data_2[4] = { NULL, NULL, NULL, NULL };
   size_t length_i = 0;
 
 //  // step2: (re-)pad [see above] the buffer chain
@@ -234,48 +235,57 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
   message_inout->release (); message_inout = NULL;
   length_i =
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-      static_cast<size_t> (av_image_get_buffer_size (outputFormat_.format,
-                                                     outputFormat_.resolution.cx,
-                                                     outputFormat_.resolution.cy,
-                                                     1));
+    static_cast<size_t> (av_image_get_buffer_size (outputFormat_.format,
+                                                   outputFormat_.resolution.cx,
+                                                   outputFormat_.resolution.cy,
+                                                   1));
 #else
-      static_cast<size_t> (av_image_get_buffer_size (outputFormat_.format,
-                                                     outputFormat_.resolution.width,
-                                                     outputFormat_.resolution.height,
-                                                     1));
+    static_cast<size_t> (av_image_get_buffer_size (outputFormat_.format,
+                                                   outputFormat_.resolution.width,
+                                                   outputFormat_.resolution.height,
+                                                   1));
 #endif // ACE_WIN32 || ACE_WIN64
   message_p->base (reinterpret_cast<char*> (data_2[0]),
                    length_i,
                    0); // --> delete[] the data in dtor
   message_p->wr_ptr (length_i);
-  typename DataMessageType::DATA_T data_s;
+  
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL, *message_data_2 = NULL;
+  ACE_NEW_NORETURN (message_data_p,
+                    typename DataMessageType::DATA_T::DATA_T ());
+  ACE_ASSERT (message_data_p);
+  // *TODO*: remove type inference(s)
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
   ACE_OS::memset (&media_type_s, 0, sizeof (struct _AMMediaType));
   inherited2::getMediaType (outputFormat_,
                             STREAM_MEDIATYPE_VIDEO,
                             media_type_s);
-  data_s.format = media_type_s;
+  message_data_p->format = media_type_s;
 #else
-  data_s.format = outputFormat_;
+  message_data_p->format = outputFormat_;
 #endif // ACE_WIN32 || ACE_WIN64
-  message_p->initialize (data_s,
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  ACE_NEW_NORETURN (message_data_container_p,
+                    typename DataMessageType::DATA_T (message_data_p, true));
+  ACE_ASSERT (message_data_container_p);
+  message_p->initialize (message_data_container_p,
                          message_p->sessionId (),
                          NULL);
 
-#if defined (_DEBUG)
-    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
-    if (!Common_File_Tools::store (filename_string,
-                                   data_2[0],
-                                   length_i))
-    {
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
-                  ACE_TEXT (filename_string.c_str ())));
-      message_block_p->release (); message_block_p = NULL;
-      return;
-    } // end IF
-#endif // _DEBUG
+//#if defined (_DEBUG)
+//    std::string filename_string = ACE_TEXT_ALWAYS_CHAR ("output.rgb");
+//    if (!Common_File_Tools::store (filename_string,
+//                                   data_2[0],
+//                                   length_i))
+//    {
+//      ACE_DEBUG ((LM_ERROR,
+//                  ACE_TEXT ("failed to Common_File_Tools::store(\"%s\"), returning\n"),
+//                  ACE_TEXT (filename_string.c_str ())));
+//      message_block_p->release (); message_block_p = NULL;
+//      return;
+//    } // end IF
+//#endif // _DEBUG
 
   int result = inherited::put_next (message_block_p, NULL);
   if (unlikely (result == -1))

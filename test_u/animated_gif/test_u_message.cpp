@@ -84,10 +84,11 @@ Test_U_Message::~Test_U_Message ()
   STREAM_TRACE (ACE_TEXT ("Test_U_Message::~Test_U_Message"));
 
 #if defined (IMAGEMAGICK_SUPPORT)
-  if (inherited::data_.relinquishMemory)
+  typename inherited::DATA_T::DATA_T& message_data_r =
+    const_cast<typename inherited::DATA_T::DATA_T&> (inherited::data_.getR ());
+  if (message_data_r.relinquishMemory)
   {
-    MagickRelinquishMemory (inherited::data_.relinquishMemory);
-    inherited::data_.relinquishMemory = NULL;
+    MagickRelinquishMemory (message_data_r.relinquishMemory); message_data_r.relinquishMemory = NULL;
   }    // end IF
 #endif // IMAGEMAGICK_SUPPORT
 }

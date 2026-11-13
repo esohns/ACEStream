@@ -308,7 +308,8 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
   int message_type = -1;
   DataMessageType* message_p = NULL;
-  typename DataMessageType::DATA_T message_data_s;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL, *message_data_2 = NULL;
   bool finished = false;
   bool stop_processing = false;
   int file_index_i = 0;
@@ -502,17 +503,15 @@ next:
 //                            file_size_i);
 //#endif // _DEBUG
 
-    message_p = inherited::allocateMessage (static_cast<unsigned int> (file_size_i));
+    message_p = inherited::allocateMessage (file_size_i);
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%Q), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%B), aborting\n"),
                   inherited::mod_->name (),
                   file_size_i));
-
       finished = true;
       inherited::stop (false, false, false);
-
       continue;
     } // end IF
     // *NOTE*: the message (NOT the message block) owns image data;
@@ -532,10 +531,17 @@ next:
                               media_type_2);
 #endif // FFMPEG_SUPPORT
 #endif // ACE_WIN32 || ACE_WIN64
-    message_data_s.format = media_type_2;
+
+    ACE_NEW_NORETURN (message_data_p,
+                      typename DataMessageType::DATA_T::DATA_T ());
+    ACE_ASSERT (message_data_p);
+    message_data_p->format = media_type_2;
     ACE_OS::memset (&media_type_2, 0, sizeof (MediaType));
-    message_data_s.relinquishMemory = data_p;
-    message_p->initialize (message_data_s,
+    message_data_p->relinquishMemory = data_p;
+    ACE_NEW_NORETURN (message_data_container_p,
+                      typename DataMessageType::DATA_T (message_data_p, true));
+    ACE_ASSERT (message_data_container_p);
+    message_p->initialize (message_data_container_p,
                            message_p->sessionId (),
                            NULL);
 

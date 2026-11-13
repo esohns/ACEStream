@@ -331,10 +331,19 @@ Stream_Decoder_AVIDecoder_T<ACE_SYNCH_USE,
   buffer_ = message_block_3;
 
 dispatch_2:
-  typename DataMessageType::DATA_T message_data_s;
-  message_data_s.chunks = chunks_in;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
+  ACE_NEW_NORETURN (message_data_p,
+                    typename DataMessageType::DATA_T::DATA_T ());
+  ACE_ASSERT (message_data_p);
+  // *TODO*: remove type inference(s)
+  message_data_p->chunks = chunks_in;
+  typename DataMessageType::DATA_T* message_data_container_p = NULL;
+  ACE_NEW_NORETURN (message_data_container_p,
+                    typename DataMessageType::DATA_T (message_data_p, true));
+  ACE_ASSERT (message_data_container_p);
+
   DataMessageType* message_p = static_cast<DataMessageType*> (message_block_p);
-  message_p->initialize (message_data_s,
+  message_p->initialize (message_data_container_p,
                          message_p->sessionId (),
                          NULL);
 
