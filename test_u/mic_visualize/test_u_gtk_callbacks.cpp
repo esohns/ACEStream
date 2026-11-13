@@ -4309,7 +4309,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     state_r.builders.find (ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN));
   ACE_ASSERT (iterator != state_r.builders.end ());
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#else
+#if defined (LIBPIPEWIRE_SUPPORT)
   int result_3;
+#endif // LIBPIPEWIRE_SUPPORT
+#endif // ACE_WIN32 || ACE_WIN64
   gint sort_column_id; // device
   GtkSortType sort_order;
   enum Stream_MediaFramework_SoundGeneratorType noise_type_e =

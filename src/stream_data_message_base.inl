@@ -160,6 +160,7 @@ Stream_DataMessageBase_T<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::initialize"));
 
+  bool is_initialized_b = (data_inout != NULL);
   if (likely (data_inout))
   {
     data_ = *data_inout;
@@ -170,9 +171,9 @@ Stream_DataMessageBase_T<DataType,
 
   inherited::initialize (sessionId_in,
                          dataBlock_in);
-  inherited::isInitialized_ = (data_inout != NULL);
+  inherited::isInitialized_ = is_initialized_b;
   inherited::type_ =
-    static_cast<MessageType> (data_inout != NULL ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
+    static_cast<MessageType> (is_initialized_b ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
 }
 
 template <typename DataType,
@@ -427,6 +428,7 @@ Stream_DataMessageBase_2<DataType,
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_2::initialize"));
 
+  bool is_initialized_b = (data_inout != NULL);
   if (inherited::isInitialized_)
   {
     if (data_)
@@ -450,8 +452,9 @@ Stream_DataMessageBase_2<DataType,
 
   inherited::initialize (sesssionId_in,
                          dataBlock_in);
+  inherited::isInitialized_ = is_initialized_b;
   inherited::type_ =
-    static_cast<MessageType> (data_inout ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
+    static_cast<MessageType> (is_initialized_b ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
 }
 
 template <typename DataType,

@@ -32,7 +32,7 @@ class ACE_Allocator;
 class ACE_Data_Block;
 class ACE_Message_Block;
 
-template <typename DataType, // inherits Stream_DataBase_T<>
+template <typename DataType, // // *NOTE*: this implements Stream_DataBase_T
           ////////////////////////////////
           typename MessageType = enum Stream_MessageType,
           typename CommandType = Stream_CommandType_t>
