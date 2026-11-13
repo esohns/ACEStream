@@ -69,7 +69,7 @@ Stream_DataMessageBase_T<DataType,
                                                                                                 MessageType,
                                                                                                 CommandType>& message_in)
  : inherited (message_in)
- , data_ (const_cast<DataType&>(message_in.data_))
+ , data_ (const_cast<DataType&> (message_in.data_))
 {
   STREAM_TRACE (ACE_TEXT ("Stream_DataMessageBase_T::Stream_DataMessageBase_T"));
 
@@ -170,7 +170,9 @@ Stream_DataMessageBase_T<DataType,
 
   inherited::initialize (sessionId_in,
                          dataBlock_in);
-  inherited::type_ = static_cast<MessageType> (STREAM_MESSAGE_OBJECT);
+  inherited::isInitialized_ = (data_inout != NULL);
+  inherited::type_ =
+    static_cast<MessageType> (data_inout != NULL ? STREAM_MESSAGE_OBJECT : STREAM_MESSAGE_DATA);
 }
 
 template <typename DataType,
