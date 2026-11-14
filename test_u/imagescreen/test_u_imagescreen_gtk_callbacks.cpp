@@ -662,7 +662,7 @@ idle_update_display_cb (gpointer userData_in)
                               NULL,   // whole window
                               FALSE); // invalidate children ?
 
-  return G_SOURCE_CONTINUE;
+  return G_SOURCE_REMOVE;
 }
 
 gboolean
@@ -692,8 +692,8 @@ idle_session_end_cb (gpointer userData_in)
   gtk_widget_set_sensitive (GTK_WIDGET (toggle_button_p),
                             TRUE);
 
-  g_source_remove (ui_cb_data_p->eventSourceId); ui_cb_data_p->eventSourceId = 0;
-  ui_cb_data_p->dispatch = NULL;
+  // g_source_remove (ui_cb_data_p->eventSourceId); ui_cb_data_p->eventSourceId = 0;
+  // ui_cb_data_p->dispatch = NULL;
 
   ACE_ASSERT (ui_cb_data_p->progressData.eventSourceId);
   ui_cb_data_p->progressData.completedActions.insert (ui_cb_data_p->progressData.eventSourceId);
@@ -840,8 +840,10 @@ togglebutton_start_toggled_cb (GtkToggleButton* toggleButton_in,
     Stream_MediaFramework_DirectShow_Tools::setResolution (resolution_s,
                                                            (*stream_configuration_iterator).second.second->outputFormat);
 #else
-    (*stream_configuration_iterator).second.second->outputFormat.resolution.width = allocation_s.width;
-    (*stream_configuration_iterator).second.second->outputFormat.resolution.height = allocation_s.height;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.width =
+      allocation_s.width;
+    (*stream_configuration_iterator).second.second->outputFormat.resolution.height =
+      allocation_s.height;
 #endif // ACE_WIN32 || ACE_WIN64
   } // end ELSE
 

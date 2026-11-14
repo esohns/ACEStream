@@ -68,10 +68,11 @@ class Stream_ImageScreen_EventHandler_T
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T (const Stream_ImageScreen_EventHandler_T&))
   ACE_UNIMPLEMENTED_FUNC (Stream_ImageScreen_EventHandler_T& operator= (const Stream_ImageScreen_EventHandler_T&))
 
-  struct Stream_ImageScreen_UI_CBData*             CBData_;
+  struct Stream_ImageScreen_UI_CBData*         CBData_;
 #if defined (WXWIDGETS_USE)
   InterfaceType*                               interface_;
 #endif // WXWIDGETS_USE
+  ACE_UINT32                                   numberOfFrames_;
   typename SessionMessageType::DATA_T::DATA_T* sessionData_;
 };
 

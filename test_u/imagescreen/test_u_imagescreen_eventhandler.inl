@@ -51,12 +51,12 @@ template <typename NotificationType,
 #endif // WXWIDGETS_USE
           typename SessionMessageType>
 Stream_ImageScreen_EventHandler_T<NotificationType,
-                              DataMessageType,
-                              UIStateType,
+                                  DataMessageType,
+                                  UIStateType,
 #if defined (WXWIDGETS_USE)
-                              InterfaceType,
+                                  InterfaceType,
 #endif // WXWIDGETS_USE
-                              SessionMessageType>::Stream_ImageScreen_EventHandler_T (struct Stream_ImageScreen_UI_CBData* CBData_in
+                                  SessionMessageType>::Stream_ImageScreen_EventHandler_T (struct Stream_ImageScreen_UI_CBData* CBData_in
 #if defined (GTK_USE)
                                                                                       )
 #elif defined (QT_USE)
@@ -70,6 +70,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #if defined (WXWIDGETS_USE)
  , interface_ (interface_in)
 #endif // WXWIDGETS_USE
+ , numberOfFrames_ (0)
  , sessionData_ (NULL)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::Stream_ImageScreen_EventHandler_T"));
@@ -85,13 +86,13 @@ template <typename NotificationType,
           typename SessionMessageType>
 void
 Stream_ImageScreen_EventHandler_T<NotificationType,
-                              DataMessageType,
-                              UIStateType,
+                                  DataMessageType,
+                                  UIStateType,
 #if defined (WXWIDGETS_USE)
-                              InterfaceType,
+                                  InterfaceType,
 #endif // WXWIDGETS_USE
-                              SessionMessageType>::start (Stream_SessionId_t sessionId_in,
-                                                          const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
+                                  SessionMessageType>::start (Stream_SessionId_t sessionId_in,
+                                                              const typename SessionMessageType::DATA_T::DATA_T& sessionData_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::start"));
 
@@ -104,7 +105,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
 #endif
-  ACE_ASSERT (!sessionData_);
+  // ACE_ASSERT (!sessionData_);
 
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -114,6 +115,7 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
+  numberOfFrames_ = 0;
   sessionData_ =
     &const_cast<typename SessionMessageType::DATA_T::DATA_T&> (sessionData_in);
 
@@ -164,12 +166,12 @@ template <typename NotificationType,
           typename SessionMessageType>
 void
 Stream_ImageScreen_EventHandler_T<NotificationType,
-                              DataMessageType,
-                              UIStateType,
+                                  DataMessageType,
+                                  UIStateType,
 #if defined (WXWIDGETS_USE)
-                              InterfaceType,
+                                  InterfaceType,
 #endif // WXWIDGETS_USE
-                              SessionMessageType>::end (Stream_SessionId_t sessionId_in)
+                                  SessionMessageType>::end (Stream_SessionId_t sessionId_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::end"));
 
@@ -193,24 +195,24 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE
 
-#if defined (GTK_USE)
-  guint event_source_id = 0;
-#endif // GTK_USE
-#if defined (GTK_USE)
-  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    event_source_id = g_idle_add (idle_session_end_cb,
-                                  CBData_);
-    if (event_source_id == 0)
-      ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
-    else
-      state_r.eventSourceIds.insert (event_source_id);
-    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
-  } // end lock scope
-#endif // GTK_USE
+// #if defined (GTK_USE)
+//   guint event_source_id = 0;
+// #endif // GTK_USE
+// #if defined (GTK_USE)
+//   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+//     event_source_id = g_idle_add (idle_session_end_cb,
+//                                   CBData_);
+//     if (event_source_id == 0)
+//       ACE_DEBUG ((LM_ERROR,
+//                   ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+//     else
+//       state_r.eventSourceIds.insert (event_source_id);
+//     state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
+//   } // end lock scope
+// #endif // GTK_USE
 
-  if (sessionData_)
-    sessionData_ = NULL;
+  // if (sessionData_)
+  //   sessionData_ = NULL;
 }
 
 template <typename NotificationType,
@@ -222,13 +224,13 @@ template <typename NotificationType,
           typename SessionMessageType>
 void
 Stream_ImageScreen_EventHandler_T<NotificationType,
-                              DataMessageType,
-                              UIStateType,
+                                  DataMessageType,
+                                  UIStateType,
 #if defined (WXWIDGETS_USE)
-                              InterfaceType,
+                                  InterfaceType,
 #endif // WXWIDGETS_USE
-                              SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                           const DataMessageType& message_in)
+                                  SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                               const DataMessageType& message_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::notify"));
 
@@ -242,7 +244,10 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
   ACE_ASSERT (gtk_manager_p);
 #elif defined (WXWIDGETS_USE)
   ACE_ASSERT (interface_);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
+  ACE_ASSERT (sessionData_);
+
+  ++numberOfFrames_;
 
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -264,9 +269,10 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
 #endif // GTK_USE || WXWIDGETS_USE
 
 #if defined (GTK_USE)
+  guint event_source_id;
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
-    guint event_source_id = g_idle_add (idle_update_display_cb,
-                                        CBData_);
+    event_source_id = g_idle_add (idle_update_display_cb,
+                                  CBData_);
     if (event_source_id == 0)
     {
       ACE_DEBUG ((LM_ERROR,
@@ -275,6 +281,20 @@ Stream_ImageScreen_EventHandler_T<NotificationType,
     } // end IF
     CBData_->UIState->eventSourceIds.insert (event_source_id);
   } // end lock scope
+#endif // GTK_USE
+
+#if defined (GTK_USE)
+  if (numberOfFrames_ == sessionData_->statistic.totalFrames)
+  { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
+    event_source_id = g_idle_add (idle_session_end_cb,
+                                  CBData_);
+    if (event_source_id == 0)
+      ACE_DEBUG ((LM_ERROR,
+                  ACE_TEXT ("failed to g_idle_add(idle_session_end_cb): \"%m\", continuing\n")));
+    else
+      state_r.eventSourceIds.insert (event_source_id);
+    state_r.eventStack.push (COMMON_UI_EVENT_FINISHED);
+  } // end IF | lock scope
 #endif // GTK_USE
 }
 
@@ -287,13 +307,13 @@ template <typename NotificationType,
           typename SessionMessageType>
 void
 Stream_ImageScreen_EventHandler_T<NotificationType,
-                              DataMessageType,
-                              UIStateType,
+                                  DataMessageType,
+                                  UIStateType,
 #if defined (WXWIDGETS_USE)
-                              InterfaceType,
+                                  InterfaceType,
 #endif // WXWIDGETS_USE
-                              SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
-                                                           const SessionMessageType& sessionMessage_in)
+                                  SessionMessageType>::notify (Stream_SessionId_t sessionId_in,
+                                                               const SessionMessageType& sessionMessage_in)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_ImageScreen_EventHandler_T::notify"));
 

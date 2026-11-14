@@ -505,7 +505,7 @@ Stream_Visualization_ImageMagickResize1_T<ACE_SYNCH_USE,
   const typename DataMessageType::DATA_T::DATA_T& message_data_r =
     message_data_container_r.getR ();
   typename DataMessageType::DATA_T* message_data_container_2 = NULL;
-  typename DataMessageType::DATA_T::DATA_T* message_data_2 = NULL, *message_data_2_ = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_2 = NULL;
 
   ACE_NEW_NORETURN (message_data_2,
                     typename DataMessageType::DATA_T::DATA_T ());

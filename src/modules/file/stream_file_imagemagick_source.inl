@@ -309,7 +309,7 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
   int message_type = -1;
   DataMessageType* message_p = NULL;
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
-  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL, *message_data_2 = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
   bool finished = false;
   bool stop_processing = false;
   int file_index_i = 0;

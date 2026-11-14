@@ -250,7 +250,7 @@ Stream_Decoder_LibAV_ImageDecoder_T<ACE_SYNCH_USE,
                    0); // --> delete[] the data in dtor
   message_p->wr_ptr (length_i);
   
-  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL, *message_data_2 = NULL;
+  typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
   ACE_NEW_NORETURN (message_data_p,
                     typename DataMessageType::DATA_T::DATA_T ());
   ACE_ASSERT (message_data_p);
