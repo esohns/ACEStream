@@ -21,6 +21,7 @@
 #ifndef STREAM_DEC_MPEG_4_DECODER_T_H
 #define STREAM_DEC_MPEG_4_DECODER_T_H
 
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -89,8 +90,46 @@ class Stream_Decoder_MPEG_4_Decoder_T
                          bool&);                                        // return value: need more data ?
   ACE_UINT64 processFrame (bool&); // return value: need more data ?
   ACE_UINT32 frameToChunk (ACE_UINT32,   // frame#
-                           ACE_UINT32&); // return value: first frame num in same chunk
+                           ACE_UINT32&); // return value: first frame# in same chunk
+  ACE_UINT64 processFragment (bool&); // return value: need more data ?
   void dispatchQueuedSessionMessages ();
+
+  // helper type(s)
+  struct TrackFragmentInfo
+  {
+    ACE_UINT32 track_ID;
+    ACE_UINT64 base_data_offset;
+    ACE_UINT32 sample_description_index;
+    ACE_UINT32 default_sample_duration;
+    ACE_UINT32 default_sample_size;
+    ACE_UINT32 default_sample_flags;
+
+    bool       duration_is_empty;
+    bool       default_base_is_moof;
+  };
+
+  struct SampleInfo
+  {
+    inline void reset () { sample_duration = 0; sample_size = 0; sample_flags = 0; sample_composition_time_offset = 0; }
+
+    ACE_INT32  data_offset;
+    ACE_UINT32 first_sample_flags;
+    ACE_UINT32 sample_duration;
+    ACE_UINT32 sample_size;
+    ACE_UINT32 sample_flags;
+    ACE_UINT32 sample_composition_time_offset;
+  };
+
+  struct RunInfo
+  {
+    RunInfo ()
+     : info ()
+     , samples ()
+    {}
+
+    struct TrackFragmentInfo       info;
+    std::vector<struct SampleInfo> samples;
+  };
 
   typedef std::vector<std::pair<ACE_UINT32, ACE_UINT64> > BOXES_T;
   typedef BOXES_T::const_iterator BOXESITERATOR_T;
@@ -101,19 +140,37 @@ class Stream_Decoder_MPEG_4_Decoder_T
   typedef std::vector<ACE_UINT32> FRAMESIZES_T;
   typedef FRAMESIZES_T::const_iterator FRAMESIZESITERATOR_T;
 
+  typedef typename std::vector<struct SampleInfo>::const_iterator SAMPLESITERATOR_T;
+  typedef std::vector<struct RunInfo> RUNS_T;
+  typedef typename RUNS_T::const_iterator RUNSITERATOR_T;
+
+  typedef std::unordered_map<ACE_UINT32, enum Stream_MediaType_Type> TRACK_TO_MEDIATYPE_T;
+  typedef TRACK_TO_MEDIATYPE_T::const_iterator TRACK_TO_MEDIATYPE_ITERATOR_T;
+
   BOXES_T                  boxes_;
   ACE_UINT64               boxSize_; // current-
   DataMessageType*         buffer_;
-  CHUNKOFFSETS_T           chunkOffsets_; // stco/co64
-  FRAMESIZES_T             frameSizes_; // stsz
-  FRAMETOCHUNK_T           frameToChunk_; // stsc
+  bool                     isFragmented_;
   ACE_UINT64               missingBytes_;
+  ACE_UINT64               MOOFOffset_; // current-
   ACE_UINT64               offset_;
   bool                     processingFrames_;
   bool                     queueSessionMessages_;
-  bool                     trackIsVideo_; // current-
+  RUNS_T                   runs_;
+  struct TrackFragmentInfo trackFragmentInfo_; // current- tfhd
+  ACE_UINT32               trackId_; // current-
+  TRACK_TO_MEDIATYPE_T     trackIdToMediaType_;
   ACE_UINT32               videoFrame_; // current-
-  ACE_UINT32               videoFrames_;
+  ACE_UINT32               videoFrames_; // total#
+
+  CHUNKOFFSETS_T           audioChunkOffsets_; // stco/co64
+  CHUNKOFFSETS_T           videoChunkOffsets_; // stco/co64
+
+  FRAMESIZES_T             audioFrameSizes_; // stsz
+  FRAMESIZES_T             videoFrameSizes_; // stsz
+
+  FRAMETOCHUNK_T           audioFrameToChunk_; // stsc
+  FRAMETOCHUNK_T           videoFrameToChunk_; // stsc
 };
 
 // include template definition

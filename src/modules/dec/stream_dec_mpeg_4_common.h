@@ -107,11 +107,11 @@ struct Stream_Decoder_MPEG_4_InitialObjectDescriptor
  : Stream_Decoder_MPEG_4_BaseDescriptor
 {
   /*05*/ uint16_t od_id;
-  /*07*/ uint8_t od_profile_level;
-  /*08*/ uint8_t scene_profile_level;
-  /*09*/ uint8_t audio_profile_level;
-  /*10*/ uint8_t video_profile_level;
-  /*11*/ uint8_t graphics_profile_level;
+  /*07*/ uint8_t  od_profile_level;
+  /*08*/ uint8_t  scene_profile_level;
+  /*09*/ uint8_t  audio_profile_level;
+  /*10*/ uint8_t  video_profile_level;
+  /*11*/ uint8_t  graphics_profile_level;
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -177,7 +177,7 @@ struct Stream_Decoder_MPEG_4_TrackHeaderBox1 // tkhd version == 1
 struct Stream_Decoder_MPEG_4_EditListEntry0
 {
   /*12*/ uint32_t segment_duration;
-  /*16*/ int32_t media_time;
+  /*16*/ int32_t  media_time;
   /*20*/ uint16_t media_rate_integer;
   /*22*/ uint16_t media_rate_fraction;
 #ifdef __GNUC__
@@ -278,7 +278,7 @@ struct Stream_Decoder_MPEG_4_HandlerReferenceBox // hdlr
   /*12*/ uint32_t pre_defined;
   /*16*/ uint32_t handler_type;
   /*20*/ uint32_t reserved[3];
-  /*32*/ uint8_t name[];
+  /*32*/ uint8_t  name[];
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -299,7 +299,7 @@ struct Stream_Decoder_MPEG_4_VideoMediaHeaderBox // vmhd
 struct Stream_Decoder_MPEG_4_SoundMediaHeaderBox // smhd
  : Stream_Decoder_MPEG_4_FullBoxHeader
 {
-  /*12*/ int16_t balance;
+  /*12*/ int16_t  balance;
   /*14*/ uint16_t reserved;
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
@@ -342,7 +342,7 @@ struct Stream_Decoder_MPEG_4_DataReferenceBox // dref
 struct Stream_Decoder_MPEG_4_SampleDescriptionEntryBoxBase
  : Stream_Decoder_MPEG_4_BoxHeader
 {
-  /*08*/ uint8_t reserved[6];
+  /*08*/ uint8_t  reserved[6];
   /*14*/ uint16_t data_reference_index;
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
@@ -389,7 +389,7 @@ struct Stream_Decoder_MPEG_4_AudioSampleDescriptionEntryBoxBase
 struct Stream_Decoder_MPEG_4_AVCCBoxSequenceParameterSetEntry
 {
   /*92*/ uint16_t sequence_parameter_set_length;
-  /*94*/ uint8_t sequence_parameter_set_nal_unit[];
+  /*94*/ uint8_t  sequence_parameter_set_nal_unit[];
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -427,7 +427,7 @@ struct Stream_Decoder_MPEG_4_AVCCBox_Part1 // avcC
 struct Stream_Decoder_MPEG_4_AVCCBoxPictureParameterSetEntry
 {
   /*92*/ uint16_t picture_parameter_set_length;
-  /*94*/ uint8_t picture_parameter_set_nal_unit[];
+  /*94*/ uint8_t  picture_parameter_set_nal_unit[];
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -638,7 +638,7 @@ struct Stream_Decoder_MPEG_4_CompositionOffsetBox0 // ctts
 struct Stream_Decoder_MPEG_4_CompositionOffsetBoxEntry1
 {
   /*16*/ uint32_t sample_count;
-  /*20*/ int32_t sample_offset;
+  /*20*/ int32_t  sample_offset;
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else
@@ -844,6 +844,56 @@ struct Stream_Decoder_MPEG_4_MediaDataBox // mdat
  : Stream_Decoder_MPEG_4_BoxHeader
 {
   /*08*/ uint8_t data[];
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
+};
+#endif // __GNUC__
+
+struct Stream_Decoder_MPEG_4_MovieFragmentHeaderBox // mfhd
+ : Stream_Decoder_MPEG_4_FullBoxHeader
+{
+  /*12*/ uint32_t sequence_number;
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
+};
+#endif // __GNUC__
+
+struct Stream_Decoder_MPEG_4_TrackFragmentHeaderBox // tfhd
+ : Stream_Decoder_MPEG_4_FullBoxHeader
+{
+  /*12*/ uint32_t track_ID;
+  // /*16*/ uint64_t base_data_offset; // ?
+  // /*24*/ uint32_t sample_description_index; // ?
+  // /*28*/ uint32_t default_sample_duration; // ?
+  // /*32*/ uint32_t default_sample_size; // ?
+  // /*36*/ uint32_t default_sample_flags; // ?
+#ifdef __GNUC__
+} __attribute__ ((__packed__));
+#else
+};
+#endif // __GNUC__
+
+// struct Stream_Decoder_MPEG_4_TrackRunBoxEntry
+// {
+//   /*00*/ uint32_t sample_duration; // ?
+//   /*04*/ uint32_t sample_size;     // ?
+//   /*08*/ uint32_t sample_flags;    // ?
+//   /*12*/ uint32_t sample_composition_time_offset; // ?
+// #ifdef __GNUC__
+// } __attribute__ ((__packed__));
+// #else
+// };
+// #endif // __GNUC__
+
+struct Stream_Decoder_MPEG_4_TrackRunBox // trun
+ : Stream_Decoder_MPEG_4_FullBoxHeader
+{
+  /*12*/ uint32_t sample_count;
+  // /*16*/ int32_t  data_offset; // ?
+  // /*20*/ uint32_t first_sample_flags; // ?
+  // /*24*/ struct Stream_Decoder_MPEG_4_TrackRunBoxEntry entries[]; // ?
 #ifdef __GNUC__
 } __attribute__ ((__packed__));
 #else

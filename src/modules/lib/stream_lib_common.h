@@ -56,6 +56,7 @@ enum Stream_MediaType_Type
 {
   STREAM_MEDIATYPE_AUDIO = 0,
   STREAM_MEDIATYPE_VIDEO,
+  STREAM_MEDIATYPE_SUBTITLE,
   ////////////////////////////////////////
   STREAM_MEDIATYPE_MAX,
   STREAM_MEDIATYPE_INVALID
