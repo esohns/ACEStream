@@ -177,6 +177,11 @@ Stream_Module_Decoder_Tools::mpeg4ToDateTime (ACE_UINT64 secondsSinceMPEG4Epoch_
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_Decoder_Tools::mpeg4ToDateTime"));
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  // sanity check(s)
+  ACE_ASSERT (secondsSinceMPEG4Epoch_in);
+#endif // ACE_WIN32 || ACE_WIN64
+
   struct tm tm_s, *tm_p = NULL;
   ACE_OS::memset (&tm_s, 0, sizeof (struct tm));
   tm_s.tm_mday = 1;

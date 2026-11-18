@@ -556,18 +556,25 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
         { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_MovieHeaderBox0));
           struct Stream_Decoder_MPEG_4_MovieHeaderBox0* box_p =
             reinterpret_cast<struct Stream_Decoder_MPEG_4_MovieHeaderBox0*> (buffer_->rd_ptr ());
-          ACE_Date_Time date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: mvhd: creation_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
-          date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: mvhd: modification_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          ACE_Date_Time date_time;
+          if (box_p->creation_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: mvhd: creation_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
+          if (box_p->modification_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: mvhd: modification_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
           ACE_UINT32 value_i =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->timescale)
                                                    : box_p->timescale);
@@ -719,18 +726,25 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
         { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_TrackHeaderBox0));
           struct Stream_Decoder_MPEG_4_TrackHeaderBox0* box_p =
             reinterpret_cast<struct Stream_Decoder_MPEG_4_TrackHeaderBox0*> (buffer_->rd_ptr ());
-          ACE_Date_Time date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: tkhd: creation_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
-          date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: tkhd: modification_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          ACE_Date_Time date_time;
+          if (box_p->creation_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: tkhd: creation_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
+          if (box_p->modification_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: tkhd: modification_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
           ACE_UINT32 value_i =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->track_ID)
                                                    : box_p->track_ID);
@@ -1015,18 +1029,25 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
         { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_MediaHeaderBox0));
           struct Stream_Decoder_MPEG_4_MediaHeaderBox0* box_p =
             reinterpret_cast<struct Stream_Decoder_MPEG_4_MediaHeaderBox0*> (buffer_->rd_ptr ());
-          ACE_Date_Time date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: mdhd: creation_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
-          date_time =
-            Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
-          //ACE_DEBUG ((LM_DEBUG,
-          //            ACE_TEXT ("%s: mdhd: modification_time: \"%s\"\n"),
-          //            inherited::mod_->name (),
-          //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          ACE_Date_Time date_time;
+          if (box_p->creation_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->creation_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: mdhd: creation_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
+          if (box_p->modification_time)
+          {
+            date_time =
+              Stream_Module_Decoder_Tools::mpeg4ToDateTime (box_p->modification_time);
+            //ACE_DEBUG ((LM_DEBUG,
+            //            ACE_TEXT ("%s: mdhd: modification_time: \"%s\"\n"),
+            //            inherited::mod_->name (),
+            //            ACE_TEXT (Common_Timer_Tools::dateTimeToString (date_time).c_str ())));
+          } // end IF
           ACE_UINT32 value_i =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (box_p->timescale)
                                                    : box_p->timescale);
