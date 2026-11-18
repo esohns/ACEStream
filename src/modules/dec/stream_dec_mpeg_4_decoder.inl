@@ -2846,28 +2846,28 @@ version_geq_2:
           sample_info_s.sample_duration =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (*data_2)
                                                    : *data_2);
-          data_2 += sizeof (ACE_UINT32);
+          data_2++;
         } // end IF
         if (sample_size_present_b)
         {
           sample_info_s.sample_size =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (*data_2)
                                                    : *data_2);
-          data_2 += sizeof (ACE_UINT32);
+          data_2++;
         } // end IF
         if (sample_flags_present_b)
         {
           sample_info_s.sample_flags =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (*data_2)
                                                    : *data_2);
-          data_2 += sizeof (ACE_UINT32);
+          data_2++;
         } // end IF
         if (sample_composition_time_offsets_present_b)
         {
           sample_info_s.sample_composition_time_offset =
             ((ACE_BYTE_ORDER == ACE_LITTLE_ENDIAN) ? ACE_SWAP_LONG (*data_2)
                                                    : *data_2);
-          data_2 += sizeof (ACE_UINT32);
+          data_2++;
         } // end IF
         run_info_s.samples.push_back (sample_info_s);
       } // end FOR
