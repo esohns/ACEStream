@@ -88,26 +88,27 @@ class Test_I_Stream
   ACE_UNIMPLEMENTED_FUNC (Test_I_Stream& operator= (const Test_I_Stream&))
 
   // modules
-  Test_I_Source_Module          source_;
-  Test_I_MP4Decoder_Module      MP4Decoder_;
-  Test_I_MPEGTSDecoder_Module   MPEGTSDecoder_;
-  Test_I_Defragment_Module      defragment_;
-  Test_I_MediaSplitter_Module   splitter_;
+  Test_I_Source_Module            source_;
+  Test_I_MP4Decoder_Module        MP4Decoder_;
+  Test_I_MPEGTSDecoder_Module     MPEGTSDecoder_;
+  Test_I_Defragment_Module        defragment_;
+  Test_I_MediaSplitter_Module     splitter_;
 #if defined (FFMPEG_SUPPORT)
-  Test_I_LibAVDecoder_Module    decoder2_;
+  Test_I_LibAVAudioDecoder_Module audioDecoder_;
+  Test_I_LibAVDecoder_Module      videoDecoder_;
 #endif // FFMPEG_SUPPORT
   //Test_I_StatisticReport_Module report_;
 #if defined (FFMPEG_SUPPORT)
-  Test_I_LibAVConverter_Module  converter_;
-  Test_I_LibAVResize_Module     resize_;
+  Test_I_LibAVConverter_Module    converter_;
+  Test_I_LibAVResize_Module       resize_;
 #endif // FFMPEG_SUPPORT
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  Test_I_Direct3D_Module        Direct3D_;
+  Test_I_Direct3D_Module          Direct3D_;
 #else
-  Test_I_X11_Module             X11_;
+  Test_I_X11_Module               X11_;
 #endif // ACE_WIN32 || ACE_WIN64
 #if defined (GTK_SUPPORT)
-  Test_I_GTKCairo_Module        GTKCairo_;
+  Test_I_GTKCairo_Module          GTKCairo_;
 #endif // GTK_SUPPORT
 };
 

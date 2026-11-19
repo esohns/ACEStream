@@ -3215,11 +3215,11 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
 
       // step2: push frame downstream ?
       // *TODO*: remove this test ASAP
-      if ((*iterator_3).second != STREAM_MEDIATYPE_VIDEO)
-      {
-        message_block_p->release (); message_block_p = NULL;
-        continue;
-      } // end IF
+      //if ((*iterator_3).second != STREAM_MEDIATYPE_VIDEO)
+      //{
+      //  message_block_p->release (); message_block_p = NULL;
+      //  continue;
+      //} // end IF
       result_2 = inherited::put_next (message_block_p,
                                       NULL);
       if (unlikely (result_2 == -1))

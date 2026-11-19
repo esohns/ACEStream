@@ -49,10 +49,12 @@ Test_I_Stream::Test_I_Stream ()
  , defragment_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DEFRAGMENT_DEFAULT_NAME_STRING))
  , splitter_ (this,
-              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DISTRIBUTOR_DEFAULT_NAME_STRING))
+              ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_MEDIASPLITTER_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
- , decoder2_ (this,
-              ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
+ , audioDecoder_ (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING))
+ , videoDecoder_ (this,
+                  ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
   //, report_ (this,
  //            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
@@ -110,12 +112,9 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   else if (is_mpeg_ts)
     layout_in->append (&MPEGTSDecoder_, NULL, 0);
 
-  layout_in->append (&defragment_, NULL, 0);
+  // layout_in->append (&report_, NULL, 0);
 
-#if defined (FFMPEG_SUPPORT)
-  layout_in->append (&decoder2_, NULL, 0);
-  //layout_in->append (&converter_, NULL, 0);
-#endif // FFMPEG_SUPPORT
+  layout_in->append (&defragment_, NULL, 0);
 
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
   unsigned int index_i = 0;
@@ -124,13 +123,16 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&splitter_, NULL, 0);
   branch_p = &splitter_;
   branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
-  //  configuration_->configuration_->branches.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
+  branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_PLAYBACK_NAME));
   Stream_IDistributorModule* idistributor_p =
     dynamic_cast<Stream_IDistributorModule*> (splitter_.writer ());
   ACE_ASSERT (idistributor_p);
   idistributor_p->initialize (branches_a);
 
-  //layout_in->append (&report_, NULL, 0);
+#if defined (FFMPEG_SUPPORT)
+  layout_in->append (&videoDecoder_, branch_p, index_i);
+#endif // FFMPEG_SUPPORT
+
   layout_in->append (&resize_, branch_p, index_i);
 #if defined (GTK_USE)
   layout_in->append (&GTKCairo_, branch_p, index_i);
@@ -139,6 +141,10 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 #endif // GTK_USE
 
   ++index_i;
+
+#if defined (FFMPEG_SUPPORT)
+  layout_in->append (&audioDecoder_, branch_p, index_i);
+#endif // FFMPEG_SUPPORT
 
   return true;
 }

@@ -180,6 +180,19 @@ class Test_I_ImageSave_SessionData
    : inherited ()
   {}
   inline virtual ~Test_I_ImageSave_SessionData () {}
+
+  struct Test_I_ImageSave_SessionData& operator= (const struct Test_I_ImageSave_SessionData& rhs_in)
+  {
+    inherited::operator= (rhs_in);
+    return *this;
+  }
+  // *NOTE*: the idea is to 'merge' the data
+  //         --> this ought (!) to be overriden by derived classes
+  struct Test_I_ImageSave_SessionData& operator+= (const struct Test_I_ImageSave_SessionData& rhs_in)
+  {
+    inherited::operator+= (rhs_in);
+    return *this;
+  }
 };
 typedef Stream_SessionData_T<Test_I_ImageSave_SessionData> Test_I_ImageSave_SessionData_t;
 

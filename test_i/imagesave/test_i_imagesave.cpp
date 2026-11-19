@@ -405,10 +405,10 @@ do_work (
 
 #if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
-      COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
+    COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
   Common_UI_GTK_State_t& state_r =
-      const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
+    const_cast<Common_UI_GTK_State_t&> (gtk_manager_p->getR ());
   //CBData_in.UIState->gladeXML[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
   //  std::make_pair (UIDefinitionFile_in, static_cast<GladeXML*> (NULL));
   state_r.builders[ACE_TEXT_ALWAYS_CHAR (COMMON_UI_DEFINITION_DESCRIPTOR_MAIN)] =
@@ -517,6 +517,9 @@ do_work (
   //    static_cast<HWND> (GDK_WINDOW_HWND ((*iterator).second.second->window));
   //} // end IF
 #if defined (FFMPEG_SUPPORT)
+  modulehandler_configuration.outputFormat.audio.channels = 2;
+  modulehandler_configuration.outputFormat.audio.format = AV_SAMPLE_FMT_FLT;
+  modulehandler_configuration.outputFormat.audio.sampleRate = 48000;
   modulehandler_configuration.outputFormat.video.frameRate.num =
     STREAM_DEV_CAM_DEFAULT_CAPTURE_FRAME_RATE;
 #if defined (GTK_USE)

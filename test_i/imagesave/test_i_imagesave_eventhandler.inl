@@ -260,7 +260,8 @@ Test_I_EventHandler_T<NotificationType,
   ACE_ASSERT (interface_);
 #endif // GTK_USE || WXWIDGETS_USE
 
-  numberOfFrames_++;
+  if (message_in.getMediaType () == STREAM_MEDIATYPE_VIDEO)
+    numberOfFrames_++;
 
 #if defined (GTK_USE)
   UIStateType& state_r =
@@ -274,7 +275,8 @@ Test_I_EventHandler_T<NotificationType,
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
     CBData_->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != CBData_->configuration->streamConfiguration.end ());
-  if ((*stream_iterator).second.second->frameNumber == numberOfFrames_)
+  if ((message_in.getMediaType () == STREAM_MEDIATYPE_VIDEO) &&
+      ((*stream_iterator).second.second->frameNumber == numberOfFrames_))
   {
     std::string filename_string =
       (*stream_iterator).second.second->targetFileName;

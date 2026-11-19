@@ -33,6 +33,7 @@
 #include "stream_dec_mpeg_4_decoder.h"
 #include "stream_dec_mpeg_ts_decoder.h"
 #if defined (FFMPEG_SUPPORT)
+#include "stream_dec_libav_audio_decoder.h"
 #include "stream_dec_libav_converter.h"
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
@@ -130,6 +131,15 @@ typedef Stream_Module_Defragment_T<ACE_MT_SYNCH,
                                    Test_I_SessionMessage_t> Test_I_Defragment;
 
 #if defined (FFMPEG_SUPPORT)
+typedef Stream_Decoder_LibAVAudioDecoder_T<ACE_MT_SYNCH,
+                                           Common_TimePolicy_t,
+                                           struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                           Stream_ControlMessage_t,
+                                           Test_I_Message,
+                                           Test_I_SessionMessage_t,
+                                           Test_I_ImageSave_SessionData_t,
+                                           struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_LibAVAudioDecoder;
+
 typedef Stream_Decoder_LibAVDecoder_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ImageSave_ModuleHandlerConfiguration,
@@ -263,6 +273,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               Test_I_Defragment);                                  // writer type
 
 #if defined (FFMPEG_SUPPORT)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                                    // session data type
+                              enum Stream_SessionMessageType,                                  // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,              // module handler configuration type
+                              libacestream_default_dec_libav_audio_decoder_module_name_string,
+                              Stream_INotify_t,                                                // stream notification interface type
+                              Test_I_LibAVAudioDecoder);                                       // writer type
+
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type
                               enum Stream_SessionMessageType,                            // session event type
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,        // module handler configuration type
@@ -274,7 +291,7 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
 DATASTREAM_MODULE_DUPLEX (Test_I_ImageSave_SessionData,                             // session data type
                           enum Stream_SessionMessageType,                           // session event type
                           struct Test_I_ImageSave_ModuleHandlerConfiguration,       // module handler configuration type
-                          libacestream_default_misc_distributor_module_name_string,
+                          libacestream_default_misc_media_splitter_module_name_string,
                           Stream_INotify_t,                                         // stream notification interface type
                           Test_I_MediaSplitter_t::READER_TASK_T,                    // reader type
                           Test_I_MediaSplitter_t,                                   // writer type
