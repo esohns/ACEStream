@@ -252,7 +252,7 @@ Test_I_EventHandler_T<NotificationType,
   // sanity check(s)
   ACE_ASSERT (CBData_);
   ACE_ASSERT (CBData_->configuration);
-#if defined(GTK_USE)
+#if defined (GTK_USE)
   Common_UI_GTK_Manager_t* gtk_manager_p =
     COMMON_UI_GTK_MANAGER_SINGLETON::instance ();
   ACE_ASSERT (gtk_manager_p);
@@ -271,7 +271,6 @@ Test_I_EventHandler_T<NotificationType,
     const_cast<UIStateType&> (interface_->getR ());
 #endif // GTK_USE || WXWIDGETS_USE
 
-#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   Test_I_StreamConfiguration_t::ITERATOR_T stream_iterator =
     CBData_->configuration->streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (stream_iterator != CBData_->configuration->streamConfiguration.end ());
@@ -299,6 +298,7 @@ Test_I_EventHandler_T<NotificationType,
 #endif // ACE_WIN32 || ACE_WIN64
   } // end IF
 
+#if defined (GTK_USE) || defined (WXWIDGETS_USE)
   { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, state_r.lock);
     CBData_->progressData.statistic.bytes += message_in.total_length ();
     state_r.eventStack.push (COMMON_UI_EVENT_DATA);
