@@ -233,9 +233,9 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
    , codecConfiguration (NULL)
 #endif // FFMPEG_SUPPORT
+   , deviceIdentifier ()
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
    , direct3DConfiguration (NULL)
-//   , window (NULL)
 #endif // ACE_WIN32 || ACE_WIN64
    , display ()
    , outputFormat ()
@@ -244,7 +244,7 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
    , videoStreamType (27) // H264
    , resize (NULL)
    , subscriber (NULL)
-   , subscribers (NULL)
+   //, subscribers (NULL)
    , targetFileName ()
    , window ()
   {
@@ -254,21 +254,22 @@ struct Test_I_ImageSave_ModuleHandlerConfiguration
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration* codecConfiguration;
 #endif // FFMPEG_SUPPORT
+  struct Stream_Device_Identifier                         deviceIdentifier;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
-  struct Stream_MediaFramework_Direct3D_Configuration* direct3DConfiguration;
+  struct Stream_MediaFramework_Direct3D_Configuration*    direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
-  struct Common_UI_Display                           display;
+  struct Common_UI_Display                                display;
 #if defined (FFMPEG_SUPPORT)
-  struct Stream_MediaFramework_FFMPEG_MediaType      outputFormat;
+  struct Stream_MediaFramework_FFMPEG_MediaType           outputFormat;
 #endif // FFMPEG_SUPPORT
-  unsigned int                                       program;                  // MPEG TS decoder module
-  unsigned int                                       audioStreamType;          // MPEG TS decoder module
-  unsigned int                                       videoStreamType;          // MPEG TS decoder module
-  Stream_Visualization_IResize*                      resize;
-  Test_I_ISessionNotify_t*                           subscriber;
-  Test_I_Subscribers_t*                              subscribers;
-  std::string                                        targetFileName;
-  struct Common_UI_Window                            window;
+  unsigned int                                            program;                  // MPEG TS decoder module
+  unsigned int                                            audioStreamType;          // MPEG TS decoder module
+  unsigned int                                            videoStreamType;          // MPEG TS decoder module
+  Stream_Visualization_IResize*                           resize;
+  Test_I_ISessionNotify_t*                                subscriber;
+  //Test_I_Subscribers_t*                                   subscribers;
+  std::string                                             targetFileName;
+  struct Common_UI_Window                                 window;
 };
 
 struct Test_I_ImageSave_StreamState

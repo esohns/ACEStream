@@ -91,13 +91,13 @@ class Test_I_Stream
   Test_I_Source_Module            source_;
   Test_I_MP4Decoder_Module        MP4Decoder_;
   Test_I_MPEGTSDecoder_Module     MPEGTSDecoder_;
+  // Test_I_StatisticReport_Module report_;
   Test_I_Defragment_Module        defragment_;
   Test_I_MediaSplitter_Module     splitter_;
 #if defined (FFMPEG_SUPPORT)
   Test_I_LibAVAudioDecoder_Module audioDecoder_;
   Test_I_LibAVDecoder_Module      videoDecoder_;
 #endif // FFMPEG_SUPPORT
-  //Test_I_StatisticReport_Module report_;
 #if defined (FFMPEG_SUPPORT)
   Test_I_LibAVConverter_Module    converter_;
   Test_I_LibAVResize_Module       resize_;
@@ -107,9 +107,15 @@ class Test_I_Stream
 #else
   Test_I_X11_Module               X11_;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
   Test_I_GTKCairo_Module          GTKCairo_;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  Test_I_WASAPI_Module            WASAPI_;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+
 };
 
 #endif

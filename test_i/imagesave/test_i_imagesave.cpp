@@ -418,17 +418,21 @@ do_work (
   // ********************** module configuration data **************************
 #if defined (FFMPEG_SUPPORT)
   struct Stream_MediaFramework_FFMPEG_AllocatorConfiguration allocator_configuration;
-  allocator_configuration.defaultBufferSize = 524288;
+  allocator_configuration.defaultBufferSize = 524288 * 2;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
+  struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration_2; // audio
   codec_configuration.codecId = AV_CODEC_ID_H264;
   codec_configuration.parserFlags = PARSER_FLAG_ONCE | PARSER_FLAG_USE_CODEC_TS;
-  //codec_configuration.useParser = false;
+  codec_configuration_2.codecId = AV_CODEC_ID_AAC;
+  codec_configuration_2.useParser = false;
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
 
   struct Stream_ModuleConfiguration module_configuration;
   struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration;
+  struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_a; // video decoder
+  struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_b; // audio decoder
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct Test_I_ImageSave_ModuleHandlerConfiguration modulehandler_configuration_2; // display
 #endif // ACE_WIN32 || ACE_WIN64
@@ -457,6 +461,10 @@ do_work (
 //#endif // _DEBUG
   modulehandler_configuration.defragmentMode = STREAM_DEFRAGMENT_CLONE;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.deviceIdentifier.identifier._guid =
+    Stream_MediaFramework_DirectSound_Tools::getDefaultDevice (false);
+  modulehandler_configuration.deviceIdentifier.identifierDiscriminator =
+    Stream_Device_Identifier::GUID;
   modulehandler_configuration.direct3DConfiguration = &configuration_in.direct3DConfiguration;
 #endif // ACE_WIN32 || ACE_WIN64
   modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
@@ -464,7 +472,7 @@ do_work (
   modulehandler_configuration.lock = &state_r.subscribersLock;
 #endif // GTK_USE || WXWIDGETS_USE
   modulehandler_configuration.subscriber = &ui_event_handler;
-  modulehandler_configuration.subscribers = &CBData_in.subscribers;
+  //modulehandler_configuration.subscribers = &CBData_in.subscribers;
   modulehandler_configuration.targetFileName = targetFilename_in;
 
   Stream_AllocatorHeap_T<ACE_MT_SYNCH,
@@ -545,6 +553,17 @@ do_work (
 #endif // ACE_WIN32 || ACE_WIN64
   configuration_in.streamConfiguration.configuration_->format =
     modulehandler_configuration.outputFormat;
+
+  modulehandler_configuration_a = modulehandler_configuration;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_a)));
+
+  modulehandler_configuration_b = modulehandler_configuration;
+  modulehandler_configuration_b.codecConfiguration = &codec_configuration_2;
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_AUDIO_DECODER_DEFAULT_NAME_STRING),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_b)));
 
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   // struct _D3DDISPLAYMODE display_mode_s =
@@ -741,6 +760,7 @@ ACE_TMAIN (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   Common_Tools::initialize (true,   // COM ?
                             false); // RNG ?
+  Stream_MediaFramework_Tools::initialize (STREAM_LIB_DEFAULT_MEDIAFRAMEWORK);
 #else
   Common_Tools::initialize (false); // RNG ?
 #endif // ACE_WIN32 || ACE_WIN64

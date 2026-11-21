@@ -865,6 +865,11 @@ error:
     }
     case STREAM_SESSION_MESSAGE_RESIZE:
     {
+      // sanity check(s)
+      ACE_ASSERT (inherited::configuration_);
+      if (!inherited::configuration_->handleResize)
+        break;
+
       MediaType media_type_s;
 
       ACE_ASSERT (inherited::sessionData_);
@@ -1074,6 +1079,8 @@ continue_:
     // send resize notification ?
     if (send_resize_b)
     {
+      bool handle_resize_b = inherited::configuration_->handleResize;
+      inherited::configuration_->handleResize = false;
       inherited::sessionData_->increase ();
       SessionDataContainerType* session_data_container_p =
         inherited::sessionData_;
@@ -1085,6 +1092,7 @@ continue_:
                     ACE_TEXT ("%s: failed to Stream_TaskBase_T::putSessionMessage(%d), continuing\n"),
                     inherited::mod_->name (),
                     STREAM_SESSION_MESSAGE_RESIZE));
+      inherited::configuration_->handleResize = handle_resize_b;
     } // end IF
   } // end IF
 

@@ -97,10 +97,8 @@ stream_processing_function (void* arg_in)
 {
   STREAM_TRACE (ACE_TEXT ("::stream_processing_function"));
 
-#if defined (_DEBUG)
   ACE_DEBUG ((LM_DEBUG,
               ACE_TEXT ("processing thread (id: %t) starting\n")));
-#endif // _DEBUG
 
   ACE_THR_FUNC_RETURN result;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -109,10 +107,9 @@ stream_processing_function (void* arg_in)
   result = arg_in;
 #endif // ACE_WIN32 || ACE_WIN64
 
+  // sanity check(s)
   struct Test_I_ImageSave_UI_ThreadData* thread_data_p =
       static_cast<struct Test_I_ImageSave_UI_ThreadData*> (arg_in);
-
-  // sanity check(s)
   ACE_ASSERT (thread_data_p);
   ACE_ASSERT (thread_data_p->CBData);
 
@@ -370,22 +367,22 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (entry_p);
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
-                                                : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))));
+                                                : ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (filename_string.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR))));
   GtkFileChooserButton* file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SOURCE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
-  std::string file_uri =
-    ACE_TEXT_ALWAYS_CHAR ("file://") +
-    (filename_string.empty () ? Common_File_Tools::getTempDirectory () : filename_string);
-  if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                file_uri.c_str ()))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri (\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (file_uri.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
+  //std::string file_uri =
+  //  ACE_TEXT_ALWAYS_CHAR ("file://") +
+  //  (filename_string.empty () ? Common_File_Tools::getTempDirectory () : ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (filename_string.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR)));
+  //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+  //                                              file_uri.c_str ()))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri (\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT (file_uri.c_str ())));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
 
   //GtkFileChooserDialog* file_chooser_dialog_p =
   //  GTK_FILE_CHOOSER_DIALOG (gtk_builder_get_object ((*iterator).second.second,
@@ -433,22 +430,22 @@ idle_initialize_UI_cb (gpointer userData_in)
   ACE_ASSERT (entry_p);
   gtk_entry_set_text (entry_p,
                       (filename_string.empty () ? ACE_TEXT_ALWAYS_CHAR ("")
-                                                : ACE_TEXT_ALWAYS_CHAR (ACE::basename (filename_string.c_str (), ACE_DIRECTORY_SEPARATOR_CHAR))));
-  file_uri =
-    ACE_TEXT_ALWAYS_CHAR ("file://") +
-    (filename_string.empty () ? Common_File_Tools::getTempDirectory () : filename_string);
-  file_chooser_button_p =
-      GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-                                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
-  ACE_ASSERT (file_chooser_button_p);
-  if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
-                                                file_uri.c_str ()))
-  {
-    ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri (\"%s\"): \"%s\", aborting\n"),
-                ACE_TEXT (file_uri.c_str ())));
-    return G_SOURCE_REMOVE;
-  } // end IF
+                                                : ACE_TEXT_ALWAYS_CHAR (ACE::basename (ACE_TEXT (filename_string.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR))));
+  //file_uri =
+  //  ACE_TEXT_ALWAYS_CHAR ("file://") +
+  //  (filename_string.empty () ? Common_File_Tools::getTempDirectory () : ACE_TEXT_ALWAYS_CHAR (ACE::dirname (ACE_TEXT (filename_string.c_str ()), ACE_DIRECTORY_SEPARATOR_CHAR)));
+  //file_chooser_button_p =
+  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
+  //ACE_ASSERT (file_chooser_button_p);
+  //if (!gtk_file_chooser_set_current_folder_uri (GTK_FILE_CHOOSER (file_chooser_button_p),
+  //                                              file_uri.c_str ()))
+  //{
+  //  ACE_DEBUG ((LM_ERROR,
+  //              ACE_TEXT ("failed to gtk_file_chooser_set_current_folder_uri (\"%s\"): \"%s\", aborting\n"),
+  //              ACE_TEXT (file_uri.c_str ())));
+  //  return G_SOURCE_REMOVE;
+  //} // end IF
 
   list_store_p =
     GTK_LIST_STORE (gtk_builder_get_object ((*iterator).second.second,
@@ -470,12 +467,12 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                              true);
+                              TRUE);
   // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                                  "text", 0,
+                                  ACE_TEXT_ALWAYS_CHAR ("text"), 0,
                                   NULL);
 
   list_store_p =
@@ -498,7 +495,7 @@ idle_initialize_UI_cb (gpointer userData_in)
     return G_SOURCE_REMOVE;
   } // end IF
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box_p), cell_renderer_p,
-                              true);
+                              TRUE);
   // *NOTE*: cell_renderer_p does not need to be g_object_unref()ed because it
   //         is GInitiallyUnowned and the floating reference has been
   //         passed to combo_box_p by the gtk_cell_layout_pack_start() call
@@ -598,11 +595,28 @@ idle_initialize_UI_cb (gpointer userData_in)
   //ACE_ASSERT (result_2);
 
   // set defaults
-  //file_chooser_button_p =
-  //  GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
-  //                                                   ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SAVE_NAME)));
+  filename_string = (*stream_iterator).second.second->fileIdentifier.identifier;
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SOURCE_NAME)));
   ACE_ASSERT (file_chooser_button_p);
   gboolean result =
+    gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
+                                         Common_File_Tools::directory (filename_string).c_str ());
+  if (!result)
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("failed to gtk_file_chooser_set_current_folder(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT (Common_File_Tools::directory (filename_string).c_str ())));
+    return G_SOURCE_REMOVE;
+  } // end IF
+
+  filename_string = (*stream_iterator).second.second->targetFileName;
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  result =
     gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p),
                                          Common_File_Tools::directory (filename_string).c_str ());
   if (!result)
@@ -1448,6 +1462,26 @@ togglebutton_process_toggled_cb (GtkToggleButton* toggleButton_in,
 //  GError* error_p = NULL;
   std::string filename_string;
   GtkEntry* entry_p = NULL;
+
+  file_chooser_button_p =
+    GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
+                                                     ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_SOURCE_NAME)));
+  ACE_ASSERT (file_chooser_button_p);
+  ACE_ASSERT (gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p)));
+  filename_string =
+    gtk_file_chooser_get_current_folder (GTK_FILE_CHOOSER (file_chooser_button_p));
+  ACE_ASSERT (Common_File_Tools::isDirectory (filename_string));
+  ACE_ASSERT (Common_File_Tools::isWriteable (filename_string));
+  entry_p =
+    GTK_ENTRY (gtk_builder_get_object ((*iterator).second.second,
+                                       ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_ENTRY_SOURCE_NAME)));
+  ACE_ASSERT (entry_p);
+  filename_string += ACE_DIRECTORY_SEPARATOR_STR;
+  filename_string += ACE_TEXT_ALWAYS_CHAR (gtk_entry_get_text (entry_p));
+  ACE_ASSERT (Common_File_Tools::isValidPath (filename_string));
+  (*stream_iterator).second.second->fileIdentifier.identifier =
+    filename_string;
+
   file_chooser_button_p =
     GTK_FILE_CHOOSER_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                                      ACE_TEXT_ALWAYS_CHAR (TEST_I_UI_GTK_FILECHOOSERBUTTON_TARGET_NAME)));
@@ -1971,7 +2005,7 @@ filechooserbutton_source_cb (GtkFileChooserButton* fileChooserButton_in,
   ACE_ASSERT (stream_iterator != cb_data_p->configuration->streamConfiguration.end ());
 
   GFile* file_p =
-    gtk_file_chooser_get_file (GTK_FILE_CHOOSER (fileChooserButton_in));
+    gtk_file_chooser_get_current_folder_file (GTK_FILE_CHOOSER (fileChooserButton_in));
   if (!file_p)
     return; // nothing selected (yet)
   char* string_p = g_file_get_path (file_p);

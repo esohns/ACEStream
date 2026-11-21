@@ -417,16 +417,17 @@ error:
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_2;
       { ACE_GUARD (ACE_SYNCH_MUTEX, aGuard, *session_data_r.lock);
         if (formatsIndex_ &&
-            session_data_r.formats.size () >= formatsIndex_)
+            session_data_r.formats.size () > formatsIndex_)
         {
-          typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T
-            iterator = session_data_r.formats.begin ();
+          typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T iterator =
+            session_data_r.formats.begin ();
           std::advance (iterator, formatsIndex_);
-          for (typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T iterator_2 = iterator;
-               iterator_2 != session_data_r.formats.end ();
-               ++iterator_2)
-            inherited::free_ (*iterator_2);
-          session_data_r.formats.erase (iterator, session_data_r.formats.end ());
+          //for (typename TaskType::SESSION_MESSAGE_T::DATA_T::DATA_T::MEDIAFORMATS_ITERATOR_T iterator_2 = iterator;
+          //     iterator_2 != session_data_r.formats.end ();
+          //     ++iterator_2)
+          //  inherited::free_ (*iterator_2);
+          inherited::free_ (*iterator);
+          session_data_r.formats.erase (iterator);
           formatsIndex_ = 0;
         } // end IF
         inherited::getMediaType (session_data_r.formats.back (),

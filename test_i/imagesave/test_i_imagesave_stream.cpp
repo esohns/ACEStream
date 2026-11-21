@@ -46,6 +46,8 @@ Test_I_Stream::Test_I_Stream ()
                 ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_4_DEFAULT_NAME_STRING))
  , MPEGTSDecoder_ (this,
                    ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_MPEG_TS_DEFAULT_NAME_STRING))
+ //, report_ (this,
+ //            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , defragment_ (this,
                 ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_DEFRAGMENT_DEFAULT_NAME_STRING))
  , splitter_ (this,
@@ -56,8 +58,6 @@ Test_I_Stream::Test_I_Stream ()
  , videoDecoder_ (this,
                   ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
-  //, report_ (this,
- //            ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
 #if defined (FFMPEG_SUPPORT)
  , converter_ (this,
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
@@ -71,10 +71,15 @@ Test_I_Stream::Test_I_Stream ()
  , X11_ (this,
          ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_X11_WINDOW_DEFAULT_NAME_STRING))
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
  , GTKCairo_ (this,
               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+ , WASAPI_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_WASAPI_RENDER_DEFAULT_NAME_STRING))
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 {
   STREAM_TRACE (ACE_TEXT ("Test_I_Stream::Test_I_Stream"));
 
@@ -133,11 +138,15 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
   layout_in->append (&videoDecoder_, branch_p, index_i);
 #endif // FFMPEG_SUPPORT
 
-  layout_in->append (&resize_, branch_p, index_i);
 #if defined (GTK_USE)
+  layout_in->append (&resize_, branch_p, index_i);
   layout_in->append (&GTKCairo_, branch_p, index_i);
 #else
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  layout_in->append (&Direct3D_, branch_p, index_i);
+#else
   layout_in->append (&X11_, branch_p, index_i);
+#endif // ACE_WIN32 || ACE_WIN64
 #endif // GTK_USE
 
   ++index_i;
@@ -145,6 +154,11 @@ Test_I_Stream::load (Stream_ILayout* layout_in,
 #if defined (FFMPEG_SUPPORT)
   layout_in->append (&audioDecoder_, branch_p, index_i);
 #endif // FFMPEG_SUPPORT
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  layout_in->append (&WASAPI_, branch_p, index_i);
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 
   return true;
 }

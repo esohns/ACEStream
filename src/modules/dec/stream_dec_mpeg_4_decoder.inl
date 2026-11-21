@@ -1756,7 +1756,7 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   //            ACE_TEXT ("%s: esds: url_flag: %s\n"),
                   //            inherited::mod_->name (),
                   //            (box_3->es_descriptor.url_flag ? ACE_TEXT ("set") : ACE_TEXT ("not set"))));
-                  ACE_ASSERT (!box_3->es_descriptor.url_flag);
+                  //ACE_ASSERT (!box_3->es_descriptor.url_flag);
                   //ACE_DEBUG ((LM_DEBUG,
                   //            ACE_TEXT ("%s: esds: ocr_stream_flag: %s\n"),
                   //            inherited::mod_->name (),
@@ -1823,9 +1823,10 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   //            value_7));
                   // parse decoder-specific-information descriptor(s)
                   ACE_UINT32 remaining_bytes_2 =
-                    (decoder_configuration_descriptor_size -
-                     (sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor) -
-                      sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor)));
+                    decoder_configuration_descriptor_size ? (decoder_configuration_descriptor_size -
+                                                             (sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor) -
+                                                              sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor)))
+                                                          : 0;
                   ACE_UINT32 entries_size_3 = 0;
                   char* data_3 =
                     reinterpret_cast<char*> (&box_3->es_descriptor.decoder_configuration_descriptor.decoder_specific_information[0]);
@@ -1862,12 +1863,13 @@ Stream_Decoder_MPEG_4_Decoder_T<ACE_SYNCH_USE,
                   } // end WHILE
                   // parse remaining descriptor(s)
                   remaining_bytes_2 =
-                    es_descriptor_size -
-                    (decoder_configuration_descriptor_size +
-                     sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) +
-                     (sizeof (struct Stream_Decoder_MPEG_4_ElementaryStreamDescriptor) -
-                      sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) -
-                      sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor)));
+                    decoder_configuration_descriptor_size ? es_descriptor_size -
+                                                            (decoder_configuration_descriptor_size +
+                                                             sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) +
+                                                             (sizeof (struct Stream_Decoder_MPEG_4_ElementaryStreamDescriptor) -
+                                                              sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor) -
+                                                              sizeof (struct Stream_Decoder_MPEG_4_DecoderConfigurationDescriptor)))
+                                                          : 0;
                   j = 0;
                   while (remaining_bytes_2)
                   { ASSERT_CONTIGUOUS_BYTES (sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionBox) + 4 + entries_size_i + sizeof (struct Stream_Decoder_MPEG_4_SampleDescriptionEntryAACBox) + entries_size_2 + sizeof (struct Stream_Decoder_MPEG_4_ElementarySampleDescriptionBox) + entries_size_3 + sizeof (struct Stream_Decoder_MPEG_4_BaseDescriptor));

@@ -38,6 +38,11 @@
 #include "stream_dec_libav_decoder.h"
 #endif // FFMPEG_SUPPORT
 
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+#include "stream_dev_target_wasapi.h"
+#else
+#endif // ACE_WIN32 || ACE_WIN64
+
 #include "stream_file_source.h"
 
 #include "stream_misc_defines.h"
@@ -60,9 +65,9 @@
 #else
 #include "stream_vis_x11_window.h"
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 #include "stream_vis_gtk_cairo.h"
-#endif // GTK_SUPPORT
+#endif // GTK_USE
 
 #include "test_i_imagesave_common.h"
 #include "test_i_imagesave_message.h"
@@ -222,7 +227,7 @@ typedef Stream_Module_Vis_X11_Window_T<ACE_MT_SYNCH,
                                        Test_I_ImageSave_SessionData_t,
                                        struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_X11;
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
+#if defined (GTK_USE)
 typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Common_TimePolicy_t,
                                       struct Test_I_ImageSave_ModuleHandlerConfiguration,
@@ -232,7 +237,21 @@ typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
                                       Test_I_ImageSave_SessionData,
                                       Test_I_ImageSave_SessionData_t,
                                       struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_GTKCairo;
-#endif // GTK_SUPPORT
+#endif // GTK_USE
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+typedef Stream_Dev_Target_WASAPI_T<ACE_MT_SYNCH,
+                                    Common_TimePolicy_t,
+                                    struct Test_I_ImageSave_ModuleHandlerConfiguration,
+                                    Stream_ControlMessage_t,
+                                    Test_I_Message,
+                                    Test_I_SessionMessage_t,
+                                    enum Stream_ControlType,
+                                    enum Stream_SessionMessageType,
+                                    struct Stream_UserData,
+                                    struct Stream_MediaFramework_FFMPEG_MediaType> Test_I_WASAPI;
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 
 typedef Stream_Module_MessageHandler_T<ACE_MT_SYNCH,
                                        Common_TimePolicy_t,
@@ -330,33 +349,31 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                     
                               Stream_INotify_t,                                     // stream notification interface type
                               Test_I_Direct3D);                                     // writer type
 #else
-//DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_gtk_pixbuf_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Test_I_Display);                          // writer type
-//DATASTREAM_MODULE_INPUT_ONLY (Test_I_V4L_SessionData,                   // session data type
-//                              enum Stream_SessionMessageType,                   // session event type
-//                              struct Test_I_V4L_ModuleHandlerConfiguration, // module handler configuration type
-//                              libacestream_default_vis_gtk_window_module_name_string,
-//                              Stream_INotify_t,                                 // stream notification interface type
-//                              Test_I_Display_2);                        // writer type
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                           // session data type
                               enum Stream_SessionMessageType,                         // session event type
                               struct Test_I_ImageSave_ModuleHandlerConfiguration,     // module handler configuration type
                               libacestream_default_vis_x11_window_module_name_string,
                               Stream_INotify_t,                                       // stream notification interface type
-                              Test_I_X11);                                        // writer type
+                              Test_I_X11);                                            // writer type
 #endif // ACE_WIN32 || ACE_WIN64
-#if defined (GTK_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                         // session data type
-                              enum Stream_SessionMessageType,                       // session event type
-                              struct Test_I_ImageSave_ModuleHandlerConfiguration,   // module handler configuration type
+#if defined (GTK_USE)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                          // session data type
+                              enum Stream_SessionMessageType,                        // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,    // module handler configuration type
                               libacestream_default_vis_gtk_cairo_module_name_string,
-                              Stream_INotify_t,                                     // stream notification interface type
-                              Test_I_GTKCairo);                                     // writer type
-#endif // GTK_SUPPORT
+                              Stream_INotify_t,                                      // stream notification interface type
+                              Test_I_GTKCairo);                                      // writer type
+#endif // GTK_USE
+
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                              // session data type
+                              enum Stream_SessionMessageType,                            // session event type
+                              struct Test_I_ImageSave_ModuleHandlerConfiguration,        // module handler configuration type
+                              libacestream_default_dev_target_wasapi_module_name_string,
+                              Stream_INotify_t,                                          // stream notification interface type
+                              Test_I_WASAPI);                                            // writer type
+#else
+#endif // ACE_WIN32 || ACE_WIN64
 
 DATASTREAM_MODULE_INPUT_ONLY (Test_I_ImageSave_SessionData,                                // session data type
                               enum Stream_SessionMessageType,                              // session event type
