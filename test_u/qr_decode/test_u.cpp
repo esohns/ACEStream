@@ -155,7 +155,7 @@ do_process_arguments (int argc_in,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   capturer_out = STREAM_DEVICE_CAPTURER_DIRECTSHOW;
   deviceIdentifier_out =
-        Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
+    Stream_Device_DirectShow_Tools::getDefaultCaptureDevice (CLSID_VideoInputDeviceCategory);
 #else
   deviceIdentifier_out.identifier =
     ACE_TEXT_ALWAYS_CHAR (STREAM_DEV_DEVICE_DIRECTORY);
@@ -1118,7 +1118,9 @@ do_work (int argc_in,
   modulehandler_configuration.allocatorConfiguration = &allocator_configuration;
   modulehandler_configuration.concurrency = STREAM_HEADMODULECONCURRENCY_ACTIVE;
   modulehandler_configuration.deviceIdentifier = deviceIdentifier_in;
-  //modulehandler_configuration.flipImage = true;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  modulehandler_configuration.flipImage = true;
+#endif // ACE_WIN32 || ACE_WIN64
   Test_U_EventHandler event_handler;
   modulehandler_configuration.subscriber = &event_handler;
 
@@ -1146,7 +1148,9 @@ do_work (int argc_in,
                false,  // wait for upstream ?
                false); // wait for downstream ?
 
-  stream.remove (&module, true, false);
+  stream.remove (&module,
+                 true,
+                 false);
 }
 
 int
