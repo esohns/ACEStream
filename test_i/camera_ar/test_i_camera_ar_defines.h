@@ -28,7 +28,7 @@
 #define TEST_I_CAMERA_AR_CONSOLE_DEFAULT_SIZE_Y 60
 #define TEST_I_CAMERA_AR_CONSOLE_FONT_SIZE      8 // x && y
 
-#define TEST_I_CAMERA_AR_DRAG_FACTOR_F          0.85f
+#define TEST_I_CAMERA_AR_DRAG_FACTOR_F          0.95f
 #define TEST_I_CAMERA_AR_PATCH_SIZE_I           7
 #define TEST_I_CAMERA_AR_SEARCH_SIZE_I          5
 

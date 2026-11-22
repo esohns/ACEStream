@@ -71,7 +71,7 @@ class Test_I_CameraAR_Module_CGE_T
 
   virtual bool OnUserCreate ();
   virtual bool OnUserUpdate (float); // elapsed time
-  //virtual bool OnUserDestroy ();
+  virtual bool OnUserDestroy ();
 
  private:
   ACE_UNIMPLEMENTED_FUNC (Test_I_CameraAR_Module_CGE_T ())
@@ -96,6 +96,7 @@ class Test_I_CameraAR_Module_CGE_T
 
   bool processNextMessage (); // return value: stop CGE ?
 
+  bool                      inSession_;
   Common_Image_Resolution_t resolution_;
 
 	float* previousImage;

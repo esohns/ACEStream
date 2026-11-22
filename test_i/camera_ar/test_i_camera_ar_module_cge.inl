@@ -36,6 +36,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
  : inherited (stream_in)
  , inherited2 ()
  , inherited3 ()
+ , inSession_ (false)
  , resolution_ ({0, 0})
  , previousImage (NULL)
  , currentImage (NULL)
@@ -189,6 +190,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     const_cast<typename inherited::SESSION_MESSAGE_T::DATA_T::DATA_T&> (session_data_container_r.getR ());
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
@@ -231,6 +234,7 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
       Stream_MediaFramework_DirectShow_Tools::free (media_type_s);
 #endif // ACE_WIN32 || ACE_WIN64
+      inSession_ = true;
 
       break;
 
@@ -241,14 +245,17 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
     }
     case STREAM_SESSION_MESSAGE_END:
     {
-      delete[] previousImage;
-      delete[] currentImage;
-      delete[] previousFilteredImage;
-      delete[] currentFilteredImage;
-      delete[] previousMotionImage;
-      delete[] currentMotionImage;
-      delete[] flowFieldX;
-      delete[] flowFieldY;
+end:
+      delete[] previousImage; previousImage = NULL;
+      delete[] currentImage; currentImage = NULL;
+      delete[] previousFilteredImage; previousFilteredImage = NULL;
+      delete[] currentFilteredImage; currentFilteredImage = NULL;
+      delete[] previousMotionImage; previousMotionImage = NULL;
+      delete[] currentMotionImage; currentMotionImage = NULL;
+      delete[] flowFieldX; flowFieldX = NULL;
+      delete[] flowFieldY; flowFieldY = NULL;
+
+      inSession_ = false;
 
       break;
     }
@@ -330,16 +337,19 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
   return !inherited3::GetKey (VK_ESCAPE).bPressed;
 }
 
-//template <typename TaskType,
-//          typename MediaType>
-//bool
-//Test_I_CameraAR_Module_CGE_T<TaskType,
-//                             MediaType>::OnUserDestroy ()
-//{
-//  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserDestroy"));
-//
-//  return true;
-//}
+template <typename TaskType,
+          typename MediaType>
+bool
+Test_I_CameraAR_Module_CGE_T<TaskType,
+                             MediaType>::OnUserDestroy ()
+{
+  STREAM_TRACE (ACE_TEXT ("Test_I_CameraAR_Module_CGE_T::OnUserDestroy"));
+
+  if (inSession_) // --> user pressed escape ?
+    inherited::notify (STREAM_SESSION_MESSAGE_ABORT);
+
+  return true;
+}
 
 template <typename TaskType,
           typename MediaType>
@@ -524,7 +534,8 @@ Test_I_CameraAR_Module_CGE_T<TaskType,
 
   ACE_Message_Block* message_block_p = NULL;
   static ACE_Time_Value no_wait = ACE_OS::gettimeofday ();
-  int result = inherited::getq (message_block_p, &no_wait);
+  int result = inherited::getq (message_block_p,
+                                &no_wait);
   if (likely (result == -1))
   {
     int error = ACE_OS::last_error ();

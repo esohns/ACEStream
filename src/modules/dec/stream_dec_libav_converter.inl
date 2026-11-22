@@ -240,6 +240,8 @@ Stream_Decoder_LibAVConverter_T<TaskType,
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+      goto end;
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       struct Stream_MediaFramework_FFMPEG_VideoMediaType media_type_s;
@@ -487,6 +489,7 @@ error_2:
     }
     case STREAM_SESSION_MESSAGE_END:
     {
+end:
       if (buffer_)
       {
         buffer_->release (); buffer_ = NULL;
