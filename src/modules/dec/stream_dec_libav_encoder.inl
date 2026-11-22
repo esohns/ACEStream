@@ -548,7 +548,7 @@ continue_:
           videoFrame_->format = video_media_type_s.format;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
           videoFrame_->height =
-              static_cast<unsigned int> (std::abs (video_media_type_s.resolution.cy));
+            static_cast<unsigned int> (std::abs (video_media_type_s.resolution.cy));
           videoFrame_->width =
             static_cast<unsigned int> (video_media_type_s.resolution.cx);
 #else
@@ -657,7 +657,10 @@ audio:
       goto continue_2;
 
 video:
-      formatContext_->video_codec = avcodec_find_encoder (video_codec_id);
+      if (!inherited::configuration_->codecConfiguration->codecName.empty ())
+        formatContext_->video_codec = avcodec_find_encoder_by_name (inherited::configuration_->codecConfiguration->codecName.c_str ());
+      else
+        formatContext_->video_codec = avcodec_find_encoder (video_codec_id);
       if (unlikely (!formatContext_->video_codec))
       {
         ACE_DEBUG ((LM_ERROR,

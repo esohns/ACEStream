@@ -119,10 +119,10 @@ do_print_usage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  //std::string configuration_path =
+  //  Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                    true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -200,10 +200,10 @@ do_process_arguments (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_process_arguments"));
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  //std::string configuration_path =
+  //  Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                    true); // configuration-
 
   // initialize results
   window_out.type = Common_UI_Window::Type::TYPE_INVALID;
@@ -933,6 +933,9 @@ do_work (
   //allocator_configuration.defaultBufferSize = 524288;
   struct Stream_MediaFramework_FFMPEG_CodecConfiguration codec_configuration;
   codec_configuration.codecId = AV_CODEC_ID_H264;
+#if defined (ACE_WIN32) || defined (ACE_WIN64)
+  codec_configuration.codecName = ACE_TEXT_ALWAYS_CHAR ("h264_mf");
+#endif // ACE_WIN32 || ACE_WIN64
 #else
   struct Stream_AllocatorConfiguration allocator_configuration;
 #endif // FFMPEG_SUPPORT
@@ -1444,10 +1447,10 @@ ACE_TMAIN (int argc_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step1a set defaults
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  //std::string configuration_path =
+  //  Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                    ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                    true); // configuration-
   std::vector<pid_t> process_ids_a;
   std::vector<pid_t>::const_iterator process_ids_iterator =
     process_ids_a.begin ();
