@@ -333,7 +333,6 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   struct Test_I_MP3Player_SessionData* session_data_p = NULL;
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
     const_cast<Test_I_StreamConfiguration_t&> (configuration_in).find (ACE_TEXT_ALWAYS_CHAR (""));
-  // Test_I_MP3Decoder* MP3Decoder_impl_p = NULL;
 #if defined (ACE_WIN32) || defined (ACE_WIN64)
   struct _AMMediaType media_type_s;
 #else
@@ -345,12 +344,19 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   // sanity check(s)
   ACE_ASSERT (iterator != configuration_in.end ());
   ACE_ASSERT (session_manager_p);
+  if (unlikely ((*iterator).second.second->fileIdentifier.identifier.empty ()))
+  {
+    ACE_DEBUG ((LM_ERROR,
+                ACE_TEXT ("%s: invalid/empty file identifier, aborting\n"),
+                ACE_TEXT (stream_name_string_)));
+    return false;
+  } // end IF
 
   // allocate a new session state, reset stream
   const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
     false;
   reset_setup_pipeline = true;
-  if (!inherited::initialize (configuration_in))
+  if (unlikely (!inherited::initialize (configuration_in)))
   {
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::initialize(), aborting\n"),
@@ -379,7 +385,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
   // *TODO*: remove type inferences
 
   if (configuration_in.configuration_->setupPipeline)
-    if (!inherited::setup ())
+    if (unlikely (!inherited::setup ()))
     {
       ACE_DEBUG ((LM_ERROR,
                   ACE_TEXT ("%s: failed to set up pipeline, aborting\n"),
@@ -395,8 +401,7 @@ Test_I_Stream::initialize (const Test_I_StreamConfiguration_t& configuration_in)
 
 failed:
   if (reset_setup_pipeline)
-    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline =
-      setup_pipeline;
+    const_cast<Test_I_StreamConfiguration_t&> (configuration_in).configuration_->setupPipeline = setup_pipeline;
   if (!inherited::reset ())
     ACE_DEBUG ((LM_ERROR,
                 ACE_TEXT ("%s: failed to Stream_Base_T::reset(): \"%m\", continuing\n"),

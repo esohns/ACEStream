@@ -1270,6 +1270,7 @@ do_work (int argc_in,
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration;
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2; // converter
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b; // resize
+  struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2b_; // resize_2
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_2c; // converter_2
   struct Stream_CameraScreen_V4L_ModuleHandlerConfiguration modulehandler_configuration_3; // display
   Stream_CameraScreen_EventHandler_t ui_event_handler;
@@ -1682,6 +1683,8 @@ do_work (int argc_in,
     modulehandler_configuration_2b.outputFormat.format.height /=
       TEST_U_MODULE_VIDEOWALL_DEFAULT_RESOLUTION_Y;
   } // end IF
+  modulehandler_configuration_2b_ = modulehandler_configuration_2;
+  modulehandler_configuration_2b_.handleResize = true;
 
   modulehandler_configuration_2c = modulehandler_configuration_2;
   modulehandler_configuration_3 = modulehandler_configuration_2;
@@ -1696,13 +1699,16 @@ do_work (int argc_in,
       TEST_U_ONNX_MODEL_RESOLUTION_DEFAULT_XY;
 
     modulehandler_configuration_3.outputFormat =
-      modulehandler_configuration_2b.outputFormat;
+      modulehandler_configuration_2b_.outputFormat;
   } // end IF
 #endif // ONNXRT_SUPPORT
 
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING),
                                                                std::make_pair (&module_configuration,
                                                                                &modulehandler_configuration_2b)));
+  configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"),
+                                                               std::make_pair (&module_configuration,
+                                                                               &modulehandler_configuration_2b_)));
 
   configuration_in.streamConfiguration.insert (std::make_pair (ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"),
                                                                std::make_pair (&module_configuration,

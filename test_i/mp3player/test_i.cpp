@@ -618,7 +618,8 @@ ACE_TMAIN (int argc_in,
   } // end IF
 
   // step1c: validate arguments
-  if ((!input_file.empty () && !Common_File_Tools::isReadable (input_file)) ||
+  if (input_file.empty () ||
+      (!input_file.empty () && !Common_File_Tools::isReadable (input_file)) ||
       false)
   {
     ACE_DEBUG ((LM_ERROR,

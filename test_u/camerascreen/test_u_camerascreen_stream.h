@@ -287,6 +287,7 @@ class Stream_CameraScreen_Stream
   Stream_CameraScreen_LibAVConvert_Module    convert_2; // --> BGRA (Xlib)
   Stream_CameraScreen_LibAVDecode_Module     decode_; // --> RGB
   Stream_CameraScreen_LibAVResize_Module     resize_; // --> window size/fullscreen
+  Stream_CameraScreen_LibAVResize_Module     resize_2; // --> window size/fullscreen
 #endif // FFMPEG_SUPPORT
   Test_U_CameraScreen_VideoWall_Module       videoWall_;
 #if defined (ONNXRT_SUPPORT)

@@ -1274,6 +1274,8 @@ Stream_CameraScreen_Stream::Stream_CameraScreen_Stream ()
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_DECODER_DEFAULT_NAME_STRING))
  , resize_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
+ , resize_2 (this,
+             ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"))
 #endif // FFMPEG_SUPPORT
  , videoWall_ (this,
                ACE_TEXT_ALWAYS_CHAR ("VideoWall"))
@@ -1366,7 +1368,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_WAYLAND:
     {
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
 #if defined (WAYLAND_SUPPORT)
       layout_in->append (&WaylandDisplay_, NULL, 0);
 #endif // WAYLAND_SUPPORT
@@ -1374,7 +1376,7 @@ Stream_CameraScreen_Stream::load (Stream_ILayout* layout_in,
     }
     case STREAM_VISUALIZATION_VIDEORENDERER_X11:
     {
-      layout_in->append (&resize_, NULL, 0); // output is window size/fullscreen
+      layout_in->append (&resize_2, NULL, 0); // output is window size/fullscreen
 #if defined (X11_SUPPORT)
       layout_in->append (&X11Display_, NULL, 0);
 #endif // X11_SUPPORT
@@ -1478,7 +1480,8 @@ Stream_CameraScreen_Stream::resize (const Common_Image_Resolution_t& resolution_
   STREAM_TRACE (ACE_TEXT ("Stream_CameraScreen_Stream::resize"));
 
   inherited::CONFIGURATION_T::ITERATOR_T iterator =
-    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    // inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    inherited::configuration_->find (ACE_TEXT_ALWAYS_CHAR ("LibAV_Resize_2"));
   ACE_ASSERT (iterator != inherited::configuration_->end ());
 
   (*iterator).second.second->outputFormat.format.width = resolution_in.width;

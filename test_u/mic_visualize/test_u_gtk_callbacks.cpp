@@ -7051,6 +7051,10 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     }
   } // end SWITCH
 #else
+  ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->delayConfiguration);
+  (*modulehandler_configuration_iterator).second.second->delayConfiguration->mode =
+    STREAM_MISCELLANEOUS_DELAY_MODE_INVALID;
+
   ACE_ASSERT ((*modulehandler_configuration_iterator).second.second->ALSAConfiguration);
   ACE_ASSERT (!(*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format);
   (*modulehandler_configuration_iterator).second.second->ALSAConfiguration->format =
@@ -7076,7 +7080,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
 #endif // ACE_WIN32 || ACE_WIN64
 
   // step2: modify widgets
-  gtk_button_set_label (GTK_BUTTON (toggleButton_in), GTK_STOCK_MEDIA_STOP);
+  gtk_button_set_label (GTK_BUTTON (toggleButton_in),
+                        GTK_STOCK_MEDIA_STOP);
 
   GtkButton* button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
@@ -7087,7 +7092,8 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_REPORT_NAME)));
   ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            TRUE);
 
   GtkComboBox* combo_box_p =
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
@@ -7099,48 +7105,56 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
     GTK_COMBO_BOX (gtk_builder_get_object ((*iterator).second.second,
                                            ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_COMBOBOX_DEVICE_NAME)));
   ACE_ASSERT (combo_box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (combo_box_p),
+                            FALSE);
 
   GtkFrame* frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_FILE_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            FALSE);
 
   GtkBox* box_p =
     GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_VBOX_FORMAT_OPTIONS_NAME)));
   ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+                            FALSE);
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_DEVICE_SETTINGS_NAME)));
   ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            TRUE);
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_DEVICE_RESET_NAME)));
   ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            FALSE);
 
   box_p =
     GTK_BOX (gtk_builder_get_object ((*iterator).second.second,
                                      ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BOX_EFFECT_2_NAME)));
   ACE_ASSERT (box_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (box_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (box_p),
+                            FALSE);
 
   button_p =
     GTK_BUTTON (gtk_builder_get_object ((*iterator).second.second,
                                         ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_BUTTON_PROPERTIES_NAME)));
   ACE_ASSERT (button_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (button_p), TRUE);
+  gtk_widget_set_sensitive (GTK_WIDGET (button_p),
+                            TRUE);
 
   frame_p =
     GTK_FRAME (gtk_builder_get_object ((*iterator).second.second,
                                        ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_FRAME_SAVE_NAME)));
   ACE_ASSERT (frame_p);
-  gtk_widget_set_sensitive (GTK_WIDGET (frame_p), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (frame_p),
+                            FALSE);
 
   // step1: set up progress reporting
   ui_cb_data_base_p->progressData.bytesPerFrame = bytes_per_frame_i;
@@ -7150,9 +7164,11 @@ togglebutton_record_toggled_cb (GtkToggleButton* toggleButton_in,
                                               ACE_TEXT_ALWAYS_CHAR (TEST_U_UI_GTK_PROGRESSBAR_NAME)));
   ACE_ASSERT (progress_bar_p);
 #if GTK_CHECK_VERSION (3,0,0)
-  gtk_progress_bar_set_show_text (progress_bar_p, TRUE);
+  gtk_progress_bar_set_show_text (progress_bar_p,
+                                  TRUE);
 #else
-  gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p), TRUE);
+  gtk_progress_set_show_text (GTK_PROGRESS (progress_bar_p),
+                              TRUE);
 #endif // GTK_CHECK_VERSION (3,0,0) 
   // gtk_progress_bar_set_fraction (progress_bar_p, 0.0);
 

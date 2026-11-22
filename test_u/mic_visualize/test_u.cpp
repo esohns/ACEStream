@@ -1689,8 +1689,7 @@ do_work (int argc_in,
     &configuration_in.streamConfiguration;
   modulehandler_configuration.subscriber = &ui_event_handler;
   if (!sourceFilename_in.empty ())
-    modulehandler_configuration.fileIdentifier.identifier =
-      sourceFilename_in;
+    modulehandler_configuration.fileIdentifier.identifier = sourceFilename_in;
   modulehandler_configuration.spectrumAnalyzerConfiguration =
     &spectrumanalyzer_configuration;
 

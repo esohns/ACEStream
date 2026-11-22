@@ -3105,7 +3105,7 @@ Stream_Base_T<ACE_SYNCH_USE,
       stream_layout_string.append (ACE_TEXT (" |"));
 
     idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
+      dynamic_cast<Stream_IDistributorModule*> (const_cast<MODULE_T*> (module_p)->writer ());
     if (idistributor_p)
       distributors_a.push_back (idistributor_p);
 

@@ -237,8 +237,8 @@ Stream_File_ImageMagick_Source_T<ACE_SYNCH_USE,
     return false;
   } // end IF
 
-  MagickSetImageType (context_, TrueColorType);
-  MagickSetImageColorspace (context_, sRGBColorspace);
+  MagickSetType (context_, TrueColorType);
+  MagickSetColorspace (context_, sRGBColorspace);
 
   if (configuration_in.fileIdentifier.identifierDiscriminator == Common_File_Identifier::DIRECTORY)
   {
