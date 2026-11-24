@@ -90,10 +90,12 @@ class Test_I_CameraAR_Module_PGE_T
 
   inline float getPixel (float* image_in, int x_in, int y_in)
   {
-    if (likely (x_in >= 0 && x_in < ScreenWidth () && y_in >= 0 && y_in < ScreenHeight ()))
-      return image_in[y_in * ScreenWidth () + x_in];
+    static int32_t screen_width_i = inherited3::ScreenWidth ();
+    static int32_t screen_height_i = inherited3::ScreenHeight ();
+    if (likely (x_in >= 0 && x_in < screen_width_i && y_in >= 0 && y_in < screen_height_i))
+      return image_in[y_in * screen_width_i + x_in];
 
-    return 0.0F;
+    return 0.0f;
   }
 
   bool processNextMessage (); // return value: stop PGE ?

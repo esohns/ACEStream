@@ -1538,7 +1538,7 @@ Stream_AVSave_V4L_Stream::load (Stream_ILayout* layout_in,
     } // end IF
 
     Stream_IDistributorModule* idistributor_p =
-        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+      dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
     ACE_ASSERT (idistributor_p);
     idistributor_p->initialize (branches_a);
   } // end IF
