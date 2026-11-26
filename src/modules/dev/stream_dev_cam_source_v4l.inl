@@ -712,6 +712,7 @@ Stream_Module_CamSource_V4L_T<ACE_SYNCH_USE,
         {
           message_block_p->release (); message_block_p = NULL;
         } // end ELSE
+
         inherited::isHighPriorityStop_ = false;
 
         result = 0;

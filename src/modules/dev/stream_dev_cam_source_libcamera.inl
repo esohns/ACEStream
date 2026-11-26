@@ -54,6 +54,9 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
  , cameraManager_ (NULL)
  , cameraStream_ (NULL)
  , frameBufferAllocator_ (NULL)
+ , mappedBuffers_ ()
+ , requests_ ()
+ , sessionId_ (0)
 {
   STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::Stream_Module_CamSource_LibCamera_T"));
 
@@ -123,6 +126,42 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
                                     StatisticContainerType,
                                     SessionManagerType,
                                     TimerManagerType,
+                                    UserDataType>::handleDataMessage (DataMessageType*& message_inout,
+                                                                      bool& passMessageDownstream_out)
+{
+  STREAM_TRACE (ACE_TEXT ("Stream_Module_CamSource_LibCamera_T::handleDataMessage"));
+
+  // don't care (implies yes per default, if part of a stream)
+  ACE_UNUSED_ARG (passMessageDownstream_out);
+
+  message_inout->initialize (sessionId_,
+                             NULL);
+}
+
+template <ACE_SYNCH_DECL,
+          typename ControlMessageType,
+          typename DataMessageType,
+          typename SessionMessageType,
+          typename ConfigurationType,
+          typename StreamControlType,
+          typename StreamNotificationType,
+          typename StreamStateType,
+          typename StatisticContainerType,
+          typename SessionManagerType,
+          typename TimerManagerType,
+          typename UserDataType>
+void
+Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
+                                    ControlMessageType,
+                                    DataMessageType,
+                                    SessionMessageType,
+                                    ConfigurationType,
+                                    StreamControlType,
+                                    StreamNotificationType,
+                                    StreamStateType,
+                                    StatisticContainerType,
+                                    SessionManagerType,
+                                    TimerManagerType,
                                     UserDataType>::handleSessionMessage (SessionMessageType*& message_inout,
                                                                          bool& passMessageDownstream_out)
 {
@@ -139,9 +178,15 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
   DataMessageType* message_p = NULL;
   typename DataMessageType::DATA_T* message_data_container_p = NULL;
   typename DataMessageType::DATA_T::DATA_T* message_data_p = NULL;
+  bool high_priority_b = false;
 
   switch (message_inout->type ())
   {
+    case STREAM_SESSION_MESSAGE_ABORT:
+    {
+      high_priority_b = true;
+      goto end;
+    }
     case STREAM_SESSION_MESSAGE_BEGIN:
     {
       // sanity check(s)
@@ -236,15 +281,15 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       {
         /* Map memory buffers and cache the mappings */
         const libcamera::FrameBuffer::Plane& plane_r =
-            (*iterator)->planes ().front ();
+          (*iterator)->planes ().front ();
         void* memory_p =
-            ::mmap (NULL, plane_r.length, PROT_READ, MAP_SHARED, plane_r.fd.get (), 0);
+          ::mmap (NULL, plane_r.length, PROT_READ, MAP_SHARED, plane_r.fd.get (), 0);
         mappedBuffers_[(*iterator).get ()] =
-            std::make_pair (memory_p, plane_r.length);
+          std::make_pair (memory_p, plane_r.length);
 
         try {
           message_block_p =
-              static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (plane_r.length));
+            static_cast<ACE_Message_Block*> (inherited::allocator_->malloc (plane_r.length));
         } catch (...) {
           ACE_DEBUG ((LM_ERROR,
                       ACE_TEXT ("caught exception in Stream_IAllocator::malloc(%u), aborting\n"),
@@ -268,14 +313,24 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
         } // end IF
         message_p = dynamic_cast<DataMessageType*> (message_block_p);
         ACE_ASSERT (message_p);
-        message_data_container_p =
-          &const_cast<typename DataMessageType::DATA_T&> (message_p->getR ());
-        message_data_p =
-          &const_cast<typename DataMessageType::DATA_T::DATA_T&> (message_data_container_p->getR ());
+
+        message_data_p = NULL;
+        ACE_NEW_NORETURN (message_data_p,
+                          typename DataMessageType::DATA_T::DATA_T ());
+        ACE_ASSERT (message_data_p);
         message_data_p->buffer = (*iterator).get ();
         message_data_p->camera = camera_.get ();
         message_data_p->request = request_p.get ();
         message_data_p->stream = cameraStream_;
+
+        message_data_container_p = NULL;
+        ACE_NEW_NORETURN (message_data_container_p,
+                          typename DataMessageType::DATA_T (message_data_p,
+                                                            true));
+        ACE_ASSERT (message_data_container_p);
+        message_p->initialize (message_data_container_p,
+                               session_data_r.sessionId,
+                               NULL);
 
         result = request_p->addBuffer (cameraStream_, (*iterator).get ());
         if (result < 0)
@@ -313,6 +368,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
           goto error;
         } // end IF
       } // end FOR
+
+      sessionId_ = session_data_r.sessionId;
 
       break;
 
@@ -357,6 +414,7 @@ error:
         inherited::sessionEndProcessed_ = true;
       } // end lock scope
 
+end:
       // step1: empty buffer queue(s)
       camera_->requestCompleted.disconnect (this, &OWN_TYPE_T::requestComplete);
       camera_->stop ();
@@ -388,9 +446,7 @@ error:
       mappedBuffers_.clear ();
 
       if (camera_)
-      {
         camera_ = nullptr;
-      } // end IF
 
       if (cameraManager_)
       {
@@ -499,8 +555,7 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
     if (camera_)
     {
       camera_->stop ();
-      camera_->release ();
-      camera_ = nullptr;
+      camera_->release (); camera_ = nullptr;
     } // end IF
 
     if (cameraManager_)
@@ -513,6 +568,8 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
     {
       delete frameBufferAllocator_; frameBufferAllocator_ = NULL;
     } // end IF
+
+    sessionId_ = 0;
   } // end IF
 
   if (!cameraManager_)
@@ -634,29 +691,52 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
       {
         // *NOTE*: when close()d manually (i.e. user abort), 'finished' will
         //         not have been set at this stage
-
-        // signal the controller ?
-        if (!has_finished)
+        if (unlikely (inherited::isHighPriorityStop_))
         {
-          has_finished = true;
-          // enqueue(/process) STREAM_SESSION_END
-          inherited::STATE_MACHINE_T::finished ();
+          if (likely (!inherited::abortSent_))
+            inherited::control (STREAM_CONTROL_ABORT,
+                                false, // forward upstream ?
+                                true);  // expedite ?
         } // end IF
 
-        if (inherited::thr_count_ > 1)
+        bool finish_b = true;
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+            finish_b = false;
+        } // end lock scope
+        if (likely (finish_b))
         {
-          result_2 = inherited::putq (message_block_p, NULL);
-          if (result_2 == -1)
+          // enqueue(/process) STREAM_SESSION_END
+          inherited::finished (false); // recurse upstream ?
+          message_block_p->release (); message_block_p = NULL;
+          continue;
+        } // end IF
+
+        // *NOTE*: this is racy; the penultimate thread may have left svc() and
+        //         not have decremented thr_count_ yet. In this case, the
+        //         stop-message might remain in the queue during shutdown (or,
+        //         even worse-) during re-initialization...
+        // *TODO*: ward against this scenario
+        if (unlikely (inherited::thr_count_ > 1))
+        {
+          result_2 =
+            (inherited::isHighPriorityStop_ ? inherited::ungetq (message_block_p, NULL)
+                                            : inherited::putq (message_block_p, NULL));
+          if (unlikely (result_2 == -1))
+          {
             ACE_DEBUG ((LM_ERROR,
                         ACE_TEXT ("%s: failed to ACE_Task::putq(): \"%m\", aborting\n"),
                         inherited::mod_->name ()));
+            message_block_p->release (); message_block_p = NULL;
+            return -1;
+          } // end IF
         } // end IF
         else
-          message_block_p->release ();
+        {
+          message_block_p->release (); message_block_p = NULL;
+        } // end ELSE
 
-        // has STREAM_SESSION_END been processed ?
-        if (!inherited::sessionEndProcessed_)
-          continue; // process STREAM_SESSION_END
+        inherited::isHighPriorityStop_ = false;
 
         result = 0;
 
@@ -673,7 +753,6 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
 
         inherited::handleMessage (message_block_p,
                                   stop_processing);
-        message_block_p = NULL;
 
         if (release_lock)
           stream_p->unlock (false);
@@ -683,11 +762,15 @@ Stream_Module_CamSource_LibCamera_T<ACE_SYNCH_USE,
         {
           // *IMPORTANT NOTE*: message_block_p has already been released() !
 
-          if (!has_finished)
+          bool finish_b = true;
+          { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+            if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+              finish_b = false;
+          } // end lock scope
+          if (likely (finish_b))
           {
-            has_finished = true;
             // enqueue(/process) STREAM_SESSION_END
-            inherited::STATE_MACHINE_T::finished ();
+            inherited::finished (false); // recurse upstream ?
           } // end IF
 
           continue;
@@ -711,8 +794,17 @@ continue_:
                     inherited::mod_->name (),
                     session_data_r.sessionId));
         has_finished = true;
-        // enqueue(/process) STREAM_SESSION_END
-        inherited::STATE_MACHINE_T::finished ();
+
+        bool finish_b = true;
+        { ACE_GUARD_RETURN (ACE_Thread_Mutex, aGuard, inherited::lock_, -1);
+          if (inherited::sessionEndSent_ || inherited::sessionEndProcessed_)
+            finish_b = false;
+        } // end lock scope
+        if (likely (finish_b))
+        {
+          // enqueue(/process) STREAM_SESSION_END
+          inherited::finished (false); // recurse upstream ?
+        } // end IF
       } // end IF
     } // end lock scope
   } while (true);

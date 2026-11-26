@@ -1364,16 +1364,10 @@ Stream_CamSave_LibCamera_Stream::Stream_CamSave_LibCamera_Stream ()
                ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_CONVERTER_DEFAULT_NAME_STRING))
  , resizer_ (this,
              ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING))
-#if defined (GTK_USE)
-// , GTKCairoDisplay_ (this,
-//                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
-// , display_ (this,
-//             ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
-// , display_2_ (this,
-//               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_WINDOW_DEFAULT_NAME_STRING))
-#endif // GTK_USE
- , display_2_ (this,
-               ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_PIXBUF_DEFAULT_NAME_STRING))
+#if defined (GTK_SUPPORT)
+ , GTKCairoDisplay_ (this,
+                     ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_GTK_CAIRO_DEFAULT_NAME_STRING))
+#endif // GTK_SUPPORT
  , converter_2 (this,
                 ACE_TEXT_ALWAYS_CHAR ("LibAV_Converter_2"))
  , encoder_ (this,
@@ -1395,13 +1389,12 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
   delete_out = false;
 
   // sanity check(s)
-//  ACE_ASSERT (layout_in->empty ());
   ACE_ASSERT (configuration_);
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator =
-      configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
+    configuration_->find (ACE_TEXT_ALWAYS_CHAR (""));
   ACE_ASSERT (iterator != configuration_->end ());
   typename inherited::CONFIGURATION_T::ITERATOR_T iterator_2 =
-      configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_X11));
+    configuration_->find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
   ACE_ASSERT (iterator_2 != configuration_->end ());
   bool display_b = !(*iterator_2).second.second->display.device.empty ();
   bool save_to_file_b = !(*iterator).second.second->targetFileName.empty ();
@@ -1410,7 +1403,7 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
   //         - whether the output is displayed on a screen
   //         - whether the output is saved to file
   typename inherited::MODULE_T* branch_p = NULL; // NULL: 'main' branch
-  unsigned int index_i = 1;
+  unsigned int index_i = 0;
 
   layout_in->append (&source_, NULL, 0);
 //  layout_inout.append (&statisticReport_, NULL, 0);
@@ -1424,7 +1417,7 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_DISPLAY_NAME));
       branches_a.push_back (ACE_TEXT_ALWAYS_CHAR (STREAM_SUBSTREAM_SAVE_NAME));
       Stream_IDistributorModule* idistributor_p =
-          dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
+        dynamic_cast<Stream_IDistributorModule*> (distributor_.writer ());
       ACE_ASSERT (idistributor_p);
       idistributor_p->initialize (branches_a);
     } // end IF
@@ -1432,17 +1425,13 @@ Stream_CamSave_LibCamera_Stream::load (Stream_ILayout* layout_in,
     if (display_b)
     { // *WARNING*: display modules must support uncompressed 24-bit RGB (at
       //            native endianness)
-      layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
+      // layout_in->append (&converter_, branch_p, index_i); // output is uncompressed 24-bit RGB
       layout_in->append (&resizer_, branch_p, index_i); // output is window size/fullscreen
 #if defined (GTK_USE)
-//      if (configuration_->configuration->renderer != STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW)
-//        layout_in->append (&display_, branch_p, 0);
-//      else
-        layout_in->append (&display_2_, branch_p, index_i);
-//      layout_in->append (&GTKCairoDisplay_, branch_p, 0);
+      layout_in->append (&GTKCairoDisplay_, branch_p, index_i);
 #elif defined (WXWIDGETS_USE)
       layout_in->append (&display_, branch_p, index_i);
-#endif
+#endif // GTK_USE || WXWIDGETS_USE
       //ACE_ASSERT ((*iterator).second.second->fullScreen && !(*iterator).second.second->display.identifier.empty ());
       //ACE_ASSERT (false); // *TODO*
       ++index_i;

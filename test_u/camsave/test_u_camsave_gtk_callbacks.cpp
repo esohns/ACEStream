@@ -2539,6 +2539,7 @@ idle_initialize_UI_cb (gpointer userData_in)
 #if defined (LIBCAMERA_SUPPORT)
   Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_2;
   Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_3;
+  Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T libcamera_iterator_4;
 #endif // LIBCAMERA_SUPPORT
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2; // default
   Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3; // renderer
@@ -2560,19 +2561,22 @@ idle_initialize_UI_cb (gpointer userData_in)
     libcamera_iterator_2 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
     ACE_ASSERT (libcamera_iterator_2 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
-    device_identifier_string = (*iterator_2).second.second->deviceIdentifier.identifier;
+    device_identifier_string = (*libcamera_iterator_2).second.second->deviceIdentifier.identifier;
     filename_string = (*libcamera_iterator_2).second.second->targetFileName;
     libcamera_iterator_3 =
       ui_cb_data_p->configuration->libCamera_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
     ACE_ASSERT (libcamera_iterator_3 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    libcamera_iterator_4 =
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    ACE_ASSERT (libcamera_iterator_4 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
     display_device_string = (*libcamera_iterator_3).second.second->display.device;
     is_display_b =
       !(*libcamera_iterator_3).second.second->deviceIdentifier.identifier.empty ();
 //    is_fullscreen_b = (*libcamera_iterator_3).second.second->fullScreen;
 
-    (*libcamera_iterator_3).second.second->outputFormat.resolution.height =
+    (*libcamera_iterator_4).second.second->outputFormat.resolution.height =
       resolution_s.height;
-    (*libcamera_iterator_3).second.second->outputFormat.resolution.width =
+    (*libcamera_iterator_4).second.second->outputFormat.resolution.width =
       resolution_s.width;
 //    buffer_size_i =
 //      ui_cb_data_p->configuration->libCamera_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
@@ -2613,9 +2617,9 @@ idle_initialize_UI_cb (gpointer userData_in)
       !(*iterator_3).second.second->deviceIdentifier.identifier.empty ();
 //    is_fullscreen_b = (*iterator_3).second.second->fullScreen;
 
-    (*iterator_3).second.second->outputFormat.format.height =
+    (*iterator_4).second.second->outputFormat.format.height =
       resolution_s.height;
-    (*iterator_3).second.second->outputFormat.format.width =
+    (*iterator_4).second.second->outputFormat.format.width =
       resolution_s.width;
 //    buffer_size_i =
 //      ui_cb_data_p->configuration->v4l_streamConfiguration.configuration_->allocatorConfiguration->defaultBufferSize;
@@ -3040,12 +3044,28 @@ idle_initialize_UI_cb (gpointer userData_in)
     }
   } // end SWITCH
 #else
-  ACE_ASSERT (!(*iterator_3).second.second->window.gdk_window);
-  (*iterator_3).second.second->window.gdk_window = window_p;
-  (*iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
+  if (ui_cb_data_base_p->useLibCamera)
+  {
+#if defined (LIBCAMERA_SUPPORT)
+    ACE_ASSERT (!(*libcamera_iterator_3).second.second->window.gdk_window);
+    (*libcamera_iterator_3).second.second->window.gdk_window = window_p;
+    (*libcamera_iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
 
-  (*iterator_4).second.second->outputFormat.format.height = allocation.height;
-  (*iterator_4).second.second->outputFormat.format.width = allocation.width;
+    (*libcamera_iterator_2).second.second->outputFormat.resolution.height =
+      allocation.height;
+    (*libcamera_iterator_2).second.second->outputFormat.resolution.width =
+      allocation.width;
+#endif // LIBCAMERA_SUPPORT
+  } // end IF
+  else
+  {
+    ACE_ASSERT (!(*iterator_3).second.second->window.gdk_window);
+    (*iterator_3).second.second->window.gdk_window = window_p;
+    (*iterator_3).second.second->window.type = Common_UI_Window::TYPE_GTK;
+
+    (*iterator_4).second.second->outputFormat.format.height = allocation.height;
+    (*iterator_4).second.second->outputFormat.format.width = allocation.width;
+  } // end ELSE
 #endif // ACE_WIN32 || ACE_WIN64
 
 #if GTK_CHECK_VERSION (2,30,0)
@@ -6664,17 +6684,31 @@ drawing_area_resize_end (gpointer userData_in)
     static_cast<struct Stream_CamSave_V4L_UI_CBData*> (ui_cb_data_base_p);
   stream_p = ui_cb_data_p->stream;
   ACE_ASSERT (ui_cb_data_p->configuration);
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
-  ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
-  ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-  Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
-    ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
-  ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
-  (*iterator_4).second.second->outputFormat.format.height = allocation_s.height;
-  (*iterator_4).second.second->outputFormat.format.width = allocation_s.width;
+  if (ui_cb_data_p->useLibCamera)
+  {
+    Stream_CamSave_LibCamera_StreamConfiguration_t::ITERATOR_T iterator_4 =
+      ui_cb_data_p->configuration->libCamera_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->libCamera_streamConfiguration.end ());
+    (*iterator_4).second.second->outputFormat.resolution.height =
+      allocation_s.height;
+    (*iterator_4).second.second->outputFormat.resolution.width =
+      allocation_s.width;
+  } // end IF
+  else
+  {
+    // Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_2 =
+    //   ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (""));
+    // ACE_ASSERT (iterator_2 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    // Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_3 =
+    //   ui_cb_data_p->configuration->v4l_streamConfiguration.find (Stream_Visualization_Tools::rendererToModuleName (STREAM_VISUALIZATION_VIDEORENDERER_GTK_CAIRO));
+    // ACE_ASSERT (iterator_3 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    Stream_CamSave_V4L_StreamConfiguration_t::ITERATOR_T iterator_4 =
+      ui_cb_data_p->configuration->v4l_streamConfiguration.find (ACE_TEXT_ALWAYS_CHAR (STREAM_VIS_LIBAV_RESIZE_DEFAULT_NAME_STRING));
+    ACE_ASSERT (iterator_4 != ui_cb_data_p->configuration->v4l_streamConfiguration.end ());
+    (*iterator_4).second.second->outputFormat.format.height =
+      allocation_s.height;
+    (*iterator_4).second.second->outputFormat.format.width = allocation_s.width;
+  } // end ELSE
 
   if (!ui_cb_data_p->stream->isRunning ())
     return G_SOURCE_REMOVE;

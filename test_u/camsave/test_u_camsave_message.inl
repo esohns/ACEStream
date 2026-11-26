@@ -235,9 +235,20 @@ Stream_CamSave_Message_T<DataType,
   OWN_TYPE_T* message_p = NULL;
 
   // if there is no allocator, use the standard new and delete calls.
-  ACE_NEW_NORETURN (message_p,
-                    OWN_TYPE_T (this->sessionId (),
-                                static_cast<unsigned int> (this->length ())));
+  if (inherited::message_block_allocator_)
+  {
+    // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
+    //         the returned memory is always sizeof(Stream_CamSave_Message_T)
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
+                                                                                                    '\0')),
+                             OWN_TYPE_T (inherited::sessionId_,
+                                         this->length ()));
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (inherited::sessionId_,
+                                  this->length ()));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,
@@ -361,7 +372,7 @@ template <typename DataType,
           typename SessionDataType>
 Stream_CamSave_LibCamera_Message_T<DataType,
                                    SessionDataType>::Stream_CamSave_LibCamera_Message_T (Stream_SessionId_t sessionId_in,
-                                                                                         unsigned int size_in)
+                                                                                         size_t size_in)
  : inherited (sessionId_in,
               size_in)
 {
@@ -459,15 +470,14 @@ Stream_CamSave_LibCamera_Message_T<DataType,
     return NULL;
   } // end IF
 
-  // allocate a new ARDrone_LiveVideoMessage that contains unique copies of the message
+  // allocate a new message that contains unique copies of the message
   // block fields, and "deep" copie(s) of the data block(s)
 
   // *NOTE*: if there is no allocator, use the standard new/delete calls
-
   if (inherited::message_block_allocator_)
   {
     // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
-    //         the returned memory is always sizeof(ARDrone_LiveVideoMessage)
+    //         the returned memory is always sizeof(OWN_TYPE_T)
     ACE_NEW_MALLOC_NORETURN (result_p,
                              static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
                                                                                                     '\0')),
@@ -557,9 +567,20 @@ Stream_CamSave_LibCamera_Message_T<DataType,
   OWN_TYPE_T* message_p = NULL;
 
   // if there is no allocator, use the standard new and delete calls.
-  ACE_NEW_NORETURN (message_p,
-                    OWN_TYPE_T (this->sessionId (),
-                                this->length ()));
+  if (inherited::message_block_allocator_)
+  {
+    // *NOTE*: the argument to calloc() doesn't matter (as long as it is not 0),
+    //         the returned memory is always sizeof(OWN_TYPE_T)
+    ACE_NEW_MALLOC_NORETURN (message_p,
+                             static_cast<OWN_TYPE_T*> (inherited::message_block_allocator_->calloc (sizeof (OWN_TYPE_T),
+                                                                                                    '\0')),
+                             OWN_TYPE_T (inherited::sessionId_,
+                                         this->length ()));
+  } // end IF
+  else
+    ACE_NEW_NORETURN (message_p,
+                      OWN_TYPE_T (inherited::sessionId_,
+                                  this->length ()));
   if (unlikely (!message_p))
   {
     ACE_DEBUG ((LM_CRITICAL,

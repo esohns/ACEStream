@@ -633,12 +633,12 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
   } // end IF
 #endif // GTK_CHECK_VERSION (3,22,0)
 
-//#if GTK_CHECK_VERSION (3,22,0)
-//  //g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("draw"), G_CALLBACK (acestream_gtk_window_draw_cb), pixbuf_);
-//#elif GTK_CHECK_VERSION (3,0,0)
-//#else
-//  // g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("expose"), G_CALLBACK (acestream_gtk_window_expose_event_cb), pixbuf_);
-//#endif // GTK_CHECK_VERSION (3,22,0)
+#if GTK_CHECK_VERSION (3,22,0)
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("draw"), G_CALLBACK (acestream_gtk_window_draw_cb), pixbuf_);
+#elif GTK_CHECK_VERSION (3,0,0)
+#else
+  g_signal_connect (G_OBJECT (window_), ACE_TEXT_ALWAYS_CHAR ("expose"), G_CALLBACK (acestream_gtk_window_expose_event_cb), pixbuf_);
+#endif // GTK_CHECK_VERSION (3,22,0)
 
   gtk_main ();
 

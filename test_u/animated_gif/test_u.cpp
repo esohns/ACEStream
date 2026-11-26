@@ -137,10 +137,10 @@ do_printUsage (const std::string& programName_in)
   // enable verbatim boolean output
   std::cout.setf (std::ios::boolalpha);
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  // std::string configuration_path =
+  //   Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                     true); // configuration-
 
   std::cout << ACE_TEXT_ALWAYS_CHAR ("usage: ")
             << programName_in
@@ -196,13 +196,13 @@ do_processArguments (int argc_in,
 {
   STREAM_TRACE (ACE_TEXT ("::do_processArguments"));
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  // std::string configuration_path =
+  //   Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                     true); // configuration-
 
   // initialize results
-  std::string path = configuration_path;
+  std::string path;
   bufferSize_out = TEST_U_ANIMATED_GIF_DEFAULT_BUFFER_SIZE;
   path = Common_File_Tools::getTempDirectory ();
   imagesFilePath_out = path;
@@ -586,10 +586,10 @@ ACE_TMAIN (int argc_in,
   // start profile timer...
   process_profile.start ();
 
-  std::string configuration_path =
-    Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
-                                                      ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
-                                                      true); // configuration-
+  // std::string configuration_path =
+  //   Common_File_Tools::getConfigurationDataDirectory (ACE_TEXT_ALWAYS_CHAR (ACEStream_PACKAGE_NAME),
+  //                                                     ACE_TEXT_ALWAYS_CHAR (COMMON_LOCATION_TEST_U_SUBDIRECTORY),
+  //                                                     true); // configuration-
 
   // step1a set defaults
   unsigned int buffer_size = TEST_U_ANIMATED_GIF_DEFAULT_BUFFER_SIZE;

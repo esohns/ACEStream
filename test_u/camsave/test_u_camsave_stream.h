@@ -262,21 +262,21 @@ class Stream_CamSave_LibCamera_Stream
   ACE_UNIMPLEMENTED_FUNC (Stream_CamSave_LibCamera_Stream& operator= (const Stream_CamSave_LibCamera_Stream&))
 
   // modules
-  Stream_CamSave_LibCamera_Source_Module         source_;
+  Stream_CamSave_LibCamera_Source_Module          source_;
 //  Stream_CamSave_StatisticReport_Module statisticReport_;
-  Stream_CamSave_LibCamera_LibAVDecoder_Module   decoder_; // --> RGB
-  Stream_CamSave_LibCamera_Distributor_Module    distributor_; // (sub-)branch ?
+  Stream_CamSave_LibCamera_LibAVDecoder_Module    decoder_; // --> RGB
+  Stream_CamSave_LibCamera_Distributor_Module     distributor_; // (sub-)branch ?
   ////////////////////////////////////////
-  Stream_CamSave_LibCamera_LibAVConverter_Module converter_; // --> 24-bit RGB (display format)
-  Stream_CamSave_LibCamera_LibAVResize_Module    resizer_; // --> window size/fullscreen
+  Stream_CamSave_LibCamera_LibAVConverter_Module  converter_; // --> 24-bit RGB (display format)
+  Stream_CamSave_LibCamera_LibAVResize_Module     resizer_; // --> window size/fullscreen
 #if defined (GTK_SUPPORT)
-//  Stream_CamSave_GTKCairoDisplay_Module GTKCairoDisplay_;
-  Stream_CamSave_LibCamera_GTKPixbufDisplay_Module display_2_;
+  Stream_CamSave_LibCamera_GTKCairoDisplay_Module GTKCairoDisplay_;
+  // Stream_CamSave_LibCamera_GTKPixbufDisplay_Module display_2_;
 #endif // GTK_SUPPORT
   ////////////////////////////////////////
-  Stream_CamSave_LibCamera_LibAVConverter_Module converter_2; // --> 32-bit RGB (AVI format)
-  Stream_CamSave_LibCamera_AVIEncoder_Module     encoder_; // --> AVI
-  Stream_CamSave_LibCamera_FileWriter_Module     fileWriter_;
+  Stream_CamSave_LibCamera_LibAVConverter_Module  converter_2; // --> 32-bit RGB (AVI format)
+  Stream_CamSave_LibCamera_AVIEncoder_Module      encoder_; // --> AVI
+  Stream_CamSave_LibCamera_FileWriter_Module      fileWriter_;
 };
 #endif // LIBCAMERA_SUPPORT
 

@@ -108,6 +108,8 @@ class Stream_Module_CamSource_LibCamera_T
                            Stream_IAllocator* = NULL);
 
   // implement (part of) Stream_ITaskBase_T
+  virtual void handleDataMessage (DataMessageType*&, // message handle
+                                  bool&);            // return value: pass message downstream ?
   virtual void handleSessionMessage (SessionMessageType*&, // session message handle
                                      bool&);               // return value: pass message downstream ?
 
@@ -148,14 +150,15 @@ class Stream_Module_CamSource_LibCamera_T
   // callbacks
   void requestComplete (libcamera::Request*);
 
-  std::shared_ptr<libcamera::Camera> camera_;
-  std::unique_ptr<libcamera::CameraConfiguration> cameraConfiguration_;
-  libcamera::CameraManager* cameraManager_;
-  libcamera::Stream* cameraStream_;
-  libcamera::FrameBufferAllocator* frameBufferAllocator_;
+  std::shared_ptr<libcamera::Camera>                               camera_;
+  std::unique_ptr<libcamera::CameraConfiguration>                  cameraConfiguration_;
+  libcamera::CameraManager*                                        cameraManager_;
+  libcamera::Stream*                                               cameraStream_;
+  libcamera::FrameBufferAllocator*                                 frameBufferAllocator_;
   std::map<libcamera::FrameBuffer*, std::pair<void*, ACE_UINT32> > mappedBuffers_;
   //std::list<libcamera::FrameBuffer*> freeBuffers_;
-  std::vector<std::unique_ptr<libcamera::Request> > requests_;
+  std::vector<std::unique_ptr<libcamera::Request> >                requests_;
+  Stream_SessionId_t                                               sessionId_;
 };
 
 // include template definition

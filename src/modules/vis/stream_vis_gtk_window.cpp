@@ -21,7 +21,7 @@
 
 #include "stream_vis_gtk_window.h"
 
-#include "ace/config-macros.h"
+#include "ace/Assert.h"
 
 #include "stream_vis_defines.h"
 

@@ -735,14 +735,23 @@ typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
 //                                       struct Stream_MediaFramework_V4L_MediaType> Stream_CamSave_V4L_GTKWindowDisplay;
 
 #if defined (LIBCAMERA_SUPPORT)
-typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
-                                       Common_TimePolicy_t,
-                                       struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
-                                       Stream_ControlMessage_t,
-                                       Stream_CamSave_LibCamera_Message_t,
-                                       Stream_CamSave_LibCamera_SessionMessage_t,
-                                       Stream_CamSave_LibCamera_SessionData_t,
-                                       struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_GTKPixbufDisplay;
+typedef Stream_Module_Vis_GTK_Cairo_T<ACE_MT_SYNCH,
+                                      Common_TimePolicy_t,
+                                      struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+                                      Stream_ControlMessage_t,
+                                      Stream_CamSave_LibCamera_Message_t,
+                                      Stream_CamSave_LibCamera_SessionMessage_t,
+                                      Stream_CamSave_LibCamera_SessionData,
+                                      Stream_CamSave_LibCamera_SessionData_t,
+                                      struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_GTKCairoDisplay;
+// typedef Stream_Module_Vis_GTK_Pixbuf_T<ACE_MT_SYNCH,
+//                                        Common_TimePolicy_t,
+//                                        struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration,
+//                                        Stream_ControlMessage_t,
+//                                        Stream_CamSave_LibCamera_Message_t,
+//                                        Stream_CamSave_LibCamera_SessionMessage_t,
+//                                        Stream_CamSave_LibCamera_SessionData_t,
+//                                        struct Stream_MediaFramework_LibCamera_MediaType> Stream_CamSave_LibCamera_GTKPixbufDisplay;
 #endif // LIBCAMERA_SUPPORT
 #endif // GTK_SUPPORT
 //#if defined (LIBCAMERA_SUPPORT)
@@ -1169,12 +1178,18 @@ DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   
 //                              Stream_CamSave_Display_V4L_GTKWindowDisplay);     // writer type
 #endif // GTK_SUPPORT
 #if defined (LIBCAMERA_SUPPORT)
-DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
-                              enum Stream_SessionMessageType,                   // session event type
+DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                             // session event type
                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
-                              libacestream_default_vis_gtk_pixbuf_module_name_string,
-                              Stream_INotify_t,                                 // stream notification interface type
-                              Stream_CamSave_LibCamera_GTKPixbufDisplay);       // writer type
+                              libacestream_default_vis_gtk_cairo_module_name_string,
+                              Stream_INotify_t,                                           // stream notification interface type
+                              Stream_CamSave_LibCamera_GTKCairoDisplay);                  // writer type
+// DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_LibCamera_SessionData,             // session data type
+//                               enum Stream_SessionMessageType,                   // session event type
+//                               struct Stream_CamSave_LibCamera_ModuleHandlerConfiguration, // module handler configuration type
+//                               libacestream_default_vis_gtk_pixbuf_module_name_string,
+//                               Stream_INotify_t,                                 // stream notification interface type
+//                               Stream_CamSave_LibCamera_GTKPixbufDisplay);       // writer type
 #endif // LIBCAMERA_SUPPORT
 //DATASTREAM_MODULE_INPUT_ONLY (Stream_CamSave_V4L_SessionData,                   // session data type
 //                              enum Stream_SessionMessageType,                   // session event type
