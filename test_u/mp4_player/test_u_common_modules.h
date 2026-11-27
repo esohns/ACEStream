@@ -59,6 +59,7 @@
 #include "stream_lib_directshow_source_filter.h"
 #endif // DIRECTSHOW_BASECLASSES_SUPPORT
 
+#include "stream_misc_asynch.h"
 #include "stream_misc_defines.h"
 #include "stream_misc_delay.h"
 #include "stream_misc_media_splitter.h"
@@ -148,6 +149,13 @@ typedef Stream_LibAV_Source_T<ACE_MT_SYNCH,
                               Common_Timer_Manager_t,
                               struct Stream_UserData> Test_U_MediaFoundation_LibAVSource;
 #endif // FFMPEG_SUPPORT
+
+typedef Stream_Module_Asynch_T<ACE_MT_SYNCH,
+                               Common_TimePolicy_t,
+                               struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
+                               Stream_ControlMessage_t,
+                               Test_U_DirectShow_Message_t,
+                               Test_U_DirectShow_SessionMessage_t> Test_U_Asynch;
 
 typedef Stream_Miscellaneous_MediaSplitter_T<ACE_MT_SYNCH,
                                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration,
@@ -604,6 +612,13 @@ DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_MediaFoundation_SessionData,     
                               Stream_INotify_t,                                                   // stream notification interface type
                               Test_U_MediaFoundation_LibAVSource);                                // writer type
 #endif // FFMPEG_SUPPORT
+
+DATASTREAM_MODULE_INPUT_ONLY (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
+                              enum Stream_SessionMessageType,                                // session event type
+                              struct Test_U_MP4Player_DirectShow_ModuleHandlerConfiguration, // module handler configuration type
+                              libacestream_default_misc_asynch_module_name_string,
+                              Stream_INotify_t,                                              // stream notification interface type
+                              Test_U_Asynch);                                                // writer type
 
 DATASTREAM_MODULE_DUPLEX (Test_U_MP4Player_DirectShow_SessionData,                       // session data type
                           enum Stream_SessionMessageType,                                // session event type

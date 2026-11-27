@@ -255,7 +255,7 @@ Stream_Module_Vis_GTK_Window_T<ACE_SYNCH_USE,
         inherited::wait (false); // do not wait for the message queue to idle
       } // end IF
 
-#if GTK_CHECK_VERSION (3,0,0)
+#if GTK_CHECK_VERSION (4,0,0)
       if (context_)
       {
         g_object_unref (context_); context_ = NULL;

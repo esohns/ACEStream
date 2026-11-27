@@ -107,7 +107,8 @@ class Test_U_DirectShow_Stream
 #if defined (FFMPEG_SUPPORT)
   Test_U_DirectShow_LibAVSource_Module      source_;
 #endif // FFMPEG_SUPPORT
-  Test_U_DirectShow_StatisticReport_Module statisticReport_;
+  Test_U_Asynch_Module                      asynch_;
+  Test_U_DirectShow_StatisticReport_Module  statisticReport_;
   Test_U_Splitter_Module                    splitter_;
 #if defined (FAAD_SUPPORT)
   Test_U_DirectShow_FAADDecode_Module       faadAudioDecode_;

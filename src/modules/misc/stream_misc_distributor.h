@@ -26,7 +26,6 @@
 #include <utility>
 
 #include "ace/Global_Macros.h"
-#include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_ilock.h"

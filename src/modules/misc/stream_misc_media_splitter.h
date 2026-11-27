@@ -22,7 +22,6 @@
 #define STREAM_MISC_MEDIA_SPLITTER_H
 
 #include "ace/Global_Macros.h"
-#include "ace/Module.h"
 #include "ace/Synch_Traits.h"
 
 #include "common_time_common.h"

@@ -53,6 +53,8 @@ Test_U_DirectShow_Stream::Test_U_DirectShow_Stream ()
  , source_ (this,
             ACE_TEXT_ALWAYS_CHAR (STREAM_DEC_DECODER_LIBAV_SOURCE_DEFAULT_NAME_STRING))
 #endif // FFMPEG_SUPPORT
+ , asynch_ (this,
+            ACE_TEXT_ALWAYS_CHAR (STREAM_MISC_ASYNCH_DEFAULT_NAME_STRING))
  , statisticReport_ (this,
                      ACE_TEXT_ALWAYS_CHAR (MODULE_STAT_REPORT_DEFAULT_NAME_STRING))
  , splitter_ (this,
@@ -125,6 +127,7 @@ Test_U_DirectShow_Stream::load (Stream_ILayout* layout_in,
   unsigned int index_i = 0; // 0: audio branch
 
   layout_in->append (&source_, NULL, 0);
+  //layout_in->append (&asynch_, NULL, 0);
   //layout_in->append (&statisticReport_, NULL, 0);
   layout_in->append (&splitter_, NULL, 0);
 

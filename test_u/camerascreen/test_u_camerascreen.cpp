@@ -689,7 +689,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
 
   // *NOTE*: the default output format is RGB32
   ACE_ASSERT (InlineIsEqualGUID (outputFormat_inout.majortype, MEDIATYPE_Video));
-  outputFormat_inout.subtype = MEDIASUBTYPE_RGB32;
+  outputFormat_inout.subtype =
+    renderer_in == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW ? MEDIASUBTYPE_RGB24
+                                                                 : MEDIASUBTYPE_RGB32;
   outputFormat_inout.bFixedSizeSamples = TRUE;
   outputFormat_inout.bTemporalCompression = FALSE;
   if (InlineIsEqualGUID (outputFormat_inout.formattype, FORMAT_VideoInfo))
@@ -705,7 +707,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
     ACE_ASSERT (video_info_header_p->dwBitErrorRate == 0);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 32;
+    video_info_header_p->bmiHeader.biBitCount =
+      renderer_in == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW ? 24
+                                                                   : 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);
@@ -727,7 +731,9 @@ do_initialize_directshow (const struct Stream_Device_Identifier& deviceIdentifie
       reinterpret_cast<struct tagVIDEOINFOHEADER2*> (outputFormat_inout.pbFormat);
     ACE_ASSERT (video_info_header_p->bmiHeader.biSize == sizeof (struct tagBITMAPINFOHEADER));
     ACE_ASSERT (video_info_header_p->bmiHeader.biPlanes == 1);
-    video_info_header_p->bmiHeader.biBitCount = 32;
+    video_info_header_p->bmiHeader.biBitCount =
+      renderer_in == STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW ? 24
+                                                                   : 32;
     video_info_header_p->bmiHeader.biCompression = BI_RGB;
     video_info_header_p->bmiHeader.biSizeImage =
       DIBSIZE (video_info_header_p->bmiHeader);

@@ -139,7 +139,7 @@ Stream_CameraScreen_DirectShow_Stream::load (Stream_ILayout* layout_in,
 #if defined (GTK_SUPPORT)
     case STREAM_VISUALIZATION_VIDEORENDERER_GTK_WINDOW:
     {
-      //layout_in->append (&convert_2, NULL, 0); // output is 8-bit BGRA
+      layout_in->append (&convert_, NULL, 0); // output is 8-bit BGR
       layout_in->append (&GTKDisplay_, NULL, 0);
       break;
     }

@@ -204,7 +204,6 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   int result_2 = -1;
   ACE_Message_Block* message_block_p = NULL;
   ACE_Time_Value no_wait = COMMON_TIME_NOW;
-  int message_type = -1;
   DataMessageType* message_p = NULL;
   static ACE_Time_Value backoff_timeout (STREAM_MESSAGE_ALLOCATION_SOURCE_BACKOFF_TIMEOUT_S, 0);
   bool stop_processing = false;
@@ -225,10 +224,13 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   if (unlikely (result))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to avformat_open_input(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to avformat_open_input(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
-    inherited::stop (false, false, true);
+                ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ()),
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    inherited::stop (false,
+                     false,
+                     true);
     goto loop;
   } // end IF
 
@@ -237,10 +239,13 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
   if (unlikely (result < 0))
   {
     ACE_DEBUG ((LM_ERROR,
-                ACE_TEXT ("%s: failed to avformat_find_stream_info(\"%s\"): \"%m\", aborting\n"),
+                ACE_TEXT ("%s: failed to avformat_find_stream_info(\"%s\"): \"%s\", aborting\n"),
                 inherited::mod_->name (),
-                ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ())));
-    inherited::stop (false, false, true);
+                ACE_TEXT (inherited::configuration_->fileIdentifier.identifier.c_str ()),
+                ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
+    inherited::stop (false,
+                     false,
+                     true);
     goto loop;
   } // end IF
 
@@ -348,7 +353,9 @@ Stream_LibAV_Source_T<ACE_SYNCH_USE,
                     ACE_TEXT ("%s: invalid/unknown codec type (was: %d), aborting\n"),
                     inherited::mod_->name (),
                     context_->streams[i]->codecpar->codec_type));
-        inherited::stop (false, false, true);
+        inherited::stop (false,
+                         false,
+                         true);
         goto loop;
       }
     } // end SWITCH
@@ -363,8 +370,7 @@ loop:
                               &no_wait);
     if (result >= 0)
     { ACE_ASSERT (message_block_p);
-      message_type = message_block_p->msg_type ();
-      switch (message_type)
+      switch (message_block_p->msg_type ())
       {
         case ACE_Message_Block::MB_STOP:
         {
@@ -418,7 +424,7 @@ loop:
         if (!finished_b)
           inherited::stop (false,
                            false,
-                           false);
+                           true);
         continue;
       } // end IF
     } // end IF
@@ -453,7 +459,7 @@ loop:
 
           inherited::stop (false,
                            false,
-                           false);
+                           true);
           continue;
         } // end IF
       } // end lock scope
@@ -477,11 +483,12 @@ skip:
     {
       if (unlikely (result != AVERROR_EOF))
         ACE_DEBUG ((LM_ERROR,
-                    ACE_TEXT ("%s: failed to av_read_frame(): \"%m\", aborting\n"),
-                    inherited::mod_->name ()));
+                    ACE_TEXT ("%s: failed to av_read_frame(): \"%s\", aborting\n"),
+                    inherited::mod_->name (),
+                    ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       inherited::stop (false,
                        false,
-                       false);
+                       result != AVERROR_EOF);
       continue;
     } // end IF
     if ((inherited::configuration_->streamIndex >= 0 && packet_s.stream_index != inherited::configuration_->streamIndex) ||
@@ -498,13 +505,13 @@ skip:
     if (unlikely (!message_p))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%u), aborting\n"),
+                  ACE_TEXT ("%s: failed to Stream_TaskBase_T::allocateMessage(%d), aborting\n"),
                   inherited::mod_->name (),
                   packet_s.size + inherited::configuration_->allocatorConfiguration->paddingBytes));
       av_packet_unref (&packet_s);
       inherited::stop (false,
                        false,
-                       false);
+                       true);
       continue;
     } // end IF
     message_p->size (packet_s.size);
@@ -514,14 +521,15 @@ skip:
     if (unlikely (result == -1))
     {
       ACE_DEBUG ((LM_ERROR,
-                  ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%u): \"%m\", aborting\n"),
+                  ACE_TEXT ("%s: failed to ACE_Message_Block::copy(%d): \"%s\", aborting\n"),
                   inherited::mod_->name (),
-                  packet_s.size));
+                  packet_s.size,
+                  ACE_TEXT (Common_Image_Tools::errorToString (result).c_str ())));
       av_packet_unref (&packet_s);
       message_p->release (); message_p = NULL;
       inherited::stop (false,
                        false,
-                       false);
+                       true);
       continue;
     } // end IF
     message_p->setMediaType (streamIndexToMessageMediaType_[packet_s.stream_index]);
@@ -536,7 +544,7 @@ skip:
       message_p->release (); message_p = NULL;
       inherited::stop (false,
                        false,
-                       false);
+                       true);
       continue;
     } // end IF
     message_p = NULL;

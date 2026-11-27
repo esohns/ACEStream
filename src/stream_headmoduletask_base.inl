@@ -1230,8 +1230,8 @@ end:
       if (timerId_ != -1)
       {
         typename TimerManagerType::INTERFACE_T* itimer_manager_p =
-            (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
-                                                     : TIMER_MANAGER_SINGLETON_T::instance ());
+          (inherited::configuration_->timerManager ? inherited::configuration_->timerManager
+                                                   : TIMER_MANAGER_SINGLETON_T::instance ());
         ACE_ASSERT (itimer_manager_p);
         const void* act_p = NULL;
         result = itimer_manager_p->cancel_timer (timerId_,
